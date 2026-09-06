@@ -3,6 +3,15 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.5] - 2026-09-06
+
+### Behoben
+- **Prisma Client Initialisierung im Docker Container**:
+  - `docker-entrypoint.sh`: Führt `npx prisma generate` vor dem Start immer explizit aus, um sicherzustellen, dass `@prisma/client` auch bei bereits existierender Datenbank-Datei (`alltagsplaner.db`) vollständig initialisiert ist.
+  - `docker-entrypoint.sh`: Flag `--skip-generate` beim Schema-Sync (`prisma db push`) entfernt.
+  - `Dockerfile`: `prisma` und `tsx` direkt in `dependencies` überführt. Im Stage 2 Runner wird `npx prisma generate` bereits beim Docker-Image-Build ausgeführt.
+  - Behebt den Fehler `@prisma/client did not initialize yet. Please run "prisma generate" and try to import it again.`
+
 ## [0.1.0-beta.4] - 2026-09-06
 
 ### Behoben

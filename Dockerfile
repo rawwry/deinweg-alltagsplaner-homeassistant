@@ -32,9 +32,9 @@ ENV NODE_ENV=production
 ENV PORT=4731
 
 COPY package.json package-lock.json* ./
-RUN npm install --omit=dev && npm install tsx prisma
+COPY prisma ./prisma
+RUN npm install --omit=dev && npx prisma generate
 
-COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/shared ./shared
 COPY --from=builder /app/server/dist ./server/dist
 COPY --from=builder /app/client/dist ./client/dist

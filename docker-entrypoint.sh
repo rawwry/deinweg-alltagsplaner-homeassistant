@@ -9,15 +9,19 @@ mkdir -p /share/deinweg-alltagsplaner/export
 
 export DATABASE_URL="file:/share/deinweg-alltagsplaner/db/alltagsplaner.db"
 
-# 2. Prüfen, ob Datenbank neu initialisiert werden muss
+# 2. Prisma Client immer explizit generieren/sicherstellen
+echo "Initialisiere Prisma Client..."
+npx prisma generate
+
+# 3. Prüfen, ob Datenbank neu initialisiert werden muss
 if [ ! -f "/share/deinweg-alltagsplaner/db/alltagsplaner.db" ]; then
   echo "Initialisiere neue SQLite-Datenbank unter /share/deinweg-alltagsplaner/db/alltagsplaner.db..."
   npx prisma db push
   echo "Führe Initial-Seeding aus..."
   npx tsx prisma/seed.ts
 else
-  echo "Bestehende Datenbank gefunden, aktualisiere Schema..."
-  npx prisma db push --skip-generate
+  echo "Bestehende Datenbank gefunden, synchronisiere Schema..."
+  npx prisma db push
 fi
 
 echo "Starte Server auf Port 4731..."
