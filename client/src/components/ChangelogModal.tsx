@@ -19,9 +19,33 @@ interface VersionRelease {
 
 const RELEASES: VersionRelease[] = [
   {
-    version: '0.1.0-beta.11',
+    version: '0.1.0-beta.12',
     date: '2026-09-07',
     isLatest: true,
+    tagline: 'Großes animiertes Login-Logo & modernes Glassmorphism-Design',
+    highlights: [
+      {
+        category: '✨ Login-Screen Redesign',
+        items: [
+          'Dein Weg Logo auf dem Login-Screen stark vergrößert mit sanft schwebender Animation (Float-Keyframes).',
+          'Weicher, pulsierender Ambient-Lichthof hinter dem Logo für ein edles Erscheinungsbild.',
+          'Überflüssige Textzeilen („Dein Weg Alltagsplaner Alltags- & Essensplanung im betreuten Wohnen“) komplett entfernt.',
+          'Anmeldekarte in edles Frosted-Glass-Design mit abgerundeten Feldern und Farbverlaufs-Button umgestaltet.',
+        ],
+      },
+      {
+        category: '🎨 UI & Tiefenwirkung',
+        items: [
+          'Globaler, dezenter Radial-Hintergrundverlauf für mehr optische Tiefe statt eintönigem Schwarz.',
+          'Dashboard-Startseite mit ambienter Begrüßungs-Mesh-Card, Glas-Effekten und lebendigen Schnellstart-Kacheln aufgewertet.',
+          'Desktop-Sidebar mit leuchtendem aktiven Randindikator und optimierten Icons.',
+        ],
+      },
+    ],
+  },
+  {
+    version: '0.1.0-beta.11',
+    date: '2026-09-07',
     tagline: 'Top-Menü Redesign, Zahnrad-Verwaltung, Abfallkalender & In-App Changelog',
     highlights: [
       {

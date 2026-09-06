@@ -3,6 +3,19 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.12] - 2026-09-07
+
+### Geändert & Verbessert
+- **Login-Screen Redesign & Logo-Animation**:
+  - Das Dein Weg Logo auf der Login-Seite wurde deutlich vergrößert (`h-28` bis `h-32`) und schwebt mit einer sanften, eleganten Float-Animation (`@keyframes float`).
+  - Ein weicher, pulsierender Ambient-Lichthof hinter dem Logo verleiht dem Markenauftritt eine edle Ausstrahlung.
+  - Die Textuntertitel („Dein Weg Alltagsplaner Alltags- & Essensplanung im betreuten Wohnen“) wurden entfernt – das Logo steht nun pur und wirkungsvoll im Zentrum.
+  - Die Anmeldekarte wurde als modernes Frosted-Glass-Element mit tiefem Schatten, abgerundeten Ecken und Farbverlaufs-Button umgestaltet.
+- **Globales UI & Tiefenwirkung**:
+  - Globaler, sanfter Radial-Farbverlauf auf dem Seitenhintergrund für organische Tiefe und ein hochwertiges Ambiente.
+  - Das Dashboard präsentiert sich im modernen Glassmorphism-Look mit ambientem Begrüßungs-Banner, farblich akzentuierten Highlight-Karten und lebendigen Kacheln für die WG-Bereiche.
+  - Die Desktop-Navigation verfügt über einen strahlenden aktiven Indikator und feiner abgestimmte Hover-Zustände.
+
 ## [0.1.0-beta.11] - 2026-09-07
 
 ### Geändert & Verbessert

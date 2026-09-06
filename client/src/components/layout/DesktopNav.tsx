@@ -107,14 +107,19 @@ export const DesktopNav: React.FC<DesktopNavProps> = ({ currentTab, setCurrentTa
                 type="button"
                 onClick={() => setCurrentTab(item.id)}
                 title={isCollapsed ? item.label : undefined}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm font-semibold transition-all group relative ${
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm font-semibold transition-all group relative cursor-pointer ${
                   isCollapsed ? 'justify-center' : 'text-left'
                 } ${
                   isActive
-                    ? 'bg-gradient-to-r from-sky-600/30 to-indigo-600/20 text-sky-300 border border-sky-500/40 shadow-sm shadow-sky-950/50'
-                    : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-100 hover:border-slate-750'
+                    ? 'bg-sky-500/15 text-sky-200 border border-sky-500/30 shadow-md shadow-sky-950/50'
+                    : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-100 border border-transparent'
                 }`}
               >
+                {/* Active Indicator Bar */}
+                {isActive && (
+                  <span className="absolute left-0 top-2.5 bottom-2.5 w-1 bg-sky-400 rounded-r-full shadow-md shadow-sky-400/60" />
+                )}
+
                 <div className="relative flex items-center justify-center">
                   <Icon
                     className={`w-5 h-5 transition-transform group-hover:scale-110 duration-200 ${
@@ -131,7 +136,7 @@ export const DesktopNav: React.FC<DesktopNavProps> = ({ currentTab, setCurrentTa
                   <>
                     <span className="flex-1 truncate">{item.label}</span>
                     {item.badge !== undefined && (
-                      <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 animate-pulse shadow-xs">
+                      <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 animate-pulse shadow-xs font-mono">
                         {item.badge}
                       </span>
                     )}
@@ -143,10 +148,10 @@ export const DesktopNav: React.FC<DesktopNavProps> = ({ currentTab, setCurrentTa
         </nav>
       </div>
 
-      {/* Playful Bottom Card */}
+      {/* Modern Bottom Card */}
       {!isCollapsed ? (
         <div className="pt-3 border-t border-slate-800/80 px-1 text-center animate-in fade-in duration-200">
-          <div className="p-3 bg-gradient-to-br from-sky-950/40 to-indigo-950/30 rounded-2xl border border-sky-800/30 shadow-inner">
+          <div className="p-3 bg-slate-950/60 rounded-2xl border border-slate-800/80 shadow-inner">
             <div className="text-xs font-bold text-slate-200">Dein Weg WG-Planer</div>
             <p className="text-[10px] text-slate-400 mt-1 leading-tight font-medium">
               Taktische Skill-Issue-Prävention

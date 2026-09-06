@@ -4,9 +4,39 @@
 
 @layer base {
   body {
-    @apply bg-slate-950 text-slate-100 font-sans;
+    @apply bg-slate-950 text-slate-100 font-sans min-h-full antialiased;
+    background: radial-gradient(circle at 50% 0%, #0f172a 0%, #020617 80%, #020617 100%);
     -webkit-tap-highlight-color: transparent;
   }
+}
+
+/* Keyframe animations */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.65;
+    transform: scale(1.06);
+  }
+}
+
+.animate-float {
+  animation: float 3.5s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 4s ease-in-out infinite;
 }
 
 /* Custom scrollbar for dark mode */
@@ -23,3 +53,4 @@
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-slate-700;
 }
+

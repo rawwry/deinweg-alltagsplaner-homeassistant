@@ -72,26 +72,26 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-20 md:pb-8">
-      {/* Welcome Banner with Playful Warmth */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-sky-600 via-indigo-600 to-purple-700 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-sky-950/30 border border-white/10">
-        {/* Decorative background glow spots */}
-        <div className="absolute -top-12 -right-12 w-48 h-48 bg-amber-400/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-sky-400/20 rounded-full blur-3xl pointer-events-none" />
+      {/* Welcome Banner with Modern Ambient Glow */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-slate-900/90 via-sky-950/40 to-slate-900/90 rounded-3xl p-6 sm:p-8 text-white shadow-2xl shadow-black/40 border border-sky-500/20 backdrop-blur-xl">
+        {/* Ambient background light orbs */}
+        <div className="absolute -top-16 -right-16 w-56 h-56 bg-sky-500/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
           <div>
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-white/15 backdrop-blur-md rounded-full text-xs font-bold mb-3 border border-white/20 shadow-xs">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-slate-800/80 backdrop-blur-md rounded-full text-xs font-bold mb-3 border border-slate-700/80 shadow-inner">
               <span className="text-sm">🏡</span>
-              <span>WG {activeLocation?.name || user?.locationName || 'Emsdetten'}</span>
-              <span className="opacity-60">•</span>
-              <span className="text-amber-200">KW {currentWeek}</span>
+              <span className="text-slate-200">WG {activeLocation?.name || user?.locationName || 'Emsdetten'}</span>
+              <span className="opacity-40">•</span>
+              <span className="text-sky-300 font-mono">KW {currentWeek}</span>
             </div>
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight flex items-center gap-2.5 flex-wrap">
               <span>Hallo, {user?.name}!</span>
               <span className="inline-block animate-bounce text-2xl sm:text-3xl">👋</span>
             </h1>
-            <p className="text-sky-100 text-sm sm:text-base mt-2 max-w-xl font-medium leading-relaxed">
-              Schön, dass du da bist! Hier ist euer WG-Planer: Schau nach, was heute Leckeres gekocht wird, was auf dem Einkaufszettel steht oder welche Tonne heute dran ist.
+            <p className="text-slate-300 text-sm sm:text-base mt-2 max-w-xl font-normal leading-relaxed">
+              Hier ist euer WG-Planer: Schau nach, was heute Leckeres gekocht wird, was auf der Einkaufsliste steht oder welcher Abfalltermin ansteht.
             </p>
           </div>
 
@@ -99,25 +99,25 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             <button
               type="button"
               onClick={() => setCurrentTab('mealplan')}
-              className="px-5 py-3 bg-white hover:bg-sky-50 active:bg-sky-100 text-indigo-900 rounded-2xl text-sm font-bold shadow-lg shadow-black/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+              className="px-5 py-3.5 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white rounded-2xl text-sm font-bold shadow-lg shadow-sky-600/25 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>Wochenplan ansehen</span>
-              <ArrowRight className="w-4 h-4 text-indigo-600" />
+              <ArrowRight className="w-4 h-4 text-white" />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Primary Highlights Grid */}
+      {/* Primary Highlights Grid (Frosted Glass Cards) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-stretch">
         {/* Today's Dish Card */}
-        <div className="bg-slate-900/90 rounded-3xl p-5 sm:p-6 border border-slate-800 shadow-md hover:shadow-xl hover:border-amber-500/40 transition-all flex flex-col justify-between h-full group">
+        <div className="bg-slate-900/70 backdrop-blur-xl rounded-3xl p-6 border border-slate-800/90 shadow-xl hover:shadow-2xl hover:border-amber-500/50 hover:shadow-amber-950/20 transition-all duration-300 flex flex-col justify-between h-full group">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2.5 bg-gradient-to-tr from-amber-500/20 to-orange-500/10 text-amber-400 border border-amber-500/30 rounded-2xl shadow-inner group-hover:scale-105 transition-transform text-lg">
+              <div className="w-11 h-11 bg-gradient-to-tr from-amber-500/20 to-orange-500/10 text-amber-400 border border-amber-500/30 rounded-2xl shadow-inner group-hover:scale-110 transition-transform flex items-center justify-center text-xl">
                 🍳
               </div>
-              <span className="text-xs font-bold text-amber-300 bg-amber-950/70 border border-amber-800/60 px-3 py-1 rounded-full flex items-center gap-1.5">
+              <span className="text-xs font-bold text-amber-300 bg-amber-950/80 border border-amber-800/70 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-inner">
                 <span>Heute auf dem Tisch</span>
               </span>
             </div>
@@ -131,14 +131,14 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             </p>
           </div>
 
-          <div className="mt-4 pt-3.5 border-t border-slate-800/80">
-            <div className="flex items-center justify-between text-xs text-slate-400 mb-3 bg-slate-800/40 p-2 rounded-xl border border-slate-800">
+          <div className="mt-5 pt-4 border-t border-slate-800/80">
+            <div className="flex items-center justify-between text-xs text-slate-400 mb-3.5 bg-slate-950/50 p-2.5 rounded-2xl border border-slate-800/80">
               <div className="flex items-center gap-1.5 font-medium">
                 <span>👥</span>
                 <span>{todayMeal?.servings || 6} Portionen</span>
               </div>
               {todayMeal?.cookName ? (
-                <div className="font-semibold text-sky-400 flex items-center gap-1">
+                <div className="font-semibold text-amber-300 flex items-center gap-1">
                   <span>👨‍🍳</span>
                   <span>Koch: {todayMeal.cookName}</span>
                 </div>
@@ -153,22 +153,22 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             <button
               type="button"
               onClick={() => setCurrentTab('mealplan')}
-              className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-750 text-slate-200 hover:text-white border border-slate-700/80 hover:border-amber-500/50 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-xs"
+              className="w-full py-2.5 px-4 bg-slate-800/90 hover:bg-slate-750 text-slate-200 hover:text-white border border-slate-700/80 hover:border-amber-500/50 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-sm group-hover:shadow-amber-950/40 cursor-pointer"
             >
               <span>Zum Speiseplan</span>
-              <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
+              <ArrowRight className="w-3.5 h-3.5 text-amber-400 group-hover:translate-x-0.5 transition-transform" />
             </button>
           </div>
         </div>
 
         {/* Shopping List Summary Card */}
-        <div className="bg-slate-900/90 rounded-3xl p-5 sm:p-6 border border-slate-800 shadow-md hover:shadow-xl hover:border-emerald-500/40 transition-all flex flex-col justify-between h-full group">
+        <div className="bg-slate-900/70 backdrop-blur-xl rounded-3xl p-6 border border-slate-800/90 shadow-xl hover:shadow-2xl hover:border-emerald-500/50 hover:shadow-emerald-950/20 transition-all duration-300 flex flex-col justify-between h-full group">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2.5 bg-gradient-to-tr from-emerald-500/20 to-teal-500/10 text-emerald-400 border border-emerald-500/30 rounded-2xl shadow-inner group-hover:scale-105 transition-transform text-lg">
+              <div className="w-11 h-11 bg-gradient-to-tr from-emerald-500/20 to-teal-500/10 text-emerald-400 border border-emerald-500/30 rounded-2xl shadow-inner group-hover:scale-110 transition-transform flex items-center justify-center text-xl">
                 🛒
               </div>
-              <span className="text-xs font-bold text-emerald-300 bg-emerald-950/70 border border-emerald-800/60 px-3 py-1 rounded-full flex items-center gap-1.5">
+              <span className="text-xs font-bold text-emerald-300 bg-emerald-950/80 border border-emerald-800/70 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-inner">
                 <span>Einkaufsliste</span>
               </span>
             </div>
@@ -182,13 +182,13 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             </p>
           </div>
 
-          <div className="mt-4 pt-3.5 border-t border-slate-800/80">
-            <div className="flex items-center justify-between text-xs mb-3 bg-slate-800/40 p-2 rounded-xl border border-slate-800">
+          <div className="mt-5 pt-4 border-t border-slate-800/80">
+            <div className="flex items-center justify-between text-xs mb-3.5 bg-slate-950/50 p-2.5 rounded-2xl border border-slate-800/80">
               <span className="text-slate-400 flex items-center gap-1">
                 <span>💳</span>
                 <span>Geschätzte Kosten:</span>
               </span>
-              <span className="text-sm font-extrabold text-emerald-400">
+              <span className="text-sm font-extrabold text-emerald-400 font-mono">
                 ~ {shoppingSummary?.totalEstimatedCost ? `${shoppingSummary.totalEstimatedCost.toFixed(2)} €` : '0.00 €'}
               </span>
             </div>
@@ -196,23 +196,23 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             <button
               type="button"
               onClick={() => setCurrentTab('shopping')}
-              className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-750 text-slate-200 hover:text-white border border-slate-700/80 hover:border-emerald-500/50 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-xs"
+              className="w-full py-2.5 px-4 bg-slate-800/90 hover:bg-slate-750 text-slate-200 hover:text-white border border-slate-700/80 hover:border-emerald-500/50 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-sm group-hover:shadow-emerald-950/40 cursor-pointer"
             >
               <span>Einkaufsliste öffnen</span>
-              <ArrowRight className="w-3.5 h-3.5 text-emerald-400" />
+              <ArrowRight className="w-3.5 h-3.5 text-emerald-400 group-hover:translate-x-0.5 transition-transform" />
             </button>
           </div>
         </div>
 
         {/* Waste Calendar & Notes Summary */}
-        <div className="bg-slate-900/90 rounded-3xl p-5 sm:p-6 border border-slate-800 shadow-md hover:shadow-xl hover:border-sky-500/40 transition-all flex flex-col justify-between h-full group">
+        <div className="bg-slate-900/70 backdrop-blur-xl rounded-3xl p-6 border border-slate-800/90 shadow-xl hover:shadow-2xl hover:border-sky-500/50 hover:shadow-sky-950/20 transition-all duration-300 flex flex-col justify-between h-full group">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2.5 bg-gradient-to-tr from-sky-500/20 to-indigo-500/10 text-sky-400 border border-sky-500/30 rounded-2xl shadow-inner group-hover:scale-105 transition-transform text-lg">
+              <div className="w-11 h-11 bg-gradient-to-tr from-sky-500/20 to-indigo-500/10 text-sky-400 border border-sky-500/30 rounded-2xl shadow-inner group-hover:scale-110 transition-transform flex items-center justify-center text-xl">
                 🚛
               </div>
-              <span className="text-xs font-bold text-sky-300 bg-sky-950/70 border border-sky-800/60 px-3 py-1 rounded-full flex items-center gap-1.5">
-                <span>Müllabfuhr</span>
+              <span className="text-xs font-bold text-sky-300 bg-sky-950/80 border border-sky-800/70 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-inner">
+                <span>Abfallabfuhr</span>
               </span>
             </div>
 
@@ -246,18 +246,18 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             ) : (
               <div>
                 <div className="text-base sm:text-lg font-bold text-slate-100">Alles sauber! 🍃</div>
-                <div className="text-xs text-slate-400 mt-1.5 min-h-[2rem]">Aktuell steht keine Müllabfuhr an.</div>
+                <div className="text-xs text-slate-400 mt-1.5 min-h-[2rem]">Aktuell steht keine Abfuhr an.</div>
               </div>
             )}
           </div>
 
-          <div className="mt-4 pt-3.5 border-t border-slate-800/80">
-            <div className="flex items-center justify-between text-xs text-slate-400 mb-3 bg-slate-800/40 p-2 rounded-xl border border-slate-800">
+          <div className="mt-5 pt-4 border-t border-slate-800/80">
+            <div className="flex items-center justify-between text-xs text-slate-400 mb-3.5 bg-slate-950/50 p-2.5 rounded-2xl border border-slate-800/80">
               <span className="flex items-center gap-1">
                 <span>📌</span>
                 <span>Pinnwand & Notizen:</span>
               </span>
-              <span className={`font-bold px-2.5 py-0.5 rounded-full text-xs ${notesCount > 0 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'text-slate-400'}`}>
+              <span className={`font-bold px-2.5 py-0.5 rounded-full text-xs font-mono ${notesCount > 0 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 animate-pulse' : 'text-slate-400'}`}>
                 {notesCount} offen
               </span>
             </div>
@@ -265,25 +265,25 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             <button
               type="button"
               onClick={() => setCurrentTab('waste')}
-              className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-750 text-slate-200 hover:text-white border border-slate-700/80 hover:border-sky-500/50 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-xs"
+              className="w-full py-2.5 px-4 bg-slate-800/90 hover:bg-slate-750 text-slate-200 hover:text-white border border-slate-700/80 hover:border-sky-500/50 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-sm group-hover:shadow-sky-950/40 cursor-pointer"
             >
               <span>Abfallkalender öffnen</span>
-              <ArrowRight className="w-3.5 h-3.5 text-sky-400" />
+              <ArrowRight className="w-3.5 h-3.5 text-sky-400 group-hover:translate-x-0.5 transition-transform" />
             </button>
           </div>
         </div>
       </div>
 
-      {/* WG Areas and Quick Shortcuts */}
-      <div className="bg-slate-900 rounded-3xl p-6 border border-slate-800 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5">
+      {/* WG Areas and Quick Shortcuts (Rich Interactive Tiles) */}
+      <div className="bg-slate-900/70 backdrop-blur-xl rounded-3xl p-6 sm:p-7 border border-slate-800/90 shadow-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
           <div>
             <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
               <span>Schnellzugriff auf unsere WG-Bereiche</span>
               <span>🎨</span>
             </h2>
             <p className="text-xs text-slate-400 mt-0.5">
-              Alles für einen entspannten und organisierten Alltag in der Gruppe
+              Alles für einen entspannten und organisierten Alltag in der Wohngruppe
             </p>
           </div>
         </div>
@@ -292,61 +292,61 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           <button
             type="button"
             onClick={() => setCurrentTab('mealplan')}
-            className="p-4 rounded-2xl border border-slate-800 bg-slate-950/60 hover:bg-slate-800/60 hover:border-sky-700/60 text-left transition-all group hover:scale-[1.02] shadow-xs"
+            className="p-5 rounded-2xl border border-slate-800/80 bg-slate-950/50 hover:bg-slate-800/60 hover:border-sky-500/50 text-left transition-all duration-200 group hover:scale-[1.02] hover:shadow-lg hover:shadow-sky-950/30 cursor-pointer"
           >
-            <div className="w-11 h-11 rounded-2xl bg-sky-600 text-white flex items-center justify-center mb-3 text-xl group-hover:scale-110 transition-transform shadow-md shadow-sky-600/20">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-600 to-blue-500 text-white flex items-center justify-center mb-3.5 text-2xl group-hover:scale-110 transition-transform shadow-md shadow-sky-600/30">
               🗓️
             </div>
             <div className="text-sm font-bold text-slate-100 group-hover:text-sky-300 transition-colors">Wochenplan</div>
-            <div className="text-xs text-slate-400 mt-1">Gerichte für alle Tage planen & Köche einteilen</div>
+            <div className="text-xs text-slate-400 mt-1 leading-relaxed">Gerichte planen & Köche einteilen</div>
           </button>
 
           <button
             type="button"
             onClick={() => setCurrentTab('shopping')}
-            className="p-4 rounded-2xl border border-slate-800 bg-slate-950/60 hover:bg-slate-800/60 hover:border-emerald-700/60 text-left transition-all group hover:scale-[1.02] shadow-xs"
+            className="p-5 rounded-2xl border border-slate-800/80 bg-slate-950/50 hover:bg-slate-800/60 hover:border-emerald-500/50 text-left transition-all duration-200 group hover:scale-[1.02] hover:shadow-lg hover:shadow-emerald-950/30 cursor-pointer"
           >
-            <div className="w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center mb-3 text-xl group-hover:scale-110 transition-transform shadow-md shadow-emerald-600/20">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center mb-3.5 text-2xl group-hover:scale-110 transition-transform shadow-md shadow-emerald-600/30">
               🛒
             </div>
             <div className="text-sm font-bold text-slate-100 group-hover:text-emerald-300 transition-colors">Einkaufsliste</div>
-            <div className="text-xs text-slate-400 mt-1">Zutaten im Supermarkt abhaken & Kosten prüfen</div>
+            <div className="text-xs text-slate-400 mt-1 leading-relaxed">Zutaten abhaken & Preise prüfen</div>
           </button>
 
           <button
             type="button"
             onClick={() => setCurrentTab('recipes')}
-            className="p-4 rounded-2xl border border-slate-800 bg-slate-950/60 hover:bg-slate-800/60 hover:border-indigo-700/60 text-left transition-all group hover:scale-[1.02] shadow-xs"
+            className="p-5 rounded-2xl border border-slate-800/80 bg-slate-950/50 hover:bg-slate-800/60 hover:border-indigo-500/50 text-left transition-all duration-200 group hover:scale-[1.02] hover:shadow-lg hover:shadow-indigo-950/30 cursor-pointer"
           >
-            <div className="w-11 h-11 rounded-2xl bg-indigo-600 text-white flex items-center justify-center mb-3 text-xl group-hover:scale-110 transition-transform shadow-md shadow-indigo-600/20">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center mb-3.5 text-2xl group-hover:scale-110 transition-transform shadow-md shadow-indigo-600/30">
               📖
             </div>
             <div className="text-sm font-bold text-slate-100 group-hover:text-indigo-300 transition-colors">Rezepte</div>
-            <div className="text-xs text-slate-400 mt-1">Lieblingsgerichte der WG mit Zutaten & Zubereitung</div>
+            <div className="text-xs text-slate-400 mt-1 leading-relaxed">Lieblingsgerichte mit Zubereitung</div>
           </button>
 
           <button
             type="button"
             onClick={() => setCurrentTab('notes')}
-            className="p-4 rounded-2xl border border-slate-800 bg-slate-950/60 hover:bg-slate-800/60 hover:border-amber-700/60 text-left transition-all group hover:scale-[1.02] shadow-xs"
+            className="p-5 rounded-2xl border border-slate-800/80 bg-slate-950/50 hover:bg-slate-800/60 hover:border-amber-500/50 text-left transition-all duration-200 group hover:scale-[1.02] hover:shadow-lg hover:shadow-amber-950/30 cursor-pointer"
           >
-            <div className="w-11 h-11 rounded-2xl bg-amber-600 text-white flex items-center justify-center mb-3 text-xl group-hover:scale-110 transition-transform shadow-md shadow-amber-600/20">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-600 to-orange-500 text-white flex items-center justify-center mb-3.5 text-2xl group-hover:scale-110 transition-transform shadow-md shadow-amber-600/30">
               📌
             </div>
             <div className="text-sm font-bold text-slate-100 group-hover:text-amber-300 transition-colors">WG-Pinnwand</div>
-            <div className="text-xs text-slate-400 mt-1">Fragen, Ideen und Mitteilungen an Betreuer</div>
+            <div className="text-xs text-slate-400 mt-1 leading-relaxed">Mitteilungen & Anliegen notieren</div>
           </button>
 
           <button
             type="button"
             onClick={() => setCurrentTab('waste')}
-            className="p-4 rounded-2xl border border-slate-800 bg-slate-950/60 hover:bg-slate-800/60 hover:border-teal-700/60 text-left transition-all group hover:scale-[1.02] shadow-xs"
+            className="p-5 rounded-2xl border border-slate-800/80 bg-slate-950/50 hover:bg-slate-800/60 hover:border-teal-500/50 text-left transition-all duration-200 group hover:scale-[1.02] hover:shadow-lg hover:shadow-teal-950/30 cursor-pointer"
           >
-            <div className="w-11 h-11 rounded-2xl bg-teal-600 text-white flex items-center justify-center mb-3 text-xl group-hover:scale-110 transition-transform shadow-md shadow-teal-600/20">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-teal-600 to-cyan-500 text-white flex items-center justify-center mb-3.5 text-2xl group-hover:scale-110 transition-transform shadow-md shadow-teal-600/30">
               🚛
             </div>
             <div className="text-sm font-bold text-slate-100 group-hover:text-teal-300 transition-colors">Abfallkalender</div>
-            <div className="text-xs text-slate-400 mt-1">Nächste Abholungen & Tonnenübersicht</div>
+            <div className="text-xs text-slate-400 mt-1 leading-relaxed">Nächste Abholungen & Tonnen</div>
           </button>
         </div>
       </div>
