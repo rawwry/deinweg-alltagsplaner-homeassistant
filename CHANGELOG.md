@@ -3,6 +3,28 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.8] - 2026-09-06
+
+### Hinzugefügt
+- **Wochenplan Kalenderwochen-Button**:
+  - Der mittlere Navigations-Button zwischen den Vor- und Zurück-Pfeilen zeigt nun die jeweils aktive Kalenderwoche an (`KW XX`) anstelle des statischen Texts „Heute“.
+  - Ein Klick auf den Button springt weiterhin zuverlässig zur aktuellen Kalenderwoche zurück; die aktuelle Kalenderwoche wird dezent optisch hervorgehoben.
+- **Konfigurierbare Kochtage pro Standort (Plan-Umfang)**:
+  - Jeder Standort kann nun individuell konfigurieren, an welchen und wie vielen Wochentagen gemeinsam gekocht wird (z. B. Mo–Do = 4 Tage für Standort Emsdetten).
+  - Wochentag-Pill-Auswahl (Mo, Di, Mi, Do, Fr, Sa, So) und Schnellfilter-Presets („Mo - So“, „Mo - Fr“, „Mo - Do“) beim Anlegen und Bearbeiten von Standorten.
+  - Standort-Bearbeitungs-Modal („Pencil“-Button) direkt auf den Standort-Karten in der Verwaltung.
+  - Direktzugriff auf Kochtage & Standardportionen („Plan-Tage“) über einen Einstellungs-Button im Header des Wochenplans für Betreuer/Admins.
+  - Inaktive Wochentage werden im Wochenplan als „🍽️ Selbstversorgung“ (individuelle Verpflegung) dargestellt mit der Option, bei Bedarf Ausnahmen einzutragen.
+  - Umschalter zwischen „Nur geplante Kochtage anzeigen“ und „Alle 7 Tage anzeigen (inkl. Selbstversorgung)“.
+- **Vollständige Selbstverwaltung des Lebensmittel- und Richtpreiskatalogs**:
+  - In „Verwaltung“ -> „Preise“ können Administratoren/Betreuer eigene Lebensmittel und Richtpreise pro Supermarkt erfassen, bearbeiten und löschen (inkl. Filtereingabe).
+  - Neuer Button „Katalog leeren“ mit Bestätigungsdialog zum vollständigen Bereinigen aller bestehenden Zutaten und Preise.
+  - Backend-Endpunkte für Zutat-Bearbeitung (`PUT /api/food/ingredients/:id`), Löschen (`DELETE /api/food/ingredients/:id`) und Katalog-Leeren (`POST /api/food/ingredients/clear-all`).
+
+### Geändert
+- **Bereinigter Startbestand**:
+  - Der Initial-Seed (`seed.ts`) enthält ab sofort 0 vordefinierte Lebensmittel und Richtpreise, sodass der Katalog vollständig nach eigenen Vorgaben gepflegt werden kann.
+
 ## [0.1.0-beta.7] - 2026-09-06
 
 ### Hinzugefügt

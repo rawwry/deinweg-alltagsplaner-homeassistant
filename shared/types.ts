@@ -33,6 +33,7 @@ export interface LocationSummary {
   address?: string | null;
   defaultSupermarketId?: string | null;
   defaultServings: number;
+  cookingDays?: string | null;
   residentCount?: number;
   residents?: {
     id: string;

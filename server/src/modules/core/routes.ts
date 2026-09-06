@@ -262,6 +262,7 @@ router.get('/locations', requireAuth, async (req: Request, res: Response) => {
         defaultSupermarketId: loc.defaultSupermarketId,
         defaultSupermarketName: loc.defaultSupermarket?.name || null,
         defaultServings: loc.defaultServings,
+        cookingDays: loc.cookingDays || '1,2,3,4,5,6,7',
         residentCount: residents.length,
         residents: residents.map((r) => ({
           id: r.id,
@@ -282,7 +283,7 @@ router.get('/locations', requireAuth, async (req: Request, res: Response) => {
 
 router.post('/locations', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
   try {
-    const { name, address, defaultSupermarketId, defaultServings } = req.body;
+    const { name, address, defaultSupermarketId, defaultServings, cookingDays } = req.body;
     if (!name) {
       return res.status(400).json({ error: 'Name des Standorts ist erforderlich.' });
     }
@@ -293,6 +294,7 @@ router.post('/locations', requireAuth, requireRole('ADMIN', 'BETREUER'), async (
         address,
         defaultSupermarketId,
         defaultServings: Number(defaultServings) || 6,
+        cookingDays: cookingDays || '1,2,3,4,5,6,7',
       },
     });
 
@@ -306,7 +308,7 @@ router.post('/locations', requireAuth, requireRole('ADMIN', 'BETREUER'), async (
 router.put('/locations/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, address, defaultSupermarketId, defaultServings } = req.body;
+    const { name, address, defaultSupermarketId, defaultServings, cookingDays } = req.body;
 
     const location = await prisma.location.update({
       where: { id },
@@ -314,7 +316,8 @@ router.put('/locations/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), asyn
         name,
         address,
         defaultSupermarketId,
-        defaultServings: Number(defaultServings) || 6,
+        defaultServings: defaultServings !== undefined ? (Number(defaultServings) || 6) : undefined,
+        cookingDays: cookingDays !== undefined ? cookingDays : undefined,
       },
       include: { defaultSupermarket: true },
     });
@@ -410,6 +413,7 @@ router.put('/locations/:id/residents', requireAuth, requireRole('ADMIN', 'BETREU
       defaultSupermarketId: updatedLocation!.defaultSupermarketId,
       defaultSupermarketName: updatedLocation!.defaultSupermarket?.name || null,
       defaultServings: updatedLocation!.defaultServings,
+      cookingDays: updatedLocation!.cookingDays || '1,2,3,4,5,6,7',
       residentCount: residents.length,
       residents: residents.map((r) => ({
         id: r.id,

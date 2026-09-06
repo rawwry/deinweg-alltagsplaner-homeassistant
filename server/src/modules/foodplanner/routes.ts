@@ -266,6 +266,83 @@ router.post('/ingredients', requireAuth, requireRole('ADMIN', 'BETREUER'), async
   }
 });
 
+router.put('/ingredients/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { name, category, standardUnit, pricePerUnit, unitSize, supermarketId } = req.body;
+
+    const existing = await prisma.ingredient.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ error: 'Zutat nicht gefunden.' });
+    }
+
+    const updated = await prisma.ingredient.update({
+      where: { id },
+      data: {
+        name: name ? name.trim() : undefined,
+        category: category || undefined,
+        standardUnit: standardUnit || undefined,
+      },
+    });
+
+    if (supermarketId && pricePerUnit !== undefined && pricePerUnit !== null && pricePerUnit !== '') {
+      await prisma.ingredientPrice.upsert({
+        where: {
+          ingredientId_supermarketId: {
+            ingredientId: id,
+            supermarketId,
+          },
+        },
+        update: {
+          pricePerUnit: Number(pricePerUnit),
+          unitSize: Number(unitSize) || 1,
+          unit: standardUnit || existing.standardUnit || 'Stück',
+        },
+        create: {
+          ingredientId: id,
+          supermarketId,
+          pricePerUnit: Number(pricePerUnit),
+          unitSize: Number(unitSize) || 1,
+          unit: standardUnit || existing.standardUnit || 'Stück',
+        },
+      });
+    }
+
+    return res.json(updated);
+  } catch (err) {
+    console.error('Fehler beim Aktualisieren der Zutat:', err);
+    return res.status(500).json({ error: 'Fehler beim Aktualisieren der Zutat.' });
+  }
+});
+
+router.delete('/ingredients/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const existing = await prisma.ingredient.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ error: 'Zutat nicht gefunden.' });
+    }
+
+    await prisma.ingredient.delete({ where: { id } });
+    return res.json({ success: true, message: 'Zutat erfolgreich gelöscht.' });
+  } catch (err) {
+    console.error('Fehler beim Löschen der Zutat:', err);
+    return res.status(500).json({ error: 'Fehler beim Löschen der Zutat.' });
+  }
+});
+
+router.post('/ingredients/clear-all', requireAuth, requireRole('ADMIN', 'BETREUER'), async (_req: Request, res: Response) => {
+  try {
+    await prisma.ingredientPrice.deleteMany({});
+    await prisma.recipeIngredient.deleteMany({});
+    const count = await prisma.ingredient.deleteMany({});
+    return res.json({ success: true, message: `${count.count} Zutaten erfolgreich gelöscht.` });
+  } catch (err) {
+    console.error('Fehler beim Leeren des Zutatenkatalogs:', err);
+    return res.status(500).json({ error: 'Fehler beim Leeren des Zutatenkatalogs.' });
+  }
+});
+
 router.get('/supermarkets', requireAuth, async (_req: Request, res: Response) => {
   try {
     const markets = await prisma.supermarket.findMany({ orderBy: { name: 'asc' } });

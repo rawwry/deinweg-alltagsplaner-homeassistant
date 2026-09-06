@@ -23,7 +23,32 @@ import {
   X,
   Search,
   Check,
+  Pencil,
 } from 'lucide-react';
+
+const WEEKDAY_ITEMS = [
+  { id: 1, label: 'Mo', name: 'Montag' },
+  { id: 2, label: 'Di', name: 'Dienstag' },
+  { id: 3, label: 'Mi', name: 'Mittwoch' },
+  { id: 4, label: 'Do', name: 'Donnerstag' },
+  { id: 5, label: 'Fr', name: 'Freitag' },
+  { id: 6, label: 'Sa', name: 'Samstag' },
+  { id: 7, label: 'So', name: 'Sonntag' },
+];
+
+export const formatCookingDays = (daysStr?: string | null): string => {
+  if (!daysStr) return 'Mo - So (7 Tage)';
+  const days = daysStr
+    .split(',')
+    .map((s) => parseInt(s.trim()))
+    .filter((n) => !isNaN(n))
+    .sort((a, b) => a - b);
+  if (days.length === 7) return 'Mo - So (7 Tage)';
+  if (days.length === 5 && days.join(',') === '1,2,3,4,5') return 'Mo - Fr (5 Tage)';
+  if (days.length === 4 && days.join(',') === '1,2,3,4') return 'Mo - Do (4 Tage)';
+  const shortNames = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+  return `${days.map((d) => shortNames[d - 1]).join(', ')} (${days.length} Tage)`;
+};
 
 export const AdminManagementView: React.FC = () => {
   const { user, locations, refreshLocations } = useAuth();
@@ -53,7 +78,16 @@ export const AdminManagementView: React.FC = () => {
   const [newLocAddress, setNewLocAddress] = useState('');
   const [newLocServings, setNewLocServings] = useState<number>(6);
   const [newLocSupermarketId, setNewLocSupermarketId] = useState('supermarket-netto');
+  const [newLocCookingDays, setNewLocCookingDays] = useState<number[]>([1, 2, 3, 4, 5, 6, 7]);
   const [locationSuccessMsg, setLocationSuccessMsg] = useState<string | null>(null);
+
+  // Edit Location State
+  const [editingLocation, setEditingLocation] = useState<any | null>(null);
+  const [editLocName, setEditLocName] = useState('');
+  const [editLocAddress, setEditLocAddress] = useState('');
+  const [editLocServings, setEditLocServings] = useState<number>(6);
+  const [editLocSupermarketId, setEditLocSupermarketId] = useState('supermarket-netto');
+  const [editLocCookingDays, setEditLocCookingDays] = useState<number[]>([1, 2, 3, 4, 5, 6, 7]);
 
   // Resident Assignment to Location State
   const [assigningLocation, setAssigningLocation] = useState<any | null>(null);
@@ -65,6 +99,16 @@ export const AdminManagementView: React.FC = () => {
   const [ingredients, setIngredients] = useState<any[]>([]);
   const [supermarkets, setSupermarkets] = useState<any[]>([]);
   const [selectedSupermarketId, setSelectedSupermarketId] = useState('supermarket-netto');
+  const [showAddIngredient, setShowAddIngredient] = useState(false);
+  const [editingIngredient, setEditingIngredient] = useState<any | null>(null);
+  const [ingName, setIngName] = useState('');
+  const [ingCategory, setIngCategory] = useState('Obst & Gemüse');
+  const [ingUnit, setIngUnit] = useState('g');
+  const [ingPrice, setIngPrice] = useState('');
+  const [ingUnitSize, setIngUnitSize] = useState('1000');
+  const [ingSupermarketId, setIngSupermarketId] = useState('supermarket-netto');
+  const [priceSuccessMsg, setPriceSuccessMsg] = useState<string | null>(null);
+  const [ingredientSearchQuery, setIngredientSearchQuery] = useState('');
 
   // SMTP Settings State
   const [smtpHost, setSmtpHost] = useState('');
@@ -212,16 +256,52 @@ export const AdminManagementView: React.FC = () => {
         address: newLocAddress.trim() || undefined,
         defaultServings: Number(newLocServings) || 6,
         defaultSupermarketId: newLocSupermarketId || undefined,
+        cookingDays: newLocCookingDays.sort((a, b) => a - b).join(','),
       });
 
       setLocationSuccessMsg(`Standort "${newLocName}" erfolgreich erstellt!`);
       setNewLocName('');
       setNewLocAddress('');
+      setNewLocCookingDays([1, 2, 3, 4, 5, 6, 7]);
       setShowAddLocation(false);
       await refreshLocations();
       setTimeout(() => setLocationSuccessMsg(null), 5000);
     } catch (err: any) {
       alert(`Fehler beim Erstellen des Standorts: ${err.message}`);
+    }
+  };
+
+  const handleEditLocation = (loc: any) => {
+    setEditingLocation(loc);
+    setEditLocName(loc.name);
+    setEditLocAddress(loc.address || '');
+    setEditLocServings(loc.defaultServings || 6);
+    setEditLocSupermarketId(loc.defaultSupermarketId || 'supermarket-netto');
+    const days = loc.cookingDays
+      ? loc.cookingDays.split(',').map((s: string) => parseInt(s.trim())).filter((n: number) => !isNaN(n))
+      : [1, 2, 3, 4, 5, 6, 7];
+    setEditLocCookingDays(days);
+  };
+
+  const handleUpdateLocation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingLocation || !editLocName.trim()) return;
+
+    try {
+      await api.locations.update(editingLocation.id, {
+        name: editLocName.trim(),
+        address: editLocAddress.trim() || undefined,
+        defaultServings: Number(editLocServings) || 6,
+        defaultSupermarketId: editLocSupermarketId || undefined,
+        cookingDays: editLocCookingDays.sort((a, b) => a - b).join(','),
+      });
+
+      setLocationSuccessMsg(`Standort "${editLocName}" erfolgreich aktualisiert!`);
+      setEditingLocation(null);
+      await refreshLocations();
+      setTimeout(() => setLocationSuccessMsg(null), 5000);
+    } catch (err: any) {
+      alert(`Fehler beim Aktualisieren des Standorts: ${err.message}`);
     }
   };
 
@@ -237,6 +317,89 @@ export const AdminManagementView: React.FC = () => {
       setTimeout(() => setLocationSuccessMsg(null), 4000);
     } catch (err: any) {
       alert(`Fehler beim Löschen: ${err.message}`);
+    }
+  };
+
+  const handleOpenAddIngredient = () => {
+    setEditingIngredient(null);
+    setIngName('');
+    setIngCategory('Obst & Gemüse');
+    setIngUnit('g');
+    setIngPrice('');
+    setIngUnitSize('1000');
+    setIngSupermarketId(selectedSupermarketId);
+    setShowAddIngredient(true);
+  };
+
+  const handleOpenEditIngredient = (ing: any) => {
+    setEditingIngredient(ing);
+    setIngName(ing.name);
+    setIngCategory(ing.category || 'Sonstiges');
+    setIngUnit(ing.standardUnit || 'g');
+    setIngPrice(ing.pricePerUnit ? String(ing.pricePerUnit) : '');
+    setIngUnitSize(ing.priceUnitSize ? String(ing.priceUnitSize) : '1');
+    setIngSupermarketId(selectedSupermarketId);
+    setShowAddIngredient(true);
+  };
+
+  const handleSaveIngredient = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ingName.trim()) return;
+
+    try {
+      if (editingIngredient) {
+        await api.food.updateIngredient(editingIngredient.id, {
+          name: ingName.trim(),
+          category: ingCategory,
+          standardUnit: ingUnit,
+          pricePerUnit: ingPrice ? parseFloat(ingPrice) : undefined,
+          unitSize: ingUnitSize ? parseFloat(ingUnitSize) : 1,
+          supermarketId: ingSupermarketId,
+        });
+        setPriceSuccessMsg(`Lebensmittel "${ingName}" erfolgreich aktualisiert!`);
+      } else {
+        await api.food.createIngredient({
+          name: ingName.trim(),
+          category: ingCategory,
+          standardUnit: ingUnit,
+          pricePerUnit: ingPrice ? parseFloat(ingPrice) : undefined,
+          unitSize: ingUnitSize ? parseFloat(ingUnitSize) : 1,
+          supermarketId: ingSupermarketId,
+        });
+        setPriceSuccessMsg(`Lebensmittel "${ingName}" erfolgreich angelegt!`);
+      }
+      setShowAddIngredient(false);
+      setEditingIngredient(null);
+      await fetchIngredientsAndMarkets();
+      setTimeout(() => setPriceSuccessMsg(null), 5000);
+    } catch (err: any) {
+      alert(`Fehler beim Speichern des Lebensmittels: ${err.message}`);
+    }
+  };
+
+  const handleDeleteIngredient = async (id: string, name: string) => {
+    if (!confirm(`Möchtest Du das Lebensmittel "${name}" wirklich löschen?`)) return;
+    try {
+      await api.food.deleteIngredient(id);
+      setPriceSuccessMsg(`Lebensmittel "${name}" gelöscht.`);
+      await fetchIngredientsAndMarkets();
+      setTimeout(() => setPriceSuccessMsg(null), 4000);
+    } catch (err: any) {
+      alert(`Fehler beim Löschen: ${err.message}`);
+    }
+  };
+
+  const handleClearAllIngredients = async () => {
+    if (!confirm('Möchtest Du wirklich ALLE hinterlegten Lebensmittel und Richtpreise löschen?')) {
+      return;
+    }
+    try {
+      await api.food.clearIngredients();
+      setPriceSuccessMsg('Alle Lebensmittel und Richtpreise wurden gelöscht.');
+      await fetchIngredientsAndMarkets();
+      setTimeout(() => setPriceSuccessMsg(null), 5000);
+    } catch (err: any) {
+      alert(`Fehler beim Leeren des Katalogs: ${err.message}`);
     }
   };
 
@@ -762,6 +925,64 @@ export const AdminManagementView: React.FC = () => {
                     ))}
                   </select>
                 </div>
+                <div className="sm:col-span-2 md:col-span-4 pt-1">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-300">
+                      Geplante Kochtage ({newLocCookingDays.length} Tage)
+                    </label>
+                    <div className="flex items-center gap-1 text-[10px]">
+                      <button
+                        type="button"
+                        onClick={() => setNewLocCookingDays([1, 2, 3, 4, 5, 6, 7])}
+                        className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700"
+                      >
+                        Mo - So (7)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setNewLocCookingDays([1, 2, 3, 4, 5])}
+                        className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700"
+                      >
+                        Mo - Fr (5)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setNewLocCookingDays([1, 2, 3, 4])}
+                        className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700"
+                      >
+                        Mo - Do (4)
+                      </button>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-7 gap-1.5">
+                    {WEEKDAY_ITEMS.map((d) => {
+                      const isChecked = newLocCookingDays.includes(d.id);
+                      return (
+                        <button
+                          key={d.id}
+                          type="button"
+                          onClick={() => {
+                            setNewLocCookingDays((prev) =>
+                              prev.includes(d.id)
+                                ? prev.filter((x) => x !== d.id)
+                                : [...prev, d.id]
+                            );
+                          }}
+                          className={`py-2 text-center rounded-xl text-xs font-bold border transition-colors ${
+                            isChecked
+                              ? 'bg-sky-600 border-sky-500 text-white'
+                              : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-750'
+                          }`}
+                        >
+                          {d.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    An nicht ausgewählten Tagen findet Selbstversorgung statt (kein gemeinsames Kochen).
+                  </p>
+                </div>
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
@@ -780,6 +1001,160 @@ export const AdminManagementView: React.FC = () => {
                 </button>
               </div>
             </form>
+          )}
+
+          {/* EDIT LOCATION MODAL */}
+          {editingLocation && (
+            <div className="fixed inset-0 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+              <form
+                onSubmit={handleUpdateLocation}
+                className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4"
+              >
+                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-2xl bg-sky-950/80 border border-sky-800/80 text-sky-400">
+                      <Pencil className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-slate-100">Standort bearbeiten</h3>
+                      <p className="text-xs text-slate-400">{editingLocation.name}</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setEditingLocation(null)}
+                    className="p-1.5 text-slate-400 hover:text-slate-200 rounded-xl hover:bg-slate-800 transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="space-y-3 text-xs">
+                  <div>
+                    <label className="block font-semibold text-slate-300 mb-1">Standort-Name *</label>
+                    <input
+                      type="text"
+                      value={editLocName}
+                      onChange={(e) => setEditLocName(e.target.value)}
+                      className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-slate-300 mb-1">Adresse (optional)</label>
+                    <input
+                      type="text"
+                      value={editLocAddress}
+                      onChange={(e) => setEditLocAddress(e.target.value)}
+                      className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-semibold text-slate-300 mb-1">Standard-Portionen</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="50"
+                        value={editLocServings}
+                        onChange={(e) => setEditLocServings(Number(e.target.value))}
+                        className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-semibold text-slate-300 mb-1">Standard-Supermarkt</label>
+                      <select
+                        value={editLocSupermarketId}
+                        onChange={(e) => setEditLocSupermarketId(e.target.value)}
+                        className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      >
+                        {supermarkets.map((m) => (
+                          <option key={m.id} value={m.id}>
+                            {m.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Active Cooking Days */}
+                  <div className="pt-2">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block font-semibold text-slate-300">
+                        Geplante Kochtage ({editLocCookingDays.length} Tage)
+                      </label>
+                      <div className="flex items-center gap-1 text-[10px]">
+                        <button
+                          type="button"
+                          onClick={() => setEditLocCookingDays([1, 2, 3, 4, 5, 6, 7])}
+                          className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700"
+                        >
+                          Mo-So (7)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditLocCookingDays([1, 2, 3, 4, 5])}
+                          className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700"
+                        >
+                          Mo-Fr (5)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditLocCookingDays([1, 2, 3, 4])}
+                          className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700"
+                        >
+                          Mo-Do (4)
+                        </button>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-7 gap-1.5">
+                      {WEEKDAY_ITEMS.map((d) => {
+                        const isChecked = editLocCookingDays.includes(d.id);
+                        return (
+                          <button
+                            key={d.id}
+                            type="button"
+                            onClick={() => {
+                              setEditLocCookingDays((prev) =>
+                                prev.includes(d.id)
+                                  ? prev.filter((x) => x !== d.id)
+                                  : [...prev, d.id]
+                              );
+                            }}
+                            className={`py-2 text-center rounded-xl text-xs font-bold border transition-colors ${
+                              isChecked
+                                ? 'bg-sky-600 border-sky-500 text-white'
+                                : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-750'
+                            }`}
+                          >
+                            {d.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className="text-[11px] text-slate-500 mt-1">
+                      Tage ohne gemeinsames Kochen werden im Wochenplan als Selbstversorgung gekennzeichnet.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-slate-800 flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditingLocation(null)}
+                    className="px-4 py-2 bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700/60 rounded-xl text-xs font-semibold transition-colors"
+                  >
+                    Abbrechen
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-semibold shadow-xs transition-colors"
+                  >
+                    Änderungen speichern
+                  </button>
+                </div>
+              </form>
+            </div>
           )}
 
           {locations.length > 0 && (
@@ -847,6 +1222,12 @@ export const AdminManagementView: React.FC = () => {
                           {supermarkets.find((s) => s.id === loc.defaultSupermarketId)?.name || 'Netto Marken-Discount'}
                         </span>
                       </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Kochtage:</span>
+                        <span className="font-bold text-emerald-400">
+                          {formatCookingDays(loc.cookingDays)}
+                        </span>
+                      </div>
                     </div>
 
                     {/* Residents Living Here */}
@@ -882,14 +1263,24 @@ export const AdminManagementView: React.FC = () => {
                   </div>
 
                   <div className="pt-3 border-t border-slate-800 flex items-center justify-between gap-2">
-                    <button
-                      type="button"
-                      onClick={() => openAssignModal(loc)}
-                      className="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
-                    >
-                      <Users className="w-3.5 h-3.5" />
-                      <span>Bewohner zuweisen</span>
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => openAssignModal(loc)}
+                        className="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
+                      >
+                        <Users className="w-3.5 h-3.5" />
+                        <span>Bewohner zuweisen</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleEditLocation(loc)}
+                        className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/60 rounded-xl transition-colors"
+                        title="Standort bearbeiten"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
 
                     {locResidents.length === 0 && (
                       <button
@@ -1097,61 +1488,335 @@ export const AdminManagementView: React.FC = () => {
       {/* SUBTAB: PRICES */}
       {activeSubTab === 'prices' && (
         <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h3 className="text-sm font-bold text-slate-100">
-                Zutaten & Richtpreise nach Supermarkt
+              <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+                <Tag className="w-4 h-4 text-sky-400" />
+                <span>Zutaten & Richtpreise nach Supermarkt</span>
               </h3>
               <p className="text-xs text-slate-400">
-                Preise für automatische Wochenbudget-Schätzungen
+                Verwalte Deine eigenen Lebensmittel und Richtpreise für automatische Budget-Berechnungen.
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-400 font-semibold">Supermarkt:</span>
-              <select
-                value={selectedSupermarketId}
-                onChange={(e) => setSelectedSupermarketId(e.target.value)}
-                className="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-xl text-xs font-semibold text-slate-200 focus:outline-none"
+            <div className="flex flex-wrap items-center gap-2.5">
+              <div className="flex items-center gap-2 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700">
+                <span className="text-xs text-slate-400 font-semibold">Supermarkt:</span>
+                <select
+                  value={selectedSupermarketId}
+                  onChange={(e) => setSelectedSupermarketId(e.target.value)}
+                  className="bg-transparent text-xs font-semibold text-slate-200 focus:outline-none cursor-pointer"
+                >
+                  {supermarkets.map((m) => (
+                    <option key={m.id} value={m.id} className="bg-slate-900 text-slate-200">
+                      {m.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleOpenAddIngredient}
+                className="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-xs"
               >
-                {supermarkets.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name}
-                  </option>
-                ))}
-              </select>
+                <Plus className="w-3.5 h-3.5" />
+                <span>Neues Lebensmittel</span>
+              </button>
+
+              {ingredients.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleClearAllIngredients}
+                  className="px-3 py-1.5 bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-800/50 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5"
+                  title="Alle hinterlegten Lebensmittel und Preise löschen"
+                >
+                  <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                  <span>Katalog leeren</span>
+                </button>
+              )}
             </div>
           </div>
 
+          {priceSuccessMsg && (
+            <div className="p-3 bg-emerald-950/70 border border-emerald-800 text-emerald-300 rounded-2xl text-xs font-semibold flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>{priceSuccessMsg}</span>
+            </div>
+          )}
+
+          {/* Search bar */}
+          {ingredients.length > 0 && (
+            <div className="relative">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={ingredientSearchQuery}
+                onChange={(e) => setIngredientSearchQuery(e.target.value)}
+                placeholder="Lebensmittel oder Kategorie filtern..."
+                className="w-full pl-10 pr-4 py-2 bg-slate-900/80 border border-slate-800 rounded-2xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+              />
+            </div>
+          )}
+
+          {/* Ingredients Table or Empty State */}
           <div className="bg-slate-900 rounded-3xl border border-slate-800 shadow-sm overflow-hidden">
-            <table className="min-w-full divide-y divide-slate-800 text-left text-xs">
-              <thead className="bg-slate-950 text-slate-400 font-semibold">
-                <tr>
-                  <th className="px-5 py-3">Zutat</th>
-                  <th className="px-5 py-3">Kategorie</th>
-                  <th className="px-5 py-3">Einheit</th>
-                  <th className="px-5 py-3 text-right">Richtpreis</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/80">
-                {ingredients.map((ing) => (
-                  <tr key={ing.id} className="hover:bg-slate-800/40 transition-colors">
-                    <td className="px-5 py-3 font-semibold text-slate-200">{ing.name}</td>
-                    <td className="px-5 py-3 text-slate-400">{ing.category}</td>
-                    <td className="px-5 py-3 text-slate-400">{ing.standardUnit}</td>
-                    <td className="px-5 py-3 text-right font-bold text-slate-100">
-                      {ing.pricePerUnit ? `${ing.pricePerUnit.toFixed(2)} €` : '-'}
-                      {ing.priceUnitSize && (
-                        <span className="text-[10px] text-slate-500 font-normal ml-1">
-                          / {ing.priceUnitSize} {ing.standardUnit}
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {ingredients.length === 0 ? (
+              <div className="p-12 text-center">
+                <div className="w-12 h-12 rounded-2xl bg-slate-800/80 border border-slate-700 flex items-center justify-center mx-auto mb-3 text-slate-400">
+                  <Tag className="w-6 h-6" />
+                </div>
+                <h4 className="text-sm font-bold text-slate-200">Noch keine Lebensmittel hinterlegt</h4>
+                <p className="text-xs text-slate-400 max-w-md mx-auto mt-1 mb-5">
+                  Der Lebensmittel- und Richtpreiskatalog ist aktuell leer. Du kannst eigene Lebensmittel anlegen und Richtpreise nach Supermarkt pflegen.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleOpenAddIngredient}
+                  className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-2 shadow-xs"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Jetzt erstes Lebensmittel anlegen</span>
+                </button>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-slate-800 text-left text-xs">
+                  <thead className="bg-slate-950 text-slate-400 font-semibold">
+                    <tr>
+                      <th className="px-5 py-3">Zutat</th>
+                      <th className="px-5 py-3">Kategorie</th>
+                      <th className="px-5 py-3">Einheit</th>
+                      <th className="px-5 py-3 text-right">Richtpreis</th>
+                      <th className="px-5 py-3 text-right">Aktionen</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/80">
+                    {ingredients
+                      .filter(
+                        (ing) =>
+                          !ingredientSearchQuery.trim() ||
+                          ing.name.toLowerCase().includes(ingredientSearchQuery.toLowerCase()) ||
+                          (ing.category && ing.category.toLowerCase().includes(ingredientSearchQuery.toLowerCase()))
+                      )
+                      .map((ing) => (
+                        <tr key={ing.id} className="hover:bg-slate-800/40 transition-colors">
+                          <td className="px-5 py-3 font-semibold text-slate-200">{ing.name}</td>
+                          <td className="px-5 py-3 text-slate-400">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-800 text-slate-300 border border-slate-700/60">
+                              {ing.category || 'Sonstiges'}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3 text-slate-400 font-mono">{ing.standardUnit}</td>
+                          <td className="px-5 py-3 text-right font-bold text-slate-100">
+                            {ing.pricePerUnit ? `${Number(ing.pricePerUnit).toFixed(2)} €` : (
+                              <span className="text-slate-500 font-normal italic">Kein Preis</span>
+                            )}
+                            {ing.priceUnitSize && (
+                              <span className="text-[10px] text-slate-400 font-normal ml-1">
+                                / {ing.priceUnitSize} {ing.standardUnit}
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-5 py-3 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => handleOpenEditIngredient(ing)}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-sky-300 hover:bg-slate-800 transition-colors"
+                                title="Bearbeiten"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteIngredient(ing.id, ing.name)}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 transition-colors"
+                                title="Löschen"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
+
+          {/* Modal: Create or Edit Ingredient */}
+          {showAddIngredient && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in">
+              <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 w-full max-w-lg shadow-2xl relative">
+                <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-xl bg-sky-950/80 border border-sky-800 text-sky-400">
+                      <Tag className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-slate-100">
+                        {editingIngredient ? 'Lebensmittel bearbeiten' : 'Neues Lebensmittel anlegen'}
+                      </h3>
+                      <p className="text-xs text-slate-400">
+                        Bezeichnung, Basiseinheit und Richtpreis für Supermärkte pflegen
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAddIngredient(false);
+                      setEditingIngredient(null);
+                    }}
+                    className="p-1.5 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleSaveIngredient} className="mt-5 space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                      Name des Lebensmittels *
+                    </label>
+                    <input
+                      type="text"
+                      value={ingName}
+                      onChange={(e) => setIngName(e.target.value)}
+                      placeholder="z. B. Kartoffeln (vorwiegend festkochend)"
+                      className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                        Kategorie
+                      </label>
+                      <select
+                        value={ingCategory}
+                        onChange={(e) => setIngCategory(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      >
+                        <option value="Obst & Gemüse">Obst & Gemüse</option>
+                        <option value="Milchprodukte & Eier">Milchprodukte & Eier</option>
+                        <option value="Fleisch & Fisch">Fleisch & Fisch</option>
+                        <option value="Brot & Backwaren">Brot & Backwaren</option>
+                        <option value="Teigwaren & Getreide">Teigwaren & Getreide</option>
+                        <option value="Hülsenfrüchte & Konserven">Hülsenfrüchte & Konserven</option>
+                        <option value="Gewürze & Öle">Gewürze & Öle</option>
+                        <option value="Tiefkühl">Tiefkühl</option>
+                        <option value="Getränke">Getränke</option>
+                        <option value="Sonstiges">Sonstiges</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                        Standard-Einheit
+                      </label>
+                      <select
+                        value={ingUnit}
+                        onChange={(e) => setIngUnit(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      >
+                        <option value="g">Gramm (g)</option>
+                        <option value="kg">Kilogramm (kg)</option>
+                        <option value="ml">Milliliter (ml)</option>
+                        <option value="l">Liter (l)</option>
+                        <option value="Stück">Stück</option>
+                        <option value="Packung">Packung</option>
+                        <option value="Bund">Bund</option>
+                        <option value="Dose">Dose</option>
+                        <option value="EL">Esslöffel (EL)</option>
+                        <option value="TL">Teelöffel (TL)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-800/80">
+                    <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block mb-3">
+                      Richtpreis & Supermarkt
+                    </span>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                          Supermarkt
+                        </label>
+                        <select
+                          value={ingSupermarketId}
+                          onChange={(e) => setIngSupermarketId(e.target.value)}
+                          className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        >
+                          {supermarkets.map((m) => (
+                            <option key={m.id} value={m.id}>
+                              {m.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                          Richtpreis (€)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={ingPrice}
+                          onChange={(e) => setIngPrice(e.target.value)}
+                          placeholder="z. B. 1.99"
+                          className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                          Menge / Gebinde ({ingUnit})
+                        </label>
+                        <input
+                          type="number"
+                          step="any"
+                          min="0.01"
+                          value={ingUnitSize}
+                          onChange={(e) => setIngUnitSize(e.target.value)}
+                          placeholder="1000"
+                          className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-1.5">
+                      Beispiel: 1.99 € für 1000 g oder 0.89 € für 1 Stück.
+                    </p>
+                  </div>
+
+                  <div className="pt-4 border-t border-slate-800 flex items-center justify-end gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowAddIngredient(false);
+                        setEditingIngredient(null);
+                      }}
+                      className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition-colors"
+                    >
+                      Abbrechen
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition-colors shadow-xs"
+                    >
+                      {editingIngredient ? 'Änderungen speichern' : 'Lebensmittel anlegen'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
