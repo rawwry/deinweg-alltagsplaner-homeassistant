@@ -14,10 +14,11 @@ server/dist/
 prisma/dev.db*
 dev.db*
 
-# Environment files
+# Environment & Secret files
 .env
 .env.local
 .env.*.local
+*.secret
 
 # Logs
 npm-debug.log*

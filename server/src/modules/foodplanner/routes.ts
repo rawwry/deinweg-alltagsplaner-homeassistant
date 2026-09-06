@@ -183,6 +183,23 @@ router.put('/recipes/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), async 
   }
 });
 
+router.delete('/recipes/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const recipe = await prisma.recipe.findUnique({ where: { id } });
+    if (!recipe) {
+      return res.status(404).json({ error: 'Rezept nicht gefunden.' });
+    }
+
+    // Delete recipe - RecipeIngredients cascade, MealPlanDays set recipeId to null
+    await prisma.recipe.delete({ where: { id } });
+    return res.json({ success: true, message: `Rezept "${recipe.title}" erfolgreich gelöscht.` });
+  } catch (err) {
+    console.error('Fehler beim Löschen des Rezepts:', err);
+    return res.status(500).json({ error: 'Fehler beim Löschen des Rezepts.' });
+  }
+});
+
 // ==================== ZUTATEN & SUPERMÄRKTE ====================
 
 router.get('/ingredients', requireAuth, async (req: Request, res: Response) => {

@@ -14,6 +14,7 @@ import {
   X,
   LayoutGrid,
   List,
+  Trash2,
 } from 'lucide-react';
 
 export const RecipeCatalogView: React.FC = () => {
@@ -26,6 +27,27 @@ export const RecipeCatalogView: React.FC = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [activeRecipe, setActiveRecipe] = useState<RecipeSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDeleteRecipe = async (e: React.MouseEvent, recipeId: string, recipeTitle: string) => {
+    e.stopPropagation();
+    if (!window.confirm(`Möchtest du das Rezept "${recipeTitle}" wirklich unwiderruflich löschen?`)) {
+      return;
+    }
+
+    try {
+      setDeletingId(recipeId);
+      await api.food.deleteRecipe(recipeId);
+      setRecipes((prev) => prev.filter((r) => r.id !== recipeId));
+      if (activeRecipe?.id === recipeId) {
+        setActiveRecipe(null);
+      }
+    } catch (err: any) {
+      alert(`Fehler beim Löschen des Rezepts: ${err.message || err}`);
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   // Add Recipe Modal State (Staff only)
   const [showAddModal, setShowAddModal] = useState(false);
@@ -225,13 +247,26 @@ export const RecipeCatalogView: React.FC = () => {
                   {recipe.ingredients.length} Zutaten
                 </span>
 
-                <button
-                  type="button"
-                  className="px-3 py-1.5 bg-slate-800 group-hover:bg-sky-600 text-slate-200 group-hover:text-white rounded-xl font-semibold transition-colors flex items-center gap-1 text-xs"
-                >
-                  <Eye className="w-3.5 h-3.5" />
-                  <span>Rezept öffnen</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  {isStaff && (
+                    <button
+                      type="button"
+                      onClick={(e) => handleDeleteRecipe(e, recipe.id, recipe.title)}
+                      disabled={deletingId === recipe.id}
+                      title="Rezept löschen"
+                      className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 rounded-xl transition-colors disabled:opacity-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="px-3 py-1.5 bg-slate-800 group-hover:bg-sky-600 text-slate-200 group-hover:text-white rounded-xl font-semibold transition-colors flex items-center gap-1 text-xs"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>Rezept öffnen</span>
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -261,7 +296,7 @@ export const RecipeCatalogView: React.FC = () => {
                 )}
               </div>
 
-              <div className="flex items-center gap-4 shrink-0 text-xs text-slate-400 justify-between sm:justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800">
+              <div className="flex items-center gap-3 shrink-0 text-xs text-slate-400 justify-between sm:justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800">
                 <span className="flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5 text-slate-400" />
                   {recipe.prepTimeMinutes || 30} Min
@@ -270,6 +305,17 @@ export const RecipeCatalogView: React.FC = () => {
                   <ChefHat className="w-3.5 h-3.5 text-slate-400" />
                   {recipe.ingredients.length} Zutaten
                 </span>
+                {isStaff && (
+                  <button
+                    type="button"
+                    onClick={(e) => handleDeleteRecipe(e, recipe.id, recipe.title)}
+                    disabled={deletingId === recipe.id}
+                    title="Rezept löschen"
+                    className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 rounded-xl transition-colors disabled:opacity-50"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
                 <button
                   type="button"
                   className="px-3 py-1.5 bg-slate-800 group-hover:bg-sky-600 text-slate-200 group-hover:text-white rounded-xl font-semibold transition-colors flex items-center gap-1 text-xs"
@@ -288,6 +334,8 @@ export const RecipeCatalogView: React.FC = () => {
         <RecipeModal
           recipe={activeRecipe}
           defaultServings={activeLocation?.defaultServings || 6}
+          isStaff={isStaff}
+          onDelete={(id, title) => handleDeleteRecipe({ stopPropagation: () => {} } as any, id, title)}
           onClose={() => setActiveRecipe(null)}
         />
       )}

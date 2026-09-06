@@ -174,25 +174,27 @@ export const WasteCalendarView: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 self-stretch sm:self-auto">
-          <button
-            type="button"
-            onClick={() => setShowAddForm(!showAddForm)}
-            className="flex-1 sm:flex-none px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-2xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors border border-slate-700"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Termin</span>
-          </button>
+        {isStaff && (
+          <div className="flex items-center gap-2 self-stretch sm:self-auto">
+            <button
+              type="button"
+              onClick={() => setShowAddForm(!showAddForm)}
+              className="flex-1 sm:flex-none px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-2xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors border border-slate-700"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Termin</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => setShowIcsImport(!showIcsImport)}
-            className="flex-1 sm:flex-none px-3.5 py-2.5 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white rounded-2xl text-xs font-semibold flex items-center justify-center gap-1.5 shadow-md shadow-sky-600/30 transition-all"
-          >
-            <Upload className="w-4 h-4" />
-            <span>ICS Import</span>
-          </button>
-        </div>
+            <button
+              type="button"
+              onClick={() => setShowIcsImport(!showIcsImport)}
+              className="flex-1 sm:flex-none px-3.5 py-2.5 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white rounded-2xl text-xs font-semibold flex items-center justify-center gap-1.5 shadow-md shadow-sky-600/30 transition-all"
+            >
+              <Upload className="w-4 h-4" />
+              <span>ICS Import</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 1-Day Advance Reminder Banner */}
@@ -283,7 +285,7 @@ export const WasteCalendarView: React.FC = () => {
       )}
 
       {/* Manual Add Form */}
-      {showAddForm && (
+      {showAddForm && isStaff && (
         <form
           onSubmit={handleCreate}
           className="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-xl shadow-black/20 space-y-3 animate-in fade-in duration-150"
@@ -343,7 +345,7 @@ export const WasteCalendarView: React.FC = () => {
       )}
 
       {/* ICS Import Form */}
-      {showIcsImport && (
+      {showIcsImport && isStaff && (
         <form
           onSubmit={handleIcsImport}
           className="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-xl shadow-black/20 space-y-3 animate-in fade-in duration-150"

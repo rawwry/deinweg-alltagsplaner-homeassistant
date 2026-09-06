@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
 import { RecipeSummary } from '../../../../shared/types.js';
-import { X, Clock, Users, ChefHat, Plus, Minus, BookOpen } from 'lucide-react';
+import { X, Clock, Users, ChefHat, Plus, Minus, BookOpen, Trash2 } from 'lucide-react';
 
 interface RecipeModalProps {
   recipe: RecipeSummary | null;
   onClose: () => void;
   defaultServings?: number;
+  isStaff?: boolean;
+  onDelete?: (id: string, title: string) => void;
 }
 
 export const RecipeModal: React.FC<RecipeModalProps> = ({
   recipe,
   onClose,
   defaultServings = 6,
+  isStaff = false,
+  onDelete,
 }) => {
   const [servings, setServings] = useState<number>(defaultServings);
 
@@ -125,7 +129,20 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-slate-900 border-t border-slate-800 flex justify-end">
+        <div className="p-4 bg-slate-900 border-t border-slate-800 flex items-center justify-between">
+          {isStaff && onDelete ? (
+            <button
+              type="button"
+              onClick={() => onDelete(recipe.id, recipe.title)}
+              className="px-4 py-2 bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/60 text-rose-300 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+              <span>Rezept löschen</span>
+            </button>
+          ) : (
+            <div />
+          )}
+
           <button
             type="button"
             onClick={onClose}

@@ -100,141 +100,159 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
       </div>
 
       {/* Primary Highlights Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-stretch">
         {/* Today's Dish Card */}
-        <div className="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-sm hover:border-slate-750 transition-all">
-          <div className="flex items-center justify-between mb-3">
-            <div className="p-2.5 bg-amber-950/50 text-amber-400 border border-amber-800/30 rounded-xl">
-              <Calendar className="w-5 h-5" />
+        <div className="bg-slate-900/90 rounded-3xl p-5 sm:p-6 border border-slate-800 shadow-lg hover:border-slate-700/80 transition-all flex flex-col justify-between h-full">
+          <div>
+            <div className="flex items-center justify-between mb-3.5">
+              <div className="p-2.5 bg-amber-950/50 text-amber-400 border border-amber-800/40 rounded-2xl shadow-inner">
+                <Calendar className="w-5 h-5" />
+              </div>
+              <span className="text-xs font-bold uppercase tracking-wider text-amber-400 bg-amber-950/60 border border-amber-800/50 px-2.5 py-1 rounded-full">
+                Heute auf dem Tisch
+              </span>
             </div>
-            <span className="text-xs font-bold uppercase tracking-wider text-amber-400 bg-amber-950/60 border border-amber-800/40 px-2.5 py-1 rounded-full">
-              Heute auf dem Tisch
-            </span>
+
+            <h3 className="text-base font-bold text-slate-100 line-clamp-1">
+              {todayMeal?.recipe?.title || todayMeal?.customDishTitle || 'Noch nichts geplant'}
+            </h3>
+
+            <p className="text-xs text-slate-400 mt-1.5 line-clamp-2 leading-relaxed min-h-[2rem]">
+              {todayMeal?.recipe?.description || 'Klicke auf den Wochenplan, um für heute ein leckeres Rezept auszuwählen.'}
+            </p>
           </div>
 
-          <h3 className="text-base font-bold text-slate-100 line-clamp-1">
-            {todayMeal?.recipe?.title || todayMeal?.customDishTitle || 'Noch nichts geplant'}
-          </h3>
-
-          <p className="text-xs text-slate-400 mt-1 line-clamp-2">
-            {todayMeal?.recipe?.description || 'Klicke auf den Wochenplan, um für heute ein leckeres Rezept auszuwählen.'}
-          </p>
-
-          <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
-            <div>
-              Portionen: <span className="font-semibold text-slate-200">{todayMeal?.servings || 6} Personen</span>
+          <div className="mt-4 pt-3.5 border-t border-slate-800/80">
+            <div className="flex items-center justify-between text-xs text-slate-400 mb-3">
+              <div>
+                Portionen: <span className="font-semibold text-slate-200">{todayMeal?.servings || 6} Personen</span>
+              </div>
+              {todayMeal?.cookName ? (
+                <div className="font-medium text-sky-400">
+                  Koch: {todayMeal.cookName}
+                </div>
+              ) : (
+                <div className="text-slate-500">
+                  Kein Koch eingeteilt
+                </div>
+              )}
             </div>
-            {todayMeal?.cookName && (
-              <div className="font-medium text-sky-400">
-                Koch: {todayMeal.cookName}
+
+            <button
+              type="button"
+              onClick={() => setCurrentTab('mealplan')}
+              className="w-full py-2.5 px-4 bg-slate-800/90 hover:bg-slate-750 text-slate-200 hover:text-white border border-slate-700/80 rounded-2xl text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-sm hover:border-amber-500/50"
+            >
+              <span>Wochenplan ansehen</span>
+              <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
+            </button>
+          </div>
+        </div>
+
+        {/* Shopping List Summary Card */}
+        <div className="bg-slate-900/90 rounded-3xl p-5 sm:p-6 border border-slate-800 shadow-lg hover:border-slate-700/80 transition-all flex flex-col justify-between h-full">
+          <div>
+            <div className="flex items-center justify-between mb-3.5">
+              <div className="p-2.5 bg-emerald-950/50 text-emerald-400 border border-emerald-800/40 rounded-2xl shadow-inner">
+                <ShoppingCart className="w-5 h-5" />
+              </div>
+              <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 px-2.5 py-1 rounded-full">
+                Einkaufsliste
+              </span>
+            </div>
+
+            <h3 className="text-base font-bold text-slate-100">
+              {shoppingSummary?.items?.length || 0} Zutaten konsolidiert
+            </h3>
+
+            <p className="text-xs text-slate-400 mt-1.5 line-clamp-2 leading-relaxed min-h-[2rem]">
+              Supermarkt: <span className="font-semibold text-slate-200">{shoppingSummary?.supermarketName || 'Netto Marken-Discount'}</span>
+            </p>
+          </div>
+
+          <div className="mt-4 pt-3.5 border-t border-slate-800/80">
+            <div className="flex items-center justify-between text-xs mb-3">
+              <span className="text-slate-400">Geschätzte Kosten:</span>
+              <span className="text-sm font-bold text-emerald-400">
+                ~ {shoppingSummary?.totalEstimatedCost ? `${shoppingSummary.totalEstimatedCost.toFixed(2)} €` : '0.00 €'}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setCurrentTab('shopping')}
+              className="w-full py-2.5 px-4 bg-slate-800/90 hover:bg-slate-750 text-slate-200 hover:text-white border border-slate-700/80 rounded-2xl text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-sm hover:border-emerald-500/50"
+            >
+              <span>Zur Einkaufsliste</span>
+              <ArrowRight className="w-3.5 h-3.5 text-emerald-400" />
+            </button>
+          </div>
+        </div>
+
+        {/* Waste Calendar & Notes Summary */}
+        <div className="bg-slate-900/90 rounded-3xl p-5 sm:p-6 border border-slate-800 shadow-lg hover:border-slate-700/80 transition-all flex flex-col justify-between h-full">
+          <div>
+            <div className="flex items-center justify-between mb-3.5">
+              <div className="p-2.5 bg-sky-950/50 text-sky-400 border border-sky-800/40 rounded-2xl shadow-inner">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <span className="text-xs font-bold uppercase tracking-wider text-sky-400 bg-sky-950/60 border border-sky-800/50 px-2.5 py-1 rounded-full">
+                Nächste Tonne
+              </span>
+            </div>
+
+            {nextWaste ? (
+              <div>
+                <div className="text-base font-bold text-slate-100">
+                  {nextWaste.wasteType === 'YELLOW' && '💛 Wertstoffsack / Gelb'}
+                  {nextWaste.wasteType === 'BIO' && '💚 Biotonne'}
+                  {nextWaste.wasteType === 'REST' && '🖤 Restmüll'}
+                  {nextWaste.wasteType === 'PAPER' && '💙 Papiertonne'}
+                </div>
+                <div className="text-xs text-slate-400 mt-1 flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Termin: {nextWaste.date}</span>
+                </div>
+
+                {/* 1-day advance warning banner */}
+                {daysUntilWaste === 1 && (
+                  <div className="mt-2 px-2.5 py-1 bg-amber-950/80 border border-amber-800/80 rounded-xl text-[11px] font-semibold text-amber-300 flex items-center gap-1.5 animate-pulse">
+                    <span>⚠️</span>
+                    <span className="truncate">Morgen Abholung! Heute rausstellen.</span>
+                  </div>
+                )}
+                {daysUntilWaste === 0 && (
+                  <div className="mt-2 px-2.5 py-1 bg-rose-950/80 border border-rose-800/80 rounded-xl text-[11px] font-semibold text-rose-300 flex items-center gap-1.5">
+                    <span>🚨</span>
+                    <span className="truncate">Heute Abholung!</span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div>
+                <div className="text-base font-bold text-slate-100">Keine Termine</div>
+                <div className="text-xs text-slate-400 mt-1.5 min-h-[2rem]">Keine anstehende Tonne hinterlegt.</div>
               </div>
             )}
           </div>
 
-          <button
-            type="button"
-            onClick={() => setCurrentTab('mealplan')}
-            className="w-full mt-3 py-2 px-3 bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/60 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
-          >
-            <span>Wochenplan ansehen</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        {/* Shopping List Summary Card */}
-        <div className="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-sm hover:border-slate-750 transition-all">
-          <div className="flex items-center justify-between mb-3">
-            <div className="p-2.5 bg-emerald-950/50 text-emerald-400 border border-emerald-800/30 rounded-xl">
-              <ShoppingCart className="w-5 h-5" />
+          <div className="mt-4 pt-3.5 border-t border-slate-800/80">
+            <div className="flex items-center justify-between text-xs text-slate-400 mb-3">
+              <span>Offene Anliegen / Tickets:</span>
+              <span className={`font-bold px-2 py-0.5 rounded-full text-xs ${notesCount > 0 ? 'bg-amber-950 text-amber-400 border border-amber-800/50' : 'text-slate-400'}`}>
+                {notesCount}
+              </span>
             </div>
-            <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 bg-emerald-950/60 border border-emerald-800/40 px-2.5 py-1 rounded-full">
-              Einkaufsliste
-            </span>
+
+            <button
+              type="button"
+              onClick={() => setCurrentTab('waste')}
+              className="w-full py-2.5 px-4 bg-slate-800/90 hover:bg-slate-750 text-slate-200 hover:text-white border border-slate-700/80 rounded-2xl text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-sm hover:border-sky-500/50"
+            >
+              <span>Abfallkalender öffnen</span>
+              <ArrowRight className="w-3.5 h-3.5 text-sky-400" />
+            </button>
           </div>
-
-          <h3 className="text-base font-bold text-slate-100">
-            {shoppingSummary?.items?.length || 0} Zutaten konsolidiert
-          </h3>
-
-          <p className="text-xs text-slate-400 mt-1">
-            Supermarkt: <span className="font-medium text-slate-300">{shoppingSummary?.supermarketName || 'Netto Marken-Discount'}</span>
-          </p>
-
-          <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
-            <span className="text-slate-400">Geschätzte Kosten:</span>
-            <span className="text-sm font-bold text-emerald-400">
-              ~ {shoppingSummary?.totalEstimatedCost ? `${shoppingSummary.totalEstimatedCost.toFixed(2)} €` : '0.00 €'}
-            </span>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setCurrentTab('shopping')}
-            className="w-full mt-3 py-2 px-3 bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/60 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
-          >
-            <span>Zur Einkaufsliste</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        {/* Waste Calendar & Notes Summary */}
-        <div className="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-sm hover:border-slate-750 transition-all">
-          <div className="flex items-center justify-between mb-3">
-            <div className="p-2.5 bg-sky-950/50 text-sky-400 border border-sky-800/30 rounded-xl">
-              <Trash2 className="w-5 h-5" />
-            </div>
-            <span className="text-xs font-bold uppercase tracking-wider text-sky-400 bg-sky-950/60 border border-sky-800/40 px-2.5 py-1 rounded-full">
-              Nächste Tonne
-            </span>
-          </div>
-
-          {nextWaste ? (
-            <div>
-              <div className="text-base font-bold text-slate-100">
-                {nextWaste.wasteType === 'YELLOW' && '💛 Wertstoffsack / Gelb'}
-                {nextWaste.wasteType === 'BIO' && '💚 Biotonne'}
-                {nextWaste.wasteType === 'REST' && '🖤 Restmüll'}
-                {nextWaste.wasteType === 'PAPER' && '💙 Papiertonne'}
-              </div>
-              <div className="text-xs text-slate-400 mt-1 flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-slate-500" />
-                <span>Termin: {nextWaste.date}</span>
-              </div>
-
-              {/* 1-day advance warning banner */}
-              {daysUntilWaste === 1 && (
-                <div className="mt-2.5 px-2.5 py-1.5 bg-amber-950/70 border border-amber-800/70 rounded-lg text-[11px] font-semibold text-amber-300 flex items-center gap-1.5 animate-pulse">
-                  <span>⚠️</span>
-                  <span>Morgen Abholung! Heute Abend rausstellen.</span>
-                </div>
-              )}
-              {daysUntilWaste === 0 && (
-                <div className="mt-2.5 px-2.5 py-1.5 bg-rose-950/70 border border-rose-800/70 rounded-lg text-[11px] font-semibold text-rose-300 flex items-center gap-1.5">
-                  <span>🚨</span>
-                  <span>Heute Abholung!</span>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div>
-              <div className="text-base font-bold text-slate-100">Keine Termine</div>
-              <div className="text-xs text-slate-400 mt-1">Keine anstehende Tonne hinterlegt.</div>
-            </div>
-          )}
-
-          <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
-            <span>Offene Betreuer-Notizen:</span>
-            <span className="font-bold text-sky-400">{notesCount}</span>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setCurrentTab('waste')}
-            className="w-full mt-3 py-2 px-3 bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/60 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
-          >
-            <span>Abfallkalender öffnen</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
         </div>
       </div>
 

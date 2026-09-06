@@ -117,11 +117,17 @@ export interface CustomShoppingItemSummary {
 export interface CaregiverNoteSummary {
   id: string;
   locationId: string;
+  locationName?: string;
   residentId: string;
   residentName: string;
   title: string;
   content: string;
   status: 'OPEN' | 'IN_PROGRESS' | 'DONE';
+  isArchived: boolean;
+  caregiverResponse?: string | null;
+  respondedByName?: string | null;
+  respondedAt?: string | null;
+  resolvedAt?: string | null;
   createdAt: string;
 }
 

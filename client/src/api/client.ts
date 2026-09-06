@@ -105,6 +105,7 @@ export const api = {
     recipe: (id: string) => request<any>(`food/recipes/${id}`),
     createRecipe: (body: any) => request<any>('food/recipes', { method: 'POST', body: JSON.stringify(body) }),
     updateRecipe: (id: string, body: any) => request<any>(`food/recipes/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+    deleteRecipe: (id: string) => request<{ success: boolean; message: string }>(`food/recipes/${id}`, { method: 'DELETE' }),
     ingredients: (supermarketId?: string) =>
       request<any[]>(`food/ingredients${supermarketId ? `?supermarketId=${supermarketId}` : ''}`),
     createIngredient: (body: any) => request<any>('food/ingredients', { method: 'POST', body: JSON.stringify(body) }),
@@ -144,9 +145,18 @@ export const api = {
   },
 
   notes: {
-    list: (locationId?: string) => request<any[]>(`notes${locationId ? `?locationId=${locationId}` : ''}`),
+    list: (locationId?: string, archived: boolean = false) =>
+      request<any[]>(`notes?${locationId ? `locationId=${locationId}&` : ''}archived=${archived}`),
+    countOpen: (locationId?: string) =>
+      request<{ count: number }>(`notes/count-open${locationId ? `?locationId=${locationId}` : ''}`),
     create: (body: { title: string; content: string; locationId?: string }) =>
       request<any>('notes', { method: 'POST', body: JSON.stringify(body) }),
+    respond: (id: string, response: string) =>
+      request<any>(`notes/${id}/respond`, { method: 'POST', body: JSON.stringify({ response }) }),
+    resolve: (id: string) =>
+      request<any>(`notes/${id}/resolve`, { method: 'PATCH' }),
+    reopen: (id: string) =>
+      request<any>(`notes/${id}/reopen`, { method: 'PATCH' }),
     updateStatus: (id: string, status: 'OPEN' | 'IN_PROGRESS' | 'DONE') =>
       request<any>(`notes/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
     delete: (id: string) => request<any>(`notes/${id}`, { method: 'DELETE' }),

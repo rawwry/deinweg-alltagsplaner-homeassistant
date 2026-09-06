@@ -3,6 +3,34 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.6] - 2026-09-06
+
+### Hinzugefügt
+- **Ticketsystem für Betreuernotizen & Anliegen**:
+  - Trennung in Reiter „Aktive Anliegen“ und „Archiv (Gelöst)“.
+  - Bewohner und Betreuer können strukturierte Tickets verfassen (Dringlichkeit, Betreff, Details).
+  - Betreuer/Admins können direkt auf Tickets antworten (`caregiverResponse`), wodurch die Antwort prominent im Ticket für den Bewohner angezeigt wird.
+  - „Als gelöst markieren & archivieren“-Workflow für Betreuer mit Zeitstempel und Bearbeiter-Zuordnung.
+  - Wiedereröffnungsfunktion für archivierte Tickets im Archiv.
+  - Live-Badge in Desktop- und Mobile-Navigation mit Anzeige der Anzahl offener, ungelöster Tickets für Betreuer.
+- **Löschfunktion für Rezepte**:
+  - Betreuer und Administratoren können Rezepte direkt aus der Kachelansicht, Listenansicht und dem Rezeptdetail-Modal löschen.
+  - Integrierte Sicherheitsabfrage vor dem Löschen.
+  - Sichere Datenbank-Kaskadierung (Zutaten-Zuordnungen werden bereinigt, Verweise in vergangenen Essensplänen werden ohne Datenverlust auf null gesetzt).
+- **Automatischer JWT-Sicherheitsschlüssel**:
+  - Falls in der Konfiguration kein individueller `jwt_secret` gesetzt ist oder der Platzhalter verwendet wird, generiert das System beim Start automatisch einen kryptografisch sicheren 64-Zeichen Hex-Key und speichert diesen persistent ab (`STORAGE_DIR/jwt.secret`). Dadurch sind Tokens auch ohne manuelles Eingreifen vor externem Zugriff geschützt.
+
+### Geändert
+- **Dashboard Highlight-Cards Redesign**:
+  - Die drei Boxen „Heute auf dem Tisch“, „Einkaufsliste“ und „Nächste Tonne“ wurden harmonisiert.
+  - Einheitliche Mindesthöhen, strukturierte Inhaltsbereiche und perfekte horizontale Ausrichtung der Aktions-Buttons am unteren Kartenrand (`mt-auto`).
+- **Sidebar-Footer**:
+  - Text „Dein Weg • Ambulant Betreut“ ersetzt durch `© 2026 timovorwald.de`.
+- **Rechte im Abfallkalender**:
+  - Bewohner können im Abfallkalender keine Termine mehr anlegen oder ICS-Dateien importieren. Die entsprechenden Buttons und Dialoge stehen exklusiv Betreuern und Administratoren zur Verfügung.
+- **Bereinigter Startbestand**:
+  - Vordefinierte Beispielrezepte wurden aus dem Initial-Seed entfernt, sodass Neuinstallationen mit einem leeren Rezeptekatalog starten (Supermärkte und Zutatenpreise bleiben erhalten).
+
 ## [0.1.0-beta.5] - 2026-09-06
 
 ### Behoben
