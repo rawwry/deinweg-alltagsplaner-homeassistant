@@ -266,15 +266,15 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl sm:text-2xl font-bold text-slate-100 flex items-center gap-2">
-              <Calendar className="w-6 h-6 text-sky-400" />
-              <span>Wochenplan</span>
+              <span className="text-2xl">🗓️</span>
+              <span>Unser Wochenplan</span>
             </h1>
-            <span className="text-xs font-semibold px-2.5 py-1 bg-sky-950/60 text-sky-400 rounded-full border border-sky-800/40">
+            <span className="text-xs font-bold px-2.5 py-1 bg-sky-950/60 text-sky-400 rounded-full border border-sky-800/40">
               KW {weekNumber} • {year}
             </span>
           </div>
           <p className="text-xs text-slate-400 mt-1">
-            Essensplanung für {activeLocation?.name || user?.locationName || 'Standort'} • {configuredCookingDays.length} Kochtage ({formatCookingDays(activeLocation?.cookingDays)}) • Standard: {activeLocation?.defaultServings || 6} Portionen
+            Gemeinsam kochen & genießen in {activeLocation?.name || user?.locationName || 'der WG'} • {configuredCookingDays.length} Kochtage ({formatCookingDays(activeLocation?.cookingDays)}) • {activeLocation?.defaultServings || 6} Portionen
           </p>
         </div>
 

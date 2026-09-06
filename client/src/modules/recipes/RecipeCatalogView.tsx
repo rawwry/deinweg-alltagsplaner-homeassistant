@@ -114,12 +114,16 @@ export const RecipeCatalogView: React.FC = () => {
       {/* Header */}
       <div className="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-xl shadow-black/20 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-xs font-bold text-indigo-400 mb-2">
+            <span>📖</span>
+            <span>Lieblingsgerichte & Ideen</span>
+          </div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-100 flex items-center gap-2">
-            <BookOpen className="w-6 h-6 text-sky-400" />
-            <span>Rezeptdatenbank</span>
+            <BookOpen className="w-6 h-6 text-indigo-400" />
+            <span>Unsere Rezeptsammlung</span>
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Zentrale Rezeptsammlung mit Zutatenlisten und Zubereitungsanleitungen
+            Leckere Gerichte der WG mit Zutatenlisten und einfachen Zubereitungsschritten
           </p>
         </div>
 
@@ -132,7 +136,7 @@ export const RecipeCatalogView: React.FC = () => {
               title="Kachelansicht"
               className={`p-2 rounded-xl transition-all ${
                 viewMode === 'grid'
-                  ? 'bg-sky-600 text-white shadow-sm'
+                  ? 'bg-indigo-600 text-white shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
@@ -144,7 +148,7 @@ export const RecipeCatalogView: React.FC = () => {
               title="Listenansicht"
               className={`p-2 rounded-xl transition-all ${
                 viewMode === 'list'
-                  ? 'bg-sky-600 text-white shadow-sm'
+                  ? 'bg-indigo-600 text-white shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
@@ -156,10 +160,10 @@ export const RecipeCatalogView: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowAddModal(true)}
-              className="px-4 py-2.5 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white rounded-2xl text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-sky-600/30 transition-all flex-1 sm:flex-none justify-center"
+              className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-2xl text-xs font-bold flex items-center gap-1.5 shadow-md shadow-indigo-600/30 transition-all flex-1 sm:flex-none justify-center"
             >
               <Plus className="w-4 h-4" />
-              <span>Neues Rezept anlegen</span>
+              <span>+ Neues Rezept eintragen</span>
             </button>
           )}
         </div>

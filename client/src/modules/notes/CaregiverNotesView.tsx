@@ -127,41 +127,41 @@ export const CaregiverNotesView: React.FC = () => {
       {/* Header */}
       <div className="bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-800 shadow-xl shadow-black/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full text-xs font-semibold text-amber-400 mb-2">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Ticket- & Mitteilungssystem</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full text-xs font-bold text-amber-400 mb-2">
+            <span className="text-sm">📌</span>
+            <span>WG-Pinnwand & Mitteilungen</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-100 flex items-center gap-2">
             <MessageSquareText className="w-6 h-6 text-amber-400" />
-            <span>Bewohner-Notizen & Betreuer-Tickets</span>
+            <span>Unsere WG-Pinnwand</span>
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Anliegen, Anfragen und To-Dos der Bewohner mit direkter Rückmeldung ({activeLocation?.name || user?.locationName || 'Emsdetten'})
+            Fragen, Notizen, Wünsche und Absprachen für Bewohner und Betreuer ({activeLocation?.name || user?.locationName || 'Emsdetten'})
           </p>
         </div>
 
         <button
           type="button"
           onClick={() => setShowAddForm(!showAddForm)}
-          className="px-4 py-2.5 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white rounded-2xl text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-amber-600/20 transition-all self-stretch sm:self-auto justify-center"
+          className="px-4 py-2.5 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white rounded-2xl text-xs font-bold flex items-center gap-1.5 shadow-md shadow-amber-600/20 transition-all self-stretch sm:self-auto justify-center"
         >
           <Plus className="w-4 h-4" />
-          <span>Neues Ticket verfassen</span>
+          <span>Neue Notiz anpinnen</span>
         </button>
       </div>
 
-      {/* Staff Alert Banner when there are open tickets */}
+      {/* Staff Alert Banner when there are open notes */}
       {isStaff && activeTab === 'ACTIVE' && openTicketsCount > 0 && (
         <div className="bg-gradient-to-r from-amber-950/70 via-slate-900 to-slate-900 border border-amber-500/50 rounded-3xl p-4 sm:p-5 flex items-center gap-3.5 shadow-md">
-          <div className="p-2.5 bg-amber-500 text-slate-950 rounded-2xl shrink-0 font-bold">
-            <Bell className="w-5 h-5 animate-bounce" />
+          <div className="p-2.5 bg-amber-500 text-slate-950 rounded-2xl shrink-0 font-bold text-base">
+            📌
           </div>
           <div className="flex-1">
             <div className="text-sm font-bold text-amber-100">
-              {openTicketsCount === 1 ? '1 offenes Anliegen wartet auf Bearbeitung' : `${openTicketsCount} offene Anliegen warten auf Bearbeitung`}
+              {openTicketsCount === 1 ? '1 neue Mitteilung wartet auf eine Antwort' : `${openTicketsCount} Mitteilungen warten auf eine Antwort`}
             </div>
             <p className="text-xs text-amber-200/70 mt-0.5">
-              Antworte den Bewohnern oder markiere gelöste Anliegen als erledigt, damit sie ins Archiv wandern.
+              Antworte den Bewohnern oder hake erledigte Absprachen einfach ab.
             </p>
           </div>
         </div>
@@ -179,8 +179,8 @@ export const CaregiverNotesView: React.FC = () => {
                 : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
             }`}
           >
-            <MessageSquareText className="w-4 h-4" />
-            <span>Aktive Anliegen</span>
+            <span>📌</span>
+            <span>Aktuelle Notizen</span>
             {activeTab === 'ACTIVE' && notes.length > 0 && (
               <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-950/40 text-slate-900">
                 {notes.length}
@@ -197,17 +197,17 @@ export const CaregiverNotesView: React.FC = () => {
                 : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
             }`}
           >
-            <Archive className="w-4 h-4" />
-            <span>Gelöst & Archiviert</span>
+            <span>✅</span>
+            <span>Erledigt & Archiviert</span>
           </button>
         </div>
 
         <span className="text-xs text-slate-500 hidden sm:inline-block">
-          {activeTab === 'ACTIVE' ? 'Offene To-Dos & Tickets' : 'Abgeschlossene Fälle'}
+          {activeTab === 'ACTIVE' ? 'Offene Mitteilungen & Absprachen' : 'Erledigte Mitteilungen'}
         </span>
       </div>
 
-      {/* Add Ticket Form */}
+      {/* Add Note Form */}
       {showAddForm && (
         <form
           onSubmit={handleCreateNote}
@@ -215,8 +215,8 @@ export const CaregiverNotesView: React.FC = () => {
         >
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-              <Plus className="w-4 h-4 text-amber-400" />
-              <span>Neues Anliegen an die Betreuer senden</span>
+              <span>✏️</span>
+              <span>Neue Notiz für die WG oder Betreuer schreiben</span>
             </h3>
             <span className="text-xs text-slate-400">Verfasser: {user?.name}</span>
           </div>
@@ -255,37 +255,36 @@ export const CaregiverNotesView: React.FC = () => {
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-colors"
+              className="px-4 py-2 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition-colors"
             >
-              <Send className="w-3.5 h-3.5" />
-              <span>Ticket absenden</span>
+              <span>Notiz anpinnen 📌</span>
             </button>
           </div>
         </form>
       )}
 
-      {/* Ticket List */}
+      {/* Notes List */}
       {isLoading ? (
         <div className="py-20 text-center text-slate-500">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-3 border-amber-500 border-t-transparent mb-2"></div>
-          <div>Tickets werden geladen...</div>
+          <div>Pinnwand wird geladen...</div>
         </div>
       ) : notes.length === 0 ? (
-        <div className="bg-slate-900 rounded-3xl p-12 text-center border border-slate-800">
+        <div className="bg-slate-900 rounded-3xl p-12 text-center border border-slate-800 shadow-sm">
           {activeTab === 'ACTIVE' ? (
             <>
-              <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-3 opacity-80" />
-              <h3 className="text-base font-bold text-slate-200">Keine offenen Tickets</h3>
+              <div className="text-4xl mb-3">🎉 📌 ☕</div>
+              <h3 className="text-base font-bold text-slate-200">Alles erledigt & geklärt!</h3>
               <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-                Aktuell liegen keine ungeklärten Anliegen oder offenen To-Dos für diesen Standort vor.
+                Die Pinnwand ist aktuell sauber. Wenn du ein Anliegen oder eine Frage hast, klicke einfach oben auf „Neue Notiz anpinnen“.
               </p>
             </>
           ) : (
             <>
-              <Archive className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-              <h3 className="text-base font-bold text-slate-300">Das Archiv ist leer</h3>
-              <p className="text-xs text-slate-500 mt-1">
-                Sobald Anliegen als gelöst markiert werden, erscheinen sie zur Nachvollziehbarkeit hier.
+              <div className="text-4xl mb-3">📁 🍃</div>
+              <h3 className="text-base font-bold text-slate-200">Das Archiv ist leer</h3>
+              <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+                Erledigte Notizen und geklärte Absprachen werden hier aufbewahrt.
               </p>
             </>
           )}

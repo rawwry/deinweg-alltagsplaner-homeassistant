@@ -165,12 +165,16 @@ export const WasteCalendarView: React.FC = () => {
       {/* Header */}
       <div className="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-xl shadow-black/20 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-teal-500/10 border border-teal-500/20 rounded-full text-xs font-bold text-teal-400 mb-2">
+            <span>♻️</span>
+            <span>Müllabfuhr & Termine</span>
+          </div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-100 flex items-center gap-2">
-            <Trash2 className="w-6 h-6 text-sky-400" />
-            <span>Standort-Abfallkalender</span>
+            <Trash2 className="w-6 h-6 text-teal-400" />
+            <span>Unser WG-Müllkalender</span>
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Abfuhrtermine & 1-Tag-Vorlauf-Erinnerungen ({activeLocation?.name || user?.locationName || 'Emsdetten'})
+            Damit alle Tonnen rechtzeitig an die Straße gestellt werden ({activeLocation?.name || user?.locationName || 'Emsdetten'})
           </p>
         </div>
 
@@ -179,19 +183,19 @@ export const WasteCalendarView: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowAddForm(!showAddForm)}
-              className="flex-1 sm:flex-none px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-2xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors border border-slate-700"
+              className="flex-1 sm:flex-none px-3.5 py-2.5 bg-slate-800 hover:bg-slate-750 text-slate-200 rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors border border-slate-700"
             >
               <Plus className="w-4 h-4" />
-              <span>Termin</span>
+              <span>+ Termin eintragen</span>
             </button>
 
             <button
               type="button"
               onClick={() => setShowIcsImport(!showIcsImport)}
-              className="flex-1 sm:flex-none px-3.5 py-2.5 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white rounded-2xl text-xs font-semibold flex items-center justify-center gap-1.5 shadow-md shadow-sky-600/30 transition-all"
+              className="flex-1 sm:flex-none px-3.5 py-2.5 bg-teal-600 hover:bg-teal-500 active:bg-teal-700 text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-teal-600/30 transition-all"
             >
               <Upload className="w-4 h-4" />
-              <span>ICS Import</span>
+              <span>ICS-Import 📥</span>
             </button>
           </div>
         )}

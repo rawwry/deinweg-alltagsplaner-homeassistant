@@ -13,6 +13,7 @@ import { CaregiverNotesView } from './modules/notes/CaregiverNotesView.js';
 import { WasteCalendarView } from './modules/waste/WasteCalendarView.js';
 import { AdminManagementView } from './modules/admin/AdminManagementView.js';
 import { RecipeModal } from './modules/recipes/RecipeModal.js';
+import { Footer } from './components/layout/Footer.js';
 import { api } from './api/client.js';
 import { RecipeSummary } from '../../shared/types.js';
 
@@ -79,6 +80,9 @@ const AppContent: React.FC = () => {
           {currentTab === 'admin' && <AdminManagementView />}
         </main>
       </div>
+
+      {/* Modern Footer with Copyright & Links */}
+      <Footer />
 
       {/* Mobile Bottom Navigation */}
       <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} />

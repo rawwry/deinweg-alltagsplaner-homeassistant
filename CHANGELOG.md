@@ -3,6 +3,28 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.9] - 2026-09-06
+
+### Hinzugefügt
+- **Einklappbare Seitenleiste (Collapsible Sidebar)**:
+  - Die linke Navigationsleiste auf Desktop-Geräten lässt sich ab sofort über einen Toggle-Button (`PanelLeftClose` / `PanelLeftOpen`) bequem einklappen und ausklappen.
+  - Im eingeklappten Zustand schrumpft die Sidebar auf eine schlanke Icon-Leiste (`w-20`) mit zentrierten Icons, Tooltips und unaufdringlichen Benachrichtigungs-Punkten.
+  - Der Zustand (eingeklappt/ausgeklappt) wird automatisch im `localStorage` gespeichert und bleibt über Besuche hinweg erhalten.
+- **Neuer moderner App-Footer**:
+  - Am Seitenende wurde ein dedizierter, eleganter Footer integriert mit der Zeile:
+    `© 2026 Dein Weg Planner Tool v0.1.0-beta.9 · timovorwald.de · Alle Rechte vorbehalten.` inklusive Direktlink zu `timovorwald.de`.
+  - Die früheren Versionshinweise wurden aus der Sidebar in diesen zentralen Footer überführt.
+- **Verspieltes, modernes Design & Klienten-freundliche Sprache**:
+  - Sämtliche bürokratische oder zu förmliche Begriffe wie „konsolidiert“ oder „Ticketsystem“ wurden durch herzliche, verständliche Sprache ersetzt:
+    - „Konsolidierte Einkaufsliste“ -> „Gemeinsame Einkaufsliste 🛒“
+    - „{count} Zutaten konsolidiert“ -> „{count} Sachen auf unserer Liste 🛒“
+    - „Kalkulierte Gesamtkosten“ -> „Geschätzter Betrag an der Kasse 💳“
+    - „Ticketsystem & Betreuernotizen“ -> „WG-Pinnwand & Mitteilungen 📌 💬“
+    - „Modulare Alltagsbausteine“ -> „Schnellzugriff auf unsere WG-Bereiche 🎨“
+    - „Standort-Abfallkalender“ -> „Unser WG-Müllkalender 🚛 ♻️“
+  - Bunte, anschauliche Grafiken, Illustrationen und thematische Emojis (u. a. für Lebensmittel-Kategorien wie 🥦 Obst & Gemüse, 🧀 Milch & Käse, 🥩 Fleisch, 🥖 Backwaren, 🍝 Pasta & Nudeln) zur Steigerung der Übersichtlichkeit und Barrierefreiheit.
+  - Freundliche Willkommens-Grüße, lebendige Farbverläufe und weiche Animationen.
+
 ## [0.1.0-beta.8] - 2026-09-06
 
 ### Hinzugefügt

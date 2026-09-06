@@ -18,6 +18,21 @@ interface ShoppingListViewProps {
   setCurrentTab: (tab: string) => void;
 }
 
+const getCategoryEmoji = (category: string) => {
+  const cat = category.toLowerCase();
+  if (cat.includes('obst') || cat.includes('gemüse')) return '🥦';
+  if (cat.includes('milch') || cat.includes('käse') || cat.includes('eier')) return '🧀';
+  if (cat.includes('fleisch') || cat.includes('fisch') || cat.includes('wurst')) return '🥩';
+  if (cat.includes('brot') || cat.includes('back')) return '🥖';
+  if (cat.includes('nudel') || cat.includes('pasta') || cat.includes('reis') || cat.includes('teig')) return '🍝';
+  if (cat.includes('konserve') || cat.includes('hülse') || cat.includes('dose')) return '🥫';
+  if (cat.includes('gewürz') || cat.includes('öl') || cat.includes('sauce')) return '🧂';
+  if (cat.includes('tiefkühl') || cat.includes('frost')) return '❄️';
+  if (cat.includes('getränk') || cat.includes('saft') || cat.includes('wasser')) return '🧃';
+  if (cat.includes('haushalt') || cat.includes('hygiene') || cat.includes('drogerie')) return '🧻';
+  return '🛒';
+};
+
 export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTab }) => {
   const { user, activeLocationId, activeLocation } = useAuth();
 
@@ -183,15 +198,15 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl sm:text-2xl font-bold text-slate-100 flex items-center gap-2">
-              <ShoppingCart className="w-6 h-6 text-emerald-400" />
-              <span>Konsolidierte Einkaufsliste</span>
+              <span className="text-2xl">🛒</span>
+              <span>Gemeinsame Einkaufsliste</span>
             </h1>
             <span className="text-xs font-semibold px-2.5 py-1 bg-emerald-950/60 text-emerald-400 rounded-full border border-emerald-800/40">
               KW {weekNumber} • {year}
             </span>
           </div>
           <p className="text-xs text-slate-400 mt-1">
-            Alle Zutaten der Woche summiert für den Einkauf am Montag ({activeLocation?.name || user?.locationName || 'Emsdetten'})
+            Alle Zutaten und Haushaltsartikel für unsere WG-Woche ({activeLocation?.name || user?.locationName || 'Emsdetten'})
           </p>
         </div>
 
@@ -220,9 +235,12 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
         {/* Progress Bar Card */}
         <div className="bg-slate-900 rounded-2xl p-4 border border-slate-800 shadow-sm">
           <div className="flex items-center justify-between text-xs font-semibold text-slate-300 mb-2">
-            <span>Einkaufs-Fortschritt</span>
+            <span className="flex items-center gap-1.5">
+              <span>🧺</span>
+              <span>Schon im Einkaufswagen</span>
+            </span>
             <span className="text-emerald-400 font-bold">
-              {checkedCount} von {totalCount} abgehakt ({progressPercent}%)
+              {checkedCount} von {totalCount} ({progressPercent}%)
             </span>
           </div>
           <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
@@ -236,8 +254,9 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
         {/* Cost Estimate Card */}
         <div className="bg-slate-900 rounded-2xl p-4 border border-slate-800 shadow-sm flex items-center justify-between">
           <div>
-            <div className="text-xs text-slate-400 font-medium">
-              Kalkulierte Gesamtkosten
+            <div className="text-xs text-slate-400 font-medium flex items-center gap-1">
+              <span>💳</span>
+              <span>Geschätzter Betrag an der Kasse</span>
             </div>
             <div className="text-xl font-extrabold text-slate-100 flex items-center gap-1.5 mt-0.5">
               <Euro className="w-5 h-5 text-emerald-400" />
@@ -246,7 +265,7 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
           </div>
           <div className="text-right">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-              Richtpreise
+              Supermarkt
             </span>
             <div className="text-xs font-semibold text-slate-300">
               {shoppingData?.supermarketName || 'Netto Marken-Discount'}
@@ -331,18 +350,18 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
           <div>Einkaufsliste wird geladen...</div>
         </div>
       ) : totalCount === 0 ? (
-        <div className="bg-slate-900 rounded-3xl p-12 text-center border border-slate-800">
-          <ShoppingCart className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+        <div className="bg-slate-900 rounded-3xl p-12 text-center border border-slate-800 shadow-sm">
+          <div className="text-4xl mb-3">🛒 🥗 🥐</div>
           <h3 className="text-base font-bold text-slate-200">Noch keine Einkaufsliste für diese Woche</h3>
           <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-            Plane zuerst Gerichte im Wochenplan ein, um die Einkaufsliste automatisch generieren zu lassen.
+            Sobald Gerichte im Wochenplan eingetragen sind, stellt der Planer hier automatisch alle Zutaten übersichtlich zusammen!
           </p>
           <button
             type="button"
             onClick={() => setCurrentTab('mealplan')}
-            className="mt-4 px-4 py-2 bg-sky-600 text-white rounded-xl text-xs font-semibold hover:bg-sky-500"
+            className="mt-4 px-4 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold shadow-xs transition-colors inline-flex items-center gap-2"
           >
-            Gerichte planen
+            <span>Gerichte im Wochenplan wählen</span>
           </button>
         </div>
       ) : (
@@ -402,14 +421,14 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
           {categoryList.map(([categoryName, items]) => (
             <div
               key={categoryName}
-              className="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-sm"
+              className="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-sm hover:border-slate-750 transition-colors"
             >
               <div className="flex items-center justify-between mb-3 border-b border-slate-800 pb-2.5">
                 <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-                  <Tag className="w-4 h-4 text-sky-400" />
+                  <span className="text-base">{getCategoryEmoji(categoryName)}</span>
                   <span>{categoryName}</span>
                 </h3>
-                <span className="text-xs text-slate-400 font-medium">
+                <span className="text-xs text-slate-400 font-medium bg-slate-800/80 px-2.5 py-1 rounded-full border border-slate-700/60">
                   {items.filter((i) => i.isChecked).length} / {items.length} erledigt
                 </span>
               </div>
