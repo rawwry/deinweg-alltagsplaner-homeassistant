@@ -13,6 +13,7 @@ COPY prisma ./prisma
 RUN npx prisma generate
 
 COPY tsconfig.json ./
+COPY tailwind.config.js* postcss.config.js* ./
 COPY shared ./shared
 COPY server ./server
 COPY client ./client

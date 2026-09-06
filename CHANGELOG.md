@@ -3,6 +3,15 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.4] - 2026-09-06
+
+### Behoben
+- **CSS-Rendering im Docker-Build**:
+  - `client/vite.config.ts` injiziert das `tailwindcss`-Plugin nun mit explizitem Pfad zu `tailwind.config.js`.
+  - `client/tailwind.config.js` nutzt absolute Pfade zur Inhaltsauflösung (`index.html`, `src/`, `shared/`).
+  - `Dockerfile` kopiert nun explizit alle `tailwind.config.js*` und `postcss.config.js*` Dateien in den Builder-Container.
+  - Basispfad im Vite-Build auf absolute Domain-Auflösung (`base: '/'`) vereinheitlicht, um Asset-Ladefehler hinter Reverse Proxies und Cloudflare Tunnels zu eliminieren.
+
 ## [0.1.0-beta.3] - 2026-09-06
 
 ### Hinzugefügt
