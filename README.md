@@ -38,7 +38,7 @@ Das Add-on lauscht auf **Port 4731**. Für den gesicherten Fernzugriff kann ein 
 ### Installation in Home Assistant
 1. Füge dieses Repository unter **Einstellungen > Add-ons > Add-on Store > Repositories** hinzu:
    ```
-   https://github.com/rawwry/Dein-Weg-Alltagsplaner
+   https://github.com/rawwry/deinweg-alltagsplaner-homeassistant
    ```
 2. Wähle **Dein Weg Alltagsplaner** aus und klicke auf **Installieren**.
 3. Starte das Add-on. Port 4731 ist im lokalen Netzwerk freigegeben.
@@ -65,6 +65,6 @@ npm run dev
 Versionen werden synchron in `package.json`, `config.yaml` und Quellcode geführt:
 ```bash
 # Versionserhöhung (z.B. beta, patch, minor, major)
-npm run version:bump -- 0.1.0-beta.2
+npm run version:bump -- 0.1.0-beta.3
 ```
-Aktuelle Version: **v0.1.0-beta.1**
+Aktuelle Version: **v0.1.0-beta.2**
