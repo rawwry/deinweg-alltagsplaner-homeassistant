@@ -71,7 +71,7 @@ export const DesktopNav: React.FC<DesktopNavProps> = ({ currentTab, setCurrentTa
     <aside
       className={`hidden md:flex flex-col ${
         isCollapsed ? 'w-20' : 'w-64'
-      } bg-slate-900/95 backdrop-blur-md border-r border-slate-800/80 min-h-[calc(100vh-5rem)] p-3 justify-between flex-shrink-0 transition-all duration-300 ease-in-out select-none`}
+      } bg-slate-900/95 backdrop-blur-md border-r border-slate-800/80 h-full p-3 justify-between flex-shrink-0 transition-all duration-300 ease-in-out select-none overflow-y-auto`}
     >
       <div>
         {/* Header with Collapse / Expand Toggle */}

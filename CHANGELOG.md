@@ -3,6 +3,23 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.13] - 2026-09-07
+
+### Geändert & Verbessert
+- **Gestochen scharfes Vektor-SVG-Logo & perfekte Proportionen**:
+  - Vollständige Umstellung aller Logo-Vorkommen (`LoginView`, `Header`, Ladeanzeige, Favicon) von einer niedrig aufgelösten Rastergrafik auf eine native, unendlich scharfe Vektor-SVG-Grafik (`logo.svg`).
+  - Das Logo auf der Anmeldeseite wurde auf eine ausgewogene, elegante Höhe skaliert (`h-14` bis `h-16`, ca. 56–64px) – gestochen scharf auf allen Bildschirmauflösungen (Retina, 4K, Mobile) und nie mehr verpixelt oder überdimensioniert.
+- **Permanenter Footer in der Web-App**:
+  - Die Web-Applikation nutzt nun ein echtes Full-Height-Viewport-Layout (`h-screen h-[100dvh] flex flex-col overflow-hidden`).
+  - Der Footer bleibt dauerhaft und zuverlässig am unteren Rand eingeblendet, während die WG-Inhalte im Hauptbereich eigenständig scrollen.
+  - Nahtlose, überlappungsfreie Anordnung mit der mobilen Navigationsleiste.
+- **Zentrierte minimalistische Highlight-Karten mit dezenten Animationen**:
+  - Neugestaltung der drei zentralen Dashboard-Boxen („Heute auf dem Tisch“, „Einkaufsliste“, „Nächste Abfuhr“) im modernen, zentrierten Design.
+  - Veraltete Emoji-Icons wurden durch zentrierte, minimalistische Vektor-Icons (`UtensilsCrossed`, `ShoppingBag`, `Trash2`) in edlen, farblich akzentuierten Squircles mit weichem Glüheffekt ersetzt.
+  - Dezente Mikro-Animationen: Sanfte Neigung, Hebung und Schwebung bei Maus-Hover.
+  - Vollkommen symmetrische Ausrichtung, zentrierte Kategorien-Pills, einheitliche Höhen und harmonisch bündige Aktions-Buttons.
+  - Die Schnellstart-Kacheln für die WG-Bereiche wurden mit klaren Lucide-Icons vereinheitlicht.
+
 ## [0.1.0-beta.12] - 2026-09-07
 
 ### Geändert & Verbessert

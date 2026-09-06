@@ -19,9 +19,38 @@ interface VersionRelease {
 
 const RELEASES: VersionRelease[] = [
   {
-    version: '0.1.0-beta.12',
+    version: '0.1.0-beta.13',
     date: '2026-09-07',
     isLatest: true,
+    tagline: 'Vektor-SVG-Logo, permanenter Footer & zentrierte minimalistische Highlight-Karten',
+    highlights: [
+      {
+        category: '💎 Vektor-SVG-Logo & Proportionen',
+        items: [
+          'Vollständige Umstellung auf native, unendlich scharfe Vektor-SVG-Grafik (logo.svg) für Login, Header, Ladeanzeige und Favicon.',
+          'Ausgewogene, wohlproportionierte Skalierung auf der Anmeldeseite (h-14 bis h-16) – kristallklar und ohne Verpixelung.',
+        ],
+      },
+      {
+        category: '📌 Permanenter Footer',
+        items: [
+          'Full-Height-Viewport-Layout: Der Footer bleibt dauerhaft und verlässlich am unteren Bildschirmrand sichtbar.',
+          'Hauptinhaltsbereich scrollt sauber und unabhängig; harmonische Einbindung über der mobilen Navigationsleiste.',
+        ],
+      },
+      {
+        category: '✨ Zentrierte minimalistische Highlight-Karten',
+        items: [
+          'Neugestaltung der drei Kern-Boxen („Heute auf dem Tisch“, „Einkaufsliste“, „Nächste Abfuhr“) mit zentrierter Symmetrie.',
+          'Minimalistische Lucide-Vektor-Icons (UtensilsCrossed, ShoppingBag, Trash2) in farbigen Frosted-Glass-Squircles mit dezenten Hover-Animationen.',
+          'Einheitliche Kachelhöhen, bündig ausgerichtete Buttons und Bereinigung der WG-Schnellzugriffe.',
+        ],
+      },
+    ],
+  },
+  {
+    version: '0.1.0-beta.12',
+    date: '2026-09-07',
     tagline: 'Großes animiertes Login-Logo & modernes Glassmorphism-Design',
     highlights: [
       {

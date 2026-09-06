@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext.js';
 import { APP_NAME, APP_VERSION } from '../../../shared/version.js';
 import { LogIn, Eye, EyeOff, Lock, User } from 'lucide-react';
-import logoImg from '../assets/logo.png';
+import logoSvg from '../assets/logo.svg';
 
 export const LoginView: React.FC = () => {
   const { login } = useAuth();
@@ -38,15 +38,15 @@ export const LoginView: React.FC = () => {
       <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 w-80 sm:w-[28rem] h-80 sm:h-[28rem] bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-        {/* Animated Prominent Logo */}
-        <div className="flex flex-col items-center justify-center mb-8 relative">
+        {/* Animated Prominent Logo (Clean Vector SVG, perfectly proportioned) */}
+        <div className="flex flex-col items-center justify-center mb-7 relative">
           {/* Subtle soft glowing aura behind logo */}
-          <div className="absolute inset-0 max-w-[18rem] mx-auto bg-sky-500/15 blur-2xl rounded-full animate-pulse-glow pointer-events-none" />
+          <div className="absolute inset-0 max-w-[14rem] mx-auto bg-sky-500/15 blur-2xl rounded-full animate-pulse-glow pointer-events-none" />
           <div className="relative animate-float transition-transform duration-300">
             <img
-              src={logoImg}
+              src={logoSvg}
               alt={APP_NAME}
-              className="h-24 sm:h-28 md:h-32 w-auto object-contain drop-shadow-[0_16px_32px_rgba(0,0,0,0.5)] hover:scale-105 transition-transform duration-300"
+              className="h-14 sm:h-16 w-auto max-w-[240px] object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.5)] hover:scale-105 transition-transform duration-300"
             />
           </div>
         </div>

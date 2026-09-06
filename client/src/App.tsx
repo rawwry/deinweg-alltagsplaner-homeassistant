@@ -16,7 +16,7 @@ import { RecipeModal } from './modules/recipes/RecipeModal.js';
 import { Footer } from './components/layout/Footer.js';
 import { api } from './api/client.js';
 import { RecipeSummary } from '../../shared/types.js';
-import logoImg from './assets/logo.png';
+import logoSvg from './assets/logo.svg';
 
 const AppContent: React.FC = () => {
   const { user, isLoading, isSetupRequired, handleSetupComplete } = useAuth();
@@ -27,7 +27,7 @@ const AppContent: React.FC = () => {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
         <div className="flex justify-center mb-4">
-          <img src={logoImg} alt="Dein Weg" className="h-12 w-auto object-contain animate-pulse" />
+          <img src={logoSvg} alt="Dein Weg" className="h-10 sm:h-12 w-auto object-contain animate-pulse" />
         </div>
         <div className="text-sm font-semibold text-slate-300">Dein Weg Alltagsplaner wird geladen...</div>
       </div>
@@ -52,17 +52,17 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+    <div className="h-screen h-[100dvh] bg-slate-950 text-slate-100 flex flex-col overflow-hidden">
       {/* Top Header */}
       <Header currentTab={currentTab} setCurrentTab={setCurrentTab} />
 
       {/* Main Layout Area */}
-      <div className="flex-1 flex max-w-7xl w-full mx-auto">
+      <div className="flex-1 flex max-w-7xl w-full mx-auto min-h-0 overflow-hidden">
         {/* Desktop Sidebar Navigation */}
         <DesktopNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
 
         {/* Content View */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 min-h-0 overflow-y-auto">
           {currentTab === 'hub' && <DashboardHub setCurrentTab={setCurrentTab} />}
           {currentTab === 'mealplan' && (
             <MealPlanView
@@ -78,7 +78,7 @@ const AppContent: React.FC = () => {
         </main>
       </div>
 
-      {/* Modern Footer with Copyright & Links */}
+      {/* Modern Footer with Copyright & Links (Always visible) */}
       <Footer />
 
       {/* Mobile Bottom Navigation */}
