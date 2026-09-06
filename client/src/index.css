@@ -4,12 +4,12 @@
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-800 font-sans;
+    @apply bg-slate-950 text-slate-100 font-sans;
     -webkit-tap-highlight-color: transparent;
   }
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar for dark mode */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -18,8 +18,8 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-300 rounded-full;
+  @apply bg-slate-800 rounded-full;
 }
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-slate-400;
+  @apply bg-slate-700;
 }

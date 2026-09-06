@@ -21,25 +21,25 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
   const scale = servings / baseServings;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+      <div className="bg-slate-900 rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-800 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="p-6 border-b border-slate-100 flex items-start justify-between bg-gradient-to-br from-sky-50/50 to-white">
+        <div className="p-5 sm:p-6 border-b border-slate-800 flex items-start justify-between bg-gradient-to-br from-slate-800/70 via-slate-900 to-slate-900">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800">
+              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-sky-950 text-sky-300 border border-sky-800/80">
                 {recipe.category}
               </span>
-              <span className="text-xs text-slate-500 flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5" />
+              <span className="text-xs text-slate-400 flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5 text-slate-400" />
                 {recipe.prepTimeMinutes || 30} Min
               </span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-100">
               {recipe.title}
             </h2>
             {recipe.description && (
-              <p className="text-xs text-slate-500 mt-1 max-w-lg">
+              <p className="text-xs text-slate-400 mt-1 max-w-lg leading-relaxed">
                 {recipe.description}
               </p>
             )}
@@ -47,47 +47,48 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl"
+            className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-xl transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto flex-1 space-y-6">
-          {/* Servings Scaler */}
-          <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-sky-600" />
-              <span className="text-xs font-bold text-slate-700">
+        <div className="p-5 sm:p-6 overflow-y-auto flex-1 space-y-6">
+          {/* Servings Scaler - Strict Single Line (No Wrapping) */}
+          <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-3 sm:p-3.5 flex flex-row items-center justify-between gap-2 flex-nowrap shadow-inner">
+            <div className="flex items-center gap-2 shrink-0 whitespace-nowrap">
+              <Users className="w-4 h-4 text-sky-400 shrink-0" />
+              <span className="text-xs sm:text-sm font-bold text-slate-200 whitespace-nowrap">
                 Zutaten skaliert für:
               </span>
             </div>
-            <div className="flex items-center gap-2">
+
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 whitespace-nowrap">
               <button
                 type="button"
                 onClick={() => setServings((s) => Math.max(1, s - 1))}
-                className="w-8 h-8 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-700 hover:bg-slate-100 active:scale-95 transition-transform"
+                className="w-7 h-7 sm:w-8 sm:h-8 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded-xl flex items-center justify-center text-slate-100 active:scale-95 transition-all shrink-0"
               >
-                <Minus className="w-4 h-4" />
+                <Minus className="w-3.5 h-3.5" />
               </button>
-              <span className="text-sm font-extrabold text-slate-900 w-16 text-center">
+              <span className="text-xs sm:text-sm font-extrabold text-sky-300 px-1 text-center whitespace-nowrap">
                 {servings} Personen
               </span>
               <button
                 type="button"
                 onClick={() => setServings((s) => s + 1)}
-                className="w-8 h-8 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-700 hover:bg-slate-100 active:scale-95 transition-transform"
+                className="w-7 h-7 sm:w-8 sm:h-8 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded-xl flex items-center justify-center text-slate-100 active:scale-95 transition-all shrink-0"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
 
           {/* Ingredients */}
           <div>
-            <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2 mb-3">
-              <ChefHat className="w-4 h-4 text-sky-600" />
+            <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2 mb-3">
+              <ChefHat className="w-4 h-4 text-sky-400" />
               <span>Benötigte Zutaten ({recipe.ingredients.length})</span>
             </h3>
 
@@ -97,10 +98,10 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
                 return (
                   <div
                     key={item.id}
-                    className="p-2.5 bg-slate-50/70 border border-slate-200/60 rounded-xl flex items-center justify-between text-xs"
+                    className="p-2.5 bg-slate-800/70 border border-slate-700/80 rounded-xl flex items-center justify-between text-xs"
                   >
-                    <span className="font-semibold text-slate-800">{item.name}</span>
-                    <span className="font-bold text-sky-700 bg-white px-2 py-1 rounded-lg border border-slate-200/80">
+                    <span className="font-semibold text-slate-200">{item.name}</span>
+                    <span className="font-bold text-sky-300 bg-slate-900 px-2 py-1 rounded-lg border border-slate-700 shadow-inner">
                       {scaledAmount} {item.unit}
                     </span>
                   </div>
@@ -112,11 +113,11 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
           {/* Instructions */}
           {recipe.instructions && (
             <div>
-              <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2 mb-2.5">
-                <BookOpen className="w-4 h-4 text-sky-600" />
+              <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2 mb-2.5">
+                <BookOpen className="w-4 h-4 text-sky-400" />
                 <span>Zubereitungsanleitung</span>
               </h3>
-              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200/80 text-xs text-slate-700 leading-relaxed whitespace-pre-line font-normal">
+              <div className="bg-slate-800/60 rounded-2xl p-4 border border-slate-700/80 text-xs text-slate-300 leading-relaxed whitespace-pre-line font-normal">
                 {recipe.instructions}
               </div>
             </div>
@@ -124,11 +125,11 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+        <div className="p-4 bg-slate-900 border-t border-slate-800 flex justify-end">
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-semibold"
+            className="px-5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-colors"
           >
             Schließen
           </button>

@@ -130,26 +130,26 @@ export const AdminManagementView: React.FC = () => {
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-24 md:pb-8">
       {/* Header */}
-      <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2">
-            <LayoutGrid className="w-6 h-6 text-sky-600" />
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-100 flex items-center gap-2">
+            <LayoutGrid className="w-6 h-6 text-sky-400" />
             <span>Verwaltung & Stammdaten</span>
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-400 mt-1">
             Zentrale Administration von Bewohnern, Passwörtern, Standorten und Preisen
           </p>
         </div>
 
         {/* Subtab navigation */}
-        <div className="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-2xl text-xs font-semibold">
+        <div className="flex items-center gap-1.5 bg-slate-800/80 border border-slate-700/60 p-1.5 rounded-2xl text-xs font-semibold">
           <button
             type="button"
             onClick={() => setActiveSubTab('users')}
             className={`px-3 py-1.5 rounded-xl transition-all ${
               activeSubTab === 'users'
-                ? 'bg-white text-slate-800 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-slate-700 text-white shadow-xs'
+                : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             Benutzer & Bewohner
@@ -159,8 +159,8 @@ export const AdminManagementView: React.FC = () => {
             onClick={() => setActiveSubTab('locations')}
             className={`px-3 py-1.5 rounded-xl transition-all ${
               activeSubTab === 'locations'
-                ? 'bg-white text-slate-800 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-slate-700 text-white shadow-xs'
+                : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             Standorte
@@ -170,8 +170,8 @@ export const AdminManagementView: React.FC = () => {
             onClick={() => setActiveSubTab('prices')}
             className={`px-3 py-1.5 rounded-xl transition-all ${
               activeSubTab === 'prices'
-                ? 'bg-white text-slate-800 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-slate-700 text-white shadow-xs'
+                : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             Supermärkte & Preise
@@ -181,8 +181,8 @@ export const AdminManagementView: React.FC = () => {
             onClick={() => setActiveSubTab('system')}
             className={`px-3 py-1.5 rounded-xl transition-all ${
               activeSubTab === 'system'
-                ? 'bg-white text-slate-800 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-slate-700 text-white shadow-xs'
+                : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             System
@@ -191,8 +191,8 @@ export const AdminManagementView: React.FC = () => {
       </div>
 
       {userSuccessMsg && (
-        <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-xs font-semibold flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+        <div className="p-4 bg-emerald-950/70 border border-emerald-800/50 text-emerald-300 rounded-2xl text-xs font-semibold flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           <span>{userSuccessMsg}</span>
         </div>
       )}
@@ -201,13 +201,13 @@ export const AdminManagementView: React.FC = () => {
       {activeSubTab === 'users' && (
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-sm font-bold text-slate-800">
+            <h3 className="text-sm font-bold text-slate-100">
               Registrierte Benutzer ({usersList.length})
             </h3>
             <button
               type="button"
               onClick={() => setShowAddUser(!showAddUser)}
-              className="px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-xs"
+              className="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors"
             >
               <Plus className="w-4 h-4" />
               <span>Neuen Benutzer / Bewohner anlegen</span>
@@ -217,49 +217,49 @@ export const AdminManagementView: React.FC = () => {
           {showAddUser && (
             <form
               onSubmit={handleCreateUser}
-              className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-3 animate-in fade-in duration-150"
+              className="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-sm space-y-3 animate-in fade-in duration-150"
             >
-              <h4 className="text-sm font-bold text-slate-800">Neuen Zugang anlegen</h4>
+              <h4 className="text-sm font-bold text-slate-100">Neuen Zugang anlegen</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Benutzername</label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Benutzername</label>
                   <input
                     type="text"
                     value={newUsername}
                     onChange={(e) => setNewUsername(e.target.value)}
                     placeholder="z.B. max"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Voller Name</label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Voller Name</label>
                   <input
                     type="text"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
                     placeholder="z.B. Max Mustermann"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Initial-Passwort</label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Initial-Passwort</label>
                   <input
                     type="text"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Rolle</label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Rolle</label>
                   <select
                     value={newRole}
                     onChange={(e) => setNewRole(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                   >
                     <option value="BEWOHNER">Bewohner</option>
                     <option value="BETREUER">Betreuer</option>
@@ -270,11 +270,11 @@ export const AdminManagementView: React.FC = () => {
 
               {newRole === 'BEWOHNER' && (
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Standort zuweisen</label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Standort zuweisen</label>
                   <select
                     value={newLocationId}
                     onChange={(e) => setNewLocationId(e.target.value)}
-                    className="w-full sm:w-64 px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    className="w-full sm:w-64 px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                   >
                     {locations.map((l) => (
                       <option key={l.id} value={l.id}>
@@ -289,13 +289,13 @@ export const AdminManagementView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowAddUser(false)}
-                  className="px-4 py-1.5 bg-slate-100 text-slate-600 rounded-xl text-xs font-semibold"
+                  className="px-4 py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700/60 rounded-xl text-xs font-semibold transition-colors"
                 >
                   Abbrechen
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold shadow-xs"
+                  className="px-4 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-semibold shadow-xs transition-colors"
                 >
                   Benutzer anlegen
                 </button>
@@ -303,9 +303,9 @@ export const AdminManagementView: React.FC = () => {
             </form>
           )}
 
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-            <table className="min-w-full divide-y divide-slate-100 text-left text-xs">
-              <thead className="bg-slate-50 text-slate-500 font-semibold">
+          <div className="bg-slate-900 rounded-3xl border border-slate-800 shadow-sm overflow-hidden">
+            <table className="min-w-full divide-y divide-slate-800 text-left text-xs">
+              <thead className="bg-slate-950 text-slate-400 font-semibold">
                 <tr>
                   <th className="px-5 py-3">Benutzer</th>
                   <th className="px-5 py-3">Rolle</th>
@@ -313,9 +313,9 @@ export const AdminManagementView: React.FC = () => {
                   <th className="px-5 py-3 text-right">Aktionen</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-800/80">
                 {usersList.map((u) => (
-                  <tr key={u.id} className="hover:bg-slate-50/60 transition-colors">
+                  <tr key={u.id} className="hover:bg-slate-800/40 transition-colors">
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-2.5">
                         <div
@@ -325,25 +325,25 @@ export const AdminManagementView: React.FC = () => {
                           {u.name.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <div className="font-bold text-slate-900">{u.name}</div>
-                          <div className="text-slate-400 font-mono text-[10px]">@{u.username}</div>
+                          <div className="font-bold text-slate-100">{u.name}</div>
+                          <div className="text-slate-500 font-mono text-[10px]">@{u.username}</div>
                         </div>
                       </div>
                     </td>
                     <td className="px-5 py-3.5">
                       <span
-                        className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] ${
+                        className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] border ${
                           u.role === 'ADMIN'
-                            ? 'bg-purple-100 text-purple-800'
+                            ? 'bg-purple-950/70 text-purple-300 border-purple-800/40'
                             : u.role === 'BETREUER'
-                            ? 'bg-sky-100 text-sky-800'
-                            : 'bg-emerald-100 text-emerald-800'
+                            ? 'bg-sky-950/70 text-sky-300 border-sky-800/40'
+                            : 'bg-emerald-950/70 text-emerald-300 border-emerald-800/40'
                         }`}
                       >
                         {u.role}
                       </span>
                     </td>
-                    <td className="px-5 py-3.5 text-slate-600">
+                    <td className="px-5 py-3.5 text-slate-400">
                       {u.locationName || 'Alle Standorte (Global)'}
                     </td>
                     <td className="px-5 py-3.5 text-right">
@@ -354,19 +354,19 @@ export const AdminManagementView: React.FC = () => {
                             value={resetPasswordVal}
                             onChange={(e) => setResetPasswordVal(e.target.value)}
                             placeholder="Neues PW..."
-                            className="px-2 py-1 border border-slate-300 rounded-lg text-xs w-28 focus:outline-none"
+                            className="px-2 py-1 bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-100 w-28 focus:outline-none"
                           />
                           <button
                             type="button"
                             onClick={() => handleResetPassword(u.id)}
-                            className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold"
+                            className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold"
                           >
                             OK
                           </button>
                           <button
                             type="button"
                             onClick={() => setResettingUserId(null)}
-                            className="px-2 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs"
+                            className="px-2 py-1 bg-slate-800 text-slate-400 hover:text-slate-200 rounded-lg text-xs"
                           >
                             X
                           </button>
@@ -378,9 +378,9 @@ export const AdminManagementView: React.FC = () => {
                             setResettingUserId(u.id);
                             setResetPasswordVal('start1234!');
                           }}
-                          className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1 ml-auto"
+                          className="px-2.5 py-1 bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700/60 rounded-lg text-xs font-semibold flex items-center gap-1 ml-auto transition-colors"
                         >
-                          <Key className="w-3 h-3 text-slate-500" />
+                          <Key className="w-3 h-3 text-slate-400" />
                           <span>Passwort zurücksetzen</span>
                         </button>
                       )}
@@ -396,7 +396,7 @@ export const AdminManagementView: React.FC = () => {
       {/* SUBTAB: LOCATIONS */}
       {activeSubTab === 'locations' && (
         <div className="space-y-4">
-          <h3 className="text-sm font-bold text-slate-800">
+          <h3 className="text-sm font-bold text-slate-100">
             Konfigurierte Standorte ({locations.length})
           </h3>
 
@@ -404,30 +404,30 @@ export const AdminManagementView: React.FC = () => {
             {locations.map((loc) => (
               <div
                 key={loc.id}
-                className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-3"
+                className="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-sm space-y-3"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <MapPin className="w-5 h-5 text-sky-600" />
-                    <h4 className="text-base font-bold text-slate-900">{loc.name}</h4>
+                    <MapPin className="w-5 h-5 text-sky-400" />
+                    <h4 className="text-base font-bold text-slate-100">{loc.name}</h4>
                   </div>
-                  <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                  <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700/50">
                     {loc.residentCount || 0} Bewohner
                   </span>
                 </div>
 
                 {loc.address && (
-                  <p className="text-xs text-slate-500">{loc.address}</p>
+                  <p className="text-xs text-slate-400">{loc.address}</p>
                 )}
 
-                <div className="pt-3 border-t border-slate-100 text-xs space-y-1.5">
+                <div className="pt-3 border-t border-slate-800 text-xs space-y-1.5">
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Standard-Portionen:</span>
-                    <span className="font-bold text-slate-800">{loc.defaultServings} Personen</span>
+                    <span className="text-slate-500">Standard-Portionen:</span>
+                    <span className="font-bold text-slate-200">{loc.defaultServings} Personen</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Standard-Supermarkt:</span>
-                    <span className="font-bold text-sky-700">
+                    <span className="text-slate-500">Standard-Supermarkt:</span>
+                    <span className="font-bold text-sky-400">
                       {loc.defaultSupermarketId ? 'Netto Marken-Discount' : 'Nicht festgelegt'}
                     </span>
                   </div>
@@ -443,20 +443,20 @@ export const AdminManagementView: React.FC = () => {
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h3 className="text-sm font-bold text-slate-800">
+              <h3 className="text-sm font-bold text-slate-100">
                 Zutaten & Richtpreise nach Supermarkt
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-400">
                 Preise für automatische Wochenbudget-Schätzungen
               </p>
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500 font-semibold">Supermarkt:</span>
+              <span className="text-xs text-slate-400 font-semibold">Supermarkt:</span>
               <select
                 value={selectedSupermarketId}
                 onChange={(e) => setSelectedSupermarketId(e.target.value)}
-                className="px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none"
+                className="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-xl text-xs font-semibold text-slate-200 focus:outline-none"
               >
                 {supermarkets.map((m) => (
                   <option key={m.id} value={m.id}>
@@ -467,9 +467,9 @@ export const AdminManagementView: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-            <table className="min-w-full divide-y divide-slate-100 text-left text-xs">
-              <thead className="bg-slate-50 text-slate-500 font-semibold">
+          <div className="bg-slate-900 rounded-3xl border border-slate-800 shadow-sm overflow-hidden">
+            <table className="min-w-full divide-y divide-slate-800 text-left text-xs">
+              <thead className="bg-slate-950 text-slate-400 font-semibold">
                 <tr>
                   <th className="px-5 py-3">Zutat</th>
                   <th className="px-5 py-3">Kategorie</th>
@@ -477,16 +477,16 @@ export const AdminManagementView: React.FC = () => {
                   <th className="px-5 py-3 text-right">Richtpreis</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-800/80">
                 {ingredients.map((ing) => (
-                  <tr key={ing.id} className="hover:bg-slate-50/60">
-                    <td className="px-5 py-3 font-semibold text-slate-800">{ing.name}</td>
-                    <td className="px-5 py-3 text-slate-500">{ing.category}</td>
-                    <td className="px-5 py-3 text-slate-500">{ing.standardUnit}</td>
-                    <td className="px-5 py-3 text-right font-bold text-slate-900">
+                  <tr key={ing.id} className="hover:bg-slate-800/40 transition-colors">
+                    <td className="px-5 py-3 font-semibold text-slate-200">{ing.name}</td>
+                    <td className="px-5 py-3 text-slate-400">{ing.category}</td>
+                    <td className="px-5 py-3 text-slate-400">{ing.standardUnit}</td>
+                    <td className="px-5 py-3 text-right font-bold text-slate-100">
                       {ing.pricePerUnit ? `${ing.pricePerUnit.toFixed(2)} €` : '-'}
                       {ing.priceUnitSize && (
-                        <span className="text-[10px] text-slate-400 font-normal ml-1">
+                        <span className="text-[10px] text-slate-500 font-normal ml-1">
                           / {ing.priceUnitSize} {ing.standardUnit}
                         </span>
                       )}
@@ -501,59 +501,59 @@ export const AdminManagementView: React.FC = () => {
 
       {/* SUBTAB: SYSTEM */}
       {activeSubTab === 'system' && (
-        <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
+        <div className="bg-slate-900 rounded-3xl p-6 border border-slate-800 shadow-sm space-y-6">
           <div className="flex items-center gap-3">
-            <Server className="w-8 h-8 text-sky-600" />
+            <Server className="w-8 h-8 text-sky-400" />
             <div>
-              <h3 className="text-base font-bold text-slate-900">{APP_NAME}</h3>
-              <p className="text-xs text-slate-500">Home Assistant Add-on Systemdiagnose</p>
+              <h3 className="text-base font-bold text-slate-100">{APP_NAME}</h3>
+              <p className="text-xs text-slate-400">Home Assistant Add-on Systemdiagnose</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
-              <div className="text-slate-400 font-semibold uppercase tracking-wider text-[10px]">
+            <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800">
+              <div className="text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
                 Anwendungsversion
               </div>
-              <div className="text-base font-extrabold text-slate-900 mt-1">
+              <div className="text-base font-extrabold text-slate-100 mt-1">
                 v{APP_VERSION}
               </div>
             </div>
 
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
-              <div className="text-slate-400 font-semibold uppercase tracking-wider text-[10px]">
+            <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800">
+              <div className="text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
                 Web-Port (HTTP)
               </div>
-              <div className="text-base font-extrabold text-slate-900 mt-1">
+              <div className="text-base font-extrabold text-slate-100 mt-1">
                 4731 (Kein Ingress / Cloudflare Tunnel)
               </div>
             </div>
 
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 sm:col-span-2">
-              <div className="text-slate-400 font-semibold uppercase tracking-wider text-[10px]">
+            <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800 sm:col-span-2">
+              <div className="text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
                 SQLite Speicherort
               </div>
-              <div className="font-mono text-xs text-slate-800 mt-1 break-all font-semibold">
+              <div className="font-mono text-xs text-slate-200 mt-1 break-all font-semibold">
                 {healthInfo?.database || '/share/deinweg-alltagsplaner/db/alltagsplaner.db'}
               </div>
             </div>
 
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 sm:col-span-2">
-              <div className="text-slate-400 font-semibold uppercase tracking-wider text-[10px]">
+            <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800 sm:col-span-2">
+              <div className="text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
                 PDF Export Verzeichnis
               </div>
-              <div className="font-mono text-xs text-slate-800 mt-1 break-all font-semibold">
+              <div className="font-mono text-xs text-slate-200 mt-1 break-all font-semibold">
                 {healthInfo?.exportDir || '/share/deinweg-alltagsplaner/export'}
               </div>
             </div>
           </div>
 
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+          <div className="pt-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-500">
             <span>Status: Online & Betriebsbereit</span>
             <button
               type="button"
               onClick={fetchSystemInfo}
-              className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500 flex items-center gap-1"
+              className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-slate-200 flex items-center gap-1 transition-colors"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>Aktualisieren</span>

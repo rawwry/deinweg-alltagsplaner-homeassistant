@@ -21,7 +21,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, setCurrentTab 
   ];
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 py-1 shadow-lg shadow-slate-900/5">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 px-2 py-1 shadow-xl shadow-black/40">
       <nav className="flex items-center justify-around">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -33,13 +33,13 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, setCurrentTab 
               onClick={() => setCurrentTab(item.id)}
               className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all ${
                 isActive
-                  ? 'text-sky-600 font-semibold'
-                  : 'text-slate-500 hover:text-slate-800'
+                  ? 'text-sky-400 font-semibold'
+                  : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               <div
                 className={`p-1 rounded-lg transition-colors ${
-                  isActive ? 'bg-sky-100/80 text-sky-700' : 'text-slate-500'
+                  isActive ? 'bg-sky-950 text-sky-400 border border-sky-800/60 shadow-inner' : 'text-slate-400'
                 }`}
               >
                 <Icon className="w-5 h-5" />

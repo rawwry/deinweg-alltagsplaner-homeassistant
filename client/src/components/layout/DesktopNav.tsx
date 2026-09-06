@@ -23,7 +23,7 @@ export const DesktopNav: React.FC<DesktopNavProps> = ({ currentTab, setCurrentTa
   ];
 
   return (
-    <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200 min-h-[calc(100vh-4rem)] p-4 justify-between flex-shrink-0">
+    <aside className="hidden md:flex flex-col w-64 bg-slate-900 border-r border-slate-800 min-h-[calc(100vh-4rem)] p-4 justify-between flex-shrink-0">
       <div className="space-y-1.5">
         <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-3 py-2">
           Hauptmenü
@@ -38,11 +38,11 @@ export const DesktopNav: React.FC<DesktopNavProps> = ({ currentTab, setCurrentTa
               onClick={() => setCurrentTab(item.id)}
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all text-left ${
                 isActive
-                  ? 'bg-sky-50 text-sky-700 font-semibold shadow-sm'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                  ? 'bg-sky-950/80 text-sky-400 font-semibold border border-sky-800/60 shadow-sm'
+                  : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
               }`}
             >
-              <Icon className={`w-5 h-5 ${isActive ? 'text-sky-600' : 'text-slate-400'}`} />
+              <Icon className={`w-5 h-5 ${isActive ? 'text-sky-400' : 'text-slate-500'}`} />
               <span>{item.label}</span>
             </button>
           );
@@ -50,10 +50,10 @@ export const DesktopNav: React.FC<DesktopNavProps> = ({ currentTab, setCurrentTa
       </div>
 
       {/* Footer Info */}
-      <div className="pt-4 border-t border-slate-100 px-3 text-xs text-slate-400">
+      <div className="pt-4 border-t border-slate-800 px-3 text-xs text-slate-400">
         <div className="flex items-center justify-between">
           <span>Version</span>
-          <span className="font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md text-[11px]">
+          <span className="font-semibold text-slate-300 bg-slate-800 border border-slate-700 px-2 py-0.5 rounded-md text-[11px]">
             v{APP_VERSION}
           </span>
         </div>

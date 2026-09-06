@@ -3,6 +3,18 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.2] - 2026-09-06
+
+### Hinzugefügt
+- **Standard Dark Theme**: Vollständiges, modernes Dark Theme (`bg-slate-950`, Slate 900 Cards, Slate 800 Borders) standardmäßig für die gesamte Web-Applikation inklusive Login, Header, Navigation, Modulen und Modals.
+- **Listenansicht im Rezeptekatalog**: Ansichtswechsel zwischen Kachel-/Rasteransicht (Grid) und kompakter Tabellen-/Listenansicht (List) mit Portions-, Zeit- und Zutatenübersicht.
+- **1-Tages-Vorlauf für Abfallerinnerungen**:
+  - Im Abfallkalender und auf dem Dashboard-Hub wird bei Terminen am Folgetag (`daysUntilNext === 1`) eine aktive Warnmeldung eingeblendet (*"⚠️ Morgen Abholung! Heute Abend rausstellen"*).
+  - Bei Terminen am selben Tag (`daysUntilNext === 0`) wird *"🚨 Heute Abholung!"* signalisiert.
+
+### Behoben
+- **Portionsskalierer im Rezeptdetail**: Das Element `+ - [X] Personen` in `RecipeModal` bricht auf schmalen Displays nicht mehr um (`flex-nowrap`, `whitespace-nowrap`, flexible Breitenverteilung).
+
 ## [0.1.0-beta.1] - 2026-09-06
 
 ### Hinzugefügt

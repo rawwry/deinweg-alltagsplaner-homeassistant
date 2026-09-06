@@ -22,15 +22,15 @@ const AppContent: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-        <div className="w-12 h-12 bg-sky-600 rounded-2xl flex items-center justify-center text-white shadow-lg animate-pulse mb-3">
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
+        <div className="w-12 h-12 bg-sky-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-sky-600/30 animate-pulse mb-3">
           <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/>
             <path d="M7 2v20"/>
             <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>
           </svg>
         </div>
-        <div className="text-sm font-semibold text-slate-700">Dein Weg Alltagsplaner wird geladen...</div>
+        <div className="text-sm font-semibold text-slate-300">Dein Weg Alltagsplaner wird geladen...</div>
       </div>
     );
   }
@@ -49,7 +49,7 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
       {/* Top Header */}
       <Header currentTab={currentTab} setCurrentTab={setCurrentTab} />
 
