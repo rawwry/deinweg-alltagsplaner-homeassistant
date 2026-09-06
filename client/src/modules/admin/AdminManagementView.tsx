@@ -20,6 +20,9 @@ import {
   Eye,
   EyeOff,
   Building2,
+  X,
+  Search,
+  Check,
 } from 'lucide-react';
 
 export const AdminManagementView: React.FC = () => {
@@ -51,6 +54,12 @@ export const AdminManagementView: React.FC = () => {
   const [newLocServings, setNewLocServings] = useState<number>(6);
   const [newLocSupermarketId, setNewLocSupermarketId] = useState('supermarket-netto');
   const [locationSuccessMsg, setLocationSuccessMsg] = useState<string | null>(null);
+
+  // Resident Assignment to Location State
+  const [assigningLocation, setAssigningLocation] = useState<any | null>(null);
+  const [selectedResidentIds, setSelectedResidentIds] = useState<string[]>([]);
+  const [residentSearchQuery, setResidentSearchQuery] = useState('');
+  const [isSavingAssignment, setIsSavingAssignment] = useState(false);
 
   // Ingredients & Prices State
   const [ingredients, setIngredients] = useState<any[]>([]);
@@ -138,7 +147,7 @@ export const AdminManagementView: React.FC = () => {
   };
 
   useEffect(() => {
-    if (activeSubTab === 'users') fetchUsers();
+    if (activeSubTab === 'users' || activeSubTab === 'locations') fetchUsers();
     if (activeSubTab === 'locations' || activeSubTab === 'prices') fetchIngredientsAndMarkets();
     if (activeSubTab === 'smtp') fetchSmtpSettings();
     if (activeSubTab === 'system') fetchSystemInfo();
@@ -228,6 +237,39 @@ export const AdminManagementView: React.FC = () => {
       setTimeout(() => setLocationSuccessMsg(null), 4000);
     } catch (err: any) {
       alert(`Fehler beim Löschen: ${err.message}`);
+    }
+  };
+
+  const openAssignModal = (loc: any) => {
+    setAssigningLocation(loc);
+    setResidentSearchQuery('');
+    // Current residents assigned to this location
+    const currentResidentIds = usersList
+      .filter((u) => u.role === 'BEWOHNER' && u.locationId === loc.id)
+      .map((u) => u.id);
+    setSelectedResidentIds(currentResidentIds);
+  };
+
+  const toggleResidentSelection = (residentId: string) => {
+    setSelectedResidentIds((prev) =>
+      prev.includes(residentId) ? prev.filter((id) => id !== residentId) : [...prev, residentId]
+    );
+  };
+
+  const handleSaveResidentsAssignment = async () => {
+    if (!assigningLocation) return;
+    try {
+      setIsSavingAssignment(true);
+      await api.locations.assignResidents(assigningLocation.id, selectedResidentIds);
+      setLocationSuccessMsg(`Bewohner für „${assigningLocation.name}“ erfolgreich zugewiesen!`);
+      await refreshLocations();
+      await fetchUsers();
+      setAssigningLocation(null);
+      setTimeout(() => setLocationSuccessMsg(null), 5000);
+    } catch (err: any) {
+      alert(`Fehler beim Zuweisen der Bewohner: ${err.message}`);
+    } finally {
+      setIsSavingAssignment(false);
     }
   };
 
@@ -437,13 +479,13 @@ export const AdminManagementView: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    E-Mail (Firmenadresse für Betreuer)
+                    E-Mail <span className="text-slate-500 font-normal">(optional)</span>
                   </label>
                   <input
                     type="email"
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
-                    placeholder="maria.musterfrau@deinweg.de"
+                    placeholder={newRole === 'BEWOHNER' ? 'optional' : 'z.B. name@deinweg.de'}
                     className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
                   />
                 </div>
@@ -548,46 +590,94 @@ export const AdminManagementView: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-5 py-3.5 text-slate-400">
-                      {u.locationName || 'Alle Standorte (Global)'}
+                      {u.role === 'BEWOHNER' ? (
+                        <select
+                          value={u.locationId || ''}
+                          onChange={async (e) => {
+                            const newLocId = e.target.value || null;
+                            try {
+                              await api.users.update(u.id, { locationId: newLocId });
+                              await fetchUsers();
+                              await refreshLocations();
+                            } catch (err: any) {
+                              alert(`Fehler beim Ändern des Standorts: ${err.message}`);
+                            }
+                          }}
+                          className="px-2.5 py-1 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        >
+                          <option value="">-- Kein Standort --</option>
+                          {locations.map((loc) => (
+                            <option key={loc.id} value={loc.id}>
+                              {loc.name}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span>{u.locationName || 'Alle Standorte (Global)'}</span>
+                      )}
                     </td>
                     <td className="px-5 py-3.5 text-right">
-                      {resettingUserId === u.id ? (
-                        <div className="inline-flex items-center gap-1.5">
-                          <input
-                            type="text"
-                            value={resetPasswordVal}
-                            onChange={(e) => setResetPasswordVal(e.target.value)}
-                            placeholder="Neues PW..."
-                            className="px-2 py-1 bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-100 w-28 focus:outline-none"
-                          />
+                      <div className="flex items-center justify-end gap-2">
+                        {resettingUserId === u.id ? (
+                          <div className="inline-flex items-center gap-1.5">
+                            <input
+                              type="text"
+                              value={resetPasswordVal}
+                              onChange={(e) => setResetPasswordVal(e.target.value)}
+                              placeholder="Neues PW..."
+                              className="px-2 py-1 bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-100 w-28 focus:outline-none"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleResetPassword(u.id)}
+                              className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold"
+                            >
+                              OK
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setResettingUserId(null)}
+                              className="px-2 py-1 bg-slate-800 text-slate-400 hover:text-slate-200 rounded-lg text-xs"
+                            >
+                              X
+                            </button>
+                          </div>
+                        ) : (
                           <button
                             type="button"
-                            onClick={() => handleResetPassword(u.id)}
-                            className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold"
+                            onClick={() => {
+                              setResettingUserId(u.id);
+                              setResetPasswordVal('start1234!');
+                            }}
+                            className="px-2.5 py-1 bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700/60 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
                           >
-                            OK
+                            <Key className="w-3 h-3 text-slate-400" />
+                            <span>Passwort</span>
                           </button>
+                        )}
+
+                        {user?.id !== u.id && (
                           <button
                             type="button"
-                            onClick={() => setResettingUserId(null)}
-                            className="px-2 py-1 bg-slate-800 text-slate-400 hover:text-slate-200 rounded-lg text-xs"
+                            onClick={async () => {
+                              if (!confirm(`Möchtest Du den Benutzer "${u.name}" (@${u.username}) wirklich löschen?`)) return;
+                              try {
+                                await api.users.delete(u.id);
+                                setUserSuccessMsg(`Benutzer "${u.name}" gelöscht.`);
+                                await fetchUsers();
+                                await refreshLocations();
+                                setTimeout(() => setUserSuccessMsg(null), 4000);
+                              } catch (err: any) {
+                                alert(`Fehler beim Löschen: ${err.message}`);
+                              }
+                            }}
+                            className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition-colors"
+                            title="Benutzer löschen"
                           >
-                            X
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
-                        </div>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setResettingUserId(u.id);
-                            setResetPasswordVal('start1234!');
-                          }}
-                          className="px-2.5 py-1 bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700/60 rounded-lg text-xs font-semibold flex items-center gap-1 ml-auto transition-colors"
-                        >
-                          <Key className="w-3 h-3 text-slate-400" />
-                          <span>Passwort zurücksetzen</span>
-                        </button>
-                      )}
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -692,56 +782,315 @@ export const AdminManagementView: React.FC = () => {
             </form>
           )}
 
+          {locations.length > 0 && (
+            <div className="bg-slate-900/60 rounded-2xl p-3.5 border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-sky-400 shrink-0" />
+                <span className="font-semibold text-slate-200">
+                  Standort auswählen & Bewohner zuweisen:
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {locations.map((loc) => {
+                  const count = usersList.filter((u) => u.role === 'BEWOHNER' && u.locationId === loc.id).length;
+                  return (
+                    <button
+                      key={loc.id}
+                      type="button"
+                      onClick={() => openAssignModal(loc)}
+                      className="px-3 py-1.5 bg-slate-800 hover:bg-sky-600/30 hover:border-sky-500/50 border border-slate-700 text-slate-200 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors"
+                    >
+                      <Users className="w-3.5 h-3.5 text-sky-400" />
+                      <span>{loc.name}</span>
+                      <span className="px-1.5 py-0.5 rounded-full bg-slate-900 text-[10px] text-sky-300 font-bold border border-slate-700">
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {locations.map((loc) => (
-              <div
-                key={loc.id}
-                className="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-sm space-y-3 flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Building2 className="w-5 h-5 text-sky-400" />
-                      <h4 className="text-base font-bold text-slate-100">{loc.name}</h4>
-                    </div>
-                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700/50">
-                      {loc.residentCount || 0} Bewohner
-                    </span>
-                  </div>
+            {locations.map((loc) => {
+              const locResidents = usersList.filter((u) => u.role === 'BEWOHNER' && u.locationId === loc.id);
 
-                  {loc.address && (
-                    <p className="text-xs text-slate-400 mt-2">{loc.address}</p>
-                  )}
-
-                  <div className="pt-3 mt-3 border-t border-slate-800 text-xs space-y-1.5">
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Standard-Portionen:</span>
-                      <span className="font-bold text-slate-200">{loc.defaultServings} Personen</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Standard-Supermarkt:</span>
-                      <span className="font-bold text-sky-400">
-                        {supermarkets.find((s) => s.id === loc.defaultSupermarketId)?.name || 'Netto Marken-Discount'}
+              return (
+                <div
+                  key={loc.id}
+                  className="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-sm space-y-3 flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Building2 className="w-5 h-5 text-sky-400" />
+                        <h4 className="text-base font-bold text-slate-100">{loc.name}</h4>
+                      </div>
+                      <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700/50">
+                        {locResidents.length} Bewohner
                       </span>
                     </div>
-                  </div>
-                </div>
 
-                {(!loc.residentCount || loc.residentCount === 0) && (
-                  <div className="pt-3 border-t border-slate-800 flex justify-end">
+                    {loc.address && (
+                      <p className="text-xs text-slate-400 mt-2">{loc.address}</p>
+                    )}
+
+                    <div className="pt-3 mt-3 border-t border-slate-800 text-xs space-y-1.5">
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Standard-Portionen:</span>
+                        <span className="font-bold text-slate-200">{loc.defaultServings} Personen</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Standard-Supermarkt:</span>
+                        <span className="font-bold text-sky-400">
+                          {supermarkets.find((s) => s.id === loc.defaultSupermarketId)?.name || 'Netto Marken-Discount'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Residents Living Here */}
+                    <div className="pt-3 mt-3 border-t border-slate-800">
+                      <div className="text-[11px] font-semibold text-slate-400 mb-2 flex items-center justify-between">
+                        <span className="flex items-center gap-1.5">
+                          <Users className="w-3.5 h-3.5 text-sky-400" />
+                          <span>Bewohner vor Ort:</span>
+                        </span>
+                        <span className="text-[10px] text-slate-500">
+                          {locResidents.length} Person(en)
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 min-h-[1.5rem]">
+                        {locResidents.length > 0 ? (
+                          locResidents.map((res) => (
+                            <span
+                              key={res.id}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700/60 text-slate-200 text-[11px]"
+                            >
+                              <span
+                                className="w-2 h-2 rounded-full inline-block shrink-0"
+                                style={{ backgroundColor: res.avatarColor || '#3b82f6' }}
+                              />
+                              <span className="font-medium">{res.name}</span>
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-[11px] text-slate-500 italic">Noch keine Bewohner zugewiesen</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-800 flex items-center justify-between gap-2">
                     <button
                       type="button"
-                      onClick={() => handleDeleteLocation(loc.id, loc.name)}
-                      className="px-2.5 py-1 text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 rounded-lg text-xs flex items-center gap-1 transition-colors"
+                      onClick={() => openAssignModal(loc)}
+                      className="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      <span>Standort löschen</span>
+                      <Users className="w-3.5 h-3.5" />
+                      <span>Bewohner zuweisen</span>
+                    </button>
+
+                    {locResidents.length === 0 && (
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteLocation(loc.id, loc.name)}
+                        className="px-2 py-1 text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 rounded-lg text-xs flex items-center gap-1 transition-colors ml-auto"
+                        title="Standort löschen"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Löschen</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* MODAL: ASSIGN RESIDENTS TO LOCATION */}
+          {assigningLocation && (
+            <div className="fixed inset-0 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+              <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl space-y-4">
+                {/* Header */}
+                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-2xl bg-sky-950/70 border border-sky-800/50 text-sky-400">
+                      <Users className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-slate-100">Bewohner zuweisen</h3>
+                      <p className="text-xs text-slate-400">
+                        Standort: <span className="text-sky-300 font-semibold">{assigningLocation.name}</span>
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setAssigningLocation(null)}
+                    className="p-1.5 text-slate-400 hover:text-slate-200 rounded-xl hover:bg-slate-800 transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Location Switcher */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Standort wechseln:
+                  </label>
+                  <select
+                    value={assigningLocation.id}
+                    onChange={(e) => {
+                      const found = locations.find((l) => l.id === e.target.value);
+                      if (found) {
+                        openAssignModal(found);
+                      }
+                    }}
+                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 font-medium focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  >
+                    {locations.map((loc) => (
+                      <option key={loc.id} value={loc.id}>
+                        {loc.name} ({loc.address || 'Keine Adresse'})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Resident Search */}
+                <div className="relative">
+                  <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+                  <input
+                    type="text"
+                    value={residentSearchQuery}
+                    onChange={(e) => setResidentSearchQuery(e.target.value)}
+                    placeholder="Bewohner nach Name oder @username filtern..."
+                    className="w-full pl-9 pr-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                </div>
+
+                {/* Residents List */}
+                <div className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-[160px] max-h-[320px]">
+                  {usersList.filter((u) => u.role === 'BEWOHNER').length === 0 ? (
+                    <div className="p-6 text-center text-slate-400 space-y-3 bg-slate-800/30 rounded-2xl border border-slate-800">
+                      <Users className="w-8 h-8 text-slate-500 mx-auto" />
+                      <p className="text-xs">
+                        Es sind aktuell noch keine Bewohner im System angelegt.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAssigningLocation(null);
+                          setActiveSubTab('users');
+                          setShowAddUser(true);
+                        }}
+                        className="px-3.5 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 transition-colors"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Jetzt Bewohner anlegen</span>
+                      </button>
+                    </div>
+                  ) : (
+                    usersList
+                      .filter((u) => u.role === 'BEWOHNER')
+                      .filter(
+                        (r) =>
+                          !residentSearchQuery.trim() ||
+                          r.name.toLowerCase().includes(residentSearchQuery.toLowerCase()) ||
+                          r.username.toLowerCase().includes(residentSearchQuery.toLowerCase())
+                      )
+                      .map((res) => {
+                        const isSelected = selectedResidentIds.includes(res.id);
+                        const isCurrentLoc = res.locationId === assigningLocation.id;
+                        const otherLocName =
+                          !isCurrentLoc && res.locationId
+                            ? locations.find((l) => l.id === res.locationId)?.name || res.locationName
+                            : null;
+
+                        return (
+                          <div
+                            key={res.id}
+                            onClick={() => toggleResidentSelection(res.id)}
+                            className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                              isSelected
+                                ? 'bg-sky-950/40 border-sky-600/60 shadow-xs'
+                                : 'bg-slate-800/30 border-slate-800 hover:bg-slate-800/60'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${
+                                  isSelected
+                                    ? 'bg-sky-600 border-sky-500 text-white'
+                                    : 'border-slate-600 bg-slate-800'
+                                }`}
+                              >
+                                {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                              </div>
+                              <div
+                                className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0"
+                                style={{ backgroundColor: res.avatarColor || '#3b82f6' }}
+                              >
+                                {res.name.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <div className="text-xs font-bold text-slate-100">{res.name}</div>
+                                <div className="text-[10px] text-slate-400 font-mono">@{res.username}</div>
+                              </div>
+                            </div>
+
+                            <div>
+                              {isSelected ? (
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sky-950 text-sky-300 border border-sky-700/60">
+                                  Ausgewählt
+                                </span>
+                              ) : otherLocName ? (
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-950/70 text-amber-300 border border-amber-800/40">
+                                  In: {otherLocName}
+                                </span>
+                              ) : (
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-800 text-slate-400 border border-slate-700/40">
+                                  Ohne Standort
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })
+                  )}
+                </div>
+
+                {/* Footer */}
+                <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
+                  <span className="text-xs text-slate-400">
+                    <strong className="text-slate-200">{selectedResidentIds.length}</strong> Bewohner für diesen Standort ausgewählt
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setAssigningLocation(null)}
+                      className="px-3.5 py-2 bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700/60 rounded-xl text-xs font-semibold transition-colors"
+                    >
+                      Abbrechen
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isSavingAssignment}
+                      onClick={handleSaveResidentsAssignment}
+                      className="px-4 py-2 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-colors"
+                    >
+                      {isSavingAssignment ? (
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                      )}
+                      <span>Zuweisung speichern</span>
                     </button>
                   </div>
-                )}
+                </div>
               </div>
-            ))}
-          </div>
+            </div>
+          )}
         </div>
       )}
 

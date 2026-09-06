@@ -238,20 +238,40 @@ router.get('/locations', requireAuth, async (req: Request, res: Response) => {
       where: isStaff ? undefined : { id: req.user!.locationId || 'none' },
       include: {
         defaultSupermarket: true,
-        _count: { select: { users: true } },
+        users: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            role: true,
+            avatarColor: true,
+            email: true,
+          },
+          orderBy: { name: 'asc' },
+        },
       },
       orderBy: { name: 'asc' },
     });
 
-    const formatted = locations.map((loc) => ({
-      id: loc.id,
-      name: loc.name,
-      address: loc.address,
-      defaultSupermarketId: loc.defaultSupermarketId,
-      defaultSupermarketName: loc.defaultSupermarket?.name || null,
-      defaultServings: loc.defaultServings,
-      residentCount: loc._count.users,
-    }));
+    const formatted = locations.map((loc) => {
+      const residents = loc.users.filter((u) => u.role === 'BEWOHNER');
+      return {
+        id: loc.id,
+        name: loc.name,
+        address: loc.address,
+        defaultSupermarketId: loc.defaultSupermarketId,
+        defaultSupermarketName: loc.defaultSupermarket?.name || null,
+        defaultServings: loc.defaultServings,
+        residentCount: residents.length,
+        residents: residents.map((r) => ({
+          id: r.id,
+          name: r.name,
+          username: r.username,
+          avatarColor: r.avatarColor,
+          email: r.email,
+        })),
+      };
+    });
 
     return res.json(formatted);
   } catch (err) {
@@ -321,6 +341,87 @@ router.delete('/locations/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), a
   } catch (err) {
     console.error('Fehler beim Löschen des Standorts:', err);
     return res.status(500).json({ error: 'Fehler beim Löschen des Standorts.' });
+  }
+});
+
+router.put('/locations/:id/residents', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { residentIds } = req.body;
+
+    if (!Array.isArray(residentIds)) {
+      return res.status(400).json({ error: 'residentIds muss ein Array sein.' });
+    }
+
+    const location = await prisma.location.findUnique({ where: { id } });
+    if (!location) {
+      return res.status(404).json({ error: 'Standort nicht gefunden.' });
+    }
+
+    // 1. Unassign all BEWOHNER currently at this location who are not in residentIds
+    await prisma.user.updateMany({
+      where: {
+        locationId: id,
+        id: { notIn: residentIds },
+        role: 'BEWOHNER',
+      },
+      data: {
+        locationId: null,
+      },
+    });
+
+    // 2. Assign selected residents to this location
+    if (residentIds.length > 0) {
+      await prisma.user.updateMany({
+        where: {
+          id: { in: residentIds },
+          role: 'BEWOHNER',
+        },
+        data: {
+          locationId: id,
+        },
+      });
+    }
+
+    // Return updated location with residents
+    const updatedLocation = await prisma.location.findUnique({
+      where: { id },
+      include: {
+        defaultSupermarket: true,
+        users: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            role: true,
+            avatarColor: true,
+            email: true,
+          },
+          orderBy: { name: 'asc' },
+        },
+      },
+    });
+
+    const residents = updatedLocation?.users.filter((u) => u.role === 'BEWOHNER') || [];
+    return res.json({
+      id: updatedLocation!.id,
+      name: updatedLocation!.name,
+      address: updatedLocation!.address,
+      defaultSupermarketId: updatedLocation!.defaultSupermarketId,
+      defaultSupermarketName: updatedLocation!.defaultSupermarket?.name || null,
+      defaultServings: updatedLocation!.defaultServings,
+      residentCount: residents.length,
+      residents: residents.map((r) => ({
+        id: r.id,
+        name: r.name,
+        username: r.username,
+        avatarColor: r.avatarColor,
+        email: r.email,
+      })),
+    });
+  } catch (err: any) {
+    console.error('Fehler beim Zuweisen der Bewohner:', err);
+    return res.status(500).json({ error: 'Fehler beim Zuweisen der Bewohner.' });
   }
 });
 
@@ -437,6 +538,66 @@ router.put('/users/:id/reset-password', requireAuth, requireRole('ADMIN', 'BETRE
   } catch (err) {
     console.error('Fehler beim Zurücksetzen des Passworts:', err);
     return res.status(500).json({ error: 'Fehler beim Zurücksetzen des Passworts.' });
+  }
+});
+
+router.put('/users/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { name, email, role, locationId, avatarColor, isActive } = req.body;
+
+    const existing = await prisma.user.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ error: 'Benutzer nicht gefunden.' });
+    }
+
+    const updated = await prisma.user.update({
+      where: { id },
+      data: {
+        name: name !== undefined ? name.trim() : undefined,
+        email: email !== undefined ? (email && email.trim() ? email.toLowerCase().trim() : null) : undefined,
+        role: role !== undefined ? role : undefined,
+        locationId: locationId !== undefined ? (locationId || null) : undefined,
+        avatarColor: avatarColor !== undefined ? avatarColor : undefined,
+        isActive: isActive !== undefined ? isActive : undefined,
+      },
+      include: { location: true },
+    });
+
+    return res.json({
+      id: updated.id,
+      username: updated.username,
+      name: updated.name,
+      email: updated.email,
+      role: updated.role,
+      locationId: updated.locationId,
+      locationName: updated.location?.name || null,
+      avatarColor: updated.avatarColor,
+      isActive: updated.isActive,
+    });
+  } catch (err: any) {
+    console.error('Fehler beim Bearbeiten des Benutzers:', err);
+    return res.status(500).json({ error: 'Fehler beim Bearbeiten des Benutzers.' });
+  }
+});
+
+router.delete('/users/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    if (id === req.user!.id) {
+      return res.status(400).json({ error: 'Der eigene Benutzeraccount kann nicht gelöscht werden.' });
+    }
+
+    const existing = await prisma.user.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ error: 'Benutzer nicht gefunden.' });
+    }
+
+    await prisma.user.delete({ where: { id } });
+    return res.json({ success: true, message: 'Benutzer erfolgreich gelöscht.' });
+  } catch (err: any) {
+    console.error('Fehler beim Löschen des Benutzers:', err);
+    return res.status(500).json({ error: 'Fehler beim Löschen des Benutzers.' });
   }
 });
 

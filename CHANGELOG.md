@@ -3,6 +3,23 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.7] - 2026-09-06
+
+### Hinzugefügt
+- **Bewohner-Standort-Zuweisung im Verwaltungsbereich**:
+  - In „Verwaltung“ -> „Standorte“ können Betreuer nun beliebige Standorte auswählen und die dort wohnenden Bewohner direkt per Checkbox-Liste und Suchfunktion zuweisen.
+  - Neuer Backend-Endpunkt `PUT /api/core/locations/:id/residents` zur atomaren Aktualisierung der Bewohner eines Standorts.
+  - Anzeige der aktuell zugewiesenen Bewohner direkt auf den Standort-Karten inklusive farbiger Namens-Badges.
+  - Standort-Schnellzugriffsleiste am oberen Rand der Standorte-Verwaltung.
+  - Standort-Wechsel-Dropdown direkt im Zuweisungs-Modal für unterbrechungsfreies Verwalten mehrerer Standorte.
+  - Direkte Standort-Auswahlmöglichkeit für Bewohner auch in der Benutzertabelle (`PUT /api/core/users/:id`).
+  - Löschfunktion für Benutzeraccounts mit Schutz vor Selbst-Löschung (`DELETE /api/core/users/:id`).
+
+### Geändert
+- **E-Mail-Feld bei Benutzeranlage**:
+  - Die Angabe einer E-Mail-Adresse ist bei der Neuanlage von Bewohnern ab sofort explizit optional.
+  - Der Hinweis `(Firmenadresse für Betreuer)` wurde vollständig entfernt.
+
 ## [0.1.0-beta.6] - 2026-09-06
 
 ### Hinzugefügt

@@ -34,6 +34,13 @@ export interface LocationSummary {
   defaultSupermarketId?: string | null;
   defaultServings: number;
   residentCount?: number;
+  residents?: {
+    id: string;
+    name: string;
+    username: string;
+    avatarColor?: string | null;
+    email?: string | null;
+  }[];
 }
 
 export interface SupermarketItem {

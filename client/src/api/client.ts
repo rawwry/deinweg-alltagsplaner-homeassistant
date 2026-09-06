@@ -79,11 +79,18 @@ export const api = {
     create: (body: any) => request<any>('locations', { method: 'POST', body: JSON.stringify(body) }),
     update: (id: string, body: any) => request<any>(`locations/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
     delete: (id: string) => request<any>(`locations/${id}`, { method: 'DELETE' }),
+    assignResidents: (id: string, residentIds: string[]) =>
+      request<any>(`locations/${id}/residents`, {
+        method: 'PUT',
+        body: JSON.stringify({ residentIds }),
+      }),
   },
 
   users: {
     list: (locationId?: string) => request<any[]>(`users${locationId ? `?locationId=${locationId}` : ''}`),
     create: (body: any) => request<any>('users', { method: 'POST', body: JSON.stringify(body) }),
+    update: (id: string, body: any) => request<any>(`users/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+    delete: (id: string) => request<{ success: boolean; message: string }>(`users/${id}`, { method: 'DELETE' }),
     resetPassword: (id: string, newPassword: string) =>
       request<{ success: boolean; message: string }>(`users/${id}/reset-password`, {
         method: 'PUT',
