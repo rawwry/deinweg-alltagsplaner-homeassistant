@@ -1,0 +1,196 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Location {
+  id                   String        @id @default(cuid())
+  name                 String
+  address              String?
+  defaultSupermarketId String?
+  defaultServings      Int           @default(6)
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  defaultSupermarket   Supermarket?  @relation(fields: [defaultSupermarketId], references: [id])
+  users                User[]
+  mealPlans            MealPlan[]
+  notes                CaregiverNote[]
+  wastePickups         WastePickup[]
+  customShoppingItems  CustomShoppingItem[]
+}
+
+model User {
+  id           String        @id @default(cuid())
+  username     String        @unique
+  passwordHash String
+  name         String
+  role         String        @default("BEWOHNER") // "ADMIN", "BETREUER", "BEWOHNER"
+  locationId   String?
+  avatarColor  String?       @default("#3b82f6")
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  location     Location?     @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  notes        CaregiverNote[]
+}
+
+model Supermarket {
+  id        String            @id @default(cuid())
+  name      String
+  isGlobal  Boolean           @default(true)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  prices    IngredientPrice[]
+  locations Location[]
+}
+
+model Ingredient {
+  id           String             @id @default(cuid())
+  name         String
+  category     String             @default("Sonstiges") // Obst & Gemüse, Kühlregal & Milch, Fleisch & Fisch, Trockenwaren & Teigwaren, Gewürze & Saucen, Backwaren, Getränke, Sonstiges
+  standardUnit String             @default("g") // g, kg, ml, l, Stück, Dose, Packung, Bund, TL, EL
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  prices            IngredientPrice[]
+  recipeIngredients RecipeIngredient[]
+}
+
+model IngredientPrice {
+  id            String      @id @default(cuid())
+  ingredientId  String
+  supermarketId String
+  pricePerUnit  Float       // e.g. 1.89
+  unitSize      Float       @default(1) // e.g. 500 for 500g, or 1 for 1kg / 1 Stück
+  unit          String      @default("Stück")
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  ingredient    Ingredient  @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  supermarket   Supermarket @relation(fields: [supermarketId], references: [id], onDelete: Cascade)
+
+  @@unique([ingredientId, supermarketId])
+}
+
+model Recipe {
+  id              String             @id @default(cuid())
+  title           String
+  description     String?
+  instructions    String?
+  category        String             @default("Alltagsküche") // Pasta, Fleisch, Geflügel, Vegetarisch, Eintopf, Schnelle Küche, Fisch, Süßspeise
+  defaultServings Int                @default(4)
+  prepTimeMinutes Int?               @default(30)
+  imageUrl        String?
+  isArchived      Boolean            @default(false)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  ingredients     RecipeIngredient[]
+  mealPlanDays    MealPlanDay[]
+}
+
+model RecipeIngredient {
+  id           String     @id @default(cuid())
+  recipeId     String
+  ingredientId String
+  amount       Float
+  unit         String
+  notes        String?
+
+  recipe       Recipe     @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+}
+
+model MealPlan {
+  id         String        @id @default(cuid())
+  locationId String
+  year       Int
+  weekNumber Int
+  notes      String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  location   Location      @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  days       MealPlanDay[]
+
+  @@unique([locationId, year, weekNumber])
+}
+
+model MealPlanDay {
+  id              String    @id @default(cuid())
+  mealPlanId      String
+  dayOfWeek       Int       // 1 = Montag ... 7 = Sonntag
+  recipeId        String?
+  customDishTitle String?
+  servings        Int       @default(6)
+  mealType        String    @default("main") // lunch, dinner, main
+  cookUserId      String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  mealPlan        MealPlan  @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
+  recipe          Recipe?   @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+
+  @@unique([mealPlanId, dayOfWeek])
+}
+
+model ShoppingListItemState {
+  id              String    @id @default(cuid())
+  locationId      String
+  year            Int
+  weekNumber      Int
+  ingredientId    String
+  isChecked       Boolean   @default(false)
+  checkedByUserId String?
+  checkedAt       DateTime?
+
+  @@unique([locationId, year, weekNumber, ingredientId])
+}
+
+model CustomShoppingItem {
+  id         String   @id @default(cuid())
+  locationId String
+  year       Int
+  weekNumber Int
+  name       String
+  amount     Float?
+  unit       String?
+  category   String   @default("Sonstiges")
+  isChecked  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+}
+
+model CaregiverNote {
+  id         String   @id @default(cuid())
+  locationId String
+  residentId String
+  title      String
+  content    String
+  status     String   @default("OPEN") // OPEN, IN_PROGRESS, DONE
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  resident   User     @relation(fields: [residentId], references: [id], onDelete: Cascade)
+}
+
+model WastePickup {
+  id         String   @id @default(cuid())
+  locationId String
+  date       String   // YYYY-MM-DD
+  wasteType  String   // REST, BIO, PAPER, YELLOW
+  notes      String?
+  createdAt  DateTime @default(now())
+
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+}

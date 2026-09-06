@@ -1,0 +1,63 @@
+{
+  "name": "dein-weg-alltagsplaner",
+  "version": "0.1.0-beta.1",
+  "description": "Modulare Alltags- und Essensplanung für betreute Wohngruppen (Home Assistant Add-on)",
+  "main": "server/dist/server/src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev:server": "tsx watch server/src/index.ts",
+    "dev:client": "vite --config client/vite.config.ts",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "build:client": "vite build --config client/vite.config.ts",
+    "build:server": "tsc -p server/tsconfig.json",
+    "build": "npm run build:client && npm run build:server",
+    "start": "node server/dist/server/src/index.js",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "prisma:seed": "tsx prisma/seed.ts",
+    "db:setup": "npm run prisma:push && npm run prisma:seed",
+    "version:bump": "node scripts/bump-version.mjs",
+    "check": "tsc --noEmit -p server/tsconfig.json && tsc --noEmit -p client/tsconfig.json"
+  },
+  "keywords": [
+    "home-assistant",
+    "addon",
+    "foodplanner",
+    "mealplanner",
+    "assisted-living",
+    "betreutes-wohnen"
+  ],
+  "author": "Dein Weg",
+  "license": "MIT",
+  "dependencies": {
+    "@prisma/client": "^6.4.1",
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^22.13.5",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "clsx": "^2.1.1",
+    "concurrently": "^9.1.2",
+    "lucide-react": "^0.475.0",
+    "postcss": "^8.5.3",
+    "prisma": "^6.4.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwind-merge": "^3.0.1",
+    "tailwindcss": "^3.4.17",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3",
+    "vite": "^6.2.0"
+  }
+}

@@ -1,0 +1,25 @@
+name: "Dein Weg Alltagsplaner"
+description: "Modulare Alltags- und Essensplanung für betreute Wohngruppen (Port 4731)"
+version: "0.1.0-beta.1"
+slug: "dein_weg_alltagsplaner"
+init: false
+arch:
+  - aarch64
+  - amd64
+  - armhf
+  - armv7
+  - i386
+ingress: false
+ports:
+  4731/tcp: 4731
+ports_description:
+  4731/tcp: "Web-Oberfläche für Dein Weg Alltagsplaner"
+panel_icon: "mdi:food-apple-outline"
+panel_title: "Alltagsplaner"
+homeassistant_api: false
+map:
+  - share:rw
+options:
+  jwt_secret: "change_me_in_production_jwt_secret_key"
+schema:
+  jwt_secret: "str"
