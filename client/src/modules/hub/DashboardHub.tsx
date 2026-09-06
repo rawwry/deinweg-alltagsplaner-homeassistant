@@ -219,10 +219,10 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             {nextWaste ? (
               <div>
                 <div className="text-base sm:text-lg font-bold text-slate-100 group-hover:text-sky-300 transition-colors">
-                  {nextWaste.wasteType === 'YELLOW' && '💛 Wertstoff / Gelber Sack'}
-                  {nextWaste.wasteType === 'BIO' && '💚 Biotonne'}
-                  {nextWaste.wasteType === 'REST' && '🖤 Restmüll'}
-                  {nextWaste.wasteType === 'PAPER' && '💙 Papiertonne'}
+                  {nextWaste.wasteType === 'YELLOW' && 'Wertstoff / Gelber Sack'}
+                  {nextWaste.wasteType === 'BIO' && 'Biotonne'}
+                  {nextWaste.wasteType === 'REST' && 'Restmüll'}
+                  {nextWaste.wasteType === 'PAPER' && 'Papiertonne'}
                 </div>
                 <div className="text-xs text-slate-400 mt-1 flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5 text-slate-500" />

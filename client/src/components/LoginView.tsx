@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext.js';
 import { APP_NAME, APP_VERSION } from '../../../shared/version.js';
 import { LogIn, Eye, EyeOff, Lock, User } from 'lucide-react';
+import logoImg from '../assets/logo.png';
 
 export const LoginView: React.FC = () => {
   const { login } = useAuth();
@@ -35,12 +36,12 @@ export const LoginView: React.FC = () => {
       <div className="sm:mx-auto sm:w-full sm:max-w-md px-4">
         {/* App Logo & Title */}
         <div className="text-center">
-          <div className="mx-auto h-16 w-16 bg-gradient-to-tr from-sky-600 to-primary-500 rounded-2xl flex items-center justify-center shadow-lg shadow-sky-600/30 text-white mb-4">
-            <svg className="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/>
-              <path d="M7 2v20"/>
-              <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>
-            </svg>
+          <div className="flex justify-center mb-5">
+            <img
+              src={logoImg}
+              alt={APP_NAME}
+              className="h-16 w-auto object-contain drop-shadow-lg"
+            />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-100 sm:text-3xl">
             {APP_NAME}

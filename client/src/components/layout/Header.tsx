@@ -1,7 +1,8 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext.js';
 import { APP_NAME, APP_VERSION } from '../../../../shared/version.js';
-import { MapPin, LogOut, ChevronDown, User as UserIcon, Shield } from 'lucide-react';
+import { MapPin, LogOut, ChevronDown, User as UserIcon, Shield, LayoutGrid } from 'lucide-react';
+import logoImg from '../../assets/logo.png';
 
 interface HeaderProps {
   currentTab: string;
@@ -21,20 +22,19 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab }) => 
             <button
               type="button"
               onClick={() => setCurrentTab('hub')}
-              className="flex items-center gap-2.5 text-left focus:outline-none group"
+              className="flex items-center gap-3 text-left focus:outline-none group"
+              title="Zur Übersicht"
             >
-              <div className="w-10 h-10 bg-gradient-to-tr from-sky-600 to-primary-500 rounded-xl flex items-center justify-center text-white shadow-md shadow-sky-600/30 group-hover:scale-105 transition-transform">
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/>
-                  <path d="M7 2v20"/>
-                  <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>
-                </svg>
-              </div>
-              <div className="hidden sm:block">
-                <div className="text-base font-bold text-slate-100 tracking-tight leading-none group-hover:text-sky-400 transition-colors">
+              <img
+                src={logoImg}
+                alt={APP_NAME}
+                className="h-8 sm:h-9 w-auto object-contain transition-transform group-hover:scale-105 duration-200"
+              />
+              <div className="hidden lg:block border-l border-slate-800 pl-3">
+                <div className="text-xs font-bold text-slate-100 tracking-tight leading-none group-hover:text-sky-400 transition-colors">
                   {APP_NAME}
                 </div>
-                <div className="text-[11px] text-slate-400 mt-1 flex items-center gap-1.5">
+                <div className="text-[10px] text-slate-400 mt-1 flex items-center gap-1.5">
                   <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                   Ambulant Betreutes Wohnen
                 </div>
@@ -69,7 +69,7 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab }) => 
             )}
           </div>
 
-          {/* Right: User Profile & Logout */}
+          {/* Right: User Profile, Administration Button & Logout */}
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="flex items-center gap-2 pl-2">
               <div
@@ -86,6 +86,23 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab }) => 
                 </div>
               </div>
             </div>
+
+            {/* Admin Management Button directly next to Logout */}
+            {isStaff && (
+              <button
+                type="button"
+                onClick={() => setCurrentTab('admin')}
+                title="Verwaltung"
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-150 ${
+                  currentTab === 'admin'
+                    ? 'bg-sky-600 text-white shadow-sm shadow-sky-900/40 ring-1 ring-sky-400/50'
+                    : 'bg-slate-800/90 text-slate-300 hover:bg-slate-700/90 hover:text-white border border-slate-700/60'
+                }`}
+              >
+                <LayoutGrid className="w-3.5 h-3.5 text-sky-400" />
+                <span className="hidden sm:inline">Verwaltung</span>
+              </button>
+            )}
 
             <button
               type="button"

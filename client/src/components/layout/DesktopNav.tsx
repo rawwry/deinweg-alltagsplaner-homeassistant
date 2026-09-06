@@ -5,7 +5,6 @@ import {
   BookOpen,
   MessageSquareText,
   Trash2,
-  LayoutGrid,
   Home,
   PanelLeftClose,
   PanelLeftOpen,
@@ -24,9 +23,9 @@ export const DesktopNav: React.FC<DesktopNavProps> = ({ currentTab, setCurrentTa
   const [openTicketCount, setOpenTicketCount] = useState<number>(0);
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
     try {
-      return localStorage.getItem('deinweg_sidebar_collapsed') === 'true';
+      return localStorage.getItem('deinweg_sidebar_collapsed') !== 'false';
     } catch {
-      return false;
+      return true;
     }
   });
 
@@ -60,13 +59,12 @@ export const DesktopNav: React.FC<DesktopNavProps> = ({ currentTab, setCurrentTa
   }, [isStaff, activeLocationId]);
 
   const navItems = [
-    { id: 'hub', label: 'Übersicht', emoji: '🏠', icon: Home },
-    { id: 'mealplan', label: 'Wochenplan', emoji: '🗓️', icon: Calendar },
-    { id: 'shopping', label: 'Einkaufsliste', emoji: '🛒', icon: ShoppingCart },
-    { id: 'recipes', label: 'Rezepte', emoji: '📖', icon: BookOpen },
-    { id: 'notes', label: 'WG-Pinnwand', emoji: '📌', icon: MessageSquareText, badge: isStaff && openTicketCount > 0 ? openTicketCount : undefined },
-    { id: 'waste', label: 'Müllkalender', emoji: '🚛', icon: Trash2 },
-    ...(isStaff ? [{ id: 'admin', label: 'Verwaltung', emoji: '⚙️', icon: LayoutGrid }] : []),
+    { id: 'hub', label: 'Übersicht', icon: Home },
+    { id: 'mealplan', label: 'Wochenplan', icon: Calendar },
+    { id: 'shopping', label: 'Einkaufsliste', icon: ShoppingCart },
+    { id: 'recipes', label: 'Rezepte', icon: BookOpen },
+    { id: 'notes', label: 'WG-Pinnwand', icon: MessageSquareText, badge: isStaff && openTicketCount > 0 ? openTicketCount : undefined },
+    { id: 'waste', label: 'Müllkalender', icon: Trash2 },
   ];
 
   return (
@@ -79,9 +77,8 @@ export const DesktopNav: React.FC<DesktopNavProps> = ({ currentTab, setCurrentTa
         {/* Header with Collapse / Expand Toggle */}
         <div className={`flex items-center mb-3 px-2 py-1.5 ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
           {!isCollapsed && (
-            <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-              <span>Menü</span>
-              <span className="text-xs">✨</span>
+            <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+              Menü
             </span>
           )}
           <button
@@ -109,7 +106,7 @@ export const DesktopNav: React.FC<DesktopNavProps> = ({ currentTab, setCurrentTa
                 key={item.id}
                 type="button"
                 onClick={() => setCurrentTab(item.id)}
-                title={isCollapsed ? `${item.label} (${item.emoji})` : undefined}
+                title={isCollapsed ? item.label : undefined}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm font-semibold transition-all group relative ${
                   isCollapsed ? 'justify-center' : 'text-left'
                 } ${
@@ -132,12 +129,7 @@ export const DesktopNav: React.FC<DesktopNavProps> = ({ currentTab, setCurrentTa
 
                 {!isCollapsed && (
                   <>
-                    <span className="flex-1 truncate flex items-center gap-1.5">
-                      <span>{item.label}</span>
-                      <span className="text-xs opacity-70 group-hover:opacity-100 transition-opacity">
-                        {item.emoji}
-                      </span>
-                    </span>
+                    <span className="flex-1 truncate">{item.label}</span>
                     {item.badge !== undefined && (
                       <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 animate-pulse shadow-xs">
                         {item.badge}
@@ -155,16 +147,15 @@ export const DesktopNav: React.FC<DesktopNavProps> = ({ currentTab, setCurrentTa
       {!isCollapsed ? (
         <div className="pt-3 border-t border-slate-800/80 px-1 text-center animate-in fade-in duration-200">
           <div className="p-3 bg-gradient-to-br from-sky-950/40 to-indigo-950/30 rounded-2xl border border-sky-800/30 shadow-inner">
-            <div className="text-lg mb-1">🏡 🥗 ☀️</div>
             <div className="text-xs font-bold text-slate-200">Dein Weg WG-Planer</div>
-            <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">
-              Gemeinsam kochen & wohlfühlen
+            <p className="text-[10px] text-slate-400 mt-1 leading-tight font-medium">
+              Taktische Skill-Issue-Prävention
             </p>
           </div>
         </div>
       ) : (
-        <div className="pt-2 border-t border-slate-800/80 flex justify-center text-base" title="Dein Weg Alltagsplaner">
-          <span>🏡</span>
+        <div className="pt-2 border-t border-slate-800/80 flex justify-center text-xs text-slate-400" title="Taktische Skill-Issue-Prävention">
+          <span className="font-mono text-[10px]">✨</span>
         </div>
       )}
     </aside>

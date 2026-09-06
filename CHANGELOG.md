@@ -3,6 +3,23 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.10] - 2026-09-06
+
+### Geändert & Verbessert
+- **Offizielles Dein Weg Logo integriert**:
+  - Das hochgeladene, offizielle Markenlogo wurde in die Anwendung integriert (`Header`, `LoginView`, Ladeanzeige und Favicon).
+  - SVG-Platzhalter wurden durch die saubere, hochauflösende Markenidentität ersetzt.
+- **Verwaltung im Header oben rechts**:
+  - Für Administratoren und Betreuer wurde die Schaltfläche „Verwaltung“ aus der Sidebar in den oberen Header direkt neben die Abmelden-Schaltfläche verlegt.
+  - Dadurch ist die Administration auf allen Bildschirmgrößen konsistent und blitzschnell erreichbar.
+- **Sidebar-Optimierung & Emojis bereinigt**:
+  - Die nachgestellten Emojis hinter den Menüeinträgen wurden entfernt – die sauberen Lucide-Icons auf der linken Seite bieten klare und fokussierte Orientierung.
+  - Die Seitenleiste startet auf Desktop-Geräten standardmäßig eingeklappt (`collapsed`), wodurch der Fokus voll auf den Inhalten liegt.
+  - Die untere Infobox in der Seitenleiste trägt nun den Text „Taktische Skill-Issue-Prävention“.
+- **Müllkalender & Footer Texte**:
+  - Das Herz-Emoji bei der „Biotonne“ im Dashboard-Schnellüberblick wurde entfernt.
+  - Der Text unten rechts im Footer wurde durch „fcknzs“ ersetzt.
+
 ## [0.1.0-beta.9] - 2026-09-06
 
 ### Hinzugefügt

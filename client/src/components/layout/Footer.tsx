@@ -1,6 +1,5 @@
 import React from 'react';
 import { APP_VERSION } from '../../../../shared/version.js';
-import { Heart } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   return (
@@ -24,9 +23,8 @@ export const Footer: React.FC = () => {
           <span className="text-slate-400">Alle Rechte vorbehalten.</span>
         </div>
 
-        <div className="flex items-center gap-1.5 text-slate-500 text-[11px]">
-          <span>Gemeinsam stark im Alltag</span>
-          <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
+        <div className="flex items-center gap-1.5 text-slate-500 text-[11px] font-mono tracking-wider font-semibold">
+          <span>fcknzs</span>
         </div>
       </div>
     </footer>
