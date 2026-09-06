@@ -19,9 +19,24 @@ interface VersionRelease {
 
 const RELEASES: VersionRelease[] = [
   {
-    version: '0.1.0-beta.13',
+    version: '0.1.0-beta.14',
     date: '2026-09-07',
     isLatest: true,
+    tagline: 'Originales High-Res Logo & optimierte Login-Animation',
+    highlights: [
+      {
+        category: '🎨 Originales Markenlogo',
+        items: [
+          'Einbindung der hochauflösenden Original-PNG-Grafik (1024x261) als primäres Logo.',
+          'Wohlproportionierte Skalierung auf der Login-Seite (h-16 bis h-20, max. 280px) mit sanfter Schwebung und weichem Lichthof.',
+          'Kristallklare Darstellung ohne Verpixelung auf allen Geräten.',
+        ],
+      },
+    ],
+  },
+  {
+    version: '0.1.0-beta.13',
+    date: '2026-09-07',
     tagline: 'Vektor-SVG-Logo, permanenter Footer & zentrierte minimalistische Highlight-Karten',
     highlights: [
       {

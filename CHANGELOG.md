@@ -3,6 +3,14 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.14] - 2026-09-07
+
+### Geändert & Verbessert
+- **Originales High-Res Logo integriert & Login-Animation**:
+  - Das hochauflösende Original-Markenlogo (1024x261 PNG) wurde direkt als primäre Bildressource eingebunden (`logo.png`).
+  - Auf dem Login-Screen präsentiert sich das Logo in einer ausgewogenen, gut lesbaren Größe (`h-16 sm:h-20`, bis max. 280px Breite) mit weichem Ambient-Lichthof und sanfter Schwebung (`animate-float`).
+  - Volle Schärfe durch hochauflösendes Ausgangsmaterial – keine Pixelierung und keine künstliche Nachbildung.
+
 ## [0.1.0-beta.13] - 2026-09-07
 
 ### Geändert & Verbessert

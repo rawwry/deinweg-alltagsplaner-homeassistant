@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuth } from '../../context/AuthContext.js';
 import { APP_NAME, APP_VERSION } from '../../../../shared/version.js';
 import { MapPin, LogOut, ChevronDown, User as UserIcon, Shield, Settings } from 'lucide-react';
-import logoSvg from '../../assets/logo.svg';
+import logoImg from '../../assets/logo.png';
 
 interface HeaderProps {
   currentTab: string;
@@ -26,7 +26,7 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab }) => 
               title="Zur Übersicht"
             >
               <img
-                src={logoSvg}
+                src={logoImg}
                 alt="Dein Weg"
                 className="h-10 sm:h-11 md:h-12 w-auto max-h-12 object-contain transition-transform group-hover:scale-105 duration-200 filter drop-shadow-sm"
               />

@@ -16,7 +16,7 @@ import { RecipeModal } from './modules/recipes/RecipeModal.js';
 import { Footer } from './components/layout/Footer.js';
 import { api } from './api/client.js';
 import { RecipeSummary } from '../../shared/types.js';
-import logoSvg from './assets/logo.svg';
+import logoImg from './assets/logo.png';
 
 const AppContent: React.FC = () => {
   const { user, isLoading, isSetupRequired, handleSetupComplete } = useAuth();
@@ -27,7 +27,7 @@ const AppContent: React.FC = () => {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
         <div className="flex justify-center mb-4">
-          <img src={logoSvg} alt="Dein Weg" className="h-10 sm:h-12 w-auto object-contain animate-pulse" />
+          <img src={logoImg} alt="Dein Weg" className="h-10 sm:h-12 w-auto object-contain animate-pulse" />
         </div>
         <div className="text-sm font-semibold text-slate-300">Dein Weg Alltagsplaner wird geladen...</div>
       </div>
