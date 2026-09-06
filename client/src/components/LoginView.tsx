@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext.js';
 import { APP_NAME, APP_VERSION } from '../../../shared/version.js';
-import { LogIn, Eye, EyeOff, Lock, User, Info } from 'lucide-react';
+import { LogIn, Eye, EyeOff, Lock, User } from 'lucide-react';
 
 export const LoginView: React.FC = () => {
   const { login } = useAuth();
@@ -11,7 +11,6 @@ export const LoginView: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [showDemoHelp, setShowDemoHelp] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,12 +28,6 @@ export const LoginView: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleFillDemo = (u: string, p: string) => {
-    setUsername(u);
-    setPassword(p);
-    setError(null);
   };
 
   return (
@@ -146,52 +139,11 @@ export const LoginView: React.FC = () => {
             </div>
           </form>
 
-          {/* Quick Demo Helper */}
-          <div className="mt-6 pt-5 border-t border-slate-800">
-            <button
-              type="button"
-              onClick={() => setShowDemoHelp(!showDemoHelp)}
-              className="text-xs text-sky-400 hover:text-sky-300 font-medium flex items-center gap-1 mx-auto"
-            >
-              <Info className="w-3.5 h-3.5" />
-              {showDemoHelp ? 'Schnellzugänge verbergen' : 'Initial-Zugänge anzeigen (Klick zum Ausfüllen)'}
-            </button>
-
-            {showDemoHelp && (
-              <div className="mt-3 p-3.5 bg-slate-800/80 rounded-2xl border border-slate-700/80 text-xs space-y-2.5">
-                <div className="font-semibold text-slate-300">Bewohner Emsdetten (PW: emsdetten2026!):</div>
-                <div className="flex flex-wrap gap-1.5">
-                  {['kevin', 'dennis', 'godfirst', 'arne', 'ertugrul', 'udo'].map((u) => (
-                    <button
-                      key={u}
-                      type="button"
-                      onClick={() => handleFillDemo(u, 'emsdetten2026!')}
-                      className="px-2.5 py-1 bg-slate-700/90 border border-slate-600 rounded-lg text-slate-200 hover:bg-sky-900/60 hover:border-sky-500 hover:text-white font-medium transition-colors"
-                    >
-                      {u}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="font-semibold text-slate-300 pt-1">Betreuer & Admin:</div>
-                <div className="flex flex-wrap gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => handleFillDemo('betreuer', 'betreuer2026!')}
-                    className="px-2.5 py-1 bg-sky-950/80 border border-sky-700/80 rounded-lg text-sky-300 hover:bg-sky-900 font-medium transition-colors"
-                  >
-                    betreuer (PW: betreuer2026!)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleFillDemo('admin', 'admin2026!')}
-                    className="px-2.5 py-1 bg-slate-700/90 border border-slate-600 rounded-lg text-slate-200 hover:bg-slate-600 font-medium transition-colors"
-                  >
-                    admin (PW: admin2026!)
-                  </button>
-                </div>
-              </div>
-            )}
+          {/* Helpful Information Notice */}
+          <div className="mt-6 pt-5 border-t border-slate-800 text-center text-xs text-slate-400">
+            <p>
+              Zugangsdaten für Bewohner und Betreuer werden durch die Einrichtungsleitung vergeben.
+            </p>
           </div>
         </div>
 

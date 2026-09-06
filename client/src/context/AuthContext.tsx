@@ -5,10 +5,12 @@ import { UserSummary, LocationSummary } from '../../../shared/types.js';
 interface AuthContextType {
   user: UserSummary | null;
   isLoading: boolean;
+  isSetupRequired: boolean;
   activeLocationId: string;
   locations: LocationSummary[];
   activeLocation: LocationSummary | null;
   login: (username: string, password: string, rememberMe?: boolean) => Promise<void>;
+  handleSetupComplete: (user: UserSummary, token: string) => Promise<void>;
   logout: () => void;
   setActiveLocationId: (locationId: string) => void;
   refreshLocations: () => Promise<void>;
@@ -19,17 +21,29 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSetupRequired, setIsSetupRequired] = useState(false);
   const [locations, setLocations] = useState<LocationSummary[]>([]);
-  const [activeLocationId, setActiveLocationIdState] = useState<string>('location-emsdetten');
+  const [activeLocationId, setActiveLocationIdState] = useState<string>('');
 
-  const fetchUserData = async () => {
-    const token = getStoredToken();
-    if (!token) {
-      setIsLoading(false);
-      return;
-    }
-
+  const initAuth = async () => {
     try {
+      // 1. Check if first-run setup is required
+      const status = await api.auth.setupStatus();
+      if (status.setupRequired) {
+        setIsSetupRequired(true);
+        setIsLoading(false);
+        return;
+      }
+
+      setIsSetupRequired(false);
+
+      // 2. If token exists, fetch current user
+      const token = getStoredToken();
+      if (!token) {
+        setIsLoading(false);
+        return;
+      }
+
       const { user: userData } = await api.auth.me();
       setUser(userData);
 
@@ -50,7 +64,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
     } catch (err) {
-      console.error('Fehler bei automatischer Anmeldung:', err);
+      console.error('Fehler bei Initialisierung:', err);
       setStoredToken(null);
       setUser(null);
     } finally {
@@ -58,8 +72,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const handleSetupComplete = async (newUser: UserSummary, token: string) => {
+    setStoredToken(token);
+    setUser(newUser);
+    setIsSetupRequired(false);
+    try {
+      const locs = await api.locations.list();
+      setLocations(locs);
+      if (locs.length > 0) {
+        setActiveLocationIdState(locs[0].id);
+      }
+    } catch (err) {
+      console.error('Fehler beim Laden der Standorte nach Setup:', err);
+    }
+  };
+
   useEffect(() => {
-    fetchUserData();
+    initAuth();
 
     const handleUnauthorized = () => {
       setUser(null);
@@ -111,10 +140,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         user,
         isLoading,
+        isSetupRequired,
         activeLocationId,
         locations,
         activeLocation,
         login,
+        handleSetupComplete,
         logout,
         setActiveLocationId,
         refreshLocations,

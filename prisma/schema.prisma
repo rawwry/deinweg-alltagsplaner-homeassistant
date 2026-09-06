@@ -27,6 +27,7 @@ model Location {
 model User {
   id           String        @id @default(cuid())
   username     String        @unique
+  email        String?
   passwordHash String
   name         String
   role         String        @default("BEWOHNER") // "ADMIN", "BETREUER", "BEWOHNER"
@@ -193,4 +194,17 @@ model WastePickup {
   createdAt  DateTime @default(now())
 
   location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+}
+
+model SmtpSetting {
+  id        String   @id @default("smtp-default")
+  host      String   @default("")
+  port      Int      @default(587)
+  secure    Boolean  @default(false)
+  user      String   @default("")
+  password  String   @default("")
+  fromEmail String   @default("")
+  fromName  String   @default("Dein Weg Alltagsplaner")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

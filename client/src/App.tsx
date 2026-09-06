@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext.js';
 import { LoginView } from './components/LoginView.js';
+import { InitialSetupView } from './components/InitialSetupView.js';
 import { Header } from './components/layout/Header.js';
 import { BottomNav } from './components/layout/BottomNav.js';
 import { DesktopNav } from './components/layout/DesktopNav.js';
@@ -16,7 +17,7 @@ import { api } from './api/client.js';
 import { RecipeSummary } from '../../shared/types.js';
 
 const AppContent: React.FC = () => {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isSetupRequired, handleSetupComplete } = useAuth();
   const [currentTab, setCurrentTab] = useState<string>('hub');
   const [selectedRecipeDetail, setSelectedRecipeDetail] = useState<RecipeSummary | null>(null);
 
@@ -33,6 +34,10 @@ const AppContent: React.FC = () => {
         <div className="text-sm font-semibold text-slate-300">Dein Weg Alltagsplaner wird geladen...</div>
       </div>
     );
+  }
+
+  if (isSetupRequired) {
+    return <InitialSetupView onComplete={handleSetupComplete} />;
   }
 
   if (!user) {

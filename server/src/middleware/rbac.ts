@@ -7,7 +7,14 @@ export function requireRole(...allowedRoles: UserRole[]) {
       return res.status(401).json({ error: 'Nicht authentifiziert' });
     }
 
-    if (!allowedRoles.includes(req.user.role)) {
+    // Ein Betreuer ist immer automatisch auch Admin mit vollen Rechten
+    const userRole = req.user.role;
+    const isAllowed =
+      allowedRoles.includes(userRole) ||
+      (allowedRoles.includes('ADMIN') && userRole === 'BETREUER') ||
+      (allowedRoles.includes('BETREUER') && userRole === 'ADMIN');
+
+    if (!isAllowed) {
       return res.status(403).json({
         error: 'Zugriff verweigert: Unzureichende Berechtigungen für diese Aktion.',
       });

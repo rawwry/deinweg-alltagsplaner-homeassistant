@@ -3,6 +3,26 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.3] - 2026-09-06
+
+### Hinzugefügt
+- **Ersteinrichtungs-Assistent (Setup Wizard)**:
+  - Automatischer Start im Setup-Modus, sobald die Datenbank initial 0 Benutzer aufweist.
+  - Pflichtangabe von Benutzername, vollem Namen, Firmen-E-Mail-Adresse und sicherem Passwort.
+  - Prominenter Sicherheitshinweis bezüglich der zwingenden Verwendung der offiziellen Firmen-E-Mail-Adresse (z. B. `vorname.nachname@deinweg.de`).
+  - Schutz vor Mehrfach-Initialisierung (Endpunkt wird nach dem ersten Benutzer dauerhaft mit Status 403 gesperrt).
+- **Betreuer = Immer automatisch Admin**:
+  - Jeder Betreuer (`BETREUER`) verfügt im RBAC-System und in der Benutzeroberfläche über alle Administrationsrechte (Standorte anlegen/löschen, Benutzer verwalten, Passwörter zurücksetzen, Mailserver konfigurieren, standortübergreifende Einsicht).
+- **Sauberer Datenbank-Initialzustand (0 vorinstallierte Benutzer)**:
+  - Vollständige Entfernung aller Test-Bewohner und Test-Accounts aus dem Seed.
+  - Beibehaltung des Stammdatenkatalogs (Supermärkte Netto, Rewe, Aldi Nord, Lidl; 31 Zutaten mit Richtpreisen; 8 Basis-Rezepte).
+- **E-Mail & SMTP-Server Konfiguration**:
+  - Neuer Verwaltungs-Reiter „E-Mail / SMTP“ zur Konfiguration des eigenen Mailservers (Host, Port, SSL/TLS, Authentifizierung, Absender-E-Mail und Absender-Name).
+  - Integrierte Funktion zum Testen der Mailserver-Verbindung und zum direkten Versand einer formatierten Test-E-Mail.
+- **Standort-Management im Backend**:
+  - Betreuer/Admins können direkt über die Oberfläche neue Standorte mit Name, Adresse, Standard-Portionen und Standard-Supermarkt anlegen.
+  - Unbelegte Standorte (0 Bewohner) können sicher gelöscht werden.
+
 ## [0.1.0-beta.2] - 2026-09-06
 
 ### Hinzugefügt

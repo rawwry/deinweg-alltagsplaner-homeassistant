@@ -1,16 +1,6 @@
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
-
-function getWeekNumber(d: Date): [number, number] {
-  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-  const dayNum = date.getUTCDay() || 7;
-  date.setUTCDate(date.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
-  const weekNo = Math.ceil((((date.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-  return [date.getUTCFullYear(), weekNo];
-}
 
 async function main() {
   console.log('Starte Initial-Seeding für Dein Weg Alltagsplaner...');
@@ -56,106 +46,7 @@ async function main() {
     },
   });
 
-  // 2. Standorte anlegen
-  const emsdetten = await prisma.location.upsert({
-    where: { id: 'location-emsdetten' },
-    update: {
-      defaultServings: 6,
-      defaultSupermarketId: netto.id,
-    },
-    create: {
-      id: 'location-emsdetten',
-      name: 'Emsdetten',
-      address: 'Münsterstraße 42, 48282 Emsdetten',
-      defaultSupermarketId: netto.id,
-      defaultServings: 6,
-    },
-  });
-
-  const steinfurt = await prisma.location.upsert({
-    where: { id: 'location-steinfurt' },
-    update: {},
-    create: {
-      id: 'location-steinfurt',
-      name: 'Steinfurt',
-      address: 'Burgsteinfurter Damm 15, 48565 Steinfurt',
-      defaultSupermarketId: rewe.id,
-      defaultServings: 4,
-    },
-  });
-
-  const rheine = await prisma.location.upsert({
-    where: { id: 'location-rheine' },
-    update: {},
-    create: {
-      id: 'location-rheine',
-      name: 'Rheine',
-      address: 'Salzbergener Straße 88, 48431 Rheine',
-      defaultSupermarketId: aldi.id,
-      defaultServings: 5,
-    },
-  });
-
-  // 3. Benutzer anlegen (Passwörter gehasht)
-  const defaultResidentPw = await bcrypt.hash('emsdetten2026!', 10);
-  const adminPw = await bcrypt.hash('admin2026!', 10);
-  const betreuerPw = await bcrypt.hash('betreuer2026!', 10);
-
-  await prisma.user.upsert({
-    where: { username: 'admin' },
-    update: { passwordHash: adminPw },
-    create: {
-      username: 'admin',
-      name: 'System Administrator',
-      role: 'ADMIN',
-      passwordHash: adminPw,
-      avatarColor: '#1e293b',
-    },
-  });
-
-  await prisma.user.upsert({
-    where: { username: 'betreuer' },
-    update: { passwordHash: betreuerPw },
-    create: {
-      username: 'betreuer',
-      name: 'Betreuer Team',
-      role: 'BETREUER',
-      passwordHash: betreuerPw,
-      avatarColor: '#0284c7',
-    },
-  });
-
-  const residentsEmsdetten = [
-    { username: 'kevin', name: 'Kevin', color: '#3b82f6' },
-    { username: 'dennis', name: 'Dennis', color: '#10b981' },
-    { username: 'godfirst', name: 'Godfirst', color: '#f59e0b' },
-    { username: 'arne', name: 'Arne', color: '#8b5cf6' },
-    { username: 'ertugrul', name: 'Ertugrul', color: '#ec4899' },
-    { username: 'udo', name: 'Udo', color: '#06b6d4' },
-  ];
-
-  const createdResidents = [];
-  for (const res of residentsEmsdetten) {
-    const user = await prisma.user.upsert({
-      where: { username: res.username },
-      update: {
-        name: res.name,
-        locationId: emsdetten.id,
-        avatarColor: res.color,
-      },
-      create: {
-        username: res.username,
-        name: res.name,
-        role: 'BEWOHNER',
-        passwordHash: defaultResidentPw,
-        locationId: emsdetten.id,
-        avatarColor: res.color,
-      },
-    });
-    createdResidents.push(user);
-  }
-
-  // 4. Zutaten und Richtpreise (Netto)
+  // 2. Zutaten und Richtpreise (Netto)
   interface SeedIngredient {
     id: string;
     name: string;
@@ -418,108 +309,11 @@ async function main() {
     }
   }
 
-  // 6. Initialer Wochenplan für Emsdetten (Aktuelle Kalenderwoche)
-  const [currentYear, currentWeek] = getWeekNumber(new Date());
-
-  const mealPlan = await prisma.mealPlan.upsert({
-    where: {
-      locationId_year_weekNumber: {
-        locationId: emsdetten.id,
-        year: currentYear,
-        weekNumber: currentWeek,
-      },
-    },
-    update: {},
-    create: {
-      locationId: emsdetten.id,
-      year: currentYear,
-      weekNumber: currentWeek,
-      notes: `Gemeinsamer Wochenplan Wohngruppe Emsdetten - KW ${currentWeek}`,
-    },
-  });
-
-  const weekSchedule = [
-    { day: 1, recipeId: 'rec-spaghetti-bolognese', cookId: createdResidents[0]?.id }, // Mo: Kevin
-    { day: 2, recipeId: 'rec-haehnchen-gemuese', cookId: createdResidents[1]?.id },   // Di: Dennis
-    { day: 3, recipeId: 'rec-kartoffelgratin', cookId: createdResidents[2]?.id },     // Mi: Godfirst
-    { day: 4, recipeId: 'rec-chili-con-carne', cookId: createdResidents[3]?.id },     // Do: Arne
-    { day: 5, recipeId: 'rec-pizza-gemuese', cookId: createdResidents[4]?.id },       // Fr: Ertugrul
-    { day: 6, recipeId: 'rec-linseneintopf', cookId: createdResidents[5]?.id },       // Sa: Udo
-    { day: 7, recipeId: 'rec-pfannkuchen', cookId: null },                            // So: Betreuer/Gemeinsam
-  ];
-
-  for (const dayItem of weekSchedule) {
-    await prisma.mealPlanDay.upsert({
-      where: {
-        mealPlanId_dayOfWeek: {
-          mealPlanId: mealPlan.id,
-          dayOfWeek: dayItem.day,
-        },
-      },
-      update: {
-        recipeId: dayItem.recipeId,
-        servings: 6,
-        cookUserId: dayItem.cookId,
-      },
-      create: {
-        mealPlanId: mealPlan.id,
-        dayOfWeek: dayItem.day,
-        recipeId: dayItem.recipeId,
-        servings: 6,
-        cookUserId: dayItem.cookId,
-      },
-    });
-  }
-
-  // 7. Beispiel-Betreuernotizen für Emsdetten
-  await prisma.caregiverNote.createMany({
-    data: [
-      {
-        locationId: emsdetten.id,
-        residentId: createdResidents[0].id,
-        title: 'Zahnarzt-Kontrolltermin',
-        content: 'Kevin hat am kommenden Dienstag um 14:30 Uhr Kontrolltermin in Emsdetten. Fahrdienst oder Begleitung benötigt.',
-        status: 'OPEN',
-      },
-      {
-        locationId: emsdetten.id,
-        residentId: createdResidents[1].id,
-        title: 'Sportkleidung für Freitag',
-        content: 'Dennis braucht Unterstützung beim Waschen der Sporttasche vor dem Wochenendkurs.',
-        status: 'IN_PROGRESS',
-      },
-      {
-        locationId: emsdetten.id,
-        residentId: createdResidents[5].id,
-        title: 'Neue Hausschuhe',
-        content: 'Udos Hausschuhe sind defekt (Größe 44). Beim nächsten Stadteinkauf bitte berücksichtigen.',
-        status: 'OPEN',
-      },
-    ],
-  });
-
-  // 8. Beispiel-Abfalltermine für Emsdetten
-  const today = new Date();
-  const formatDate = (offsetDays: number) => {
-    const d = new Date(today);
-    d.setDate(d.getDate() + offsetDays);
-    return d.toISOString().split('T')[0];
-  };
-
-  await prisma.wastePickup.createMany({
-    data: [
-      { locationId: emsdetten.id, date: formatDate(1), wasteType: 'YELLOW', notes: 'Wertstoffsack / Gelbe Tonne ab 6:00 Uhr an die Straße' },
-      { locationId: emsdetten.id, date: formatDate(4), wasteType: 'BIO', notes: 'Biotonne (grün)' },
-      { locationId: emsdetten.id, date: formatDate(9), wasteType: 'REST', notes: 'Restmülltonne (schwarz)' },
-      { locationId: emsdetten.id, date: formatDate(15), wasteType: 'PAPER', notes: 'Papiertonne (blau)' },
-    ],
-  });
-
-  console.log('✅ Seeding erfolgreich abgeschlossen:');
-  console.log(`- Standort: Emsdetten mit 6 Bewohnern (Kevin, Dennis, Godfirst, Arne, Ertugrul, Udo)`);
-  console.log(`- Standorte Steinfurt & Rheine vorbereitet`);
-  console.log(`- 4 Supermärkte, ${ingredientsData.length} Zutaten und Netto-Richtpreise`);
-  console.log(`- ${recipesData.length} Rezepte und aktiver Wochenplan KW ${currentWeek}`);
+  console.log('✅ Initialer Stammdaten-Katalog erfolgreich vorbereitet:');
+  console.log(`- 4 Supermärkte (Netto, Rewe, Aldi Nord, Lidl)`);
+  console.log(`- ${ingredientsData.length} Zutaten mit Netto-Richtpreisen`);
+  console.log(`- ${recipesData.length} Alltags-Rezepte im Katalog hinterlegt`);
+  console.log(`- 0 Benutzer hinterlegt (Ersteinrichtungs-Modus aktiv)`);
 }
 
 main()

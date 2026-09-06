@@ -56,6 +56,12 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(body),
       }),
+    setupStatus: () => request<{ setupRequired: boolean; userCount: number }>('auth/setup-status'),
+    setup: (body: { username: string; name: string; email: string; password: string }) =>
+      request<{ token: string; user: any }>('auth/setup', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
     me: () => request<{ user: any }>('auth/me'),
     changePassword: (body: { currentPassword: string; newPassword: string }) =>
       request<{ success: boolean; message: string }>('auth/change-password', {
@@ -72,6 +78,7 @@ export const api = {
     list: () => request<any[]>('locations'),
     create: (body: any) => request<any>('locations', { method: 'POST', body: JSON.stringify(body) }),
     update: (id: string, body: any) => request<any>(`locations/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+    delete: (id: string) => request<any>(`locations/${id}`, { method: 'DELETE' }),
   },
 
   users: {
@@ -82,6 +89,15 @@ export const api = {
         method: 'PUT',
         body: JSON.stringify({ newPassword }),
       }),
+  },
+
+  admin: {
+    getSmtp: () => request<any | null>('admin/smtp'),
+    saveSmtp: (body: any) => request<any>('admin/smtp', { method: 'POST', body: JSON.stringify(body) }),
+    testSmtp: (body: any) => request<{ success: boolean; message: string }>('admin/smtp/test', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
   },
 
   food: {

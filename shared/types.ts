@@ -3,11 +3,28 @@ export type UserRole = 'ADMIN' | 'BETREUER' | 'BEWOHNER';
 export interface UserSummary {
   id: string;
   username: string;
+  email?: string | null;
   name: string;
   role: UserRole;
   locationId?: string | null;
   locationName?: string | null;
   avatarColor?: string | null;
+}
+
+export interface SetupStatusResponse {
+  setupRequired: boolean;
+  userCount: number;
+}
+
+export interface SmtpSettingSummary {
+  host: string;
+  port: number;
+  secure: boolean;
+  user: string;
+  hasPassword: boolean;
+  fromEmail: string;
+  fromName: string;
+  configured?: boolean;
 }
 
 export interface LocationSummary {
