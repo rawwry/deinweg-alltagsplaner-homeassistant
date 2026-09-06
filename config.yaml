@@ -11,6 +11,9 @@ arch:
   - armv7
   - i386
 ingress: false
+webui: "http://[HOST]:[PORT:4731]"
+boot: auto
+startup: application
 ports:
   4731/tcp: 4731
 ports_description:
