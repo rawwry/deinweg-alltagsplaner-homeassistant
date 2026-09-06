@@ -123,7 +123,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             </div>
 
             <h3 className="text-base sm:text-lg font-bold text-slate-100 line-clamp-1 group-hover:text-amber-300 transition-colors">
-              {todayMeal?.recipe?.title || todayMeal?.customDishTitle || 'Heute Selbstversorgung / Frei'}
+              {todayMeal?.recipe?.title || todayMeal?.customDishTitle || 'Heute Selbstversorgung'}
             </h3>
 
             <p className="text-xs text-slate-400 mt-1.5 line-clamp-2 leading-relaxed min-h-[2rem]">
@@ -267,7 +267,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
               onClick={() => setCurrentTab('waste')}
               className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-750 text-slate-200 hover:text-white border border-slate-700/80 hover:border-sky-500/50 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-xs"
             >
-              <span>Müllkalender öffnen</span>
+              <span>Abfallkalender öffnen</span>
               <ArrowRight className="w-3.5 h-3.5 text-sky-400" />
             </button>
           </div>
@@ -345,7 +345,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             <div className="w-11 h-11 rounded-2xl bg-teal-600 text-white flex items-center justify-center mb-3 text-xl group-hover:scale-110 transition-transform shadow-md shadow-teal-600/20">
               🚛
             </div>
-            <div className="text-sm font-bold text-slate-100 group-hover:text-teal-300 transition-colors">Müllkalender</div>
+            <div className="text-sm font-bold text-slate-100 group-hover:text-teal-300 transition-colors">Abfallkalender</div>
             <div className="text-xs text-slate-400 mt-1">Nächste Abholungen & Tonnenübersicht</div>
           </button>
         </div>

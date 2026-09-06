@@ -171,7 +171,7 @@ export const WasteCalendarView: React.FC = () => {
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-100 flex items-center gap-2">
             <Trash2 className="w-6 h-6 text-teal-400" />
-            <span>Unser WG-Müllkalender</span>
+            <span>Unser WG-Abfallkalender</span>
           </h1>
           <p className="text-xs text-slate-400 mt-1">
             Damit alle Tonnen rechtzeitig an die Straße gestellt werden ({activeLocation?.name || user?.locationName || 'Emsdetten'})

@@ -3,6 +3,21 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.11] - 2026-09-07
+
+### Geändert & Verbessert
+- **Header vergrößert & Logo-Fokus**:
+  - Die obere Menüleiste wurde auf `h-20` (80px) vergrößert, sodass das Dein Weg Markenlogo deutlich größer, prominenter und hochwertiger zur Geltung kommt (`h-12` bis `h-14`).
+  - Der überflüssige Textzusatz „Dein Weg Alltagsplaner Ambulant betreutes wohnen“ neben dem Logo wurde entfernt.
+- **Zahnrad-Icon für Verwaltung**:
+  - Die Schaltfläche zur Administration im Header oben rechts wurde durch ein modernes, dezentes Zahnrad-Icon (`Settings`) ersetzt (mit animiertem Hover- und Aktiv-Effekt).
+- **Benennungen & Konsistenz**:
+  - Auf dem Dashboard wurde der Eintrag „Heute Selbstversorgung / Frei“ präzisiert auf **„Heute Selbstversorgung“**.
+  - Der Begriff **„Müllkalender“** wurde in der gesamten Web-Applikation einheitlich in **„Abfallkalender“** umbenannt (Desktop-Navigation, Dashboard-Button, Kachel-Schnellzugriff, Ansichten-Überschrift und mobile Bottom-Navigation).
+- **Interaktiver In-App Changelog**:
+  - Im Footer wurde ein neuer Direktlink zu **„Changelog“** ergänzt (auch per Klick auf das Versions-Badge `v0.1.0-beta.11` erreichbar).
+  - Ein interaktives, modales Dialogfenster zeigt nun alle Releases und deren wichtigste Änderungen transparent und ansprechend strukturiert an.
+
 ## [0.1.0-beta.10] - 2026-09-06
 
 ### Geändert & Verbessert

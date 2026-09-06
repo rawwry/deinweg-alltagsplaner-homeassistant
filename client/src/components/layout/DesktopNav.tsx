@@ -64,14 +64,14 @@ export const DesktopNav: React.FC<DesktopNavProps> = ({ currentTab, setCurrentTa
     { id: 'shopping', label: 'Einkaufsliste', icon: ShoppingCart },
     { id: 'recipes', label: 'Rezepte', icon: BookOpen },
     { id: 'notes', label: 'WG-Pinnwand', icon: MessageSquareText, badge: isStaff && openTicketCount > 0 ? openTicketCount : undefined },
-    { id: 'waste', label: 'Müllkalender', icon: Trash2 },
+    { id: 'waste', label: 'Abfallkalender', icon: Trash2 },
   ];
 
   return (
     <aside
       className={`hidden md:flex flex-col ${
         isCollapsed ? 'w-20' : 'w-64'
-      } bg-slate-900/95 backdrop-blur-md border-r border-slate-800/80 min-h-[calc(100vh-4rem)] p-3 justify-between flex-shrink-0 transition-all duration-300 ease-in-out select-none`}
+      } bg-slate-900/95 backdrop-blur-md border-r border-slate-800/80 min-h-[calc(100vh-5rem)] p-3 justify-between flex-shrink-0 transition-all duration-300 ease-in-out select-none`}
     >
       <div>
         {/* Header with Collapse / Expand Toggle */}

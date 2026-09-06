@@ -37,7 +37,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, setCurrentTab 
     { id: 'shopping', label: 'Einkauf', icon: ShoppingCart },
     { id: 'recipes', label: 'Rezepte', icon: BookOpen },
     { id: 'notes', label: 'Notizen', icon: MessageSquareText, badge: isStaff && openTicketCount > 0 ? openTicketCount : undefined },
-    { id: 'waste', label: 'Müll', icon: Trash2 },
+    { id: 'waste', label: 'Abfall', icon: Trash2 },
   ];
 
   return (

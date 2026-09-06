@@ -1,6 +1,6 @@
 {
   "name": "dein-weg-alltagsplaner",
-  "version": "0.1.0-beta.10",
+  "version": "0.1.0-beta.11",
   "description": "Modulare Alltags- und Essensplanung für betreute Wohngruppen (Home Assistant Add-on)",
   "main": "server/dist/server/src/index.js",
   "type": "module",
