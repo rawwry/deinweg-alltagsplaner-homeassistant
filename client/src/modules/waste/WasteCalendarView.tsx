@@ -169,12 +169,12 @@ export const WasteCalendarView: React.FC = () => {
       {/* Header */}
       <div className="bento-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border flex flex-col sm:flex-row items-center justify-between gap-5">
         <div>
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-amber-500/10 border border-amber-500/25 rounded-full text-xs font-bold text-amber-300 mb-2.5">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-rose-500/10 border border-rose-500/25 rounded-full text-xs font-semibold text-rose-300 mb-2.5">
             <span>♻️</span>
             <span>Müllabfuhr & Termine</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-display font-bold text-surface-cream tracking-tight flex items-center gap-2.5">
-            <Trash2 className="w-7 h-7 text-amber-400" />
+          <h1 className="text-2xl sm:text-3xl font-display font-semibold text-surface-cream tracking-tight flex items-center gap-2.5">
+            <Trash2 className="w-7 h-7 text-rose-400" />
             <span>Unser WG-Abfallkalender</span>
           </h1>
           <p className="text-xs sm:text-sm text-surface-muted mt-1.5 font-sans">
@@ -187,16 +187,16 @@ export const WasteCalendarView: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowAddForm(!showAddForm)}
-              className="flex-1 sm:flex-none px-4 py-2.5 bg-surface-elevated hover:bg-surface-elevated/80 text-surface-cream rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all border border-surface-border shadow-xs hover:border-amber-500/30"
+              className="flex-1 sm:flex-none px-4 py-2.5 bg-surface-elevated hover:bg-surface-elevated/80 text-surface-cream rounded-2xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all border border-surface-border shadow-xs hover:border-rose-500/30"
             >
-              <Plus className="w-4 h-4 text-amber-400" />
+              <Plus className="w-4 h-4 text-rose-400" />
               <span>+ Termin eintragen</span>
             </button>
 
             <button
               type="button"
               onClick={() => setShowIcsImport(!showIcsImport)}
-              className="flex-1 sm:flex-none px-4 py-2.5 bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+              className="flex-1 sm:flex-none px-4 py-2.5 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white rounded-2xl text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-rose-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
             >
               <Upload className="w-4 h-4" />
               <span>ICS-Import 📥</span>
@@ -207,24 +207,24 @@ export const WasteCalendarView: React.FC = () => {
 
       {/* 1-Day Advance Reminder Banner */}
       {isAdvanceReminder && nextPickup && (
-        <div className="bg-gradient-to-r from-amber-950/40 via-surface-card to-surface-card border-2 border-amber-500/50 rounded-[2rem] p-5 sm:p-6 shadow-xl shadow-amber-950/20 flex items-start gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
-          <div className="p-3 bg-gradient-to-br from-amber-400 to-rose-500 text-white rounded-2xl shrink-0 mt-0.5 shadow-lg shadow-amber-500/20">
+        <div className="bg-gradient-to-r from-rose-950/40 via-surface-card to-surface-card border-2 border-rose-500/50 rounded-[2rem] p-5 sm:p-6 shadow-xl shadow-rose-950/20 flex items-start gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="p-3 bg-gradient-to-br from-rose-500 to-pink-500 text-white rounded-2xl shrink-0 mt-0.5 shadow-lg shadow-rose-500/20">
             <Bell className="w-5 h-5 animate-bounce" />
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-black uppercase tracking-wider text-amber-300 bg-amber-500/20 border border-amber-500/30 px-3 py-0.5 rounded-full">
+              <span className="text-xs font-bold uppercase tracking-wider text-rose-300 bg-rose-500/20 border border-rose-500/30 px-3 py-0.5 rounded-full">
                 {daysUntilNext === 1 ? '1 Tag Vorlauf • Erinnerung' : 'Heute fällig!'}
               </span>
             </div>
-            <h3 className="text-lg font-display font-bold text-surface-cream mt-1.5">
+            <h3 className="text-lg font-display font-semibold text-surface-cream mt-1.5">
               {daysUntilNext === 1 ? (
                 <>
-                  Morgen wird die <span className="text-amber-400 underline decoration-amber-400/50">{getWasteInfo(nextPickup.wasteType).title}</span> geholt!
+                  Morgen wird die <span className="text-rose-400 underline decoration-rose-400/50">{getWasteInfo(nextPickup.wasteType).title}</span> geholt!
                 </>
               ) : (
                 <>
-                  Heute wird die <span className="text-amber-400 underline decoration-amber-400/50">{getWasteInfo(nextPickup.wasteType).title}</span> abgeholt!
+                  Heute wird die <span className="text-rose-400 underline decoration-rose-400/50">{getWasteInfo(nextPickup.wasteType).title}</span> abgeholt!
                 </>
               )}
             </h3>
@@ -241,7 +241,7 @@ export const WasteCalendarView: React.FC = () => {
       {nextPickup && (
         <div className="bento-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border shadow-xl">
           <div className="flex items-center justify-between gap-2 mb-5">
-            <span className="text-xs font-bold uppercase tracking-wider text-amber-300 bg-amber-500/10 px-3.5 py-1 rounded-full border border-amber-500/25">
+            <span className="text-xs font-semibold uppercase tracking-wider text-rose-300 bg-rose-500/10 px-3.5 py-1 rounded-full border border-rose-500/25">
               Nächste Abholung
             </span>
             <div
@@ -268,11 +268,11 @@ export const WasteCalendarView: React.FC = () => {
               {getWasteInfo(nextPickup.wasteType).emoji}
             </div>
             <div>
-              <h2 className="text-xl sm:text-2xl font-display font-bold text-surface-cream">
+              <h2 className="text-xl sm:text-2xl font-display font-semibold text-surface-cream">
                 {getWasteInfo(nextPickup.wasteType).title}
               </h2>
               <div className="text-xs sm:text-sm text-surface-muted mt-1 flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-amber-400" />
+                <Calendar className="w-4 h-4 text-rose-400" />
                 <span>
                   {new Date(nextPickup.date).toLocaleDateString('de-DE', {
                     weekday: 'long',
@@ -283,7 +283,7 @@ export const WasteCalendarView: React.FC = () => {
                 </span>
               </div>
               {nextPickup.notes && (
-                <div className="text-xs text-amber-300/80 mt-1 italic">
+                <div className="text-xs text-rose-300/80 mt-1 italic">
                   Hinweis: {nextPickup.notes}
                 </div>
               )}
@@ -306,7 +306,7 @@ export const WasteCalendarView: React.FC = () => {
                 type="date"
                 value={newDate}
                 onChange={(e) => setNewDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-surface-cream focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+                className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-surface-cream focus:outline-none focus:ring-2 focus:ring-rose-500/40"
                 required
               />
             </div>
@@ -315,7 +315,7 @@ export const WasteCalendarView: React.FC = () => {
               <select
                 value={newType}
                 onChange={(e) => setNewType(e.target.value as WasteType)}
-                className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-surface-cream focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+                className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-surface-cream focus:outline-none focus:ring-2 focus:ring-rose-500/40"
               >
                 <option value="YELLOW">Gelber Sack / Wertstoff</option>
                 <option value="BIO">Biotonne (Grün)</option>
@@ -330,7 +330,7 @@ export const WasteCalendarView: React.FC = () => {
                 value={newNotes}
                 onChange={(e) => setNewNotes(e.target.value)}
                 placeholder="z.B. ab 6:00 Uhr"
-                className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-surface-cream placeholder-surface-muted/50 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+                className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-surface-cream placeholder-surface-muted/50 focus:outline-none focus:ring-2 focus:ring-rose-500/40"
               />
             </div>
           </div>
@@ -344,7 +344,7 @@ export const WasteCalendarView: React.FC = () => {
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-white rounded-xl text-xs font-bold shadow-md shadow-amber-500/20"
+              className="px-4 py-2 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white rounded-xl text-xs font-semibold shadow-md shadow-rose-500/20"
             >
               Speichern
             </button>
@@ -375,7 +375,7 @@ export const WasteCalendarView: React.FC = () => {
               type="file"
               accept=".ics,text/calendar"
               onChange={handleFileUpload}
-              className="block w-full text-xs text-surface-muted file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-surface-elevated file:text-amber-300 hover:file:bg-surface-elevated/80 cursor-pointer"
+              className="block w-full text-xs text-surface-muted file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-surface-elevated file:text-rose-300 hover:file:bg-surface-elevated/80 cursor-pointer"
             />
           </div>
 
@@ -385,7 +385,7 @@ export const WasteCalendarView: React.FC = () => {
               value={icsText}
               onChange={(e) => setIcsText(e.target.value)}
               placeholder="BEGIN:VCALENDAR... (oder Datei oben auswählen)"
-              className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs font-mono text-surface-cream placeholder-surface-muted/50 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+              className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs font-mono text-surface-cream placeholder-surface-muted/50 focus:outline-none focus:ring-2 focus:ring-rose-500/40"
             />
           </div>
 
@@ -406,7 +406,7 @@ export const WasteCalendarView: React.FC = () => {
             <button
               type="submit"
               disabled={!icsText.trim()}
-              className="px-4 py-2 bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-white rounded-xl text-xs font-bold shadow-md shadow-amber-500/20 disabled:opacity-50"
+              className="px-4 py-2 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white rounded-xl text-xs font-semibold shadow-md shadow-rose-500/20 disabled:opacity-50"
             >
               Termine einlesen
             </button>
@@ -417,7 +417,7 @@ export const WasteCalendarView: React.FC = () => {
       {/* Pickups Timeline */}
       {isLoading ? (
         <div className="py-20 text-center text-surface-muted">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-3 border-amber-500 border-t-transparent mb-2"></div>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-3 border-rose-500 border-t-transparent mb-2"></div>
           <div>Abfalltermine werden geladen...</div>
         </div>
       ) : pickups.length === 0 ? (
@@ -430,7 +430,7 @@ export const WasteCalendarView: React.FC = () => {
         </div>
       ) : (
         <div className="bento-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border shadow-xl">
-          <h3 className="text-base font-display font-bold text-surface-cream mb-5">
+          <h3 className="text-base font-display font-semibold text-surface-cream mb-5">
             Anstehende Abfuhrtermine ({pickups.length})
           </h3>
 
@@ -472,7 +472,7 @@ export const WasteCalendarView: React.FC = () => {
                         )}
                       </div>
                       <div className="text-xs text-surface-muted flex items-center gap-2 mt-0.5 font-sans">
-                        <Clock className="w-3.5 h-3.5 text-amber-400" />
+                        <Clock className="w-3.5 h-3.5 text-rose-400" />
                         <span>
                           {new Date(item.date).toLocaleDateString('de-DE', {
                             weekday: 'short',

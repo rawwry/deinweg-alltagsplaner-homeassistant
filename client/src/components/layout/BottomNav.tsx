@@ -53,18 +53,18 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, setCurrentTab 
               onClick={() => setCurrentTab(item.id)}
               className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-2xl transition-all relative cursor-pointer ${
                 isActive
-                  ? 'text-amber-400 font-bold'
+                  ? 'text-rose-400 font-semibold'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               <div
                 className={`p-1.5 rounded-xl transition-all relative ${
-                  isActive ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 shadow-inner' : 'text-slate-400'
+                  isActive ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30 shadow-inner' : 'text-slate-400'
                 }`}
               >
                 <Icon className="w-5 h-5" />
                 {item.badge !== undefined && (
-                  <span className="absolute -top-1 -right-1 px-1.5 py-0.2 bg-gradient-to-r from-amber-500 to-rose-500 text-white text-[9px] font-black rounded-full shadow-sm font-mono">
+                  <span className="absolute -top-1 -right-1 px-1.5 py-0.2 bg-gradient-to-r from-rose-500 to-pink-500 text-white text-[9px] font-bold rounded-full shadow-sm font-mono">
                     {item.badge}
                   </span>
                 )}

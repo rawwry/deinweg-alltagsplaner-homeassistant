@@ -15,7 +15,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
-        display: ['"Outfit"', '"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+        display: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
       },
       colors: {
         surface: {
@@ -23,6 +23,8 @@ export default {
           card: '#15131c',
           elevated: '#1c1926',
           border: '#2a2438',
+          muted: '#94a3b8',
+          cream: '#f8fafc',
         },
         bistro: {
           amber: '#f59e0b',
@@ -38,7 +40,10 @@ export default {
         },
         brand: {
           magenta: '#e11d48',
-          pink: '#f472b6',
+          pink: '#f43f5e',
+          rose: '#ec4899',
+          fuchsia: '#d946ef',
+          light: '#fda4af',
         },
         primary: {
           50: '#fdf4ff',

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.js';
+import { useTheme } from '../../context/ThemeContext.js';
 import { api } from '../../api/client.js';
 import { APP_VERSION, APP_NAME } from '../../../../shared/version.js';
 import {
@@ -24,6 +25,7 @@ import {
   Search,
   Check,
   Pencil,
+  Palette,
 } from 'lucide-react';
 
 const WEEKDAY_ITEMS = [
@@ -52,6 +54,7 @@ export const formatCookingDays = (daysStr?: string | null): string => {
 
 export const AdminManagementView: React.FC = () => {
   const { user, locations, refreshLocations } = useAuth();
+  const { themeId, setThemeId, availableThemes } = useTheme();
   const [activeSubTab, setActiveSubTab] = useState<'users' | 'locations' | 'prices' | 'smtp' | 'system'>('users');
 
   // Users State
@@ -505,12 +508,12 @@ export const AdminManagementView: React.FC = () => {
       {/* Header */}
       <div className="bento-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border flex flex-col sm:flex-row items-center justify-between gap-5">
         <div>
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-amber-500/10 border border-amber-500/25 rounded-full text-xs font-bold text-amber-300 mb-2.5">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-rose-500/10 border border-rose-500/25 rounded-full text-xs font-semibold text-rose-300 mb-2.5">
             <LayoutGrid className="w-3.5 h-3.5" />
             <span>Admin-Bereich</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-display font-bold text-surface-cream tracking-tight flex items-center gap-2.5">
-            <Shield className="w-7 h-7 text-amber-400" />
+          <h1 className="text-2xl sm:text-3xl font-display font-semibold text-surface-cream tracking-tight flex items-center gap-2.5">
+            <Shield className="w-7 h-7 text-rose-400" />
             <span>Verwaltung & Konfiguration</span>
           </h1>
           <p className="text-xs sm:text-sm text-surface-muted mt-1.5 font-sans">
@@ -525,7 +528,7 @@ export const AdminManagementView: React.FC = () => {
             onClick={() => setActiveSubTab('users')}
             className={`px-3.5 py-2 rounded-xl transition-all ${
               activeSubTab === 'users'
-                ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white font-bold shadow-md shadow-amber-500/20'
+                ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white font-semibold shadow-md shadow-rose-500/20'
                 : 'text-surface-muted hover:text-surface-cream'
             }`}
           >
@@ -536,7 +539,7 @@ export const AdminManagementView: React.FC = () => {
             onClick={() => setActiveSubTab('locations')}
             className={`px-3.5 py-2 rounded-xl transition-all ${
               activeSubTab === 'locations'
-                ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white font-bold shadow-md shadow-amber-500/20'
+                ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white font-semibold shadow-md shadow-rose-500/20'
                 : 'text-surface-muted hover:text-surface-cream'
             }`}
           >
@@ -547,7 +550,7 @@ export const AdminManagementView: React.FC = () => {
             onClick={() => setActiveSubTab('prices')}
             className={`px-3.5 py-2 rounded-xl transition-all ${
               activeSubTab === 'prices'
-                ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white font-bold shadow-md shadow-amber-500/20'
+                ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white font-semibold shadow-md shadow-rose-500/20'
                 : 'text-surface-muted hover:text-surface-cream'
             }`}
           >
@@ -558,7 +561,7 @@ export const AdminManagementView: React.FC = () => {
             onClick={() => setActiveSubTab('smtp')}
             className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
               activeSubTab === 'smtp'
-                ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white font-bold shadow-md shadow-amber-500/20'
+                ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white font-semibold shadow-md shadow-rose-500/20'
                 : 'text-surface-muted hover:text-surface-cream'
             }`}
           >
@@ -570,7 +573,7 @@ export const AdminManagementView: React.FC = () => {
             onClick={() => setActiveSubTab('system')}
             className={`px-3.5 py-2 rounded-xl transition-all ${
               activeSubTab === 'system'
-                ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white font-bold shadow-md shadow-amber-500/20'
+                ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white font-semibold shadow-md shadow-rose-500/20'
                 : 'text-surface-muted hover:text-surface-cream'
             }`}
           >
@@ -598,7 +601,7 @@ export const AdminManagementView: React.FC = () => {
         <div className="space-y-5">
           <div className="flex justify-between items-center">
             <div>
-              <h3 className="text-base font-display font-bold text-surface-cream">
+              <h3 className="text-base font-display font-semibold text-surface-cream">
                 Registrierte Benutzer ({usersList.length})
               </h3>
               <p className="text-xs text-surface-muted mt-0.5 font-sans">
@@ -608,7 +611,7 @@ export const AdminManagementView: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowAddUser(!showAddUser)}
-              className="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition-all"
+              className="px-4 py-2.5 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-rose-500/20 transition-all cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Neuen Benutzer / Bewohner anlegen</span>
@@ -2040,14 +2043,81 @@ export const AdminManagementView: React.FC = () => {
 
       {/* SUBTAB: SYSTEM */}
       {activeSubTab === 'system' && (
-        <div className="bg-slate-900 rounded-3xl p-6 border border-slate-800 shadow-sm space-y-6">
-          <div className="flex items-center gap-3">
-            <Server className="w-8 h-8 text-sky-400" />
-            <div>
-              <h3 className="text-base font-bold text-slate-100">{APP_NAME}</h3>
-              <p className="text-xs text-slate-400">Home Assistant Add-on Systemdiagnose</p>
+        <div className="space-y-6">
+          {/* Erscheinungsbild & Farbschema */}
+          <div className="bento-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border shadow-xl space-y-5">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-rose-500/15 border border-rose-500/30 rounded-2xl text-rose-400">
+                  <Palette className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-display font-semibold text-surface-cream">
+                    Erscheinungsbild & Farbschema
+                  </h3>
+                  <p className="text-xs text-surface-muted mt-0.5 font-sans">
+                    Wähle dein bevorzugtes Farbkonzept für Buttons, Akzente und Highlights (gespeichert im Browser).
+                  </p>
+                </div>
+              </div>
+              <span className="text-xs font-mono font-semibold px-3 py-1 bg-surface-elevated text-surface-cream border border-surface-border rounded-full">
+                Aktiv: {availableThemes.find((t) => t.id === themeId)?.name}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 pt-1">
+              {availableThemes.map((config) => {
+                const isActive = themeId === config.id;
+                return (
+                  <button
+                    key={config.id}
+                    type="button"
+                    onClick={() => setThemeId(config.id)}
+                    className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3 ${
+                      isActive
+                        ? 'bg-surface-elevated border-rose-500/60 shadow-lg shadow-rose-500/10 ring-2 ring-rose-500/30'
+                        : 'bg-surface-elevated/50 border-surface-border hover:bg-surface-elevated hover:border-surface-border/80'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-lg">{config.icon}</span>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="w-3.5 h-3.5 rounded-full border border-black/40 shadow-xs"
+                            style={{ backgroundColor: config.previewColor }}
+                          />
+                          <span className="text-xs font-bold text-surface-cream">
+                            {config.name}
+                          </span>
+                        </div>
+                      </div>
+                      {isActive && (
+                        <span className="w-5 h-5 rounded-full bg-rose-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+                          <Check className="w-3 h-3 stroke-[3]" />
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-surface-muted leading-relaxed font-sans">
+                      {config.description}
+                    </p>
+                  </button>
+                );
+              })}
             </div>
           </div>
+
+          {/* System Diagnostics */}
+          <div className="bento-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border shadow-xl space-y-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-sky-500/15 border border-sky-500/30 rounded-2xl text-sky-400">
+                <Server className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-display font-semibold text-surface-cream">{APP_NAME}</h3>
+                <p className="text-xs text-surface-muted font-sans">Home Assistant Add-on Systemdiagnose</p>
+              </div>
+            </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800">
@@ -2099,6 +2169,7 @@ export const AdminManagementView: React.FC = () => {
             </button>
           </div>
         </div>
+      </div>
       )}
     </div>
   );

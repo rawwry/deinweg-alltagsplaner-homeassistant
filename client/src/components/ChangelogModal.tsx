@@ -19,9 +19,44 @@ interface VersionRelease {
 
 const RELEASES: VersionRelease[] = [
   {
+    version: '0.1.0-beta.16',
+    date: '2026-09-08',
+    isLatest: true,
+    tagline: 'Dein Weg Magenta & Pink Farbschema, Multi-Theme-Auswahl & verfeinerte Typografie',
+    highlights: [
+      {
+        category: '🎨 Markenorientiertes Farbschema (Dein Weg Magenta & Rose)',
+        items: [
+          'Ablösung der gelb-bernsteinfarbenen Akzente durch ein frisches, lebendiges Pink-, Rose- und Magenta-Farbspektrum, exakt abgestimmt auf das offizielle „Dein Weg“-Logo.',
+          'Atmosphärische, sanfte Magenta-Lichthöfe im Hintergrund und harmonische Farbverläufe auf Buttons, Kacheln und Markern.',
+        ],
+      },
+      {
+        category: '🌈 Multi-Theme-Auswahl (5 wählbare Farbkonzepte)',
+        items: [
+          'Neuer Theme-Umschalter im oberen Header (Palette-Icon) sowie in den Systemeinstellungen (Verwaltung -> System).',
+          '5 kuratierte Themes: Dein Weg Magenta (Standard), Modern Amber, Emerald Fresh, Ocean Blue und Deep Violet.',
+          'Automatische und dauerhafte Speicherung der persönlichen Farbwahl im Browser (localStorage).',
+        ],
+      },
+      {
+        category: '✍️ Verfeinerte, elegante Typografie',
+        items: [
+          'Reduzierung der übermäßig gewichtigen Schriftstärken (Outfit font-black) zugunsten einer ausgewogenen, modernen Schriftästhetik (font-semibold / font-medium mit feinem Tracking).',
+          'Harmonische Balance zwischen Leichtigkeit und optimaler Barrierearmut für Bewohner und Betreuer.',
+        ],
+      },
+      {
+        category: '♻️ Funktionale Abfalltonnen-Farben gewahrt',
+        items: [
+          'Die bewährten, alltagsgerechten Farben der Wertstoff- und Mülltonnen (Gelber Sack, Bio, Restmüll, Papier) bleiben zur optimalen Orientierung der Bewohner erhalten, während das UI-Interface sich nahtlos an das gewählte Theme anpasst.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.1.0-beta.15',
     date: '2026-09-07',
-    isLatest: true,
     tagline: 'Radikales Redesign: Warm Modern Living & Cozy Bistro Bento',
     highlights: [
       {
@@ -270,13 +305,13 @@ export const ChangelogModal: React.FC<ChangelogModalProps> = ({ onClose }) => {
         {/* Header */}
         <div className="p-5 sm:p-6 border-b border-surface-border flex items-center justify-between bg-surface-card/90 backdrop-blur-md sticky top-0 z-10">
           <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-amber-500/15 text-amber-400 border border-amber-500/25 flex items-center justify-center shadow-inner">
+            <div className="w-11 h-11 rounded-2xl bg-rose-500/15 text-rose-400 border border-rose-500/25 flex items-center justify-center shadow-inner">
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-xl sm:text-2xl font-display font-bold text-surface-cream flex items-center gap-2.5">
+              <h2 className="text-xl sm:text-2xl font-display font-semibold text-surface-cream flex items-center gap-2.5">
                 <span>Was gibt's Neues?</span>
-                <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/30">
                   v{APP_VERSION}
                 </span>
               </h2>
@@ -289,7 +324,7 @@ export const ChangelogModal: React.FC<ChangelogModalProps> = ({ onClose }) => {
           <button
             type="button"
             onClick={onClose}
-            className="p-2.5 text-surface-muted hover:text-surface-cream hover:bg-surface-elevated rounded-2xl transition-all border border-transparent hover:border-surface-border"
+            className="p-2.5 text-surface-muted hover:text-surface-cream hover:bg-surface-elevated rounded-2xl transition-all border border-transparent hover:border-surface-border cursor-pointer"
             title="Schließen"
           >
             <X className="w-5 h-5" />
@@ -306,7 +341,7 @@ export const ChangelogModal: React.FC<ChangelogModalProps> = ({ onClose }) => {
                   <span
                     className={`font-mono text-xs font-bold px-3 py-1 rounded-xl border ${
                       release.isLatest
-                        ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white border-amber-400/40 shadow-md shadow-amber-500/20'
+                        ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white border-rose-400/40 shadow-md shadow-rose-500/20'
                         : 'bg-surface-elevated text-surface-muted border-surface-border'
                     }`}
                   >
@@ -322,7 +357,7 @@ export const ChangelogModal: React.FC<ChangelogModalProps> = ({ onClose }) => {
                 </div>
               </div>
 
-              <div className="text-sm sm:text-base font-display font-bold text-surface-cream mb-3">
+              <div className="text-sm sm:text-base font-display font-semibold text-surface-cream mb-3">
                 {release.tagline}
               </div>
 
@@ -330,13 +365,13 @@ export const ChangelogModal: React.FC<ChangelogModalProps> = ({ onClose }) => {
               <div className="space-y-3">
                 {release.highlights.map((h, hIdx) => (
                   <div key={hIdx} className="bg-surface-elevated/70 rounded-2xl p-4 border border-surface-border/80">
-                    <div className="text-xs font-bold text-amber-300 mb-2 flex items-center gap-1.5">
+                    <div className="text-xs font-semibold text-rose-300 mb-2 flex items-center gap-1.5">
                       <span>{h.category}</span>
                     </div>
                     <ul className="space-y-1.5 text-xs text-surface-muted">
                       {h.items.map((item, itemIdx) => (
                         <li key={itemIdx} className="flex items-start gap-2.5">
-                          <span className="text-amber-400 font-bold shrink-0 mt-0.5">•</span>
+                          <span className="text-rose-400 font-bold shrink-0 mt-0.5">•</span>
                           <span className="leading-relaxed text-surface-cream/90">{item}</span>
                         </li>
                       ))}
@@ -359,7 +394,7 @@ export const ChangelogModal: React.FC<ChangelogModalProps> = ({ onClose }) => {
             href="https://github.com/rawwry/deinweg-alltagsplaner-homeassistant"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-amber-400 hover:text-amber-300 hover:underline font-semibold"
+            className="flex items-center gap-1.5 text-rose-400 hover:text-rose-300 hover:underline font-semibold"
           >
             <span>GitHub Repository</span>
             <ExternalLink className="w-3.5 h-3.5" />

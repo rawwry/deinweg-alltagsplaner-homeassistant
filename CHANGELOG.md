@@ -3,6 +3,27 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.16] - 2026-09-08
+
+### Hinzugefügt & Verbessert
+- **Dein Weg Magenta & Pink Farbschema**:
+  - Vollständige Neuorientierung der Marken- und Highlight-Farben am offiziellen Dein-Weg-Logo: Warme Rose-, Pink- und Magenta-Akzente (`#e11d48`, `#f43f5e`, `#ec4899`, `#fda4af`) ersetzen die bisherigen gelb-bernsteinfarbenen Töne.
+  - Subtile, atmosphärische Magenta-Lichthöfe im Hintergrund und farbharmonische Verläufe auf Buttons, Kacheln und Markern.
+- **Multi-Theme Farbkonzept (5 auswählbare Themes)**:
+  - Integration eines universellen `ThemeProvider` und `useTheme`-Hooks mit direkter `localStorage`-Persistenz.
+  - Schnellauswahl über ein Palette-Icon im oberen Header sowie interaktive Themen-Karten im Administrationsbereich (`Verwaltung -> System`).
+  - Fünf sorgfältig abgestimmte Themes:
+    1. **Dein Weg Magenta**: Originalgetreues Pink, Rose & Magenta passend zum Markenlogo (Standard).
+    2. **Modern Amber**: Warmes Gold- und Bernsteindesign.
+    3. **Emerald Fresh**: Vitales Wald- und Smaragdgrün.
+    4. **Ocean Blue**: Klares, beruhigendes Azur- und Ozeanblau.
+    5. **Deep Violet**: Kreatives Amethyst- und Violettdesign.
+- **Verfeinerte, elegante Typografie**:
+  - Reduzierung der übermäßig gewichtigen Schriftstärken (Outfit `font-black`/`font-extrabold`) zugunsten einer ausgewogenen, schlanken und modernen Typografie mit *Plus Jakarta Sans* (`font-semibold` / `font-medium` mit dezentem Buchstabenabstand `-0.015em`).
+  - Erstklassige visuelle Balance zwischen Leichtigkeit, Ästhetik und Barrierearmut.
+- **Erhalt funktionaler Abfalltonnen-Farben**:
+  - Die bundesweit standardisierten Tonnenfarben (Gelber Sack, Biotonne, Restmüll, Papiertonne) bleiben im Abfallkalender zur kognitiven Orientierung der Bewohner erhalten, während das UI-Interface sich dynamisch dem Theme anpasst.
+
 ## [0.1.0-beta.15] - 2026-09-07
 
 ### Geändert & Verbessert

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext.js';
+import { ThemeProvider } from './context/ThemeContext.js';
 import { LoginView } from './components/LoginView.js';
 import { InitialSetupView } from './components/InitialSetupView.js';
 import { Header } from './components/layout/Header.js';
@@ -30,7 +31,7 @@ const AppContent: React.FC = () => {
         <div className="flex justify-center mb-4 relative z-10">
           <img src={logoImg} alt="Dein Weg" className="h-12 w-auto object-contain animate-pulse drop-shadow-[0_12px_24px_rgba(0,0,0,0.5)]" />
         </div>
-        <div className="text-sm font-semibold text-amber-200/90 relative z-10 font-display">
+        <div className="text-sm font-medium text-rose-200/90 relative z-10 font-sans tracking-wide">
           Dein Weg Alltagsplaner wird geladen...
         </div>
       </div>
@@ -100,9 +101,11 @@ const AppContent: React.FC = () => {
 
 export const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ThemeProvider>
   );
 };
 

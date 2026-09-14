@@ -15,7 +15,7 @@ export const Footer: React.FC = () => {
               type="button"
               onClick={() => setIsChangelogOpen(true)}
               title="Changelog ansehen"
-              className="px-2 py-0.5 rounded-lg bg-surface-elevated hover:bg-surface-card text-slate-300 hover:text-amber-300 font-mono text-[10px] sm:text-[11px] border border-surface-border font-medium transition-colors cursor-pointer"
+              className="px-2 py-0.5 rounded-lg bg-surface-elevated hover:bg-surface-card text-slate-300 hover:text-rose-300 font-mono text-[10px] sm:text-[11px] border border-surface-border font-medium transition-colors cursor-pointer"
             >
               v{APP_VERSION}
             </button>
@@ -24,7 +24,7 @@ export const Footer: React.FC = () => {
               href="https://timovorwald.de"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-amber-400 hover:text-amber-300 hover:underline font-medium transition-colors"
+              className="text-rose-400 hover:text-rose-300 hover:underline font-medium transition-colors"
             >
               timovorwald.de
             </a>
@@ -32,7 +32,7 @@ export const Footer: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsChangelogOpen(true)}
-              className="text-amber-400 hover:text-amber-300 hover:underline font-medium transition-colors cursor-pointer"
+              className="text-rose-400 hover:text-rose-300 hover:underline font-medium transition-colors cursor-pointer"
             >
               Changelog
             </button>

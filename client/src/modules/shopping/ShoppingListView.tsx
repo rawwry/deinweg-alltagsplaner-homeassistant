@@ -197,7 +197,7 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
       <div className="bg-surface-card rounded-[2.5rem] p-6 border border-surface-border shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-xl sm:text-2xl font-display font-extrabold text-white flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-display font-semibold text-white tracking-tight flex items-center gap-2">
               <span className="text-2xl">🛒</span>
               <span>Gemeinsame Einkaufsliste</span>
             </h1>
@@ -258,7 +258,7 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
               <Euro className="w-3.5 h-3.5 text-emerald-400" />
               <span>Geschätzter Kassenbetrag</span>
             </div>
-            <div className="text-xl font-display font-extrabold text-white flex items-center gap-1.5 mt-1 font-mono">
+            <div className="text-xl font-display font-bold text-white flex items-center gap-1.5 mt-1 font-mono">
               <span>{shoppingData?.totalEstimatedCost?.toFixed(2) || '0.00'} €</span>
             </div>
           </div>
@@ -266,7 +266,7 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-display">
               Supermarkt
             </span>
-            <div className="text-xs font-bold text-amber-200">
+            <div className="text-xs font-bold text-rose-200">
               {shoppingData?.supermarketName || 'Supermarkt'}
             </div>
           </div>
@@ -287,7 +287,7 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
         <button
           type="button"
           onClick={() => setCurrentTab('mealplan')}
-          className="text-xs text-amber-400 hover:text-amber-300 hover:underline font-semibold cursor-pointer"
+          className="text-xs text-rose-400 hover:text-rose-300 hover:underline font-semibold cursor-pointer"
         >
           Zum Wochenplan →
         </button>
@@ -358,7 +358,7 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
           <button
             type="button"
             onClick={() => setCurrentTab('mealplan')}
-            className="mt-5 px-5 py-2.5 bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-white rounded-2xl text-xs font-bold shadow-lg shadow-amber-500/20 transition-all inline-flex items-center gap-2 cursor-pointer"
+            className="mt-5 px-5 py-2.5 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white rounded-2xl text-xs font-bold shadow-lg shadow-rose-500/20 transition-all inline-flex items-center gap-2 cursor-pointer"
           >
             <span>Gerichte im Wochenplan wählen</span>
           </button>
@@ -368,8 +368,8 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
           {/* Custom Items Section */}
           {customItems.length > 0 && (
             <div className="bento-card rounded-[2rem] p-6 border border-surface-border shadow-md">
-              <h3 className="text-sm font-display font-bold text-white flex items-center gap-2 mb-3">
-                <Sparkles className="w-4 h-4 text-amber-400" />
+              <h3 className="text-sm font-display font-semibold text-white flex items-center gap-2 mb-3">
+                <Sparkles className="w-4 h-4 text-rose-400" />
                 <span>Zusätzliche Besorgungen ({customItems.length})</span>
               </h3>
               <div className="divide-y divide-white/5">
@@ -424,7 +424,7 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
               className="bento-card rounded-[2rem] p-6 border border-surface-border shadow-md"
             >
               <div className="flex items-center justify-between mb-3.5 border-b border-white/5 pb-3">
-                <h3 className="text-sm font-display font-extrabold text-white flex items-center gap-2">
+                <h3 className="text-sm font-display font-semibold text-white flex items-center gap-2">
                   <span className="text-base">{getCategoryEmoji(categoryName)}</span>
                   <span>{categoryName}</span>
                 </h3>

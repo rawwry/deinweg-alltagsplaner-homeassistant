@@ -28,18 +28,18 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/75 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
       <div className="bg-surface-card rounded-[2.5rem] max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-surface-border overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="p-5 sm:p-6 border-b border-surface-border flex items-start justify-between bg-gradient-to-br from-amber-500/10 via-surface-card to-surface-card">
+        <div className="p-5 sm:p-6 border-b border-surface-border flex items-start justify-between bg-gradient-to-br from-rose-500/15 via-surface-card to-surface-card">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
+              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/30">
                 {recipe.category}
               </span>
               <span className="text-xs text-slate-400 flex items-center gap-1 font-mono">
-                <Clock className="w-3.5 h-3.5 text-amber-400" />
+                <Clock className="w-3.5 h-3.5 text-rose-400" />
                 ca. {recipe.prepTimeMinutes || 30} Min
               </span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-display font-black text-white">
+            <h2 className="text-xl sm:text-2xl font-display font-semibold text-white tracking-tight">
               {recipe.title}
             </h2>
             {recipe.description && (
@@ -62,8 +62,8 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
           {/* Servings Scaler - Strict Single Line (No Wrapping) */}
           <div className="bg-surface-elevated/90 border border-surface-border rounded-2xl p-3 sm:p-3.5 flex flex-row items-center justify-between gap-2 flex-nowrap shadow-inner">
             <div className="flex items-center gap-2 shrink-0 whitespace-nowrap">
-              <Users className="w-4 h-4 text-amber-400 shrink-0" />
-              <span className="text-xs sm:text-sm font-display font-bold text-slate-200 whitespace-nowrap">
+              <Users className="w-4 h-4 text-rose-400 shrink-0" />
+              <span className="text-xs sm:text-sm font-display font-semibold text-slate-200 whitespace-nowrap">
                 Zutaten skaliert für:
               </span>
             </div>
@@ -76,7 +76,7 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
               >
                 <Minus className="w-3.5 h-3.5" />
               </button>
-              <span className="text-xs sm:text-sm font-extrabold text-amber-300 px-1 text-center whitespace-nowrap font-mono">
+              <span className="text-xs sm:text-sm font-bold text-rose-300 px-1 text-center whitespace-nowrap font-mono">
                 {servings} Personen
               </span>
               <button
@@ -91,8 +91,8 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
 
           {/* Ingredients */}
           <div>
-            <h3 className="text-sm font-display font-bold text-white flex items-center gap-2 mb-3">
-              <ChefHat className="w-4 h-4 text-amber-400" />
+            <h3 className="text-sm font-display font-semibold text-white flex items-center gap-2 mb-3">
+              <ChefHat className="w-4 h-4 text-rose-400" />
               <span>Benötigte Zutaten ({recipe.ingredients.length})</span>
             </h3>
 
@@ -105,7 +105,7 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
                     className="p-3 bg-surface-elevated/70 border border-surface-border rounded-xl flex items-center justify-between text-xs"
                   >
                     <span className="font-semibold text-slate-200">{item.name}</span>
-                    <span className="font-bold text-amber-300 bg-surface-card px-2.5 py-1 rounded-lg border border-surface-border shadow-inner font-mono">
+                    <span className="font-bold text-rose-300 bg-surface-card px-2.5 py-1 rounded-lg border border-surface-border shadow-inner font-mono">
                       {scaledAmount} {item.unit}
                     </span>
                   </div>
@@ -117,8 +117,8 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
           {/* Instructions */}
           {recipe.instructions && (
             <div>
-              <h3 className="text-sm font-display font-bold text-white flex items-center gap-2 mb-2.5">
-                <BookOpen className="w-4 h-4 text-amber-400" />
+              <h3 className="text-sm font-display font-semibold text-white flex items-center gap-2 mb-2.5">
+                <BookOpen className="w-4 h-4 text-rose-400" />
                 <span>Zubereitungsanleitung</span>
               </h3>
               <div className="bg-surface-elevated/60 rounded-2xl p-4 sm:p-5 border border-surface-border text-xs text-slate-200 leading-relaxed whitespace-pre-line font-normal">

@@ -127,12 +127,12 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
       {/* Top Welcome Headline */}
       <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 pt-1">
         <div>
-          <div className="inline-flex items-center gap-2 text-amber-400 text-xs font-bold tracking-wider uppercase mb-1.5 font-display">
+          <div className="inline-flex items-center gap-2 text-rose-400 text-xs font-semibold tracking-wider uppercase mb-1.5 font-sans">
             <span>{timeEmoji} {timeGreeting}, WG {activeLocation?.name || user?.locationName || 'Emsdetten'}!</span>
             <span className="text-slate-600">•</span>
-            <span className="text-slate-400 font-sans font-medium">{formattedToday} · KW {currentWeek}</span>
+            <span className="text-slate-400 font-medium">{formattedToday} · KW {currentWeek}</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-display font-black tracking-tight text-white">
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white font-sans">
             Was steht heute im Alltag an?
           </h1>
         </div>
@@ -141,7 +141,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             <button
               type="button"
               onClick={() => setCurrentTab('notes')}
-              className="px-3.5 py-1.5 rounded-2xl bg-surface-card border border-amber-500/30 text-xs text-amber-300 font-medium hover:bg-surface-elevated transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+              className="px-3.5 py-1.5 rounded-2xl bg-surface-card border border-rose-500/30 text-xs text-rose-300 font-medium hover:bg-surface-elevated transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
             >
               <span>🔔</span>
               <span>{openNotes.length} {openNotes.length === 1 ? 'Notiz' : 'Notizen'} an der Pinnwand</span>
@@ -155,27 +155,27 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
         {/* Bento 1: Bistro Hero Meal Spotlight (Span 2) */}
         <div className="bento-card lg:col-span-2 rounded-[2.5rem] p-7 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
           {/* Ambient warm glow */}
-          <div className="absolute -right-16 -top-16 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -right-16 -top-16 w-72 h-72 bg-rose-500/10 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute right-6 top-6 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none text-9xl select-none">
             🍳
           </div>
 
           <div className="relative z-10">
             <div className="flex items-center justify-between gap-3 mb-4">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-bold">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-semibold">
                 <span>🍽️</span>
                 <span>Heute frisch auf den Tisch</span>
               </div>
-              <span className="text-xs font-semibold text-slate-400 hidden sm:inline">
+              <span className="text-xs font-medium text-slate-400 hidden sm:inline">
                 {todayMeal?.customDishTitle ? 'Individuelles Gericht' : 'Gemeinsames Abendessen'}
               </span>
             </div>
 
-            <h2 className="text-2xl sm:text-3xl font-display font-black text-white group-hover:text-amber-300 transition-colors leading-tight mb-3">
+            <h2 className="text-2xl sm:text-3xl font-semibold text-white group-hover:text-rose-300 transition-colors leading-tight mb-3 font-sans tracking-tight">
               {todayMeal?.recipe?.title || todayMeal?.customDishTitle || 'Heute Selbstversorgung'}
             </h2>
 
-            <p className="text-slate-300 text-sm leading-relaxed max-w-xl mb-6 font-normal">
+            <p className="text-slate-300 text-sm leading-relaxed max-w-xl mb-6 font-normal font-sans">
               {todayMeal?.recipe?.description ||
                 (todayMeal?.customDishTitle
                   ? 'Frei gewähltes Gericht ohne festes Rezept.'
@@ -186,7 +186,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             <div className="flex flex-wrap gap-2 mb-6">
               {todayMeal?.recipe?.prepTimeMinutes ? (
                 <span className="px-3 py-1 rounded-xl bg-surface-elevated/80 border border-surface-border text-xs text-slate-300 font-medium flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-amber-400" />
+                  <Clock className="w-3.5 h-3.5 text-rose-400" />
                   <span>ca. {todayMeal.recipe.prepTimeMinutes} Min.</span>
                 </span>
               ) : null}
@@ -213,14 +213,14 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           <div className="relative z-10 pt-5 border-t border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-2xl bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center justify-center font-bold text-sm shadow-inner">
+                <div className="w-9 h-9 rounded-2xl bg-rose-500/15 text-rose-300 border border-rose-500/30 flex items-center justify-center font-bold text-sm shadow-inner">
                   👨‍🍳
                 </div>
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold font-display">
+                  <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold font-sans">
                     Chefkoch heute
                   </div>
-                  <div className="text-xs font-bold text-amber-200">
+                  <div className="text-xs font-semibold text-rose-200">
                     {todayMeal?.cookName || 'Team / Offen'}
                   </div>
                 </div>
@@ -229,10 +229,10 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
               <div className="w-px h-7 bg-white/10 hidden sm:block" />
 
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold font-display">
+                <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold font-sans">
                   Portionen
                 </div>
-                <div className="text-xs font-bold text-white flex items-center gap-1">
+                <div className="text-xs font-semibold text-white flex items-center gap-1">
                   <Users className="w-3.5 h-3.5 text-slate-400" />
                   <span>{todayMeal?.servings || 6} Portionen</span>
                 </div>
@@ -242,7 +242,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             <button
               type="button"
               onClick={() => setCurrentTab('mealplan')}
-              className="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-white font-bold text-xs shadow-lg shadow-amber-500/25 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 hover:from-rose-400 hover:to-pink-500 text-white font-semibold text-xs shadow-lg shadow-rose-500/25 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2 font-sans"
             >
               <span>Wochenplan & Rezepte ansehen</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -256,16 +256,16 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
 
           <div>
             <div className="flex items-center justify-between mb-4">
-              <span className="px-3.5 py-1 rounded-full bg-yellow-500/15 border border-yellow-500/30 text-yellow-300 text-xs font-bold uppercase tracking-wider font-display">
+              <span className="px-3.5 py-1 rounded-full bg-yellow-500/15 border border-yellow-500/30 text-yellow-300 text-xs font-semibold uppercase tracking-wider font-sans">
                 Abfall-Radar
               </span>
               {nextWaste ? (
                 daysUntilWaste === 0 ? (
-                  <span className="text-xs font-bold text-rose-400 bg-rose-950/80 border border-rose-800 px-2.5 py-0.5 rounded-full animate-pulse">
+                  <span className="text-xs font-semibold text-rose-400 bg-rose-950/80 border border-rose-800 px-2.5 py-0.5 rounded-full animate-pulse">
                     Heute Abholung!
                   </span>
                 ) : daysUntilWaste === 1 ? (
-                  <span className="text-xs font-bold text-amber-300 bg-amber-950/80 border border-amber-800 px-2.5 py-0.5 rounded-full animate-pulse">
+                  <span className="text-xs font-semibold text-amber-300 bg-amber-950/80 border border-amber-800 px-2.5 py-0.5 rounded-full animate-pulse">
                     Morgen!
                   </span>
                 ) : (
@@ -274,14 +274,14 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                   </span>
                 )
               ) : (
-                <span className="text-xs text-slate-400">Alles erledigt</span>
+                <span className="text-xs text-slate-400 font-medium">Alles erledigt</span>
               )}
             </div>
 
-            <h3 className="text-xl font-display font-extrabold text-white mb-1.5">
+            <h3 className="text-xl font-semibold text-white mb-1.5 font-sans tracking-tight">
               {nextWaste ? wasteTypeNames[nextWaste.wasteType] || 'Abfalltermin' : 'Keine Abfuhr'}
             </h3>
-            <p className="text-xs text-slate-300 mb-5 leading-relaxed">
+            <p className="text-xs text-slate-300 mb-5 leading-relaxed font-sans">
               {nextWaste
                 ? daysUntilWaste === 1
                   ? 'Bitte heute Abend nach dem Abendessen vor das Tor stellen.'
@@ -301,10 +301,10 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                     : 'opacity-40'
                 }`}
               >
-                <div className="w-8 h-10 rounded-lg bg-yellow-400 border-2 border-yellow-300 flex items-center justify-center text-slate-950 font-black text-xs shadow-inner">
+                <div className="w-8 h-10 rounded-lg bg-yellow-400 border-2 border-yellow-300 flex items-center justify-center text-slate-950 font-bold text-xs shadow-inner">
                   ♻️
                 </div>
-                <span className="text-[10px] font-bold text-yellow-300">Gelb</span>
+                <span className="text-[10px] font-semibold text-yellow-300">Gelb</span>
               </div>
 
               {/* Biotonne */}
@@ -318,7 +318,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                 <div className="w-8 h-10 rounded-lg bg-emerald-700 border-2 border-emerald-600 flex items-center justify-center text-white text-[11px] shadow-inner">
                   🍂
                 </div>
-                <span className="text-[10px] font-bold text-emerald-300">Bio</span>
+                <span className="text-[10px] font-semibold text-emerald-300">Bio</span>
               </div>
 
               {/* Altpapier */}
@@ -332,7 +332,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                 <div className="w-8 h-10 rounded-lg bg-sky-600 border-2 border-sky-500 flex items-center justify-center text-white text-[11px] shadow-inner">
                   📦
                 </div>
-                <span className="text-[10px] font-bold text-sky-300">Papier</span>
+                <span className="text-[10px] font-semibold text-sky-300">Papier</span>
               </div>
 
               {/* Restmüll */}
@@ -346,7 +346,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                 <div className="w-8 h-10 rounded-lg bg-slate-700 border-2 border-slate-600 flex items-center justify-center text-white text-[11px] shadow-inner">
                   🗑️
                 </div>
-                <span className="text-[10px] font-bold text-slate-300">Rest</span>
+                <span className="text-[10px] font-semibold text-slate-300">Rest</span>
               </div>
             </div>
           </div>
@@ -354,10 +354,10 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           <button
             type="button"
             onClick={() => setCurrentTab('waste')}
-            className="w-full py-2.5 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full py-2.5 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer font-sans"
           >
             <span>Abfallkalender öffnen</span>
-            <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
+            <ArrowRight className="w-3.5 h-3.5 text-rose-400" />
           </button>
         </div>
 
@@ -367,20 +367,20 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
 
           <div>
             <div className="flex items-center justify-between mb-4">
-              <span className="px-3.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold uppercase tracking-wider font-display">
+              <span className="px-3.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold uppercase tracking-wider font-sans">
                 Einkaufskorb
               </span>
-              <span className="text-xs font-bold text-emerald-400 font-mono">
+              <span className="text-xs font-semibold text-emerald-400 font-mono">
                 ~ {shoppingSummary?.totalEstimatedCost ? `${shoppingSummary.totalEstimatedCost.toFixed(2)} €` : '0.00 €'}
               </span>
             </div>
 
-            <h3 className="text-xl font-display font-extrabold text-white mb-1.5">
+            <h3 className="text-xl font-semibold text-white mb-1.5 font-sans tracking-tight">
               {shoppingSummary?.items?.length || 0}{' '}
               {shoppingSummary?.items?.length === 1 ? 'Artikel auf der Liste' : 'Artikel auf der Liste'}
             </h3>
-            <p className="text-xs text-slate-300 mb-4 leading-relaxed">
-              Geplant bei <strong className="text-white">{shoppingSummary?.supermarketName || 'Supermarkt'}</strong> für diese Woche.
+            <p className="text-xs text-slate-300 mb-4 leading-relaxed font-sans">
+              Geplant bei <strong className="text-white font-semibold">{shoppingSummary?.supermarketName || 'Supermarkt'}</strong> für diese Woche.
             </p>
 
             {/* Quick Preview Items */}
@@ -401,7 +401,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                   </div>
                 ))
               ) : (
-                <div className="p-3.5 rounded-2xl bg-surface-elevated/50 border border-surface-border text-xs text-slate-400 text-center">
+                <div className="p-3.5 rounded-2xl bg-surface-elevated/50 border border-surface-border text-xs text-slate-400 text-center font-medium">
                   Alle Einkäufe erledigt! 🎉
                 </div>
               )}
@@ -411,7 +411,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           <button
             type="button"
             onClick={() => setCurrentTab('shopping')}
-            className="w-full py-2.5 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full py-2.5 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer font-sans"
           >
             <span>Einkaufsliste abhaken</span>
             <ArrowRight className="w-3.5 h-3.5 text-emerald-400" />
@@ -423,16 +423,16 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           <div>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2.5">
-                <span className="px-3.5 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-bold uppercase tracking-wider font-display">
+                <span className="px-3.5 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-semibold uppercase tracking-wider font-sans">
                   WG-Pinnwand & Notizen
                 </span>
                 {openNotes.length > 0 && (
-                  <span className="text-xs text-amber-300 font-bold bg-amber-500/15 border border-amber-500/30 px-2.5 py-0.5 rounded-full font-mono">
+                  <span className="text-xs text-rose-300 font-semibold bg-rose-500/15 border border-rose-500/30 px-2.5 py-0.5 rounded-full font-mono">
                     {openNotes.length} offen
                   </span>
                 )}
               </div>
-              <span className="text-xs text-slate-400 hidden sm:inline">Mitteilungen, Wünsche & Alltag</span>
+              <span className="text-xs text-slate-400 hidden sm:inline font-medium">Mitteilungen, Wünsche & Alltag</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
@@ -444,12 +444,12 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                       key={note.id || idx}
                       className={`p-4 rounded-2xl border shadow-inner ${
                         idx === 0
-                          ? 'bg-gradient-to-br from-amber-500/10 to-amber-600/5 border-amber-500/30 text-amber-100'
-                          : 'bg-gradient-to-br from-rose-500/10 to-rose-600/5 border-rose-500/30 text-rose-100'
+                          ? 'bg-gradient-to-br from-rose-500/10 to-rose-600/5 border-rose-500/30 text-rose-100'
+                          : 'bg-gradient-to-br from-pink-500/10 to-pink-600/5 border-pink-500/30 text-pink-100'
                       }`}
                     >
-                      <div className="flex items-center justify-between text-xs font-bold mb-1.5">
-                        <span className={idx === 0 ? 'text-amber-300' : 'text-rose-300'}>
+                      <div className="flex items-center justify-between text-xs font-semibold mb-1.5">
+                        <span className={idx === 0 ? 'text-rose-300' : 'text-pink-300'}>
                           {isStaffNote ? 'Betreuer-Notiz' : 'WG-Notiz'} · {note.authorName || 'WG-Mitglied'}
                         </span>
                         <span className="text-[10px] font-mono text-slate-400">
@@ -475,14 +475,14 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between pt-3 border-t border-white/5 text-xs gap-3">
+          <div className="flex flex-col sm:flex-row items-center justify-between pt-3 border-t border-white/5 text-xs gap-3 font-sans">
             <span className="text-slate-400 font-medium">
               Alle Bewohner und Betreuer können Zettel und Wünsche anheften.
             </span>
             <button
               type="button"
               onClick={() => setCurrentTab('notes')}
-              className="w-full sm:w-auto px-4 py-2 rounded-xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
+              className="w-full sm:w-auto px-4 py-2 rounded-xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 hover:border-rose-500/30"
             >
               <span>+ Zur WG-Pinnwand</span>
             </button>
@@ -494,11 +494,11 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
       <div className="bento-card rounded-[2.5rem] p-7 sm:p-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
           <div>
-            <h2 className="text-xl font-display font-extrabold text-slate-100 flex items-center gap-2">
+            <h2 className="text-xl font-semibold text-slate-100 flex items-center gap-2 font-sans tracking-tight">
               <span>Schnellzugriff auf unsere WG-Bereiche</span>
-              <Sparkles className="w-4 h-4 text-amber-400" />
+              <Sparkles className="w-4 h-4 text-rose-400" />
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-400 mt-0.5 font-medium">
               Alles für einen entspannten, gemeinsamen Alltag in der Wohngruppe
             </p>
           </div>
@@ -508,15 +508,15 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           <button
             type="button"
             onClick={() => setCurrentTab('mealplan')}
-            className="p-5 rounded-2xl border border-surface-border bg-surface-elevated/50 hover:bg-surface-elevated hover:border-amber-500/50 text-left transition-all duration-200 group hover:scale-[1.02] hover:shadow-lg hover:shadow-amber-500/10 cursor-pointer"
+            className="p-5 rounded-2xl border border-surface-border bg-surface-elevated/50 hover:bg-surface-elevated hover:border-rose-500/50 text-left transition-all duration-200 group hover:scale-[1.02] hover:shadow-lg hover:shadow-rose-500/10 cursor-pointer"
           >
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center mb-3.5 group-hover:scale-110 transition-transform shadow-md shadow-amber-500/30">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-rose-500 to-pink-500 text-white flex items-center justify-center mb-3.5 group-hover:scale-110 transition-transform shadow-md shadow-rose-500/30">
               <Calendar className="w-6 h-6 text-white" />
             </div>
-            <div className="text-sm font-display font-bold text-slate-100 group-hover:text-amber-300 transition-colors">
+            <div className="text-sm font-semibold text-slate-100 group-hover:text-rose-300 transition-colors font-sans">
               Wochenplan
             </div>
-            <div className="text-xs text-slate-400 mt-1 leading-relaxed">Gerichte planen & Köche einteilen</div>
+            <div className="text-xs text-slate-400 mt-1 leading-relaxed font-sans">Gerichte planen & Köche einteilen</div>
           </button>
 
           <button
@@ -527,38 +527,38 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 text-white flex items-center justify-center mb-3.5 group-hover:scale-110 transition-transform shadow-md shadow-emerald-500/30">
               <ShoppingCart className="w-6 h-6 text-white" />
             </div>
-            <div className="text-sm font-display font-bold text-slate-100 group-hover:text-emerald-300 transition-colors">
+            <div className="text-sm font-semibold text-slate-100 group-hover:text-emerald-300 transition-colors font-sans">
               Einkaufsliste
             </div>
-            <div className="text-xs text-slate-400 mt-1 leading-relaxed">Zutaten abhaken & Preise prüfen</div>
+            <div className="text-xs text-slate-400 mt-1 leading-relaxed font-sans">Zutaten abhaken & Preise prüfen</div>
           </button>
 
           <button
             type="button"
             onClick={() => setCurrentTab('recipes')}
-            className="p-5 rounded-2xl border border-surface-border bg-surface-elevated/50 hover:bg-surface-elevated hover:border-rose-500/50 text-left transition-all duration-200 group hover:scale-[1.02] hover:shadow-lg hover:shadow-rose-500/10 cursor-pointer"
+            className="p-5 rounded-2xl border border-surface-border bg-surface-elevated/50 hover:bg-surface-elevated hover:border-pink-500/50 text-left transition-all duration-200 group hover:scale-[1.02] hover:shadow-lg hover:shadow-pink-500/10 cursor-pointer"
           >
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-rose-500 to-pink-500 text-white flex items-center justify-center mb-3.5 group-hover:scale-110 transition-transform shadow-md shadow-rose-500/30">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-pink-500 to-rose-500 text-white flex items-center justify-center mb-3.5 group-hover:scale-110 transition-transform shadow-md shadow-pink-500/30">
               <BookOpen className="w-6 h-6 text-white" />
             </div>
-            <div className="text-sm font-display font-bold text-slate-100 group-hover:text-rose-300 transition-colors">
+            <div className="text-sm font-semibold text-slate-100 group-hover:text-pink-300 transition-colors font-sans">
               Rezepte
             </div>
-            <div className="text-xs text-slate-400 mt-1 leading-relaxed">Lieblingsgerichte mit Zubereitung</div>
+            <div className="text-xs text-slate-400 mt-1 leading-relaxed font-sans">Lieblingsgerichte mit Zubereitung</div>
           </button>
 
           <button
             type="button"
             onClick={() => setCurrentTab('notes')}
-            className="p-5 rounded-2xl border border-surface-border bg-surface-elevated/50 hover:bg-surface-elevated hover:border-amber-500/50 text-left transition-all duration-200 group hover:scale-[1.02] hover:shadow-lg hover:shadow-amber-500/10 cursor-pointer"
+            className="p-5 rounded-2xl border border-surface-border bg-surface-elevated/50 hover:bg-surface-elevated hover:border-fuchsia-500/50 text-left transition-all duration-200 group hover:scale-[1.02] hover:shadow-lg hover:shadow-fuchsia-500/10 cursor-pointer"
           >
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-600 to-yellow-500 text-white flex items-center justify-center mb-3.5 group-hover:scale-110 transition-transform shadow-md shadow-amber-600/30">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-fuchsia-500 to-rose-500 text-white flex items-center justify-center mb-3.5 group-hover:scale-110 transition-transform shadow-md shadow-fuchsia-500/30">
               <MessageSquareText className="w-6 h-6 text-white" />
             </div>
-            <div className="text-sm font-display font-bold text-slate-100 group-hover:text-amber-300 transition-colors">
+            <div className="text-sm font-semibold text-slate-100 group-hover:text-fuchsia-300 transition-colors font-sans">
               WG-Pinnwand
             </div>
-            <div className="text-xs text-slate-400 mt-1 leading-relaxed">Mitteilungen & Anliegen notieren</div>
+            <div className="text-xs text-slate-400 mt-1 leading-relaxed font-sans">Mitteilungen & Anliegen notieren</div>
           </button>
 
           <button
@@ -569,10 +569,10 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-500 to-cyan-500 text-white flex items-center justify-center mb-3.5 group-hover:scale-110 transition-transform shadow-md shadow-sky-500/30">
               <Trash2 className="w-6 h-6 text-white" />
             </div>
-            <div className="text-sm font-display font-bold text-slate-100 group-hover:text-cyan-300 transition-colors">
+            <div className="text-sm font-semibold text-slate-100 group-hover:text-cyan-300 transition-colors font-sans">
               Abfallkalender
             </div>
-            <div className="text-xs text-slate-400 mt-1 leading-relaxed">Nächste Abholungen & Tonnen</div>
+            <div className="text-xs text-slate-400 mt-1 leading-relaxed font-sans">Nächste Abholungen & Tonnen</div>
           </button>
         </div>
       </div>

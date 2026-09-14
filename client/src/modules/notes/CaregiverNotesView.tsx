@@ -127,12 +127,12 @@ export const CaregiverNotesView: React.FC = () => {
       {/* Header */}
       <div className="bg-surface-card rounded-[2.5rem] p-6 border border-surface-border shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-500/15 border border-amber-500/30 rounded-full text-xs font-bold text-amber-300 mb-2 font-display">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-rose-500/15 border border-rose-500/30 rounded-full text-xs font-semibold text-rose-300 mb-2 font-display">
             <span className="text-sm">📌</span>
             <span>WG-Pinnwand & Mitteilungen</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-display font-extrabold text-white flex items-center gap-2">
-            <MessageSquareText className="w-6 h-6 text-amber-400" />
+          <h1 className="text-xl sm:text-2xl font-display font-semibold text-white tracking-tight flex items-center gap-2">
+            <MessageSquareText className="w-6 h-6 text-rose-400" />
             <span>Unsere WG-Pinnwand</span>
           </h1>
           <p className="text-xs text-slate-400 mt-1">
@@ -143,7 +143,7 @@ export const CaregiverNotesView: React.FC = () => {
         <button
           type="button"
           onClick={() => setShowAddForm(!showAddForm)}
-          className="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-white rounded-2xl text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-amber-500/25 transition-all self-stretch sm:self-auto justify-center cursor-pointer"
+          className="px-4 py-2.5 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white rounded-2xl text-xs font-semibold flex items-center gap-1.5 shadow-lg shadow-rose-500/25 transition-all self-stretch sm:self-auto justify-center cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>Neue Notiz anpinnen</span>
@@ -152,12 +152,12 @@ export const CaregiverNotesView: React.FC = () => {
 
       {/* Staff Alert Banner when there are open notes */}
       {isStaff && activeTab === 'ACTIVE' && openTicketsCount > 0 && (
-        <div className="bg-gradient-to-r from-amber-500/15 via-surface-card to-surface-card border border-amber-500/40 rounded-3xl p-5 flex items-center gap-3.5 shadow-md">
-          <div className="p-2.5 bg-amber-500 text-slate-950 rounded-2xl shrink-0 font-bold text-base shadow-sm">
+        <div className="bg-gradient-to-r from-rose-500/15 via-surface-card to-surface-card border border-rose-500/40 rounded-3xl p-5 flex items-center gap-3.5 shadow-md">
+          <div className="p-2.5 bg-rose-500 text-white rounded-2xl shrink-0 font-bold text-base shadow-sm">
             📌
           </div>
           <div className="flex-1">
-            <div className="text-sm font-display font-bold text-amber-200">
+            <div className="text-sm font-display font-semibold text-rose-200">
               {openTicketsCount === 1 ? '1 neue Mitteilung wartet auf eine Antwort' : `${openTicketsCount} Mitteilungen warten auf eine Antwort`}
             </div>
             <p className="text-xs text-slate-300 mt-0.5">
@@ -173,9 +173,9 @@ export const CaregiverNotesView: React.FC = () => {
           <button
             type="button"
             onClick={() => setActiveTab('ACTIVE')}
-            className={`px-4 py-2 rounded-2xl font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            className={`px-4 py-2 rounded-2xl font-semibold transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === 'ACTIVE'
-                ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-md shadow-amber-500/20'
+                ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md shadow-rose-500/20'
                 : 'bg-surface-elevated text-slate-400 hover:text-white border border-surface-border'
             }`}
           >
@@ -191,9 +191,9 @@ export const CaregiverNotesView: React.FC = () => {
           <button
             type="button"
             onClick={() => setActiveTab('ARCHIVE')}
-            className={`px-4 py-2 rounded-2xl font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            className={`px-4 py-2 rounded-2xl font-semibold transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === 'ARCHIVE'
-                ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-md shadow-amber-500/20'
+                ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md shadow-rose-500/20'
                 : 'bg-surface-elevated text-slate-400 hover:text-white border border-surface-border'
             }`}
           >
@@ -214,7 +214,7 @@ export const CaregiverNotesView: React.FC = () => {
           className="bento-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border shadow-xl space-y-4 animate-in fade-in duration-150"
         >
           <div className="flex items-center justify-between border-b border-white/5 pb-3">
-            <h3 className="text-sm font-display font-bold text-white flex items-center gap-2">
+            <h3 className="text-sm font-display font-semibold text-white flex items-center gap-2">
               <span>✏️</span>
               <span>Neue Notiz für die WG oder Betreuer schreiben</span>
             </h3>
@@ -228,7 +228,7 @@ export const CaregiverNotesView: React.FC = () => {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="z.B. Termin beim Bürgeramt, Rezept vom Arzt abholen, Neue Zahnpasta..."
-              className="w-full px-4 py-2.5 bg-surface-elevated border border-surface-border rounded-2xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+              className="w-full px-4 py-2.5 bg-surface-elevated border border-surface-border rounded-2xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40"
               required
             />
           </div>
@@ -240,7 +240,7 @@ export const CaregiverNotesView: React.FC = () => {
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Was genau soll erledigt werden? Gibt es bestimmte Fristen oder Wünsche?"
-              className="w-full px-4 py-2.5 bg-surface-elevated border border-surface-border rounded-2xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 font-sans"
+              className="w-full px-4 py-2.5 bg-surface-elevated border border-surface-border rounded-2xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans"
               required
             />
           </div>
@@ -255,7 +255,7 @@ export const CaregiverNotesView: React.FC = () => {
             </button>
             <button
               type="submit"
-              className="px-5 py-2 bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition-all cursor-pointer"
+              className="px-5 py-2 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-rose-500/20 transition-all cursor-pointer"
             >
               <span>Notiz anpinnen 📌</span>
             </button>
@@ -266,7 +266,7 @@ export const CaregiverNotesView: React.FC = () => {
       {/* Notes List */}
       {isLoading ? (
         <div className="py-20 text-center text-slate-400">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-3 border-amber-500 border-t-transparent mb-2" />
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-3 border-rose-500 border-t-transparent mb-2" />
           <div>Pinnwand wird geladen...</div>
         </div>
       ) : notes.length === 0 ? (
@@ -274,7 +274,7 @@ export const CaregiverNotesView: React.FC = () => {
           {activeTab === 'ACTIVE' ? (
             <>
               <div className="text-4xl mb-3">🎉 📌 ☕</div>
-              <h3 className="text-base font-display font-bold text-slate-200">Alles erledigt & geklärt!</h3>
+              <h3 className="text-base font-display font-semibold text-slate-200">Alles erledigt & geklärt!</h3>
               <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto leading-relaxed">
                 Die Pinnwand ist aktuell sauber. Wenn du ein Anliegen oder eine Frage hast, klicke einfach oben auf „Neue Notiz anpinnen“.
               </p>
@@ -282,7 +282,7 @@ export const CaregiverNotesView: React.FC = () => {
           ) : (
             <>
               <div className="text-4xl mb-3">📁 🍃</div>
-              <h3 className="text-base font-display font-bold text-slate-200">Das Archiv ist leer</h3>
+              <h3 className="text-base font-display font-semibold text-slate-200">Das Archiv ist leer</h3>
               <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto leading-relaxed">
                 Erledigte Notizen und geklärte Absprachen werden hier aufbewahrt.
               </p>
@@ -302,7 +302,7 @@ export const CaregiverNotesView: React.FC = () => {
                     ? 'border-surface-border opacity-75'
                     : note.status === 'IN_PROGRESS'
                     ? 'border-sky-500/30 bg-gradient-to-br from-sky-500/5 to-transparent'
-                    : 'border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-transparent hover:border-amber-500/50'
+                    : 'border-rose-500/30 bg-gradient-to-br from-rose-500/5 to-transparent hover:border-rose-500/50'
                 }`}
               >
                 {/* Meta Header */}
@@ -314,7 +314,7 @@ export const CaregiverNotesView: React.FC = () => {
                           ? 'bg-surface-elevated text-slate-400 border border-surface-border'
                           : note.status === 'IN_PROGRESS'
                           ? 'bg-sky-500/15 text-sky-300 border border-sky-500/30'
-                          : 'bg-amber-500/15 text-amber-300 border border-amber-500/30 animate-pulse'
+                          : 'bg-rose-500/15 text-rose-300 border border-rose-500/30 animate-pulse'
                       }`}
                     >
                       {note.isArchived ? 'Gelöst & Archiviert' : note.status === 'IN_PROGRESS' ? 'In Bearbeitung' : 'Neu / Offen'}
@@ -332,13 +332,13 @@ export const CaregiverNotesView: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
-                    <User className="w-3.5 h-3.5 text-amber-400" />
+                    <User className="w-3.5 h-3.5 text-rose-400" />
                     <span>Von: <span className="text-white font-bold">{note.residentName}</span></span>
                   </div>
                 </div>
 
                 {/* Content */}
-                <h3 className="text-lg font-display font-bold text-white">
+                <h3 className="text-lg font-display font-semibold text-white">
                   {note.title}
                 </h3>
 
@@ -348,10 +348,10 @@ export const CaregiverNotesView: React.FC = () => {
 
                 {/* Caregiver Response Display */}
                 {note.caregiverResponse && (
-                  <div className="mt-4 p-4 sm:p-5 bg-surface-elevated/70 border border-amber-500/30 rounded-2xl">
+                  <div className="mt-4 p-4 sm:p-5 bg-surface-elevated/70 border border-rose-500/30 rounded-2xl">
                     <div className="flex items-center justify-between text-xs mb-1.5">
-                      <span className="font-display font-bold text-amber-300 flex items-center gap-1.5">
-                        <MessageSquare className="w-4 h-4 text-amber-400" />
+                      <span className="font-display font-bold text-rose-300 flex items-center gap-1.5">
+                        <MessageSquare className="w-4 h-4 text-rose-400" />
                         Rückmeldung von {note.respondedByName || 'Betreuer'}
                       </span>
                       {note.respondedAt && (
@@ -373,8 +373,8 @@ export const CaregiverNotesView: React.FC = () => {
 
                 {/* Inline Reply Form (Caregivers) */}
                 {isReplying && (
-                  <div className="mt-4 p-4 sm:p-5 bg-surface-card border border-amber-500/40 rounded-2xl space-y-3 animate-in fade-in duration-150">
-                    <div className="text-xs font-display font-bold text-amber-300 flex items-center gap-1.5">
+                  <div className="mt-4 p-4 sm:p-5 bg-surface-card border border-rose-500/40 rounded-2xl space-y-3 animate-in fade-in duration-150">
+                    <div className="text-xs font-display font-bold text-rose-300 flex items-center gap-1.5">
                       <MessageSquare className="w-4 h-4" />
                       <span>Rückmeldung an {note.residentName} verfassen</span>
                     </div>
@@ -383,7 +383,7 @@ export const CaregiverNotesView: React.FC = () => {
                       value={replyText}
                       onChange={(e) => setReplyText(e.target.value)}
                       placeholder="z.B. Termin ist vereinbart, ich komme morgen um 14 Uhr vorbei..."
-                      className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 font-sans"
+                      className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans"
                     />
                     <div className="flex justify-end gap-2.5">
                       <button
@@ -400,7 +400,7 @@ export const CaregiverNotesView: React.FC = () => {
                         type="button"
                         onClick={() => handleSendReply(note.id)}
                         disabled={isSubmittingReply || !replyText.trim()}
-                        className="px-4 py-2 bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-sm"
+                        className="px-4 py-2 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-sm"
                       >
                         <Send className="w-3.5 h-3.5" />
                         <span>Antwort speichern</span>
@@ -420,9 +420,9 @@ export const CaregiverNotesView: React.FC = () => {
                           setReplyingId(note.id);
                           setReplyText(note.caregiverResponse || '');
                         }}
-                        className="px-3.5 py-2 bg-surface-elevated hover:bg-surface-card hover:text-amber-300 text-slate-200 border border-surface-border rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                        className="px-3.5 py-2 bg-surface-elevated hover:bg-surface-card hover:text-rose-300 text-slate-200 border border-surface-border rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                       >
-                        <MessageSquare className="w-3.5 h-3.5 text-amber-400" />
+                        <MessageSquare className="w-3.5 h-3.5 text-rose-400" />
                         <span>{note.caregiverResponse ? 'Antwort bearbeiten' : 'Rückmeldung geben'}</span>
                       </button>
                     )}
@@ -444,7 +444,7 @@ export const CaregiverNotesView: React.FC = () => {
                         onClick={() => handleReopenTicket(note.id)}
                         className="px-4 py-2 bg-surface-elevated hover:bg-surface-card text-slate-200 border border-surface-border rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                       >
-                        <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
+                        <RotateCcw className="w-3.5 h-3.5 text-rose-400" />
                         <span>Wiedereröffnen</span>
                       </button>
                     )}
