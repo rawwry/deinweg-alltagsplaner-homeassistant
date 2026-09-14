@@ -71,25 +71,25 @@ export const DesktopNav: React.FC<DesktopNavProps> = ({ currentTab, setCurrentTa
     <aside
       className={`hidden md:flex flex-col ${
         isCollapsed ? 'w-20' : 'w-64'
-      } bg-slate-900/95 backdrop-blur-md border-r border-slate-800/80 h-full p-3 justify-between flex-shrink-0 transition-all duration-300 ease-in-out select-none overflow-y-auto`}
+      } bg-surface-card/95 backdrop-blur-xl border-r border-surface-border h-full p-3.5 justify-between flex-shrink-0 transition-all duration-300 ease-in-out select-none overflow-y-auto`}
     >
       <div>
         {/* Header with Collapse / Expand Toggle */}
-        <div className={`flex items-center mb-3 px-2 py-1.5 ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
+        <div className={`flex items-center mb-4 px-2 py-1 ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
           {!isCollapsed && (
-            <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+            <span className="text-[11px] font-display font-extrabold uppercase tracking-wider text-slate-400">
               Menü
             </span>
           )}
           <button
             type="button"
             onClick={toggleCollapsed}
-            className="p-2 rounded-xl text-slate-400 hover:text-sky-300 hover:bg-slate-800/80 transition-all active:scale-95 shadow-xs"
+            className="p-2 rounded-2xl text-slate-400 hover:text-amber-300 hover:bg-surface-elevated transition-all active:scale-95 cursor-pointer"
             title={isCollapsed ? 'Seitenleiste ausklappen' : 'Seitenleiste einklappen'}
             aria-label={isCollapsed ? 'Seitenleiste ausklappen' : 'Seitenleiste einklappen'}
           >
             {isCollapsed ? (
-              <PanelLeftOpen className="w-5 h-5 text-sky-400" />
+              <PanelLeftOpen className="w-5 h-5 text-amber-400" />
             ) : (
               <PanelLeftClose className="w-4 h-4" />
             )}
@@ -111,24 +111,24 @@ export const DesktopNav: React.FC<DesktopNavProps> = ({ currentTab, setCurrentTa
                   isCollapsed ? 'justify-center' : 'text-left'
                 } ${
                   isActive
-                    ? 'bg-sky-500/15 text-sky-200 border border-sky-500/30 shadow-md shadow-sky-950/50'
-                    : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-100 border border-transparent'
+                    ? 'bg-gradient-to-r from-amber-500/15 to-rose-500/15 text-white border border-amber-500/30 shadow-md shadow-black/20 font-bold'
+                    : 'text-slate-400 hover:bg-surface-elevated hover:text-slate-100 border border-transparent'
                 }`}
               >
                 {/* Active Indicator Bar */}
                 {isActive && (
-                  <span className="absolute left-0 top-2.5 bottom-2.5 w-1 bg-sky-400 rounded-r-full shadow-md shadow-sky-400/60" />
+                  <span className="absolute left-0 top-2.5 bottom-2.5 w-1 bg-gradient-to-b from-amber-400 to-rose-500 rounded-r-full shadow-md shadow-amber-400/60" />
                 )}
 
                 <div className="relative flex items-center justify-center">
                   <Icon
                     className={`w-5 h-5 transition-transform group-hover:scale-110 duration-200 ${
-                      isActive ? 'text-sky-400' : 'text-slate-400 group-hover:text-slate-200'
+                      isActive ? 'text-amber-400' : 'text-slate-400 group-hover:text-slate-200'
                     }`}
                   />
                   {/* Collapsed Badge (Pulse Dot) */}
                   {isCollapsed && item.badge !== undefined && (
-                    <span className="absolute -top-1 -right-1.5 w-2.5 h-2.5 bg-amber-400 rounded-full ring-2 ring-slate-900 animate-pulse" />
+                    <span className="absolute -top-1 -right-1.5 w-2.5 h-2.5 bg-amber-400 rounded-full ring-2 ring-surface-card animate-pulse" />
                   )}
                 </div>
 
@@ -150,17 +150,17 @@ export const DesktopNav: React.FC<DesktopNavProps> = ({ currentTab, setCurrentTa
 
       {/* Modern Bottom Card */}
       {!isCollapsed ? (
-        <div className="pt-3 border-t border-slate-800/80 px-1 text-center animate-in fade-in duration-200">
-          <div className="p-3 bg-slate-950/60 rounded-2xl border border-slate-800/80 shadow-inner">
-            <div className="text-xs font-bold text-slate-200">Dein Weg WG-Planer</div>
+        <div className="pt-3 border-t border-surface-border px-1 text-center animate-in fade-in duration-200">
+          <div className="p-3 bg-surface-elevated/60 rounded-2xl border border-surface-border shadow-inner">
+            <div className="text-xs font-display font-bold text-slate-200">Dein Weg WG-Planer</div>
             <p className="text-[10px] text-slate-400 mt-1 leading-tight font-medium">
               Taktische Skill-Issue-Prävention
             </p>
           </div>
         </div>
       ) : (
-        <div className="pt-2 border-t border-slate-800/80 flex justify-center text-xs text-slate-400" title="Taktische Skill-Issue-Prävention">
-          <span className="font-mono text-[10px]">✨</span>
+        <div className="pt-2 border-t border-surface-border flex justify-center text-xs text-slate-400" title="Taktische Skill-Issue-Prävention">
+          <span className="font-mono text-[10px] text-amber-400/80">✨</span>
         </div>
       )}
     </aside>

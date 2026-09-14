@@ -4,20 +4,18 @@ import { api } from '../../api/client.js';
 import {
   Calendar,
   ShoppingCart,
-  ShoppingBag,
   BookOpen,
   MessageSquareText,
   Trash2,
   ArrowRight,
   Sparkles,
-  CheckCircle2,
-  Clock,
-  UtensilsCrossed,
-  ChefHat,
   Users,
-  CreditCard,
+  ChefHat,
+  Clock,
+  CheckCircle2,
   AlertTriangle,
   CalendarCheck,
+  PlusCircle,
 } from 'lucide-react';
 
 interface DashboardHubProps {
@@ -29,20 +27,48 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
   const [mealPlan, setMealPlan] = useState<any>(null);
   const [shoppingSummary, setShoppingSummary] = useState<any>(null);
   const [wasteSummary, setWasteSummary] = useState<any[]>([]);
-  const [notesCount, setNotesCount] = useState<number>(0);
+  const [notesList, setNotesList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const now = new Date();
+  const currentHour = now.getHours();
   const currentYear = now.getFullYear();
+
+  // Greeting by time of day
+  const timeGreeting =
+    currentHour >= 5 && currentHour < 11
+      ? 'Guten Morgen'
+      : currentHour >= 11 && currentHour < 17
+      ? 'Guten Tag'
+      : currentHour >= 17 && currentHour < 22
+      ? 'Guten Abend'
+      : 'Gute Nacht';
+
+  const timeEmoji =
+    currentHour >= 5 && currentHour < 11
+      ? '☕'
+      : currentHour >= 11 && currentHour < 17
+      ? '☀️'
+      : currentHour >= 17 && currentHour < 22
+      ? '🍲'
+      : '🌙';
+
   // Get current ISO calendar week
   const dateCopy = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
   const dayNum = dateCopy.getUTCDay() || 7;
   dateCopy.setUTCDate(dateCopy.getUTCDate() + 4 - dayNum);
   const yearStart = new Date(Date.UTC(dateCopy.getUTCFullYear(), 0, 1));
-  const currentWeek = Math.ceil((((dateCopy.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  const currentWeek = Math.ceil(((dateCopy.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
 
   // Day of week in Germany: 1=Mo, 7=So
   const currentDayOfWeek = now.getDay() === 0 ? 7 : now.getDay();
+
+  // Formatted date string
+  const formattedToday = new Intl.DateTimeFormat('de-DE', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  }).format(now);
 
   useEffect(() => {
     let isMounted = true;
@@ -60,7 +86,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
         setMealPlan(planRes);
         setShoppingSummary(shopRes);
         setWasteSummary(wasteRes || []);
-        setNotesCount((notesRes || []).filter((n: any) => n.status !== 'DONE').length);
+        setNotesList(notesRes || []);
       } catch (err) {
         console.error('Fehler beim Laden des Dashboards:', err);
       } finally {
@@ -72,10 +98,11 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
     return () => {
       isMounted = false;
     };
-  }, [activeLocationId]);
+  }, [activeLocationId, currentYear, currentWeek]);
 
   const todayMeal = mealPlan?.days?.find((d: any) => d.dayOfWeek === currentDayOfWeek);
   const nextWaste = wasteSummary.length > 0 ? wasteSummary[0] : null;
+  const openNotes = notesList.filter((n: any) => n.status !== 'DONE');
 
   // Calculate days until next waste pickup
   let daysUntilWaste: number | null = null;
@@ -87,252 +114,392 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
     daysUntilWaste = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   }
 
+  // Waste type title mapping
+  const wasteTypeNames: Record<string, string> = {
+    YELLOW: 'Wertstoff / Gelber Sack',
+    BIO: 'Biotonne',
+    PAPER: 'Altpapiertonne',
+    REST: 'Restmülltonne',
+  };
+
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-6 sm:pb-8">
-      {/* Welcome Banner with Modern Ambient Glow */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-slate-900/90 via-sky-950/40 to-slate-900/90 rounded-3xl p-6 sm:p-8 text-white shadow-2xl shadow-black/40 border border-sky-500/20 backdrop-blur-xl">
-        {/* Ambient background light orbs */}
-        <div className="absolute -top-16 -right-16 w-56 h-56 bg-sky-500/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-slate-800/80 backdrop-blur-md rounded-full text-xs font-bold mb-3 border border-slate-700/80 shadow-inner">
-              <span className="text-slate-200">WG {activeLocation?.name || user?.locationName || 'Emsdetten'}</span>
-              <span className="opacity-40">•</span>
-              <span className="text-sky-300 font-mono">KW {currentWeek}</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight flex items-center gap-2.5 flex-wrap">
-              <span>Hallo, {user?.name}!</span>
-              <span className="inline-block animate-bounce text-2xl sm:text-3xl">👋</span>
-            </h1>
-            <p className="text-slate-300 text-sm sm:text-base mt-2 max-w-xl font-normal leading-relaxed">
-              Hier ist euer WG-Planer: Schau nach, was heute Leckeres gekocht wird, was auf der Einkaufsliste steht oder welcher Abfalltermin ansteht.
-            </p>
+    <div className="space-y-7 max-w-6xl mx-auto pb-10">
+      {/* Top Welcome Headline */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 pt-1">
+        <div>
+          <div className="inline-flex items-center gap-2 text-amber-400 text-xs font-bold tracking-wider uppercase mb-1.5 font-display">
+            <span>{timeEmoji} {timeGreeting}, WG {activeLocation?.name || user?.locationName || 'Emsdetten'}!</span>
+            <span className="text-slate-600">•</span>
+            <span className="text-slate-400 font-sans font-medium">{formattedToday} · KW {currentWeek}</span>
           </div>
-
-          <div className="flex flex-col sm:flex-row gap-2.5 self-stretch sm:self-auto shrink-0">
+          <h1 className="text-3xl sm:text-4xl font-display font-black tracking-tight text-white">
+            Was steht heute im Alltag an?
+          </h1>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          {openNotes.length > 0 && (
             <button
               type="button"
-              onClick={() => setCurrentTab('mealplan')}
-              className="px-5 py-3.5 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white rounded-2xl text-sm font-bold shadow-lg shadow-sky-600/25 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              onClick={() => setCurrentTab('notes')}
+              className="px-3.5 py-1.5 rounded-2xl bg-surface-card border border-amber-500/30 text-xs text-amber-300 font-medium hover:bg-surface-elevated transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
             >
-              <span>Wochenplan ansehen</span>
-              <ArrowRight className="w-4 h-4 text-white" />
+              <span>🔔</span>
+              <span>{openNotes.length} {openNotes.length === 1 ? 'Notiz' : 'Notizen'} an der Pinnwand</span>
             </button>
-          </div>
+          )}
         </div>
       </div>
 
-      {/* Primary Highlights Grid (Centered Minimalist Icons & Subtle Animations) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-stretch">
-        {/* Box 1: Today's Meal */}
-        <div className="bg-slate-900/70 backdrop-blur-xl rounded-3xl p-6 border border-slate-800/90 shadow-xl hover:shadow-2xl hover:border-amber-500/40 hover:shadow-amber-950/20 transition-all duration-300 flex flex-col justify-between h-full group text-center">
-          <div>
-            {/* Category Pill Tag */}
-            <div className="flex justify-center mb-3">
-              <span className="text-[11px] font-bold text-amber-300 bg-amber-950/70 border border-amber-800/60 px-3.5 py-1 rounded-full uppercase tracking-wider shadow-inner">
-                Heute auf dem Tisch
+      {/* Asymmetric Bento Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+        {/* Bento 1: Bistro Hero Meal Spotlight (Span 2) */}
+        <div className="bento-card lg:col-span-2 rounded-[2.5rem] p-7 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
+          {/* Ambient warm glow */}
+          <div className="absolute -right-16 -top-16 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute right-6 top-6 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none text-9xl select-none">
+            🍳
+          </div>
+
+          <div className="relative z-10">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-bold">
+                <span>🍽️</span>
+                <span>Heute frisch auf den Tisch</span>
+              </div>
+              <span className="text-xs font-semibold text-slate-400 hidden sm:inline">
+                {todayMeal?.customDishTitle ? 'Individuelles Gericht' : 'Gemeinsames Abendessen'}
               </span>
             </div>
 
-            {/* Centered Minimalist Vector Icon with Subtle Micro-Animation */}
-            <div className="relative my-3 flex justify-center">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500/15 via-orange-500/10 to-transparent border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-inner group-hover:scale-105 group-hover:bg-amber-500/20 group-hover:border-amber-500/50 group-hover:shadow-amber-500/10 transition-all duration-300">
-                <UtensilsCrossed className="w-8 h-8 transition-transform duration-300 group-hover:rotate-6" />
-              </div>
-              <div className="absolute inset-0 max-w-[4rem] mx-auto bg-amber-500/10 rounded-full blur-xl pointer-events-none group-hover:bg-amber-500/20 transition-colors" />
-            </div>
-
-            {/* Title */}
-            <h3 className="text-lg font-bold text-slate-100 group-hover:text-amber-300 transition-colors line-clamp-1 px-1">
+            <h2 className="text-2xl sm:text-3xl font-display font-black text-white group-hover:text-amber-300 transition-colors leading-tight mb-3">
               {todayMeal?.recipe?.title || todayMeal?.customDishTitle || 'Heute Selbstversorgung'}
-            </h3>
+            </h2>
 
-            {/* Description */}
-            <p className="text-xs text-slate-400 mt-2 line-clamp-2 leading-relaxed min-h-[2.5rem] px-2">
-              {todayMeal?.recipe?.description || (todayMeal?.customDishTitle ? 'Frei gewähltes Gericht ohne festes Rezept.' : 'Heute wird individuell gekocht oder im Wochenplan kann noch etwas eingetragen werden!')}
+            <p className="text-slate-300 text-sm leading-relaxed max-w-xl mb-6 font-normal">
+              {todayMeal?.recipe?.description ||
+                (todayMeal?.customDishTitle
+                  ? 'Frei gewähltes Gericht ohne festes Rezept.'
+                  : 'Heute kocht jeder nach eigenem Wunsch, oder ihr tragt im Wochenplan noch euer Lieblingsessen ein!')}
             </p>
+
+            {/* Culinary Tags */}
+            <div className="flex flex-wrap gap-2 mb-6">
+              {todayMeal?.recipe?.prepTimeMinutes ? (
+                <span className="px-3 py-1 rounded-xl bg-surface-elevated/80 border border-surface-border text-xs text-slate-300 font-medium flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-amber-400" />
+                  <span>ca. {todayMeal.recipe.prepTimeMinutes} Min.</span>
+                </span>
+              ) : null}
+
+              {todayMeal?.recipe?.isVegetarian ? (
+                <span className="px-3 py-1 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-xs text-emerald-300 font-medium">
+                  🌿 Vegetarisch
+                </span>
+              ) : null}
+
+              {todayMeal?.recipe?.isVegan ? (
+                <span className="px-3 py-1 rounded-xl bg-teal-500/15 border border-teal-500/30 text-xs text-teal-300 font-medium">
+                  🌱 Vegan
+                </span>
+              ) : null}
+
+              <span className="px-3 py-1 rounded-xl bg-surface-elevated/80 border border-surface-border text-xs text-slate-300 font-medium">
+                ⭐ WG-Favorit
+              </span>
+            </div>
           </div>
 
-          <div className="mt-6 pt-4 border-t border-slate-800/80">
-            <div className="flex items-center justify-between text-xs text-slate-300 mb-3.5 bg-slate-950/60 px-3.5 py-2.5 rounded-2xl border border-slate-800/80">
-              <div className="flex items-center gap-1.5 font-medium">
-                <Users className="w-3.5 h-3.5 text-slate-400" />
-                <span>{todayMeal?.servings || 6} Portionen</span>
+          {/* Meal Footer Bar */}
+          <div className="relative z-10 pt-5 border-t border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-2xl bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center justify-center font-bold text-sm shadow-inner">
+                  👨‍🍳
+                </div>
+                <div>
+                  <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold font-display">
+                    Chefkoch heute
+                  </div>
+                  <div className="text-xs font-bold text-amber-200">
+                    {todayMeal?.cookName || 'Team / Offen'}
+                  </div>
+                </div>
               </div>
-              {todayMeal?.cookName ? (
-                <div className="font-semibold text-amber-300 flex items-center gap-1.5">
-                  <ChefHat className="w-3.5 h-3.5 text-amber-400" />
-                  <span className="truncate max-w-[110px]">Koch: {todayMeal.cookName}</span>
+
+              <div className="w-px h-7 bg-white/10 hidden sm:block" />
+
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold font-display">
+                  Portionen
                 </div>
-              ) : (
-                <div className="text-slate-400 flex items-center gap-1.5">
-                  <ChefHat className="w-3.5 h-3.5 text-slate-500" />
-                  <span>Team / Offen</span>
+                <div className="text-xs font-bold text-white flex items-center gap-1">
+                  <Users className="w-3.5 h-3.5 text-slate-400" />
+                  <span>{todayMeal?.servings || 6} Portionen</span>
                 </div>
-              )}
+              </div>
             </div>
 
             <button
               type="button"
               onClick={() => setCurrentTab('mealplan')}
-              className="w-full py-2.5 px-4 bg-slate-800/90 hover:bg-slate-750 text-slate-200 hover:text-white border border-slate-700/80 hover:border-amber-500/50 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-sm group-hover:shadow-amber-950/40 cursor-pointer"
+              className="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-white font-bold text-xs shadow-lg shadow-amber-500/25 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2"
             >
-              <span>Zum Wochenplan</span>
-              <ArrowRight className="w-3.5 h-3.5 text-amber-400 group-hover:translate-x-1 transition-transform" />
+              <span>Wochenplan & Rezepte ansehen</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
 
-        {/* Box 2: Shopping List */}
-        <div className="bg-slate-900/70 backdrop-blur-xl rounded-3xl p-6 border border-slate-800/90 shadow-xl hover:shadow-2xl hover:border-emerald-500/40 hover:shadow-emerald-950/20 transition-all duration-300 flex flex-col justify-between h-full group text-center">
+        {/* Bento 2: Visual Waste Radar (Span 1) */}
+        <div className="bento-card rounded-[2.5rem] p-7 flex flex-col justify-between relative overflow-hidden group">
+          <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-yellow-500/10 rounded-full blur-3xl pointer-events-none" />
+
           <div>
-            {/* Category Pill Tag */}
-            <div className="flex justify-center mb-3">
-              <span className="text-[11px] font-bold text-emerald-300 bg-emerald-950/70 border border-emerald-800/60 px-3.5 py-1 rounded-full uppercase tracking-wider shadow-inner">
-                Einkaufsliste
+            <div className="flex items-center justify-between mb-4">
+              <span className="px-3.5 py-1 rounded-full bg-yellow-500/15 border border-yellow-500/30 text-yellow-300 text-xs font-bold uppercase tracking-wider font-display">
+                Abfall-Radar
               </span>
+              {nextWaste ? (
+                daysUntilWaste === 0 ? (
+                  <span className="text-xs font-bold text-rose-400 bg-rose-950/80 border border-rose-800 px-2.5 py-0.5 rounded-full animate-pulse">
+                    Heute Abholung!
+                  </span>
+                ) : daysUntilWaste === 1 ? (
+                  <span className="text-xs font-bold text-amber-300 bg-amber-950/80 border border-amber-800 px-2.5 py-0.5 rounded-full animate-pulse">
+                    Morgen!
+                  </span>
+                ) : (
+                  <span className="text-xs font-medium text-slate-400 bg-surface-elevated px-2.5 py-0.5 rounded-full border border-surface-border">
+                    In {daysUntilWaste} Tagen
+                  </span>
+                )
+              ) : (
+                <span className="text-xs text-slate-400">Alles erledigt</span>
+              )}
             </div>
 
-            {/* Centered Minimalist Vector Icon with Subtle Micro-Animation */}
-            <div className="relative my-3 flex justify-center">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500/15 via-teal-500/10 to-transparent border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-inner group-hover:scale-105 group-hover:bg-emerald-500/20 group-hover:border-emerald-500/50 group-hover:shadow-emerald-500/10 transition-all duration-300">
-                <ShoppingBag className="w-8 h-8 transition-transform duration-300 group-hover:-rotate-6" />
-              </div>
-              <div className="absolute inset-0 max-w-[4rem] mx-auto bg-emerald-500/10 rounded-full blur-xl pointer-events-none group-hover:bg-emerald-500/20 transition-colors" />
-            </div>
-
-            {/* Title */}
-            <h3 className="text-lg font-bold text-slate-100 group-hover:text-emerald-300 transition-colors line-clamp-1 px-1">
-              {shoppingSummary?.items?.length || 0} {shoppingSummary?.items?.length === 1 ? 'Artikel vorgemerkt' : 'Artikel auf der Liste'}
+            <h3 className="text-xl font-display font-extrabold text-white mb-1.5">
+              {nextWaste ? wasteTypeNames[nextWaste.wasteType] || 'Abfalltermin' : 'Keine Abfuhr'}
             </h3>
-
-            {/* Description */}
-            <p className="text-xs text-slate-400 mt-2 line-clamp-2 leading-relaxed min-h-[2.5rem] px-2">
-              Geplanter Einkauf bei <span className="font-semibold text-slate-200">{shoppingSummary?.supermarketName || 'Supermarkt'}</span>
-              {(shoppingSummary?.items?.length || 0) > 0 ? ' – alles übersichtlich sortiert für den nächsten WG-Einkauf.' : ' – die Liste ist aktuell leer.'}
+            <p className="text-xs text-slate-300 mb-5 leading-relaxed">
+              {nextWaste
+                ? daysUntilWaste === 1
+                  ? 'Bitte heute Abend nach dem Abendessen vor das Tor stellen.'
+                  : daysUntilWaste === 0
+                  ? 'Steht heute zur Abholung bereit!'
+                  : `Nächste Leerung am ${nextWaste.date}.`
+                : 'Aktuell steht in den nächsten Tagen keine Abholung an.'}
             </p>
+
+            {/* Visual Color-Coded Bins Showcase */}
+            <div className="p-4 rounded-2xl bg-surface-elevated/70 border border-surface-border mb-4 flex items-center justify-around gap-2">
+              {/* Gelber Sack / Wertstoff */}
+              <div
+                className={`flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all ${
+                  nextWaste?.wasteType === 'YELLOW'
+                    ? 'bg-yellow-500/20 border border-yellow-500/50 scale-105 shadow-md shadow-yellow-500/20'
+                    : 'opacity-40'
+                }`}
+              >
+                <div className="w-8 h-10 rounded-lg bg-yellow-400 border-2 border-yellow-300 flex items-center justify-center text-slate-950 font-black text-xs shadow-inner">
+                  ♻️
+                </div>
+                <span className="text-[10px] font-bold text-yellow-300">Gelb</span>
+              </div>
+
+              {/* Biotonne */}
+              <div
+                className={`flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all ${
+                  nextWaste?.wasteType === 'BIO'
+                    ? 'bg-emerald-500/20 border border-emerald-500/50 scale-105 shadow-md shadow-emerald-500/20'
+                    : 'opacity-40'
+                }`}
+              >
+                <div className="w-8 h-10 rounded-lg bg-emerald-700 border-2 border-emerald-600 flex items-center justify-center text-white text-[11px] shadow-inner">
+                  🍂
+                </div>
+                <span className="text-[10px] font-bold text-emerald-300">Bio</span>
+              </div>
+
+              {/* Altpapier */}
+              <div
+                className={`flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all ${
+                  nextWaste?.wasteType === 'PAPER'
+                    ? 'bg-sky-500/20 border border-sky-500/50 scale-105 shadow-md shadow-sky-500/20'
+                    : 'opacity-40'
+                }`}
+              >
+                <div className="w-8 h-10 rounded-lg bg-sky-600 border-2 border-sky-500 flex items-center justify-center text-white text-[11px] shadow-inner">
+                  📦
+                </div>
+                <span className="text-[10px] font-bold text-sky-300">Papier</span>
+              </div>
+
+              {/* Restmüll */}
+              <div
+                className={`flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all ${
+                  nextWaste?.wasteType === 'REST'
+                    ? 'bg-slate-500/20 border border-slate-500/50 scale-105 shadow-md shadow-slate-500/20'
+                    : 'opacity-40'
+                }`}
+              >
+                <div className="w-8 h-10 rounded-lg bg-slate-700 border-2 border-slate-600 flex items-center justify-center text-white text-[11px] shadow-inner">
+                  🗑️
+                </div>
+                <span className="text-[10px] font-bold text-slate-300">Rest</span>
+              </div>
+            </div>
           </div>
 
-          <div className="mt-6 pt-4 border-t border-slate-800/80">
-            <div className="flex items-center justify-between text-xs text-slate-300 mb-3.5 bg-slate-950/60 px-3.5 py-2.5 rounded-2xl border border-slate-800/80">
-              <span className="text-slate-400 flex items-center gap-1.5 font-medium">
-                <CreditCard className="w-3.5 h-3.5 text-slate-400" />
-                <span>Geschätzte Kosten:</span>
+          <button
+            type="button"
+            onClick={() => setCurrentTab('waste')}
+            className="w-full py-2.5 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <span>Abfallkalender öffnen</span>
+            <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
+          </button>
+        </div>
+
+        {/* Bento 3: Shopping Radar & Basket (Span 1) */}
+        <div className="bento-card rounded-[2.5rem] p-7 flex flex-col justify-between relative overflow-hidden group">
+          <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <span className="px-3.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold uppercase tracking-wider font-display">
+                Einkaufskorb
               </span>
-              <span className="text-sm font-extrabold text-emerald-400 font-mono">
+              <span className="text-xs font-bold text-emerald-400 font-mono">
                 ~ {shoppingSummary?.totalEstimatedCost ? `${shoppingSummary.totalEstimatedCost.toFixed(2)} €` : '0.00 €'}
               </span>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setCurrentTab('shopping')}
-              className="w-full py-2.5 px-4 bg-slate-800/90 hover:bg-slate-750 text-slate-200 hover:text-white border border-slate-700/80 hover:border-emerald-500/50 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-sm group-hover:shadow-emerald-950/40 cursor-pointer"
-            >
-              <span>Einkaufsliste öffnen</span>
-              <ArrowRight className="w-3.5 h-3.5 text-emerald-400 group-hover:translate-x-1 transition-transform" />
-            </button>
+            <h3 className="text-xl font-display font-extrabold text-white mb-1.5">
+              {shoppingSummary?.items?.length || 0}{' '}
+              {shoppingSummary?.items?.length === 1 ? 'Artikel auf der Liste' : 'Artikel auf der Liste'}
+            </h3>
+            <p className="text-xs text-slate-300 mb-4 leading-relaxed">
+              Geplant bei <strong className="text-white">{shoppingSummary?.supermarketName || 'Supermarkt'}</strong> für diese Woche.
+            </p>
+
+            {/* Quick Preview Items */}
+            <div className="space-y-2 mb-4">
+              {shoppingSummary?.items && shoppingSummary.items.length > 0 ? (
+                shoppingSummary.items.slice(0, 3).map((item: any) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between p-2.5 rounded-2xl bg-surface-elevated/70 border border-surface-border text-xs"
+                  >
+                    <span className="flex items-center gap-2 text-slate-200 font-medium truncate">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />
+                      <span className="truncate">{item.title} ({item.amount} {item.unit})</span>
+                    </span>
+                    <span className="text-slate-400 font-mono flex-shrink-0 ml-2">
+                      {item.estimatedPrice ? `${item.estimatedPrice.toFixed(2)} €` : '—'}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div className="p-3.5 rounded-2xl bg-surface-elevated/50 border border-surface-border text-xs text-slate-400 text-center">
+                  Alle Einkäufe erledigt! 🎉
+                </div>
+              )}
+            </div>
           </div>
+
+          <button
+            type="button"
+            onClick={() => setCurrentTab('shopping')}
+            className="w-full py-2.5 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <span>Einkaufsliste abhaken</span>
+            <ArrowRight className="w-3.5 h-3.5 text-emerald-400" />
+          </button>
         </div>
 
-        {/* Box 3: Waste Calendar */}
-        <div className="bg-slate-900/70 backdrop-blur-xl rounded-3xl p-6 border border-slate-800/90 shadow-xl hover:shadow-2xl hover:border-sky-500/40 hover:shadow-sky-950/20 transition-all duration-300 flex flex-col justify-between h-full group text-center">
+        {/* Bento 4: WG Bulletin Sticky Board (Span 2) */}
+        <div className="bento-card lg:col-span-2 rounded-[2.5rem] p-7 sm:p-8 flex flex-col justify-between relative overflow-hidden">
           <div>
-            {/* Category Pill Tag */}
-            <div className="flex justify-center mb-3">
-              <span className="text-[11px] font-bold text-sky-300 bg-sky-950/70 border border-sky-800/60 px-3.5 py-1 rounded-full uppercase tracking-wider shadow-inner">
-                Nächste Abfuhr
-              </span>
-            </div>
-
-            {/* Centered Minimalist Vector Icon with Subtle Micro-Animation */}
-            <div className="relative my-3 flex justify-center">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-sky-500/15 via-indigo-500/10 to-transparent border border-sky-500/30 flex items-center justify-center text-sky-400 shadow-inner group-hover:scale-105 group-hover:bg-sky-500/20 group-hover:border-sky-500/50 group-hover:shadow-sky-500/10 transition-all duration-300">
-                <Trash2 className="w-8 h-8 transition-transform duration-300 group-hover:scale-110" />
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2.5">
+                <span className="px-3.5 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-bold uppercase tracking-wider font-display">
+                  WG-Pinnwand & Notizen
+                </span>
+                {openNotes.length > 0 && (
+                  <span className="text-xs text-amber-300 font-bold bg-amber-500/15 border border-amber-500/30 px-2.5 py-0.5 rounded-full font-mono">
+                    {openNotes.length} offen
+                  </span>
+                )}
               </div>
-              <div className="absolute inset-0 max-w-[4rem] mx-auto bg-sky-500/10 rounded-full blur-xl pointer-events-none group-hover:bg-sky-500/20 transition-colors" />
+              <span className="text-xs text-slate-400 hidden sm:inline">Mitteilungen, Wünsche & Alltag</span>
             </div>
 
-            {/* Title */}
-            <h3 className="text-lg font-bold text-slate-100 group-hover:text-sky-300 transition-colors line-clamp-1 px-1">
-              {nextWaste ? (
-                <>
-                  {nextWaste.wasteType === 'YELLOW' && 'Wertstoff / Gelber Sack'}
-                  {nextWaste.wasteType === 'BIO' && 'Biotonne'}
-                  {nextWaste.wasteType === 'REST' && 'Restmülltonne'}
-                  {nextWaste.wasteType === 'PAPER' && 'Altpapiertonne'}
-                </>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+              {notesList && notesList.length > 0 ? (
+                notesList.slice(0, 2).map((note: any, idx: number) => {
+                  const isStaffNote = note.isStaffOnly || note.category === 'BETREUUNG';
+                  return (
+                    <div
+                      key={note.id || idx}
+                      className={`p-4 rounded-2xl border shadow-inner ${
+                        idx === 0
+                          ? 'bg-gradient-to-br from-amber-500/10 to-amber-600/5 border-amber-500/30 text-amber-100'
+                          : 'bg-gradient-to-br from-rose-500/10 to-rose-600/5 border-rose-500/30 text-rose-100'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between text-xs font-bold mb-1.5">
+                        <span className={idx === 0 ? 'text-amber-300' : 'text-rose-300'}>
+                          {isStaffNote ? 'Betreuer-Notiz' : 'WG-Notiz'} · {note.authorName || 'WG-Mitglied'}
+                        </span>
+                        <span className="text-[10px] font-mono text-slate-400">
+                          {note.createdAt ? new Date(note.createdAt).toLocaleDateString('de-DE') : 'Aktuell'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-200 leading-relaxed font-medium line-clamp-3">
+                        „{note.content || note.title}“
+                      </p>
+                    </div>
+                  );
+                })
               ) : (
-                'Alles sauber!'
-              )}
-            </h3>
-
-            {/* Subtitle / Urgency Alert */}
-            <div className="min-h-[2.5rem] flex flex-col justify-center items-center mt-2 px-2">
-              {nextWaste ? (
-                daysUntilWaste === 0 ? (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-rose-950/80 border border-rose-800 text-rose-300 text-xs font-bold animate-pulse">
-                    <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
-                    <span>Heute Abholung!</span>
-                  </span>
-                ) : daysUntilWaste === 1 ? (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-950/80 border border-amber-800 text-amber-300 text-xs font-bold animate-pulse">
-                    <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Morgen Abholung! Bitte heute rausstellen.</span>
-                  </span>
-                ) : (
-                  <div className="text-xs text-slate-400 flex items-center justify-center gap-1.5">
-                    <CalendarCheck className="w-3.5 h-3.5 text-slate-500" />
-                    <span>Nächster Termin: {nextWaste.date}</span>
-                  </div>
-                )
-              ) : (
-                <span className="text-xs text-slate-400">Aktuell steht keine Müllabfuhr an.</span>
+                <div className="sm:col-span-2 p-4 rounded-2xl bg-surface-elevated/60 border border-surface-border text-center">
+                  <p className="text-xs text-slate-300 font-medium">
+                    Alles ruhig an der Pinnwand! Noch keine Notizen vorhanden.
+                  </p>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    Trage einen Wunsch, eine Frage oder eine Erinnerung für die Gruppe ein.
+                  </p>
+                </div>
               )}
             </div>
           </div>
 
-          <div className="mt-6 pt-4 border-t border-slate-800/80">
-            <div className="flex items-center justify-between text-xs text-slate-300 mb-3.5 bg-slate-950/60 px-3.5 py-2.5 rounded-2xl border border-slate-800/80">
-              <span className="flex items-center gap-1.5 font-medium text-slate-400">
-                <MessageSquareText className="w-3.5 h-3.5 text-slate-400" />
-                <span>WG-Pinnwand:</span>
-              </span>
-              <span
-                className={`font-bold px-2.5 py-0.5 rounded-full text-xs font-mono ${
-                  notesCount > 0
-                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 animate-pulse'
-                    : 'text-slate-400'
-                }`}
-              >
-                {notesCount} {notesCount === 1 ? 'Eintrag' : 'Einträge'}
-              </span>
-            </div>
-
+          <div className="flex flex-col sm:flex-row items-center justify-between pt-3 border-t border-white/5 text-xs gap-3">
+            <span className="text-slate-400 font-medium">
+              Alle Bewohner und Betreuer können Zettel und Wünsche anheften.
+            </span>
             <button
               type="button"
-              onClick={() => setCurrentTab('waste')}
-              className="w-full py-2.5 px-4 bg-slate-800/90 hover:bg-slate-750 text-slate-200 hover:text-white border border-slate-700/80 hover:border-sky-500/50 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-sm group-hover:shadow-sky-950/40 cursor-pointer"
+              onClick={() => setCurrentTab('notes')}
+              className="w-full sm:w-auto px-4 py-2 rounded-xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
             >
-              <span>Abfallkalender öffnen</span>
-              <ArrowRight className="w-3.5 h-3.5 text-sky-400 group-hover:translate-x-1 transition-transform" />
+              <span>+ Zur WG-Pinnwand</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* WG Areas and Quick Shortcuts (Clean Vector Tiles) */}
-      <div className="bg-slate-900/70 backdrop-blur-xl rounded-3xl p-6 sm:p-7 border border-slate-800/90 shadow-xl">
+      {/* WG Areas and Quick Shortcuts (Warm Living Bento Tiles) */}
+      <div className="bento-card rounded-[2.5rem] p-7 sm:p-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
           <div>
-            <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+            <h2 className="text-xl font-display font-extrabold text-slate-100 flex items-center gap-2">
               <span>Schnellzugriff auf unsere WG-Bereiche</span>
-              <Sparkles className="w-4 h-4 text-sky-400" />
+              <Sparkles className="w-4 h-4 text-amber-400" />
             </h2>
             <p className="text-xs text-slate-400 mt-0.5">
-              Alles für einen entspannten und organisierten Alltag in der Wohngruppe
+              Alles für einen entspannten, gemeinsamen Alltag in der Wohngruppe
             </p>
           </div>
         </div>
@@ -341,60 +508,70 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           <button
             type="button"
             onClick={() => setCurrentTab('mealplan')}
-            className="p-5 rounded-2xl border border-slate-800/80 bg-slate-950/50 hover:bg-slate-800/60 hover:border-sky-500/50 text-left transition-all duration-200 group hover:scale-[1.02] hover:shadow-lg hover:shadow-sky-950/30 cursor-pointer"
+            className="p-5 rounded-2xl border border-surface-border bg-surface-elevated/50 hover:bg-surface-elevated hover:border-amber-500/50 text-left transition-all duration-200 group hover:scale-[1.02] hover:shadow-lg hover:shadow-amber-500/10 cursor-pointer"
           >
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-600 to-blue-500 text-white flex items-center justify-center mb-3.5 group-hover:scale-110 transition-transform shadow-md shadow-sky-600/30">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center mb-3.5 group-hover:scale-110 transition-transform shadow-md shadow-amber-500/30">
               <Calendar className="w-6 h-6 text-white" />
             </div>
-            <div className="text-sm font-bold text-slate-100 group-hover:text-sky-300 transition-colors">Wochenplan</div>
+            <div className="text-sm font-display font-bold text-slate-100 group-hover:text-amber-300 transition-colors">
+              Wochenplan
+            </div>
             <div className="text-xs text-slate-400 mt-1 leading-relaxed">Gerichte planen & Köche einteilen</div>
           </button>
 
           <button
             type="button"
             onClick={() => setCurrentTab('shopping')}
-            className="p-5 rounded-2xl border border-slate-800/80 bg-slate-950/50 hover:bg-slate-800/60 hover:border-emerald-500/50 text-left transition-all duration-200 group hover:scale-[1.02] hover:shadow-lg hover:shadow-emerald-950/30 cursor-pointer"
+            className="p-5 rounded-2xl border border-surface-border bg-surface-elevated/50 hover:bg-surface-elevated hover:border-emerald-500/50 text-left transition-all duration-200 group hover:scale-[1.02] hover:shadow-lg hover:shadow-emerald-500/10 cursor-pointer"
           >
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center mb-3.5 group-hover:scale-110 transition-transform shadow-md shadow-emerald-600/30">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 text-white flex items-center justify-center mb-3.5 group-hover:scale-110 transition-transform shadow-md shadow-emerald-500/30">
               <ShoppingCart className="w-6 h-6 text-white" />
             </div>
-            <div className="text-sm font-bold text-slate-100 group-hover:text-emerald-300 transition-colors">Einkaufsliste</div>
+            <div className="text-sm font-display font-bold text-slate-100 group-hover:text-emerald-300 transition-colors">
+              Einkaufsliste
+            </div>
             <div className="text-xs text-slate-400 mt-1 leading-relaxed">Zutaten abhaken & Preise prüfen</div>
           </button>
 
           <button
             type="button"
             onClick={() => setCurrentTab('recipes')}
-            className="p-5 rounded-2xl border border-slate-800/80 bg-slate-950/50 hover:bg-slate-800/60 hover:border-indigo-500/50 text-left transition-all duration-200 group hover:scale-[1.02] hover:shadow-lg hover:shadow-indigo-950/30 cursor-pointer"
+            className="p-5 rounded-2xl border border-surface-border bg-surface-elevated/50 hover:bg-surface-elevated hover:border-rose-500/50 text-left transition-all duration-200 group hover:scale-[1.02] hover:shadow-lg hover:shadow-rose-500/10 cursor-pointer"
           >
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center mb-3.5 group-hover:scale-110 transition-transform shadow-md shadow-indigo-600/30">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-rose-500 to-pink-500 text-white flex items-center justify-center mb-3.5 group-hover:scale-110 transition-transform shadow-md shadow-rose-500/30">
               <BookOpen className="w-6 h-6 text-white" />
             </div>
-            <div className="text-sm font-bold text-slate-100 group-hover:text-indigo-300 transition-colors">Rezepte</div>
+            <div className="text-sm font-display font-bold text-slate-100 group-hover:text-rose-300 transition-colors">
+              Rezepte
+            </div>
             <div className="text-xs text-slate-400 mt-1 leading-relaxed">Lieblingsgerichte mit Zubereitung</div>
           </button>
 
           <button
             type="button"
             onClick={() => setCurrentTab('notes')}
-            className="p-5 rounded-2xl border border-slate-800/80 bg-slate-950/50 hover:bg-slate-800/60 hover:border-amber-500/50 text-left transition-all duration-200 group hover:scale-[1.02] hover:shadow-lg hover:shadow-amber-950/30 cursor-pointer"
+            className="p-5 rounded-2xl border border-surface-border bg-surface-elevated/50 hover:bg-surface-elevated hover:border-amber-500/50 text-left transition-all duration-200 group hover:scale-[1.02] hover:shadow-lg hover:shadow-amber-500/10 cursor-pointer"
           >
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-600 to-orange-500 text-white flex items-center justify-center mb-3.5 group-hover:scale-110 transition-transform shadow-md shadow-amber-600/30">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-600 to-yellow-500 text-white flex items-center justify-center mb-3.5 group-hover:scale-110 transition-transform shadow-md shadow-amber-600/30">
               <MessageSquareText className="w-6 h-6 text-white" />
             </div>
-            <div className="text-sm font-bold text-slate-100 group-hover:text-amber-300 transition-colors">WG-Pinnwand</div>
+            <div className="text-sm font-display font-bold text-slate-100 group-hover:text-amber-300 transition-colors">
+              WG-Pinnwand
+            </div>
             <div className="text-xs text-slate-400 mt-1 leading-relaxed">Mitteilungen & Anliegen notieren</div>
           </button>
 
           <button
             type="button"
             onClick={() => setCurrentTab('waste')}
-            className="p-5 rounded-2xl border border-slate-800/80 bg-slate-950/50 hover:bg-slate-800/60 hover:border-teal-500/50 text-left transition-all duration-200 group hover:scale-[1.02] hover:shadow-lg hover:shadow-teal-950/30 cursor-pointer"
+            className="p-5 rounded-2xl border border-surface-border bg-surface-elevated/50 hover:bg-surface-elevated hover:border-cyan-500/50 text-left transition-all duration-200 group hover:scale-[1.02] hover:shadow-lg hover:shadow-cyan-500/10 cursor-pointer"
           >
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-teal-600 to-cyan-500 text-white flex items-center justify-center mb-3.5 group-hover:scale-110 transition-transform shadow-md shadow-teal-600/30">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-500 to-cyan-500 text-white flex items-center justify-center mb-3.5 group-hover:scale-110 transition-transform shadow-md shadow-sky-500/30">
               <Trash2 className="w-6 h-6 text-white" />
             </div>
-            <div className="text-sm font-bold text-slate-100 group-hover:text-teal-300 transition-colors">Abfallkalender</div>
+            <div className="text-sm font-display font-bold text-slate-100 group-hover:text-cyan-300 transition-colors">
+              Abfallkalender
+            </div>
             <div className="text-xs text-slate-400 mt-1 leading-relaxed">Nächste Abholungen & Tonnen</div>
           </button>
         </div>

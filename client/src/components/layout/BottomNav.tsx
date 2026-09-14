@@ -41,7 +41,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, setCurrentTab 
   ];
 
   return (
-    <div className="md:hidden flex-shrink-0 z-30 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 px-2 py-1 shadow-xl shadow-black/40">
+    <div className="md:hidden flex-shrink-0 z-30 bg-surface-card/95 backdrop-blur-xl border-t border-surface-border px-3 py-1.5 shadow-2xl shadow-black/60">
       <nav className="flex items-center justify-around">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -51,25 +51,25 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, setCurrentTab 
               key={item.id}
               type="button"
               onClick={() => setCurrentTab(item.id)}
-              className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all relative ${
+              className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-2xl transition-all relative cursor-pointer ${
                 isActive
-                  ? 'text-sky-400 font-semibold'
+                  ? 'text-amber-400 font-bold'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               <div
-                className={`p-1 rounded-lg transition-colors relative ${
-                  isActive ? 'bg-sky-950 text-sky-400 border border-sky-800/60 shadow-inner' : 'text-slate-400'
+                className={`p-1.5 rounded-xl transition-all relative ${
+                  isActive ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 shadow-inner' : 'text-slate-400'
                 }`}
               >
                 <Icon className="w-5 h-5" />
                 {item.badge !== undefined && (
-                  <span className="absolute -top-1 -right-1 px-1.5 py-0.2 bg-amber-500 text-slate-950 text-[9px] font-black rounded-full shadow-sm">
+                  <span className="absolute -top-1 -right-1 px-1.5 py-0.2 bg-gradient-to-r from-amber-500 to-rose-500 text-white text-[9px] font-black rounded-full shadow-sm font-mono">
                     {item.badge}
                   </span>
                 )}
               </div>
-              <span className="text-[10px] mt-0.5 tracking-tight">{item.label}</span>
+              <span className="text-[10px] mt-0.5 tracking-tight font-sans">{item.label}</span>
             </button>
           );
         })}

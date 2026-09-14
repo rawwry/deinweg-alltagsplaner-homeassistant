@@ -194,36 +194,36 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-24 md:pb-8">
       {/* Top Header Card */}
-      <div className="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="bg-surface-card rounded-[2.5rem] p-6 border border-surface-border shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-100 flex items-center gap-2">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="text-xl sm:text-2xl font-display font-extrabold text-white flex items-center gap-2">
               <span className="text-2xl">🛒</span>
               <span>Gemeinsame Einkaufsliste</span>
             </h1>
-            <span className="text-xs font-semibold px-2.5 py-1 bg-emerald-950/60 text-emerald-400 rounded-full border border-emerald-800/40">
+            <span className="text-xs font-bold px-3 py-1 bg-emerald-500/15 text-emerald-300 rounded-full border border-emerald-500/30 font-mono">
               KW {weekNumber} • {year}
             </span>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-400 mt-1.5 font-normal">
             Alle Zutaten und Haushaltsartikel für unsere WG-Woche ({activeLocation?.name || user?.locationName || 'Emsdetten'})
           </p>
         </div>
 
         {/* Week Switcher */}
-        <div className="inline-flex items-center bg-slate-800/80 border border-slate-700/60 rounded-2xl p-1">
+        <div className="inline-flex items-center bg-surface-elevated/80 border border-surface-border rounded-2xl p-1 shadow-inner">
           <button
             type="button"
             onClick={handlePrevWeek}
-            className="p-2 hover:bg-slate-700 rounded-xl text-slate-300 transition-colors"
+            className="p-2 hover:bg-surface-card rounded-xl text-slate-300 hover:text-white transition-colors cursor-pointer"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <span className="px-3 text-xs font-bold text-slate-200">KW {weekNumber}</span>
+          <span className="px-3 text-xs font-bold text-white font-mono">KW {weekNumber}</span>
           <button
             type="button"
             onClick={handleNextWeek}
-            className="p-2 hover:bg-slate-700 rounded-xl text-slate-300 transition-colors"
+            className="p-2 hover:bg-surface-card rounded-xl text-slate-300 hover:text-white transition-colors cursor-pointer"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -233,42 +233,41 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
       {/* Progress & Supermarket Price Estimate Card */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Progress Bar Card */}
-        <div className="bg-slate-900 rounded-2xl p-4 border border-slate-800 shadow-sm">
-          <div className="flex items-center justify-between text-xs font-semibold text-slate-300 mb-2">
+        <div className="bento-card rounded-[2rem] p-5 border border-surface-border">
+          <div className="flex items-center justify-between text-xs font-semibold text-slate-300 mb-2.5">
             <span className="flex items-center gap-1.5">
               <span>🧺</span>
-              <span>Schon im Einkaufswagen</span>
+              <span className="font-display font-bold">Im Einkaufswagen</span>
             </span>
-            <span className="text-emerald-400 font-bold">
+            <span className="text-emerald-400 font-bold font-mono">
               {checkedCount} von {totalCount} ({progressPercent}%)
             </span>
           </div>
-          <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
+          <div className="w-full h-3 bg-surface-elevated rounded-full overflow-hidden border border-surface-border/60">
             <div
-              className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-300"
+              className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-300 shadow-sm"
               style={{ width: `${progressPercent}%` }}
-            ></div>
+            />
           </div>
         </div>
 
         {/* Cost Estimate Card */}
-        <div className="bg-slate-900 rounded-2xl p-4 border border-slate-800 shadow-sm flex items-center justify-between">
+        <div className="bento-card rounded-[2rem] p-5 border border-surface-border flex items-center justify-between">
           <div>
-            <div className="text-xs text-slate-400 font-medium flex items-center gap-1">
-              <span>💳</span>
-              <span>Geschätzter Betrag an der Kasse</span>
+            <div className="text-xs text-slate-400 font-medium flex items-center gap-1.5 font-display">
+              <Euro className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Geschätzter Kassenbetrag</span>
             </div>
-            <div className="text-xl font-extrabold text-slate-100 flex items-center gap-1.5 mt-0.5">
-              <Euro className="w-5 h-5 text-emerald-400" />
+            <div className="text-xl font-display font-extrabold text-white flex items-center gap-1.5 mt-1 font-mono">
               <span>{shoppingData?.totalEstimatedCost?.toFixed(2) || '0.00'} €</span>
             </div>
           </div>
           <div className="text-right">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-display">
               Supermarkt
             </span>
-            <div className="text-xs font-semibold text-slate-300">
-              {shoppingData?.supermarketName || 'Netto Marken-Discount'}
+            <div className="text-xs font-bold text-amber-200">
+              {shoppingData?.supermarketName || 'Supermarkt'}
             </div>
           </div>
         </div>
@@ -279,18 +278,18 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
         <button
           type="button"
           onClick={() => setShowAddCustom(!showAddCustom)}
-          className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700/60 text-xs font-semibold rounded-2xl transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-surface-elevated hover:bg-surface-card text-slate-200 hover:text-white border border-surface-border text-xs font-bold rounded-2xl transition-colors cursor-pointer shadow-xs"
         >
-          <Plus className="w-4 h-4" />
-          <span>Zusätzlichen Artikel hinzufügen (Kaffee, Klopapier...)</span>
+          <Plus className="w-4 h-4 text-emerald-400" />
+          <span>Zusätzlichen Artikel hinzufügen (Kaffee, Obst, Drogerie...)</span>
         </button>
 
         <button
           type="button"
           onClick={() => setCurrentTab('mealplan')}
-          className="text-xs text-sky-400 hover:text-sky-300 hover:underline font-semibold"
+          className="text-xs text-amber-400 hover:text-amber-300 hover:underline font-semibold cursor-pointer"
         >
-          Zum Wochenplan
+          Zum Wochenplan →
         </button>
       </div>
 
@@ -298,16 +297,16 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
       {showAddCustom && (
         <form
           onSubmit={handleAddCustomItem}
-          className="bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-sm space-y-3 animate-in fade-in duration-150"
+          className="bento-card p-5 rounded-[2rem] border border-surface-border shadow-xl space-y-3.5 animate-in fade-in duration-150"
         >
-          <div className="text-xs font-bold text-slate-200">Zusatzartikel zur Einkaufsliste</div>
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+          <div className="text-xs font-display font-bold text-white">Zusatzartikel zur Einkaufsliste</div>
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
             <input
               type="text"
               value={customName}
               onChange={(e) => setCustomName(e.target.value)}
               placeholder="Artikelname (z.B. Kaffee Crema)"
-              className="sm:col-span-2 px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="sm:col-span-2 px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
               required
             />
             <input
@@ -315,27 +314,27 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
               value={customAmount}
               onChange={(e) => setCustomAmount(e.target.value)}
               placeholder="Menge (z.B. 2)"
-              className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 font-mono"
             />
             <input
               type="text"
               value={customUnit}
               onChange={(e) => setCustomUnit(e.target.value)}
               placeholder="Einheit (Packung, l, kg)"
-              className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
             />
           </div>
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2.5 pt-1">
             <button
               type="button"
               onClick={() => setShowAddCustom(false)}
-              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-400 hover:text-slate-200 rounded-xl text-xs font-medium transition-colors"
+              className="px-4 py-2 bg-surface-elevated hover:bg-surface-card text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer"
             >
               Abbrechen
             </button>
             <button
               type="submit"
-              className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold shadow-xs transition-colors"
+              className="px-5 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-500/20 transition-all cursor-pointer"
             >
               Hinzufügen
             </button>
@@ -346,20 +345,20 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
       {/* Shopping List Categories */}
       {isLoading ? (
         <div className="py-20 text-center text-slate-400">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-3 border-emerald-500 border-t-transparent mb-2"></div>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-3 border-emerald-500 border-t-transparent mb-2" />
           <div>Einkaufsliste wird geladen...</div>
         </div>
       ) : totalCount === 0 ? (
-        <div className="bg-slate-900 rounded-3xl p-12 text-center border border-slate-800 shadow-sm">
+        <div className="bento-card rounded-[2.5rem] p-12 text-center border border-surface-border shadow-xl">
           <div className="text-4xl mb-3">🛒 🥗 🥐</div>
-          <h3 className="text-base font-bold text-slate-200">Noch keine Einkaufsliste für diese Woche</h3>
-          <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+          <h3 className="text-base font-display font-bold text-slate-200">Noch keine Einkaufsliste für diese Woche</h3>
+          <p className="text-xs text-slate-400 mt-1.5 max-w-sm mx-auto leading-relaxed">
             Sobald Gerichte im Wochenplan eingetragen sind, stellt der Planer hier automatisch alle Zutaten übersichtlich zusammen!
           </p>
           <button
             type="button"
             onClick={() => setCurrentTab('mealplan')}
-            className="mt-4 px-4 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold shadow-xs transition-colors inline-flex items-center gap-2"
+            className="mt-5 px-5 py-2.5 bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-white rounded-2xl text-xs font-bold shadow-lg shadow-amber-500/20 transition-all inline-flex items-center gap-2 cursor-pointer"
           >
             <span>Gerichte im Wochenplan wählen</span>
           </button>
@@ -368,26 +367,26 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
         <div className="space-y-6">
           {/* Custom Items Section */}
           {customItems.length > 0 && (
-            <div className="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-sm">
-              <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2 mb-3">
+            <div className="bento-card rounded-[2rem] p-6 border border-surface-border shadow-md">
+              <h3 className="text-sm font-display font-bold text-white flex items-center gap-2 mb-3">
                 <Sparkles className="w-4 h-4 text-amber-400" />
                 <span>Zusätzliche Besorgungen ({customItems.length})</span>
               </h3>
-              <div className="divide-y divide-slate-800">
+              <div className="divide-y divide-white/5">
                 {customItems.map((ci: any) => (
                   <div
                     key={ci.id}
-                    className="py-2.5 flex items-center justify-between gap-3 group"
+                    className="py-3 flex items-center justify-between gap-3 group"
                   >
                     <button
                       type="button"
                       onClick={() => handleToggleCustom(ci.id)}
-                      className="flex items-center gap-3 text-left flex-1"
+                      className="flex items-center gap-3 text-left flex-1 cursor-pointer"
                     >
                       {ci.isChecked ? (
                         <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
                       ) : (
-                        <Circle className="w-5 h-5 text-slate-600 group-hover:text-emerald-400 flex-shrink-0" />
+                        <Circle className="w-5 h-5 text-slate-600 group-hover:text-emerald-400 flex-shrink-0 transition-colors" />
                       )}
                       <span
                         className={`text-sm ${
@@ -398,7 +397,7 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
                       >
                         {ci.name}
                         {(ci.amount || ci.unit) && (
-                          <span className="text-xs text-slate-400 ml-2">
+                          <span className="text-xs text-slate-400 ml-2 font-mono">
                             ({ci.amount} {ci.unit})
                           </span>
                         )}
@@ -407,7 +406,8 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
                     <button
                       type="button"
                       onClick={() => handleDeleteCustom(ci.id)}
-                      className="text-slate-500 hover:text-rose-400 p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="text-slate-500 hover:text-rose-400 p-1 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                      title="Löschen"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -421,30 +421,30 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
           {categoryList.map(([categoryName, items]) => (
             <div
               key={categoryName}
-              className="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-sm hover:border-slate-750 transition-colors"
+              className="bento-card rounded-[2rem] p-6 border border-surface-border shadow-md"
             >
-              <div className="flex items-center justify-between mb-3 border-b border-slate-800 pb-2.5">
-                <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+              <div className="flex items-center justify-between mb-3.5 border-b border-white/5 pb-3">
+                <h3 className="text-sm font-display font-extrabold text-white flex items-center gap-2">
                   <span className="text-base">{getCategoryEmoji(categoryName)}</span>
                   <span>{categoryName}</span>
                 </h3>
-                <span className="text-xs text-slate-400 font-medium bg-slate-800/80 px-2.5 py-1 rounded-full border border-slate-700/60">
+                <span className="text-xs text-slate-300 font-semibold bg-surface-elevated px-3 py-1 rounded-full border border-surface-border font-mono">
                   {items.filter((i) => i.isChecked).length} / {items.length} erledigt
                 </span>
               </div>
 
-              <div className="divide-y divide-slate-800">
+              <div className="divide-y divide-white/5">
                 {items.map((item: any) => (
                   <div
                     key={item.ingredientId}
                     onClick={() => handleToggleIngredient(item.ingredientId, item.isChecked)}
-                    className="py-3 flex items-center justify-between gap-3 cursor-pointer hover:bg-slate-800/50 rounded-xl px-2 transition-colors select-none"
+                    className="py-3 flex items-center justify-between gap-3 cursor-pointer hover:bg-surface-elevated/70 rounded-2xl px-2.5 transition-colors select-none"
                   >
                     <div className="flex items-center gap-3">
                       {item.isChecked ? (
                         <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
                       ) : (
-                        <Circle className="w-5 h-5 text-slate-600 hover:text-emerald-400 flex-shrink-0" />
+                        <Circle className="w-5 h-5 text-slate-600 hover:text-emerald-400 flex-shrink-0 transition-colors" />
                       )}
                       <div>
                         <span
@@ -456,7 +456,7 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
                         >
                           {item.name}
                         </span>
-                        <div className="text-xs text-slate-400 font-medium">
+                        <div className="text-xs text-slate-400 font-medium font-mono mt-0.5">
                           Menge: {item.totalAmount} {item.unit}
                         </div>
                       </div>
@@ -466,7 +466,7 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
                     {item.estimatedPrice && (
                       <div className="text-right flex-shrink-0">
                         <span
-                          className={`text-xs font-bold ${
+                          className={`text-xs font-mono font-bold ${
                             item.isChecked ? 'text-slate-500' : 'text-slate-300'
                           }`}
                         >

@@ -3,6 +3,25 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.15] - 2026-09-07
+
+### Geändert & Verbessert
+- **Radikales UI-Redesign: „Warm Modern Living & Cozy Bistro Bento“**:
+  - **Neues Design-Fundament**: Das generische Schiefergrau (`slate-950`/`border-slate-800`) wurde durch eine warme, einladende Dämmerungs-Atmosphäre (`#0c0b10`) mit sanften bernsteinfarbenen Ambient-Lichthöfen und haptischen Oberflächen-Tokens (`surface-card`, `surface-elevated`, `surface-border`) ersetzt.
+  - **Premium-Typografie**: Integration von Google Fonts *Outfit* für prägnante Headlines und Kachel-Titel sowie *Plus Jakarta Sans* für erstklassige Lesbarkeit von Mengentexten und Zutatenlisten.
+  - **Asymmetrisches Bento Grid (Dashboard)**:
+    - **Bistro Hero Spotlight**: Großformatige Speisenkarte mit aktuellem Gericht, Rezept-Tags (Zubereitungszeit, vegetarisch, vegan), Chefkoch-Zuweisung und Portionsangabe.
+    - **Visueller Abfall-Radar**: Farbcodierte Tonnen-Squircles (Gelb ♻️, Bio-Grün 🍂, Papier-Blau 📦, Rest-Anthrazit 🗑️) mit Hervorhebung der nächsten Abfuhr und Countdown.
+    - **Echtzeit-Einkaufskorb**: Übersicht der noch offenen Einkäufe mit Supermarkt-Kostenschätzung.
+    - **WG-Pinnwand**: Echte Post-It-Notizen aus der WG mit Betreuer-Antworten.
+    - **Haptische Bento-Kacheln**: Schnellzugriffe mit dezentem Schwebungs-Effekt und bernsteinfarbenen Hover-Lichthöfen.
+  - **Einheitliche Überarbeitung aller Ansichten**:
+    - Wochenplan mit tagesgenauer Kochanzeige, Portionsregler und Rezeptauswahl-Modal.
+    - Rezeptkatalog mit Suchleiste, Kategorien-Filtern, Portionsskalierer und Detail-Bento-Karten.
+    - Einkaufsliste mit Fortschrittsbalken, Kostenschätzung und Schnelleintragsleiste.
+    - Abfallkalender mit 1-Tages-Vorlauf-Banner und chronologischer Abfuhrleiste.
+    - Betreuernotizen und Administrationsbereich im abgestimmten Warm-Living-Look.
+
 ## [0.1.0-beta.14] - 2026-09-07
 
 ### Geändert & Verbessert

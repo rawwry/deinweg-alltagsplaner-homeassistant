@@ -25,25 +25,25 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
   const scale = servings / baseServings;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
-      <div className="bg-slate-900 rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-800 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/75 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
+      <div className="bg-surface-card rounded-[2.5rem] max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-surface-border overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="p-5 sm:p-6 border-b border-slate-800 flex items-start justify-between bg-gradient-to-br from-slate-800/70 via-slate-900 to-slate-900">
+        <div className="p-5 sm:p-6 border-b border-surface-border flex items-start justify-between bg-gradient-to-br from-amber-500/10 via-surface-card to-surface-card">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-sky-950 text-sky-300 border border-sky-800/80">
+              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
                 {recipe.category}
               </span>
-              <span className="text-xs text-slate-400 flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5 text-slate-400" />
-                {recipe.prepTimeMinutes || 30} Min
+              <span className="text-xs text-slate-400 flex items-center gap-1 font-mono">
+                <Clock className="w-3.5 h-3.5 text-amber-400" />
+                ca. {recipe.prepTimeMinutes || 30} Min
               </span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-100">
+            <h2 className="text-xl sm:text-2xl font-display font-black text-white">
               {recipe.title}
             </h2>
             {recipe.description && (
-              <p className="text-xs text-slate-400 mt-1 max-w-lg leading-relaxed">
+              <p className="text-xs text-slate-300 mt-1 max-w-lg leading-relaxed font-normal">
                 {recipe.description}
               </p>
             )}
@@ -51,7 +51,7 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-xl transition-colors"
+            className="p-2 text-slate-400 hover:text-white hover:bg-surface-elevated rounded-2xl transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -60,10 +60,10 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
         {/* Content */}
         <div className="p-5 sm:p-6 overflow-y-auto flex-1 space-y-6">
           {/* Servings Scaler - Strict Single Line (No Wrapping) */}
-          <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-3 sm:p-3.5 flex flex-row items-center justify-between gap-2 flex-nowrap shadow-inner">
+          <div className="bg-surface-elevated/90 border border-surface-border rounded-2xl p-3 sm:p-3.5 flex flex-row items-center justify-between gap-2 flex-nowrap shadow-inner">
             <div className="flex items-center gap-2 shrink-0 whitespace-nowrap">
-              <Users className="w-4 h-4 text-sky-400 shrink-0" />
-              <span className="text-xs sm:text-sm font-bold text-slate-200 whitespace-nowrap">
+              <Users className="w-4 h-4 text-amber-400 shrink-0" />
+              <span className="text-xs sm:text-sm font-display font-bold text-slate-200 whitespace-nowrap">
                 Zutaten skaliert für:
               </span>
             </div>
@@ -72,17 +72,17 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
               <button
                 type="button"
                 onClick={() => setServings((s) => Math.max(1, s - 1))}
-                className="w-7 h-7 sm:w-8 sm:h-8 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded-xl flex items-center justify-center text-slate-100 active:scale-95 transition-all shrink-0"
+                className="w-7 h-7 sm:w-8 sm:h-8 bg-surface-card hover:bg-surface-elevated border border-surface-border rounded-xl flex items-center justify-center text-slate-100 active:scale-95 transition-all shrink-0 cursor-pointer"
               >
                 <Minus className="w-3.5 h-3.5" />
               </button>
-              <span className="text-xs sm:text-sm font-extrabold text-sky-300 px-1 text-center whitespace-nowrap">
+              <span className="text-xs sm:text-sm font-extrabold text-amber-300 px-1 text-center whitespace-nowrap font-mono">
                 {servings} Personen
               </span>
               <button
                 type="button"
                 onClick={() => setServings((s) => s + 1)}
-                className="w-7 h-7 sm:w-8 sm:h-8 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded-xl flex items-center justify-center text-slate-100 active:scale-95 transition-all shrink-0"
+                className="w-7 h-7 sm:w-8 sm:h-8 bg-surface-card hover:bg-surface-elevated border border-surface-border rounded-xl flex items-center justify-center text-slate-100 active:scale-95 transition-all shrink-0 cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
               </button>
@@ -91,8 +91,8 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
 
           {/* Ingredients */}
           <div>
-            <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2 mb-3">
-              <ChefHat className="w-4 h-4 text-sky-400" />
+            <h3 className="text-sm font-display font-bold text-white flex items-center gap-2 mb-3">
+              <ChefHat className="w-4 h-4 text-amber-400" />
               <span>Benötigte Zutaten ({recipe.ingredients.length})</span>
             </h3>
 
@@ -102,10 +102,10 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
                 return (
                   <div
                     key={item.id}
-                    className="p-2.5 bg-slate-800/70 border border-slate-700/80 rounded-xl flex items-center justify-between text-xs"
+                    className="p-3 bg-surface-elevated/70 border border-surface-border rounded-xl flex items-center justify-between text-xs"
                   >
                     <span className="font-semibold text-slate-200">{item.name}</span>
-                    <span className="font-bold text-sky-300 bg-slate-900 px-2 py-1 rounded-lg border border-slate-700 shadow-inner">
+                    <span className="font-bold text-amber-300 bg-surface-card px-2.5 py-1 rounded-lg border border-surface-border shadow-inner font-mono">
                       {scaledAmount} {item.unit}
                     </span>
                   </div>
@@ -117,11 +117,11 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
           {/* Instructions */}
           {recipe.instructions && (
             <div>
-              <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2 mb-2.5">
-                <BookOpen className="w-4 h-4 text-sky-400" />
+              <h3 className="text-sm font-display font-bold text-white flex items-center gap-2 mb-2.5">
+                <BookOpen className="w-4 h-4 text-amber-400" />
                 <span>Zubereitungsanleitung</span>
               </h3>
-              <div className="bg-slate-800/60 rounded-2xl p-4 border border-slate-700/80 text-xs text-slate-300 leading-relaxed whitespace-pre-line font-normal">
+              <div className="bg-surface-elevated/60 rounded-2xl p-4 sm:p-5 border border-surface-border text-xs text-slate-200 leading-relaxed whitespace-pre-line font-normal">
                 {recipe.instructions}
               </div>
             </div>
@@ -129,12 +129,12 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-slate-900 border-t border-slate-800 flex items-center justify-between">
+        <div className="p-4 bg-surface-elevated/80 border-t border-surface-border flex items-center justify-between">
           {isStaff && onDelete ? (
             <button
               type="button"
               onClick={() => onDelete(recipe.id, recipe.title)}
-              className="px-4 py-2 bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/60 text-rose-300 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              className="px-4 py-2 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5 text-rose-400" />
               <span>Rezept löschen</span>
@@ -146,7 +146,7 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-colors"
+            className="px-5 py-2 bg-surface-card hover:bg-surface-elevated border border-surface-border text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
           >
             Schließen
           </button>

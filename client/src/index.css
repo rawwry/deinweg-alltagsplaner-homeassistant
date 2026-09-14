@@ -4,10 +4,35 @@
 
 @layer base {
   body {
-    @apply bg-slate-950 text-slate-100 font-sans min-h-full antialiased;
-    background: radial-gradient(circle at 50% 0%, #0f172a 0%, #020617 80%, #020617 100%);
+    background-color: #0c0b10;
+    background-image: 
+      radial-gradient(circle at 12% 15%, rgba(225, 29, 72, 0.10) 0%, transparent 45%),
+      radial-gradient(circle at 88% 20%, rgba(245, 158, 11, 0.08) 0%, transparent 45%),
+      radial-gradient(circle at 50% 85%, rgba(16, 185, 129, 0.06) 0%, transparent 50%);
+    background-attachment: fixed;
+    color: #f1f5f9;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    min-height: 100%;
     -webkit-tap-highlight-color: transparent;
   }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
+  }
+}
+
+/* Bento Card Style */
+.bento-card {
+  background: linear-gradient(145deg, rgba(24, 21, 32, 0.88) 0%, rgba(17, 15, 23, 0.96) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.65);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bento-card:hover {
+  border-color: rgba(245, 158, 11, 0.3);
+  box-shadow: 0 20px 44px -10px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(245, 158, 11, 0.15);
 }
 
 /* Keyframe animations */
@@ -16,18 +41,18 @@
     transform: translateY(0px);
   }
   50% {
-    transform: translateY(-7px);
+    transform: translateY(-6px);
   }
 }
 
 @keyframes pulseGlow {
   0%, 100% {
-    opacity: 0.35;
+    opacity: 0.3;
     transform: scale(1);
   }
   50% {
-    opacity: 0.65;
-    transform: scale(1.06);
+    opacity: 0.6;
+    transform: scale(1.05);
   }
 }
 
@@ -39,7 +64,7 @@
   animation: pulseGlow 4s ease-in-out infinite;
 }
 
-/* Custom scrollbar for dark mode */
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -48,9 +73,10 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-800 rounded-full;
+  background-color: rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-slate-700;
+  background-color: rgba(245, 158, 11, 0.35);
 }
 

@@ -25,11 +25,14 @@ const AppContent: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
-        <div className="flex justify-center mb-4">
-          <img src={logoImg} alt="Dein Weg" className="h-10 sm:h-12 w-auto object-contain animate-pulse" />
+      <div className="min-h-screen bg-[#0c0b10] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+        <div className="absolute inset-0 max-w-sm mx-auto bg-rose-500/10 blur-3xl rounded-full pointer-events-none" />
+        <div className="flex justify-center mb-4 relative z-10">
+          <img src={logoImg} alt="Dein Weg" className="h-12 w-auto object-contain animate-pulse drop-shadow-[0_12px_24px_rgba(0,0,0,0.5)]" />
         </div>
-        <div className="text-sm font-semibold text-slate-300">Dein Weg Alltagsplaner wird geladen...</div>
+        <div className="text-sm font-semibold text-amber-200/90 relative z-10 font-display">
+          Dein Weg Alltagsplaner wird geladen...
+        </div>
       </div>
     );
   }
@@ -52,7 +55,7 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <div className="h-screen h-[100dvh] bg-slate-950 text-slate-100 flex flex-col overflow-hidden">
+    <div className="h-screen h-[100dvh] bg-[#0c0b10] text-slate-100 flex flex-col overflow-hidden font-sans">
       {/* Top Header */}
       <Header currentTab={currentTab} setCurrentTab={setCurrentTab} />
 

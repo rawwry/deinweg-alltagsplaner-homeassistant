@@ -501,28 +501,32 @@ export const AdminManagementView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-24 md:pb-8">
+    <div className="space-y-6 max-w-6xl mx-auto pb-24 md:pb-8 animate-in fade-in duration-300">
       {/* Header */}
-      <div className="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="bento-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border flex flex-col sm:flex-row items-center justify-between gap-5">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-100 flex items-center gap-2">
-            <LayoutGrid className="w-6 h-6 text-sky-400" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-amber-500/10 border border-amber-500/25 rounded-full text-xs font-bold text-amber-300 mb-2.5">
+            <LayoutGrid className="w-3.5 h-3.5" />
+            <span>Admin-Bereich</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-display font-bold text-surface-cream tracking-tight flex items-center gap-2.5">
+            <Shield className="w-7 h-7 text-amber-400" />
             <span>Verwaltung & Konfiguration</span>
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-surface-muted mt-1.5 font-sans">
             Zentrale Administration von Betreuern, Bewohnern, Standorten, Preisen und E-Mail / SMTP
           </p>
         </div>
 
         {/* Subtab navigation */}
-        <div className="flex flex-wrap items-center gap-1.5 bg-slate-800/80 border border-slate-700/60 p-1.5 rounded-2xl text-xs font-semibold">
+        <div className="flex flex-wrap items-center gap-1.5 bg-surface-elevated/90 border border-surface-border p-1.5 rounded-2xl text-xs font-semibold">
           <button
             type="button"
             onClick={() => setActiveSubTab('users')}
-            className={`px-3 py-1.5 rounded-xl transition-all ${
+            className={`px-3.5 py-2 rounded-xl transition-all ${
               activeSubTab === 'users'
-                ? 'bg-slate-700 text-white shadow-xs'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white font-bold shadow-md shadow-amber-500/20'
+                : 'text-surface-muted hover:text-surface-cream'
             }`}
           >
             Benutzer
@@ -530,10 +534,10 @@ export const AdminManagementView: React.FC = () => {
           <button
             type="button"
             onClick={() => setActiveSubTab('locations')}
-            className={`px-3 py-1.5 rounded-xl transition-all ${
+            className={`px-3.5 py-2 rounded-xl transition-all ${
               activeSubTab === 'locations'
-                ? 'bg-slate-700 text-white shadow-xs'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white font-bold shadow-md shadow-amber-500/20'
+                : 'text-surface-muted hover:text-surface-cream'
             }`}
           >
             Standorte
@@ -541,10 +545,10 @@ export const AdminManagementView: React.FC = () => {
           <button
             type="button"
             onClick={() => setActiveSubTab('prices')}
-            className={`px-3 py-1.5 rounded-xl transition-all ${
+            className={`px-3.5 py-2 rounded-xl transition-all ${
               activeSubTab === 'prices'
-                ? 'bg-slate-700 text-white shadow-xs'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white font-bold shadow-md shadow-amber-500/20'
+                : 'text-surface-muted hover:text-surface-cream'
             }`}
           >
             Preise
@@ -552,10 +556,10 @@ export const AdminManagementView: React.FC = () => {
           <button
             type="button"
             onClick={() => setActiveSubTab('smtp')}
-            className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 ${
+            className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
               activeSubTab === 'smtp'
-                ? 'bg-slate-700 text-white shadow-xs'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white font-bold shadow-md shadow-amber-500/20'
+                : 'text-surface-muted hover:text-surface-cream'
             }`}
           >
             <Mail className="w-3.5 h-3.5" />
@@ -564,10 +568,10 @@ export const AdminManagementView: React.FC = () => {
           <button
             type="button"
             onClick={() => setActiveSubTab('system')}
-            className={`px-3 py-1.5 rounded-xl transition-all ${
+            className={`px-3.5 py-2 rounded-xl transition-all ${
               activeSubTab === 'system'
-                ? 'bg-slate-700 text-white shadow-xs'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white font-bold shadow-md shadow-amber-500/20'
+                : 'text-surface-muted hover:text-surface-cream'
             }`}
           >
             System
@@ -576,14 +580,14 @@ export const AdminManagementView: React.FC = () => {
       </div>
 
       {userSuccessMsg && (
-        <div className="p-4 bg-emerald-950/70 border border-emerald-800/50 text-emerald-300 rounded-2xl text-xs font-semibold flex items-center gap-2">
+        <div className="p-4 bg-emerald-950/50 border border-emerald-500/30 text-emerald-300 rounded-2xl text-xs font-semibold flex items-center gap-2.5">
           <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           <span>{userSuccessMsg}</span>
         </div>
       )}
 
       {locationSuccessMsg && (
-        <div className="p-4 bg-emerald-950/70 border border-emerald-800/50 text-emerald-300 rounded-2xl text-xs font-semibold flex items-center gap-2">
+        <div className="p-4 bg-emerald-950/50 border border-emerald-500/30 text-emerald-300 rounded-2xl text-xs font-semibold flex items-center gap-2.5">
           <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           <span>{locationSuccessMsg}</span>
         </div>
@@ -591,20 +595,20 @@ export const AdminManagementView: React.FC = () => {
 
       {/* SUBTAB: USERS */}
       {activeSubTab === 'users' && (
-        <div className="space-y-4">
+        <div className="space-y-5">
           <div className="flex justify-between items-center">
             <div>
-              <h3 className="text-sm font-bold text-slate-100">
+              <h3 className="text-base font-display font-bold text-surface-cream">
                 Registrierte Benutzer ({usersList.length})
               </h3>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-surface-muted mt-0.5 font-sans">
                 Betreuer besitzen automatisch volle Administrator-Rechte.
               </p>
             </div>
             <button
               type="button"
               onClick={() => setShowAddUser(!showAddUser)}
-              className="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors"
+              className="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition-all"
             >
               <Plus className="w-4 h-4" />
               <span>Neuen Benutzer / Bewohner anlegen</span>
@@ -614,7 +618,7 @@ export const AdminManagementView: React.FC = () => {
           {showAddUser && (
             <form
               onSubmit={handleCreateUser}
-              className="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-sm space-y-4 animate-in fade-in duration-150"
+              className="bento-card rounded-[2rem] p-6 border border-surface-border shadow-xl space-y-4 animate-in fade-in duration-150"
             >
               <h4 className="text-sm font-bold text-slate-100">Neuen Zugang anlegen</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">

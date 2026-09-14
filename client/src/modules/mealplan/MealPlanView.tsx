@@ -262,29 +262,29 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-24 md:pb-8">
       {/* Top Controls Bar */}
-      <div className="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="bg-surface-card rounded-[2.5rem] p-6 border border-surface-border shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-100 flex items-center gap-2">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="text-xl sm:text-2xl font-display font-extrabold text-white flex items-center gap-2">
               <span className="text-2xl">🗓️</span>
               <span>Unser Wochenplan</span>
             </h1>
-            <span className="text-xs font-bold px-2.5 py-1 bg-sky-950/60 text-sky-400 rounded-full border border-sky-800/40">
+            <span className="text-xs font-bold px-3 py-1 bg-gradient-to-r from-amber-500/15 to-rose-500/15 text-amber-300 rounded-full border border-amber-500/30 font-mono">
               KW {weekNumber} • {year}
             </span>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-400 mt-1.5 font-normal">
             Gemeinsam kochen & genießen in {activeLocation?.name || user?.locationName || 'der WG'} • {configuredCookingDays.length} Kochtage ({formatCookingDays(activeLocation?.cookingDays)}) • {activeLocation?.defaultServings || 6} Portionen
           </p>
         </div>
 
         {/* Week Navigator & Actions */}
         <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
-          <div className="inline-flex items-center bg-slate-800/80 border border-slate-700/60 rounded-2xl p-1">
+          <div className="inline-flex items-center bg-surface-elevated/80 border border-surface-border rounded-2xl p-1 shadow-inner">
             <button
               type="button"
               onClick={handlePrevWeek}
-              className="p-2 hover:bg-slate-700 rounded-xl text-slate-300 transition-colors"
+              className="p-2 hover:bg-surface-card rounded-xl text-slate-300 hover:text-white transition-colors cursor-pointer"
               title="Vorherige Woche"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -292,10 +292,10 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
             <button
               type="button"
               onClick={handleResetToCurrent}
-              className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all ${
+              className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                 isCurrentWeek
-                  ? 'bg-sky-950 text-sky-300 border border-sky-700/60 shadow-xs'
-                  : 'text-slate-200 hover:bg-slate-700 hover:text-white'
+                  ? 'bg-gradient-to-r from-amber-500/20 to-rose-500/20 text-white border border-amber-500/40 shadow-xs'
+                  : 'text-slate-300 hover:bg-surface-card hover:text-white'
               }`}
               title={isCurrentWeek ? 'Aktuelle Woche wird angezeigt' : 'Zur aktuellen Woche springen'}
             >
@@ -304,7 +304,7 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
             <button
               type="button"
               onClick={handleNextWeek}
-              className="p-2 hover:bg-slate-700 rounded-xl text-slate-300 transition-colors"
+              className="p-2 hover:bg-surface-card rounded-xl text-slate-300 hover:text-white transition-colors cursor-pointer"
               title="Nächste Woche"
             >
               <ChevronRight className="w-4 h-4" />
@@ -315,10 +315,10 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
             <button
               type="button"
               onClick={handleOpenLocationSettings}
-              className="p-2.5 bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 rounded-2xl text-slate-300 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-semibold"
+              className="p-2.5 bg-surface-elevated hover:bg-surface-card border border-surface-border rounded-2xl text-slate-300 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer"
               title="Kochtage & Portionen für diesen Standort anpassen"
             >
-              <Settings className="w-4 h-4 text-sky-400" />
+              <Settings className="w-4 h-4 text-amber-400" />
               <span className="hidden md:inline">Plan-Tage</span>
             </button>
           )}
@@ -326,7 +326,7 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
           <button
             type="button"
             onClick={() => setCurrentTab('shopping')}
-            className="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white text-xs font-semibold rounded-2xl shadow-sm flex items-center gap-1.5 transition-all"
+            className="px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 active:scale-95 text-white text-xs font-bold rounded-2xl shadow-lg shadow-emerald-600/25 flex items-center gap-1.5 transition-all cursor-pointer"
           >
             <ShoppingCart className="w-4 h-4" />
             <span className="hidden sm:inline">Einkaufsliste</span>
@@ -336,7 +336,7 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
 
       {/* Kochtage info & toggle if < 7 days */}
       {configuredCookingDays.length < 7 && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1 text-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-2 text-xs">
           <div className="text-slate-400">
             Geplante Kochtage für {activeLocation?.name}:{' '}
             <strong className="text-slate-200 font-semibold">
@@ -346,7 +346,7 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
           <button
             type="button"
             onClick={() => setShowAllDays(!showAllDays)}
-            className="text-sky-400 hover:text-sky-300 font-semibold self-start sm:self-auto hover:underline"
+            className="text-amber-400 hover:text-amber-300 font-semibold self-start sm:self-auto hover:underline cursor-pointer"
           >
             {showAllDays
               ? `Nur geplante Kochtage anzeigen (${configuredCookingDays.length})`
@@ -358,7 +358,7 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
       {/* Days List */}
       {isLoading ? (
         <div className="py-20 text-center text-slate-400">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-3 border-sky-500 border-t-transparent mb-2"></div>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-3 border-amber-500 border-t-transparent mb-2" />
           <div>Wochenplan wird geladen...</div>
         </div>
       ) : (
@@ -381,13 +381,13 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
               return (
                 <div
                   key={dayOfWeek}
-                  className="bg-slate-900/60 rounded-3xl p-4 sm:p-5 border border-dashed border-slate-800 hover:border-slate-700 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 opacity-80 hover:opacity-100"
+                  className="bg-surface-card/60 rounded-[2rem] p-5 border border-dashed border-amber-500/30 hover:border-amber-500/50 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 opacity-80 hover:opacity-100"
                 >
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-bold text-slate-300">{dayName}</span>
+                      <span className="text-sm font-display font-bold text-slate-300">{dayName}</span>
                       <span className="text-xs text-slate-500 font-mono">{dateStr}</span>
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-amber-300 border border-amber-800/40">
+                      <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-surface-elevated text-amber-300 border border-amber-500/30">
                         🍽️ Selbstversorgung
                       </span>
                     </div>
@@ -403,7 +403,7 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
                         setSelectedDayOfWeek(dayOfWeek);
                         setModalOpen(true);
                       }}
-                      className="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-750 border border-slate-700/60 transition-colors inline-flex items-center gap-1.5"
+                      className="px-3.5 py-2 rounded-2xl text-xs font-semibold text-slate-300 hover:text-white bg-surface-elevated hover:bg-surface-card border border-surface-border transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Trotzdem Gericht planen</span>
@@ -416,28 +416,28 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
             return (
               <div
                 key={dayOfWeek}
-                className={`bg-slate-900 rounded-3xl p-4 sm:p-5 border ${
+                className={`bento-card rounded-[2rem] p-5 sm:p-6 border ${
                   !isConfiguredDay
-                    ? 'border-amber-900/50 bg-slate-900/90 shadow-amber-950/20 shadow-xs'
-                    : 'border-slate-800'
-                } shadow-sm hover:border-slate-750 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4`}
+                    ? 'border-amber-500/40 bg-gradient-to-r from-amber-500/5 to-transparent shadow-amber-950/20'
+                    : 'border-surface-border'
+                } shadow-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 group`}
               >
                 {/* Left: Day info & Recipe title */}
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                    <span className="text-sm font-bold text-slate-100">
+                    <span className="text-sm font-display font-extrabold text-white">
                       {dayName}
                     </span>
                     <span className="text-xs text-slate-400 font-medium">
                       {dateStr}
                     </span>
                     {hasRecipe && (
-                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-sky-950/60 text-sky-400 border border-sky-800/40">
+                      <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
                         {dayData.recipe.category}
                       </span>
                     )}
                     {!isConfiguredDay && (
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-950/70 text-amber-300 border border-amber-800/50">
+                      <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
                         Zusatz-Kochen (an Selbstversorgungs-Tag)
                       </span>
                     )}
@@ -445,26 +445,26 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
 
                   {hasRecipe ? (
                     <div>
-                      <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
-                        <Utensils className="w-4 h-4 text-sky-400 flex-shrink-0" />
+                      <h3 className="text-base font-display font-bold text-slate-100 group-hover:text-amber-300 transition-colors flex items-center gap-2">
+                        <Utensils className="w-4 h-4 text-amber-400 flex-shrink-0" />
                         <span>{dayData.recipe.title}</span>
                       </h3>
                       {dayData.recipe.description && (
-                        <p className="text-xs text-slate-400 mt-1 line-clamp-1">
+                        <p className="text-xs text-slate-300 mt-1 line-clamp-1 font-normal">
                           {dayData.recipe.description}
                         </p>
                       )}
                       <div className="flex items-center gap-4 text-xs text-slate-400 mt-2">
                         <span className="flex items-center gap-1">
-                          <Clock className="w-3.5 h-3.5 text-slate-500" />
-                          {dayData.recipe.prepTimeMinutes || 30} Min
+                          <Clock className="w-3.5 h-3.5 text-amber-400" />
+                          ca. {dayData.recipe.prepTimeMinutes || 30} Min
                         </span>
                         <span>{dayData.recipe.ingredients?.length || 0} Zutaten</span>
                         {onOpenRecipeDetail && (
                           <button
                             type="button"
                             onClick={() => onOpenRecipeDetail(dayData.recipe.id)}
-                            className="text-sky-400 hover:text-sky-300 hover:underline font-semibold"
+                            className="text-amber-400 hover:text-amber-300 hover:underline font-semibold cursor-pointer"
                           >
                             Rezept ansehen
                           </button>
@@ -473,23 +473,23 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
                     </div>
                   ) : hasCustom ? (
                     <div>
-                      <h3 className="text-base font-bold text-amber-300 flex items-center gap-2">
+                      <h3 className="text-base font-display font-bold text-amber-300 flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-amber-400 flex-shrink-0" />
                         <span>{dayData.customDishTitle}</span>
                       </h3>
-                      <span className="text-xs text-slate-500">Freies Gericht (kein Rezept hinterlegt)</span>
+                      <span className="text-xs text-slate-400">Freies Gericht (kein Rezept hinterlegt)</span>
                     </div>
                   ) : (
-                    <div className="text-sm text-slate-500 italic py-1">
+                    <div className="text-sm text-slate-400 italic py-1">
                       Noch kein Gericht geplant
                     </div>
                   )}
                 </div>
 
                 {/* Right: Servings & Cook Assignment & Action Button */}
-                <div className="flex flex-wrap items-center gap-3 pt-3 md:pt-0 border-t md:border-t-0 border-slate-800/80 justify-between md:justify-end">
+                <div className="flex flex-wrap items-center gap-3 pt-3 md:pt-0 border-t md:border-t-0 border-white/5 justify-between md:justify-end">
                   {/* Servings Counter */}
-                  <div className="flex items-center gap-1.5 bg-slate-800/80 border border-slate-700/60 rounded-2xl p-1">
+                  <div className="flex items-center gap-1.5 bg-surface-elevated/80 border border-surface-border rounded-2xl p-1 shadow-inner">
                     <span className="text-[11px] text-slate-400 pl-2 font-medium flex items-center gap-1">
                       <Users className="w-3 h-3 text-slate-400" />
                       Portionen:
@@ -497,33 +497,33 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
                     <button
                       type="button"
                       onClick={() => handleUpdateServings(dayOfWeek, dayData?.servings || 6, -1)}
-                      className="w-7 h-7 flex items-center justify-center bg-slate-700 rounded-xl shadow-xs text-slate-200 hover:bg-slate-600 active:scale-95 transition-transform"
+                      className="w-7 h-7 flex items-center justify-center bg-surface-card rounded-xl text-slate-200 hover:text-white hover:bg-surface-elevated active:scale-95 transition-all cursor-pointer"
                     >
                       <Minus className="w-3.5 h-3.5" />
                     </button>
-                    <span className="w-6 text-center text-xs font-bold text-slate-100">
+                    <span className="w-6 text-center text-xs font-bold text-white font-mono">
                       {dayData?.servings || 6}
                     </span>
                     <button
                       type="button"
                       onClick={() => handleUpdateServings(dayOfWeek, dayData?.servings || 6, 1)}
-                      className="w-7 h-7 flex items-center justify-center bg-slate-700 rounded-xl shadow-xs text-slate-200 hover:bg-slate-600 active:scale-95 transition-transform"
+                      className="w-7 h-7 flex items-center justify-center bg-surface-card rounded-xl text-slate-200 hover:text-white hover:bg-surface-elevated active:scale-95 transition-all cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" />
                     </button>
                   </div>
 
                   {/* Cook Selector */}
-                  <div className="flex items-center gap-1 bg-slate-800/80 border border-slate-700/60 rounded-2xl px-2.5 py-1 text-xs">
-                    <ChefHat className="w-3.5 h-3.5 text-slate-400" />
+                  <div className="flex items-center gap-1.5 bg-surface-elevated/80 border border-surface-border rounded-2xl px-3 py-1.5 text-xs shadow-inner">
+                    <ChefHat className="w-3.5 h-3.5 text-amber-400" />
                     <select
                       value={dayData?.cookUserId || ''}
                       onChange={(e) => handleUpdateCook(dayOfWeek, e.target.value || null)}
-                      className="bg-transparent text-slate-200 font-medium focus:outline-none cursor-pointer pr-1"
+                      className="bg-transparent text-slate-200 font-medium focus:outline-none cursor-pointer pr-1 font-sans"
                     >
-                      <option value="" className="bg-slate-800 text-slate-200">Koch: Offen / Team</option>
+                      <option value="" className="bg-surface-card text-slate-200">Koch: Offen / Team</option>
                       {residents.map((r) => (
-                        <option key={r.id} value={r.id} className="bg-slate-800 text-slate-200">
+                        <option key={r.id} value={r.id} className="bg-surface-card text-slate-200">
                           Koch: {r.name}
                         </option>
                       ))}
@@ -537,10 +537,10 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
                       setSelectedDayOfWeek(dayOfWeek);
                       setModalOpen(true);
                     }}
-                    className={`px-3.5 py-2 rounded-2xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                    className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                       hasRecipe || hasCustom
-                        ? 'bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700/60'
-                        : 'bg-sky-600 hover:bg-sky-500 text-white shadow-sm'
+                        ? 'bg-surface-elevated hover:bg-surface-card text-slate-200 hover:text-white border border-surface-border'
+                        : 'bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-white shadow-md shadow-amber-500/20'
                     }`}
                   >
                     <span>{hasRecipe || hasCustom ? 'Ändern' : '+ Gericht wählen'}</span>
@@ -555,14 +555,14 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
       {/* Quick Location Settings Modal */}
       {showLocationSettings && activeLocation && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 w-full max-w-md shadow-2xl relative">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+          <div className="bg-surface-card border border-surface-border rounded-[2.5rem] p-6 sm:p-7 w-full max-w-md shadow-2xl relative">
+            <div className="flex items-center justify-between pb-4 border-b border-surface-border">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-sky-950/80 border border-sky-800 text-sky-400">
+                <div className="p-2.5 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-300">
                   <Settings className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-100">
+                  <h3 className="text-base font-display font-bold text-white">
                     Plan-Einstellungen: {activeLocation.name}
                   </h3>
                   <p className="text-xs text-slate-400">
@@ -573,7 +573,7 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
               <button
                 type="button"
                 onClick={() => setShowLocationSettings(false)}
-                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+                className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-surface-elevated transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -581,7 +581,7 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
 
             <form onSubmit={handleSaveLocationSettings} className="mt-5 space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5 font-display">
                   Gemeinsame Kochtage (Plan-Umfang)
                 </label>
                 <div className="grid grid-cols-7 gap-1.5 mb-2">
@@ -592,10 +592,10 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
                         key={d.id}
                         type="button"
                         onClick={() => toggleDay(d.id)}
-                        className={`py-2 rounded-xl text-xs font-bold transition-all border ${
+                        className={`py-2 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
                           isSelected
-                            ? 'bg-sky-600 border-sky-500 text-white shadow-xs'
-                            : 'bg-slate-800/80 border-slate-700/60 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                            ? 'bg-gradient-to-r from-amber-500 to-rose-500 border-amber-400 text-white shadow-sm'
+                            : 'bg-surface-elevated/80 border-surface-border text-slate-400 hover:bg-surface-card hover:text-slate-200'
                         }`}
                         title={d.name}
                       >
@@ -611,32 +611,32 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
                   <button
                     type="button"
                     onClick={() => setEditDays([1, 2, 3, 4, 5, 6, 7])}
-                    className="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-750 text-[10px] text-slate-300 border border-slate-700 transition-colors"
+                    className="px-2.5 py-1 rounded-xl bg-surface-elevated hover:bg-surface-card text-[10px] text-slate-300 border border-surface-border transition-colors cursor-pointer"
                   >
                     Mo - So (7)
                   </button>
                   <button
                     type="button"
                     onClick={() => setEditDays([1, 2, 3, 4, 5])}
-                    className="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-750 text-[10px] text-slate-300 border border-slate-700 transition-colors"
+                    className="px-2.5 py-1 rounded-xl bg-surface-elevated hover:bg-surface-card text-[10px] text-slate-300 border border-surface-border transition-colors cursor-pointer"
                   >
                     Mo - Fr (5)
                   </button>
                   <button
                     type="button"
                     onClick={() => setEditDays([1, 2, 3, 4])}
-                    className="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-750 text-[10px] text-slate-300 border border-slate-700 transition-colors"
+                    className="px-2.5 py-1 rounded-xl bg-surface-elevated hover:bg-surface-card text-[10px] text-slate-300 border border-surface-border transition-colors cursor-pointer"
                   >
                     Mo - Do (4)
                   </button>
                 </div>
                 <p className="text-[10px] text-slate-400 mt-2">
-                  Nicht gewählte Tage werden im Wochenplan als <strong>Selbstversorgung</strong> markiert.
+                  Nicht gewählte Tage werden im Wochenplan als <strong className="text-amber-300">Selbstversorgung</strong> markiert.
                 </p>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5 font-display">
                   Standard-Portionen
                 </label>
                 <input
@@ -645,23 +645,23 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
                   max="100"
                   value={editServings}
                   onChange={(e) => setEditServings(Number(e.target.value))}
-                  className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono"
+                  className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-amber-500/40 font-mono"
                   required
                 />
               </div>
 
-              <div className="pt-3 border-t border-slate-800 flex items-center justify-end gap-2.5">
+              <div className="pt-3 border-t border-surface-border flex items-center justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setShowLocationSettings(false)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition-colors"
+                  className="px-4 py-2 bg-surface-elevated hover:bg-surface-card text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer"
                 >
                   Abbrechen
                 </button>
                 <button
                   type="submit"
                   disabled={isSavingSettings}
-                  className="px-5 py-2 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-colors shadow-xs"
+                  className="px-5 py-2 bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-amber-500/25 cursor-pointer"
                 >
                   {isSavingSettings ? 'Speichere...' : 'Einstellungen speichern'}
                 </button>
