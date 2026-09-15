@@ -14,6 +14,7 @@ interface AuthContextType {
   logout: () => void;
   setActiveLocationId: (locationId: string) => void;
   refreshLocations: () => Promise<void>;
+  updateCurrentUserAvatar: (avatarUrl: string | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -133,6 +134,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateCurrentUserAvatar = (avatarUrl: string | null) => {
+    setUser((prev) => (prev ? { ...prev, avatarUrl } : null));
+  };
+
   const activeLocation = locations.find((l) => l.id === activeLocationId) || null;
 
   return (
@@ -149,6 +154,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
         setActiveLocationId,
         refreshLocations,
+        updateCurrentUserAvatar,
       }}
     >
       {children}

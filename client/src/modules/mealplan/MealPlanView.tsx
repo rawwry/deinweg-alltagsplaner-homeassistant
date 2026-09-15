@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.js';
 import { api } from '../../api/client.js';
 import { RecipeSelectModal } from './RecipeSelectModal.js';
+import { formatGermanDate } from '../../utils/formatters.js';
 import {
   Calendar,
   ChevronLeft,
@@ -254,7 +255,7 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
     }
     const target = new Date(ISOweekStart);
     target.setDate(ISOweekStart.getDate() + (dayOfWeek - 1));
-    return target.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+    return formatGermanDate(target);
   };
 
   const isCurrentWeek = weekNumber === initial.week && year === initial.year;

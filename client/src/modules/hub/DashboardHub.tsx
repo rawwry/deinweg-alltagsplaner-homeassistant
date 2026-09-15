@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.js';
 import { api } from '../../api/client.js';
+import { formatGermanDate } from '../../utils/formatters.js';
+import { WasteWheelieBin } from '../../components/waste/WasteWheelieBin.js';
 import {
   Calendar,
   ShoppingCart,
@@ -34,6 +36,9 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
   const currentHour = now.getHours();
   const currentYear = now.getFullYear();
 
+  // Personalized user greeting
+  const firstName = user?.name ? user.name.split(' ')[0] : 'du';
+
   // Greeting by time of day
   const timeGreeting =
     currentHour >= 5 && currentHour < 11
@@ -63,12 +68,8 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
   // Day of week in Germany: 1=Mo, 7=So
   const currentDayOfWeek = now.getDay() === 0 ? 7 : now.getDay();
 
-  // Formatted date string
-  const formattedToday = new Intl.DateTimeFormat('de-DE', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  }).format(now);
+  // Formatted date string in strict German format
+  const formattedToday = formatGermanDate(now, { withWeekday: true });
 
   useEffect(() => {
     let isMounted = true;
@@ -128,13 +129,16 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
       <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 pt-1">
         <div>
           <div className="inline-flex items-center gap-2 text-rose-400 text-xs font-semibold tracking-wider uppercase mb-1.5 font-sans">
-            <span>{timeEmoji} {timeGreeting}, WG {activeLocation?.name || user?.locationName || 'Emsdetten'}!</span>
+            <span>{timeEmoji} {timeGreeting}, {firstName}!</span>
             <span className="text-slate-600">•</span>
-            <span className="text-slate-400 font-medium">{formattedToday} · KW {currentWeek}</span>
+            <span className="text-slate-400 font-medium">WG {activeLocation?.name || user?.locationName || 'Emsdetten'} · KW {currentWeek}</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white font-sans">
-            Was steht heute im Alltag an?
+            Hallo {firstName}, schön dass du da bist!
           </h1>
+          <p className="text-xs text-slate-400 mt-1 font-medium">
+            {formattedToday} — Dein schneller Überblick für heute
+          </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {openNotes.length > 0 && (
@@ -287,66 +291,58 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                   ? 'Bitte heute Abend nach dem Abendessen vor das Tor stellen.'
                   : daysUntilWaste === 0
                   ? 'Steht heute zur Abholung bereit!'
-                  : `Nächste Leerung am ${nextWaste.date}.`
+                  : `Nächste Leerung am ${formatGermanDate(nextWaste.date, { withWeekday: true })}.`
                 : 'Aktuell steht in den nächsten Tagen keine Abholung an.'}
             </p>
 
-            {/* Visual Color-Coded Bins Showcase */}
+            {/* Visual Authentic Wheelie Bins Showcase */}
             <div className="p-4 rounded-2xl bg-surface-elevated/70 border border-surface-border mb-4 flex items-center justify-around gap-2">
               {/* Gelber Sack / Wertstoff */}
               <div
-                className={`flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all ${
+                className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
                   nextWaste?.wasteType === 'YELLOW'
-                    ? 'bg-yellow-500/20 border border-yellow-500/50 scale-105 shadow-md shadow-yellow-500/20'
-                    : 'opacity-40'
+                    ? 'bg-yellow-500/15 border border-yellow-500/40 scale-105 shadow-md shadow-yellow-500/10'
+                    : 'opacity-40 hover:opacity-75'
                 }`}
               >
-                <div className="w-8 h-10 rounded-lg bg-yellow-400 border-2 border-yellow-300 flex items-center justify-center text-slate-950 font-bold text-xs shadow-inner">
-                  ♻️
-                </div>
-                <span className="text-[10px] font-semibold text-yellow-300">Gelb</span>
+                <WasteWheelieBin type="YELLOW" size="sm" animate={nextWaste?.wasteType === 'YELLOW'} />
+                <span className="text-[10px] font-semibold text-yellow-300 mt-1">Gelb</span>
               </div>
 
               {/* Biotonne */}
               <div
-                className={`flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all ${
+                className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
                   nextWaste?.wasteType === 'BIO'
-                    ? 'bg-emerald-500/20 border border-emerald-500/50 scale-105 shadow-md shadow-emerald-500/20'
-                    : 'opacity-40'
+                    ? 'bg-emerald-500/15 border border-emerald-500/40 scale-105 shadow-md shadow-emerald-500/10'
+                    : 'opacity-40 hover:opacity-75'
                 }`}
               >
-                <div className="w-8 h-10 rounded-lg bg-emerald-700 border-2 border-emerald-600 flex items-center justify-center text-white text-[11px] shadow-inner">
-                  🍂
-                </div>
-                <span className="text-[10px] font-semibold text-emerald-300">Bio</span>
+                <WasteWheelieBin type="BIO" size="sm" animate={nextWaste?.wasteType === 'BIO'} />
+                <span className="text-[10px] font-semibold text-emerald-300 mt-1">Bio</span>
               </div>
 
               {/* Altpapier */}
               <div
-                className={`flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all ${
+                className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
                   nextWaste?.wasteType === 'PAPER'
-                    ? 'bg-sky-500/20 border border-sky-500/50 scale-105 shadow-md shadow-sky-500/20'
-                    : 'opacity-40'
+                    ? 'bg-sky-500/15 border border-sky-500/40 scale-105 shadow-md shadow-sky-500/10'
+                    : 'opacity-40 hover:opacity-75'
                 }`}
               >
-                <div className="w-8 h-10 rounded-lg bg-sky-600 border-2 border-sky-500 flex items-center justify-center text-white text-[11px] shadow-inner">
-                  📦
-                </div>
-                <span className="text-[10px] font-semibold text-sky-300">Papier</span>
+                <WasteWheelieBin type="PAPER" size="sm" animate={nextWaste?.wasteType === 'PAPER'} />
+                <span className="text-[10px] font-semibold text-sky-300 mt-1">Papier</span>
               </div>
 
               {/* Restmüll */}
               <div
-                className={`flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all ${
+                className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
                   nextWaste?.wasteType === 'REST'
-                    ? 'bg-slate-500/20 border border-slate-500/50 scale-105 shadow-md shadow-slate-500/20'
-                    : 'opacity-40'
+                    ? 'bg-slate-500/15 border border-slate-500/40 scale-105 shadow-md shadow-slate-500/10'
+                    : 'opacity-40 hover:opacity-75'
                 }`}
               >
-                <div className="w-8 h-10 rounded-lg bg-slate-700 border-2 border-slate-600 flex items-center justify-center text-white text-[11px] shadow-inner">
-                  🗑️
-                </div>
-                <span className="text-[10px] font-semibold text-slate-300">Rest</span>
+                <WasteWheelieBin type="REST" size="sm" animate={nextWaste?.wasteType === 'REST'} />
+                <span className="text-[10px] font-semibold text-slate-300 mt-1">Rest</span>
               </div>
             </div>
           </div>
@@ -453,7 +449,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                           {isStaffNote ? 'Betreuer-Notiz' : 'WG-Notiz'} · {note.authorName || 'WG-Mitglied'}
                         </span>
                         <span className="text-[10px] font-mono text-slate-400">
-                          {note.createdAt ? new Date(note.createdAt).toLocaleDateString('de-DE') : 'Aktuell'}
+                          {note.createdAt ? formatGermanDate(note.createdAt) : 'Aktuell'}
                         </span>
                       </div>
                       <p className="text-xs text-slate-200 leading-relaxed font-medium line-clamp-3">
@@ -490,89 +486,57 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
         </div>
       </div>
 
-      {/* WG Areas and Quick Shortcuts (Warm Living Bento Tiles) */}
-      <div className="bento-card rounded-[2.5rem] p-7 sm:p-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
-          <div>
-            <h2 className="text-xl font-semibold text-slate-100 flex items-center gap-2 font-sans tracking-tight">
-              <span>Schnellzugriff auf unsere WG-Bereiche</span>
-              <Sparkles className="w-4 h-4 text-rose-400" />
-            </h2>
-            <p className="text-xs text-slate-400 mt-0.5 font-medium">
-              Alles für einen entspannten, gemeinsamen Alltag in der Wohngruppe
-            </p>
-          </div>
+      {/* Compact WG Areas Quick Access Bento Dock */}
+      <div className="bento-card rounded-2xl p-3 sm:p-4 flex flex-col md:flex-row items-center justify-between gap-3 shadow-md">
+        <div className="flex items-center gap-2 text-slate-300 text-xs font-semibold px-2 self-start md:self-center">
+          <Sparkles className="w-4 h-4 text-pink-400 shrink-0" />
+          <span className="font-sans font-bold">Schnellzugriff:</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 w-full md:w-auto md:flex-1">
           <button
             type="button"
             onClick={() => setCurrentTab('mealplan')}
-            className="p-5 rounded-2xl border border-surface-border bg-surface-elevated/50 hover:bg-surface-elevated hover:border-rose-500/50 text-left transition-all duration-200 group hover:scale-[1.02] hover:shadow-lg hover:shadow-rose-500/10 cursor-pointer"
+            className="flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-surface-elevated/70 hover:bg-surface-elevated border border-surface-border hover:border-pink-500/40 text-slate-200 hover:text-white text-xs font-medium transition-all group cursor-pointer"
           >
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-rose-500 to-pink-500 text-white flex items-center justify-center mb-3.5 group-hover:scale-110 transition-transform shadow-md shadow-rose-500/30">
-              <Calendar className="w-6 h-6 text-white" />
-            </div>
-            <div className="text-sm font-semibold text-slate-100 group-hover:text-rose-300 transition-colors font-sans">
-              Wochenplan
-            </div>
-            <div className="text-xs text-slate-400 mt-1 leading-relaxed font-sans">Gerichte planen & Köche einteilen</div>
+            <Calendar className="w-3.5 h-3.5 text-pink-400 group-hover:scale-110 transition-transform" />
+            <span className="truncate">Wochenplan</span>
           </button>
 
           <button
             type="button"
             onClick={() => setCurrentTab('shopping')}
-            className="p-5 rounded-2xl border border-surface-border bg-surface-elevated/50 hover:bg-surface-elevated hover:border-emerald-500/50 text-left transition-all duration-200 group hover:scale-[1.02] hover:shadow-lg hover:shadow-emerald-500/10 cursor-pointer"
+            className="flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-surface-elevated/70 hover:bg-surface-elevated border border-surface-border hover:border-emerald-500/40 text-slate-200 hover:text-white text-xs font-medium transition-all group cursor-pointer"
           >
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 text-white flex items-center justify-center mb-3.5 group-hover:scale-110 transition-transform shadow-md shadow-emerald-500/30">
-              <ShoppingCart className="w-6 h-6 text-white" />
-            </div>
-            <div className="text-sm font-semibold text-slate-100 group-hover:text-emerald-300 transition-colors font-sans">
-              Einkaufsliste
-            </div>
-            <div className="text-xs text-slate-400 mt-1 leading-relaxed font-sans">Zutaten abhaken & Preise prüfen</div>
+            <ShoppingCart className="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition-transform" />
+            <span className="truncate">Einkaufsliste</span>
           </button>
 
           <button
             type="button"
             onClick={() => setCurrentTab('recipes')}
-            className="p-5 rounded-2xl border border-surface-border bg-surface-elevated/50 hover:bg-surface-elevated hover:border-pink-500/50 text-left transition-all duration-200 group hover:scale-[1.02] hover:shadow-lg hover:shadow-pink-500/10 cursor-pointer"
+            className="flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-surface-elevated/70 hover:bg-surface-elevated border border-surface-border hover:border-amber-500/40 text-slate-200 hover:text-white text-xs font-medium transition-all group cursor-pointer"
           >
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-pink-500 to-rose-500 text-white flex items-center justify-center mb-3.5 group-hover:scale-110 transition-transform shadow-md shadow-pink-500/30">
-              <BookOpen className="w-6 h-6 text-white" />
-            </div>
-            <div className="text-sm font-semibold text-slate-100 group-hover:text-pink-300 transition-colors font-sans">
-              Rezepte
-            </div>
-            <div className="text-xs text-slate-400 mt-1 leading-relaxed font-sans">Lieblingsgerichte mit Zubereitung</div>
+            <BookOpen className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
+            <span className="truncate">Rezepte</span>
           </button>
 
           <button
             type="button"
             onClick={() => setCurrentTab('notes')}
-            className="p-5 rounded-2xl border border-surface-border bg-surface-elevated/50 hover:bg-surface-elevated hover:border-fuchsia-500/50 text-left transition-all duration-200 group hover:scale-[1.02] hover:shadow-lg hover:shadow-fuchsia-500/10 cursor-pointer"
+            className="flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-surface-elevated/70 hover:bg-surface-elevated border border-surface-border hover:border-violet-500/40 text-slate-200 hover:text-white text-xs font-medium transition-all group cursor-pointer"
           >
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-fuchsia-500 to-rose-500 text-white flex items-center justify-center mb-3.5 group-hover:scale-110 transition-transform shadow-md shadow-fuchsia-500/30">
-              <MessageSquareText className="w-6 h-6 text-white" />
-            </div>
-            <div className="text-sm font-semibold text-slate-100 group-hover:text-fuchsia-300 transition-colors font-sans">
-              WG-Pinnwand
-            </div>
-            <div className="text-xs text-slate-400 mt-1 leading-relaxed font-sans">Mitteilungen & Anliegen notieren</div>
+            <MessageSquareText className="w-3.5 h-3.5 text-violet-400 group-hover:scale-110 transition-transform" />
+            <span className="truncate">WG-Pinnwand</span>
           </button>
 
           <button
             type="button"
             onClick={() => setCurrentTab('waste')}
-            className="p-5 rounded-2xl border border-surface-border bg-surface-elevated/50 hover:bg-surface-elevated hover:border-cyan-500/50 text-left transition-all duration-200 group hover:scale-[1.02] hover:shadow-lg hover:shadow-cyan-500/10 cursor-pointer"
+            className="flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-surface-elevated/70 hover:bg-surface-elevated border border-surface-border hover:border-sky-500/40 text-slate-200 hover:text-white text-xs font-medium transition-all group cursor-pointer col-span-2 sm:col-span-1"
           >
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-500 to-cyan-500 text-white flex items-center justify-center mb-3.5 group-hover:scale-110 transition-transform shadow-md shadow-sky-500/30">
-              <Trash2 className="w-6 h-6 text-white" />
-            </div>
-            <div className="text-sm font-semibold text-slate-100 group-hover:text-cyan-300 transition-colors font-sans">
-              Abfallkalender
-            </div>
-            <div className="text-xs text-slate-400 mt-1 leading-relaxed font-sans">Nächste Abholungen & Tonnen</div>
+            <Trash2 className="w-3.5 h-3.5 text-sky-400 group-hover:scale-110 transition-transform" />
+            <span className="truncate">Abfallkalender</span>
           </button>
         </div>
       </div>

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.js';
 import { api } from '../../api/client.js';
 import { CaregiverNoteSummary } from '../../../../shared/types.js';
+import { formatGermanDateTime } from '../../utils/formatters.js';
 import {
   MessageSquareText,
   Plus,
@@ -321,13 +322,7 @@ export const CaregiverNotesView: React.FC = () => {
                     </span>
                     <span className="text-xs text-slate-400 flex items-center gap-1 font-mono">
                       <Clock className="w-3.5 h-3.5 text-slate-500" />
-                      {new Date(note.createdAt).toLocaleDateString('de-DE', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
+                      {formatGermanDateTime(note.createdAt)}
                     </span>
                   </div>
 
@@ -356,12 +351,7 @@ export const CaregiverNotesView: React.FC = () => {
                       </span>
                       {note.respondedAt && (
                         <span className="text-[11px] text-slate-400 font-mono">
-                          {new Date(note.respondedAt).toLocaleDateString('de-DE', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
+                          {formatGermanDateTime(note.respondedAt)}
                         </span>
                       )}
                     </div>

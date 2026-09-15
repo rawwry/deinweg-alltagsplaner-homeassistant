@@ -66,24 +66,26 @@ const AppContent: React.FC = () => {
         <DesktopNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
 
         {/* Content View */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 min-h-0 overflow-y-auto">
-          {currentTab === 'hub' && <DashboardHub setCurrentTab={setCurrentTab} />}
-          {currentTab === 'mealplan' && (
-            <MealPlanView
-              setCurrentTab={setCurrentTab}
-              onOpenRecipeDetail={handleOpenRecipeDetail}
-            />
-          )}
-          {currentTab === 'shopping' && <ShoppingListView setCurrentTab={setCurrentTab} />}
-          {currentTab === 'recipes' && <RecipeCatalogView />}
-          {currentTab === 'notes' && <CaregiverNotesView />}
-          {currentTab === 'waste' && <WasteCalendarView />}
-          {currentTab === 'admin' && <AdminManagementView />}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 min-h-0 overflow-y-auto flex flex-col justify-between">
+          <div className="flex-1">
+            {currentTab === 'hub' && <DashboardHub setCurrentTab={setCurrentTab} />}
+            {currentTab === 'mealplan' && (
+              <MealPlanView
+                setCurrentTab={setCurrentTab}
+                onOpenRecipeDetail={handleOpenRecipeDetail}
+              />
+            )}
+            {currentTab === 'shopping' && <ShoppingListView setCurrentTab={setCurrentTab} />}
+            {currentTab === 'recipes' && <RecipeCatalogView />}
+            {currentTab === 'notes' && <CaregiverNotesView />}
+            {currentTab === 'waste' && <WasteCalendarView />}
+            {currentTab === 'admin' && <AdminManagementView />}
+          </div>
+
+          {/* Footer at end of page content (not pinned/sticky) */}
+          <Footer />
         </main>
       </div>
-
-      {/* Modern Footer with Copyright & Links (Always visible) */}
-      <Footer />
 
       {/* Mobile Bottom Navigation */}
       <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} />

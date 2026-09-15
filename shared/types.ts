@@ -9,6 +9,7 @@ export interface UserSummary {
   locationId?: string | null;
   locationName?: string | null;
   avatarColor?: string | null;
+  avatarUrl?: string | null;
 }
 
 export interface SetupStatusResponse {
@@ -40,6 +41,7 @@ export interface LocationSummary {
     name: string;
     username: string;
     avatarColor?: string | null;
+    avatarUrl?: string | null;
     email?: string | null;
   }[];
 }

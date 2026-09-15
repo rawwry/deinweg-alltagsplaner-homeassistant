@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.js';
 import { api } from '../../api/client.js';
 import { WastePickupSummary, WasteType } from '../../../../shared/types.js';
+import { WasteWheelieBin } from '../../components/waste/WasteWheelieBin.js';
+import { formatGermanDate } from '../../utils/formatters.js';
 import {
   Trash2,
   Calendar,
@@ -262,10 +264,8 @@ export const WasteCalendarView: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-5">
-            <div
-              className={`w-16 h-16 rounded-2xl flex items-center justify-center ${getWasteInfo(nextPickup.wasteType).bg} ${getWasteInfo(nextPickup.wasteType).iconColor} border ${getWasteInfo(nextPickup.wasteType).border} shrink-0 shadow-inner text-2xl`}
-            >
-              {getWasteInfo(nextPickup.wasteType).emoji}
+            <div className="shrink-0 p-2 rounded-2xl bg-surface-elevated/80 border border-surface-border flex items-center justify-center shadow-lg">
+              <WasteWheelieBin type={nextPickup.wasteType} size="lg" animate />
             </div>
             <div>
               <h2 className="text-xl sm:text-2xl font-display font-semibold text-surface-cream">
@@ -273,13 +273,8 @@ export const WasteCalendarView: React.FC = () => {
               </h2>
               <div className="text-xs sm:text-sm text-surface-muted mt-1 flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-rose-400" />
-                <span>
-                  {new Date(nextPickup.date).toLocaleDateString('de-DE', {
-                    weekday: 'long',
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric',
-                  })}
+                <span className="font-semibold text-slate-200">
+                  {formatGermanDate(nextPickup.date, { withWeekday: true })}
                 </span>
               </div>
               {nextPickup.notes && (
@@ -448,10 +443,8 @@ export const WasteCalendarView: React.FC = () => {
                   }`}
                 >
                   <div className="flex items-center gap-3.5">
-                    <div
-                      className={`w-11 h-11 rounded-xl flex items-center justify-center ${info.bg} ${info.iconColor} border ${info.border} shrink-0 shadow-inner text-xl`}
-                    >
-                      {info.emoji}
+                    <div className="shrink-0 p-1.5 rounded-xl bg-surface-elevated border border-surface-border flex items-center justify-center shadow-sm">
+                      <WasteWheelieBin type={item.wasteType} size="sm" />
                     </div>
 
                     <div>
@@ -473,13 +466,8 @@ export const WasteCalendarView: React.FC = () => {
                       </div>
                       <div className="text-xs text-surface-muted flex items-center gap-2 mt-0.5 font-sans">
                         <Clock className="w-3.5 h-3.5 text-rose-400" />
-                        <span>
-                          {new Date(item.date).toLocaleDateString('de-DE', {
-                            weekday: 'short',
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                          })}
+                        <span className="font-medium text-slate-300">
+                          {formatGermanDate(item.date, { withWeekday: true, shortWeekday: true })}
                         </span>
                         {item.notes && <span className="text-surface-muted/70">• {item.notes}</span>}
                       </div>

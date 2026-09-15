@@ -26,7 +26,9 @@ import {
   Check,
   Pencil,
   Palette,
+  Camera,
 } from 'lucide-react';
+import { AvatarUploadModal } from '../../components/profile/AvatarUploadModal.js';
 
 const WEEKDAY_ITEMS = [
   { id: 1, label: 'Mo', name: 'Montag' },
@@ -55,7 +57,9 @@ export const formatCookingDays = (daysStr?: string | null): string => {
 export const AdminManagementView: React.FC = () => {
   const { user, locations, refreshLocations } = useAuth();
   const { themeId, setThemeId, availableThemes } = useTheme();
-  const [activeSubTab, setActiveSubTab] = useState<'users' | 'locations' | 'prices' | 'smtp' | 'system'>('users');
+  const [activeSubTab, setActiveSubTab] = useState<'users' | 'locations' | 'prices' | 'smtp' | 'appearance' | 'system'>('users');
+  const [avatarModalUserId, setAvatarModalUserId] = useState<string | null>(null);
+  const [avatarModalCurrentUrl, setAvatarModalCurrentUrl] = useState<string | null>(null);
 
   // Users State
   const [usersList, setUsersList] = useState<any[]>([]);
@@ -221,7 +225,7 @@ export const AdminManagementView: React.FC = () => {
         locationId: newRole === 'BEWOHNER' ? (newLocationId || locations[0]?.id) : undefined,
       });
 
-      setUserSuccessMsg(`Benutzer "${newName}" (${newRole === 'BETREUER' ? 'Betreuer & Admin' : 'Bewohner'}) erfolgreich angelegt!`);
+      setUserSuccessMsg(`Benutzer "${newName}" (${newRole === 'BETREUER' ? 'Betreuer' : 'Bewohner'}) erfolgreich angelegt!`);
       setNewUsername('');
       setNewName('');
       setNewEmail('');
@@ -570,6 +574,18 @@ export const AdminManagementView: React.FC = () => {
           </button>
           <button
             type="button"
+            onClick={() => setActiveSubTab('appearance')}
+            className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
+              activeSubTab === 'appearance'
+                ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white font-semibold shadow-md shadow-rose-500/20'
+                : 'text-surface-muted hover:text-surface-cream'
+            }`}
+          >
+            <Palette className="w-3.5 h-3.5" />
+            <span>Erscheinungsbild</span>
+          </button>
+          <button
+            type="button"
             onClick={() => setActiveSubTab('system')}
             className={`px-3.5 py-2 rounded-xl transition-all ${
               activeSubTab === 'system'
@@ -678,7 +694,7 @@ export const AdminManagementView: React.FC = () => {
                     className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                   >
                     <option value="BEWOHNER">Bewohner</option>
-                    <option value="BETREUER">Betreuer (Volle Admin-Rechte)</option>
+                    <option value="BETREUER">Betreuer</option>
                   </select>
                 </div>
                 {newRole === 'BEWOHNER' && (
@@ -733,11 +749,32 @@ export const AdminManagementView: React.FC = () => {
                   <tr key={u.id} className="hover:bg-slate-800/40 transition-colors">
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-2.5">
-                        <div
-                          className="w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-[11px]"
-                          style={{ backgroundColor: u.avatarColor || '#3b82f6' }}
-                        >
-                          {u.name.charAt(0).toUpperCase()}
+                        <div className="relative group/avatar">
+                          {u.avatarUrl ? (
+                            <img
+                              src={u.avatarUrl}
+                              alt={u.name}
+                              className="w-8 h-8 rounded-full object-cover ring-2 ring-slate-700 shadow-xs"
+                            />
+                          ) : (
+                            <div
+                              className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-[11px] shadow-xs"
+                              style={{ backgroundColor: u.avatarColor || '#3b82f6' }}
+                            >
+                              {u.name.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAvatarModalUserId(u.id);
+                              setAvatarModalCurrentUrl(u.avatarUrl || null);
+                            }}
+                            title="Profilbild anpassen"
+                            className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity cursor-pointer text-white"
+                          >
+                            <Camera className="w-3.5 h-3.5" />
+                          </button>
                         </div>
                         <div>
                           <div className="font-bold text-slate-100">{u.name}</div>
@@ -756,7 +793,7 @@ export const AdminManagementView: React.FC = () => {
                             : 'bg-emerald-950/70 text-emerald-300 border-emerald-800/40'
                         }`}
                       >
-                        {u.role === 'ADMIN' || u.role === 'BETREUER' ? 'Betreuer & Admin' : 'Bewohner'}
+                        {u.role === 'ADMIN' || u.role === 'BETREUER' ? 'Betreuer' : 'Bewohner'}
                       </span>
                     </td>
                     <td className="px-5 py-3.5 text-slate-400">
@@ -2041,14 +2078,13 @@ export const AdminManagementView: React.FC = () => {
         </div>
       )}
 
-      {/* SUBTAB: SYSTEM */}
-      {activeSubTab === 'system' && (
+      {/* SUBTAB: APPEARANCE (ERSCHEINUNGSBILD) */}
+      {activeSubTab === 'appearance' && (
         <div className="space-y-6">
-          {/* Erscheinungsbild & Farbschema */}
           <div className="bento-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border shadow-xl space-y-5">
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-rose-500/15 border border-rose-500/30 rounded-2xl text-rose-400">
+                <div className="p-2.5 bg-pink-500/15 border border-pink-500/30 rounded-2xl text-pink-400">
                   <Palette className="w-5 h-5" />
                 </div>
                 <div>
@@ -2075,7 +2111,7 @@ export const AdminManagementView: React.FC = () => {
                     onClick={() => setThemeId(config.id)}
                     className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3 ${
                       isActive
-                        ? 'bg-surface-elevated border-rose-500/60 shadow-lg shadow-rose-500/10 ring-2 ring-rose-500/30'
+                        ? 'bg-surface-elevated border-pink-500/60 shadow-lg shadow-pink-500/10 ring-2 ring-pink-500/30'
                         : 'bg-surface-elevated/50 border-surface-border hover:bg-surface-elevated hover:border-surface-border/80'
                     }`}
                   >
@@ -2093,7 +2129,7 @@ export const AdminManagementView: React.FC = () => {
                         </div>
                       </div>
                       {isActive && (
-                        <span className="w-5 h-5 rounded-full bg-rose-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+                        <span className="w-5 h-5 rounded-full bg-pink-600 text-white flex items-center justify-center shrink-0 shadow-sm">
                           <Check className="w-3 h-3 stroke-[3]" />
                         </span>
                       )}
@@ -2106,7 +2142,12 @@ export const AdminManagementView: React.FC = () => {
               })}
             </div>
           </div>
+        </div>
+      )}
 
+      {/* SUBTAB: SYSTEM */}
+      {activeSubTab === 'system' && (
+        <div className="space-y-6">
           {/* System Diagnostics */}
           <div className="bento-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border shadow-xl space-y-6">
             <div className="flex items-center gap-3">
@@ -2119,58 +2160,69 @@ export const AdminManagementView: React.FC = () => {
               </div>
             </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-            <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800">
-              <div className="text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
-                Anwendungsversion
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800">
+                <div className="text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+                  Anwendungsversion
+                </div>
+                <div className="text-base font-extrabold text-slate-100 mt-1">
+                  v{APP_VERSION}
+                </div>
               </div>
-              <div className="text-base font-extrabold text-slate-100 mt-1">
-                v{APP_VERSION}
+
+              <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800">
+                <div className="text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+                  Web-Port (HTTP)
+                </div>
+                <div className="text-base font-extrabold text-slate-100 mt-1">
+                  4731 (Kein Ingress / Cloudflare Tunnel)
+                </div>
+              </div>
+
+              <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800 sm:col-span-2">
+                <div className="text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+                  SQLite Speicherort
+                </div>
+                <div className="font-mono text-xs text-slate-200 mt-1 break-all font-semibold">
+                  {healthInfo?.database || '/share/deinweg-alltagsplaner/db/alltagsplaner.db'}
+                </div>
+              </div>
+
+              <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800 sm:col-span-2">
+                <div className="text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+                  PDF Export Verzeichnis
+                </div>
+                <div className="font-mono text-xs text-slate-200 mt-1 break-all font-semibold">
+                  {healthInfo?.exportDir || '/share/deinweg-alltagsplaner/export'}
+                </div>
               </div>
             </div>
 
-            <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800">
-              <div className="text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
-                Web-Port (HTTP)
-              </div>
-              <div className="text-base font-extrabold text-slate-100 mt-1">
-                4731 (Kein Ingress / Cloudflare Tunnel)
-              </div>
+            <div className="pt-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-500">
+              <span>Status: Online & Betriebsbereit</span>
+              <button
+                type="button"
+                onClick={fetchSystemInfo}
+                className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-slate-200 flex items-center gap-1 transition-colors"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Aktualisieren</span>
+              </button>
             </div>
-
-            <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800 sm:col-span-2">
-              <div className="text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
-                SQLite Speicherort
-              </div>
-              <div className="font-mono text-xs text-slate-200 mt-1 break-all font-semibold">
-                {healthInfo?.database || '/share/deinweg-alltagsplaner/db/alltagsplaner.db'}
-              </div>
-            </div>
-
-            <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800 sm:col-span-2">
-              <div className="text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
-                PDF Export Verzeichnis
-              </div>
-              <div className="font-mono text-xs text-slate-200 mt-1 break-all font-semibold">
-                {healthInfo?.exportDir || '/share/deinweg-alltagsplaner/export'}
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-500">
-            <span>Status: Online & Betriebsbereit</span>
-            <button
-              type="button"
-              onClick={fetchSystemInfo}
-              className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-slate-200 flex items-center gap-1 transition-colors"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>Aktualisieren</span>
-            </button>
           </div>
         </div>
-      </div>
       )}
+
+      {/* Avatar Upload Modal for Users */}
+      <AvatarUploadModal
+        isOpen={!!avatarModalUserId}
+        onClose={() => setAvatarModalUserId(null)}
+        targetUserId={avatarModalUserId || undefined}
+        currentAvatarUrl={avatarModalCurrentUrl}
+        onAvatarUpdated={() => {
+          fetchUsers();
+        }}
+      />
     </div>
   );
 };

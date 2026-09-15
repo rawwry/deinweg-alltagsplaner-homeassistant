@@ -3,6 +3,30 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.17] - 2026-09-15
+
+### Hinzugefügt & Verbessert
+- **Non-Sticky Footer im natürlichen Scrollbereich**:
+  - Die Fußzeile ist nicht mehr dauerhaft im Viewport fixiert/gepinnt. Sie befindet sich nun barrierearm und unaufdringlich am Ende des Seiteninhalts mit optimalem Abstand zur mobilen Navigationsleiste.
+- **Farbschema-Wahl als eigener Unterpunkt in den Einstellungen**:
+  - Der Farbswitch-Button im oberen Header wurde entfernt.
+  - In der Verwaltung (`Verwaltung -> Erscheinungsbild`) steht nun ein übersichtlicher, dedizierter Bereich mit interaktiven Themen-Karten bereit.
+  - Dynamische CSS-Klassen (`bg-theme-primary`, `bg-theme-gradient`, `text-theme`, `border-theme`) sorgen für eine saubere, reaktive Einfärbung aller UI-Komponenten.
+- **Authentische SVG-Mülltonnen (WasteWheelieBin)**:
+  - Bunte Kacheln mit Emojis (♻️, 🍂, 📦, 🗑️) wurden durch maßgefertigte, gestochen scharfe Vektor-Mülltonnen mit Deckelgriff, konischem Korpus, Verstärkungsrippen und Rädern ersetzt.
+  - Exakte Farbgebung nach deutschen Entsorgungsstandards (Gelbe Tonne/Sack, Biotonne, Papiertonne, Restmülltonne) sowohl im Dashboard-Abfall-Radar als auch in der Timeline des Abfallkalenders.
+- **Persönliche Begrüßung im Dashboard**:
+  - Die frühere unpersönliche Frage („Was steht heute im Alltag an?“) wurde durch eine herzliche, persönliche Begrüßung mit dem Vornamen des Nutzers („Hallo {Vorname}, schön dass du da bist!“) und tageszeitlicher Einleitung ersetzt.
+- **Durchgängiges deutsches Datumsformat (TT.MM.JJJJ)**:
+  - Zentrale Formatierungs-Utilities (`formatGermanDate`, `formatGermanDateTime`) garantieren auf allen Seiten und in allen Modulen das strikte deutsche Format `TT.MM.JJJJ` (z. B. `15.09.2026`).
+- **Kompakte WG-Schnellzugriff Bento-Dock**:
+  - Die fünf übermäßig großen Kacheln am Seitenende wurden durch eine schlanke, harmonisch gestaltete Bento-Docking-Leiste ersetzt, die den Fluss des Designs wahrt und wertvollen Platz spart.
+- **Eigenes Profilbild / Avatar-Upload**:
+  - Jeder Benutzer kann jetzt über einen Klick auf das Profil-Icon im Header oder in der Benutzerverwaltung ein persönliches Foto hochladen.
+  - Automatische Client-seitige Zentrierung, quadratischer Zuschnitt (256x256) und WebP/JPEG-Kompression zur schnellen Übertragung und Speicherung in der SQLite-Datenbank.
+- **Strikte 2-Gruppen-Rollen („Bewohner“ und „Betreuer“)**:
+  - Vollständige Bereinigung verwirrender Bezeichnungen wie „Betreuer & admin“: In der gesamten Anwendung gibt es strikt nur noch zwei Benutzergruppen: „Bewohner“ und „Betreuer“.
+
 ## [0.1.0-beta.16] - 2026-09-08
 
 ### Hinzugefügt & Verbessert

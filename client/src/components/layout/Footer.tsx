@@ -7,7 +7,7 @@ export const Footer: React.FC = () => {
 
   return (
     <>
-      <footer className="w-full border-t border-surface-border bg-surface-base/95 backdrop-blur-md py-3 px-4 sm:px-6 lg:px-8 text-xs text-slate-400 flex-shrink-0 z-20">
+      <footer className="w-full border-t border-surface-border/50 bg-transparent mt-10 pt-4 pb-20 sm:pb-4 px-2 sm:px-4 text-xs text-slate-400 flex-shrink-0">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3 text-center sm:text-left">
           <div className="flex items-center gap-1.5 flex-wrap justify-center sm:justify-start text-[11px] sm:text-xs">
             <span className="text-slate-300">© 2026 Dein Weg Planner Tool</span>

@@ -91,6 +91,11 @@ export const api = {
     create: (body: any) => request<any>('users', { method: 'POST', body: JSON.stringify(body) }),
     update: (id: string, body: any) => request<any>(`users/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
     delete: (id: string) => request<{ success: boolean; message: string }>(`users/${id}`, { method: 'DELETE' }),
+    uploadMyAvatar: (avatarUrl: string | null) =>
+      request<{ success: boolean; avatarUrl: string | null }>('users/me/avatar', {
+        method: 'POST',
+        body: JSON.stringify({ avatarUrl }),
+      }),
     resetPassword: (id: string, newPassword: string) =>
       request<{ success: boolean; message: string }>(`users/${id}/reset-password`, {
         method: 'PUT',

@@ -38,7 +38,7 @@ export const InitialSetupView: React.FC<InitialSetupViewProps> = ({ onComplete }
     }
 
     if (password.length < 6) {
-      setError('Das Administrator-Passwort muss mindestens 6 Zeichen lang sein.');
+      setError('Das Betreuer-Passwort muss mindestens 6 Zeichen lang sein.');
       return;
     }
 
@@ -74,13 +74,13 @@ export const InitialSetupView: React.FC<InitialSetupViewProps> = ({ onComplete }
             <ShieldCheck className="w-9 h-9" />
           </div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-950/90 border border-sky-800/80 text-sky-300 text-xs font-bold tracking-wide uppercase mb-2">
-            Ersteinrichtung & Administrator
+            Ersteinrichtung · Betreuer
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-100">
             {APP_NAME}
           </h1>
           <p className="mt-1 text-sm text-slate-400">
-            Erstelle das erste Betreuer- und Administrator-Konto für Deine Einrichtung
+            Erstelle das erste Betreuer-Konto für Deine Einrichtung
           </p>
         </div>
 
@@ -95,8 +95,8 @@ export const InitialSetupView: React.FC<InitialSetupViewProps> = ({ onComplete }
               </span>
               Bitte verwende hier zwingend Deine offizielle <strong>Firmen-E-Mail-Adresse</strong> (z. B.{' '}
               <span className="font-mono text-sky-300">vorname.nachname@deinweg.de</span>). Dieser erste
-              Account erhält volle Betreuer- und Administratorrechte. Bewohner, weitere Standorte und Betreuer
-              legst Du anschließend im Backend an.
+              Account erhält die Rolle Betreuer. Bewohner, weitere Standorte und Betreuer
+              legst Du anschließend in der Verwaltung an.
             </div>
           </div>
 

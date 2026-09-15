@@ -156,3 +156,26 @@
   background-color: var(--theme-border, rgba(225, 29, 72, 0.45));
 }
 
+/* Theme Utility Helpers using dynamic CSS variables */
+.bg-theme-primary {
+  background-color: var(--theme-primary);
+}
+.bg-theme-gradient {
+  background: linear-gradient(135deg, var(--theme-from) 0%, var(--theme-to) 100%);
+}
+.bg-theme-subtle {
+  background-color: var(--theme-subtle);
+}
+.border-theme {
+  border-color: var(--theme-border);
+}
+.text-theme {
+  color: var(--theme-text);
+}
+.text-theme-primary {
+  color: var(--theme-primary);
+}
+.shadow-theme {
+  box-shadow: 0 10px 25px -5px var(--theme-glow);
+}
+
