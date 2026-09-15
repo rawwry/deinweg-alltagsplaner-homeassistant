@@ -3,6 +3,42 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.21] - 2026-09-16
+
+### Hinzugefügt & Verbessert
+- **Vollwertiger Rezept-Editor für Betreuer (`RecipeEditModal`)**:
+  - Neuer „Rezept bearbeiten“-Button im Rezept-Detail-Modal und Rezepte-Katalog für Betreuer und Admins.
+  - Umfangreiches Bearbeitungsmodal via React Portal (`z-[100]`) mit Body-Scroll-Lock:
+    - Titel, Kategorie-Auswahl, Kochzeit (Minuten) und Basis-Portionen.
+    - Foto-Upload mit integrierter Canvas-Komprimierung oder direkte Bild-URL Eingabe.
+    - Kurzbeschreibung und mehrzeilige Zubereitungsanleitung.
+    - Vollständig dynamische Zutatenliste: Beliebiges Hinzufügen, Bearbeiten und Entfernen von Zutaten (Name, Menge, Einheit, Notiz).
+    - Backend-Zutaten-Erkennung: Bei neu eingetippten Zutaten ohne ID wird automatisch nach existierenden Zutaten gesucht oder diese nahtlos neu angelegt.
+- **Flurfunk: Sichtbarkeit zwischen Öffentlich und Privat an Betreuer**:
+  - Beim Verfassen einer Flurfunk-Notiz kann gewählt werden:
+    - 👥 **Öffentlich für alle**: Sichtbar für alle Bewohner und Betreuer der WG.
+    - 🔒 **Privat an Betreuer**: Vertrauliche Nachricht, nur für den Bewohner und das Betreuer-Team des Standorts sichtbar.
+  - Private Beiträge sind durch eine dezente lilafarbene `🔒 Nur für Betreuer`-Badge gekennzeichnet.
+  - Bewohner-Datenschutz auf Datenbank- und API-Ebene: Bewohner erhalten in Abfragen ausschließlich öffentliche Notizen oder ihre eigenen privaten Notizen.
+- **Flurfunk: Automatische E-Mail- & Dashboard-Benachrichtigungen**:
+  - **Dashboard-Hinweis für Bewohner**: Wenn ein Betreuer auf den Beitrag eines Bewohners antwortet, erscheint ganz oben auf dem Dashboard des Bewohners ein animiertes Alert-Banner mit Antwort-Vorschau, Schnellzugriff zum Flurfunk und Button „Als gelesen abhaken“.
+  - **E-Mail an Bewohner**: Hat der Bewohner eine E-Mail-Adresse hinterlegt, erhält er automatisch eine formatierte HTML-E-Mail mit der Rückmeldung des Betreuers.
+  - **E-Mail an Betreuer bei Direktnachricht**: Geht eine neue private Notiz an die Betreuer ein, werden die Betreuer des Standorts automatisch per E-Mail informiert.
+- **Konfigurierbare E-Mail-Vorlagen in den Admin-Einstellungen**:
+  - Im Admin-Bereich unter „Eigener Mailserver (SMTP)“ können Betreuer die Vorlagen für Betreff und E-Mail-Text beider Benachrichtigungstypen frei konfigurieren.
+  - Unterstützung dynamischer Platzhalter wie `{residentName}`, `{noteTitle}`, `{responderName}`, `{replyText}`, `{locationName}`, `{authorName}` und `{noteContent}`.
+- **Einkaufsliste: Harmonische Bento Hero Box**:
+  - Die drei ehemals getrennten und unruhigen oberen Boxen wurden zu einer einheitlichen, modernen **Bento Hero Box** zusammengefasst.
+  - Beseitigung redundanter doppelter „KW X“-Angaben.
+  - Nahtlos integrierter Einkaufswagen-Fortschrittsbalken und Kassenbetrag-Schätzung.
+  - Integrierter Schnellzugriff „+ Eigenen Artikel hinzufügen“ und Wochenplan-Sprunglink.
+- **Flurfunk: Neues Mobil-Layout für Tabs (Segmented Control)**:
+  - Ersatz der bisherigen Buttons durch eine saubere, moderne 50/50-Segmented-Pill-Bar im iOS-/Bento-Stil, die sich auf Smartphones gleichmäßig über die Breite verteilt und nicht mehr umbricht.
+- **Flurfunk: Minimalistische Vektorgrafik im Empty State**:
+  - Die bisherigen Emojis (`🎉 📻 ☕`) im leeren Flurfunk-Zustand wurden durch eine feine, stilisierte Zigaretten-Vektorgrafik (SVG) mit sanften Rauchschwaden und glimmender Spitze ersetzt – passend zum WG-Konzept des „Flurfunks“ an der Raucherecke.
+- **Wochenplan: Bereinigung der mobilen Ansicht**:
+  - Die Textzeile „Geplante Kochtage für Standort...“ wird auf Smartphones nun ausgeblendet (`hidden sm:flex`), was für eine wesentlich ruhigere und aufgeräumtere mobile Darstellung sorgt.
+
 ## [0.1.0-beta.20] - 2026-09-16
 
 ### Hinzugefügt & Verbessert

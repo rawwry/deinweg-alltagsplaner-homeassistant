@@ -154,6 +154,77 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
         </div>
       </div>
 
+      {/* Resident Reply Notification Banner */}
+      {user?.role === 'BEWOHNER' &&
+        notesList.filter((n: any) => n.residentId === user?.id && n.hasUnreadResponse && n.caregiverResponse).length > 0 && (
+          <div className="space-y-3">
+            {notesList
+              .filter((n: any) => n.residentId === user?.id && n.hasUnreadResponse && n.caregiverResponse)
+              .map((note: any) => (
+                <div
+                  key={note.id}
+                  className="bg-gradient-to-r from-rose-500/20 via-pink-500/15 to-surface-card border border-rose-500/50 rounded-3xl p-4 sm:p-5 shadow-xl shadow-rose-500/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2 duration-200"
+                >
+                  <div className="flex items-start gap-3.5">
+                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-rose-500/30 font-bold text-lg">
+                      💬
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-500 text-white uppercase tracking-wider font-display animate-pulse">
+                          Neue Antwort im Flurfunk
+                        </span>
+                        <span className="text-xs text-slate-300 font-medium">
+                          von {note.respondedByName || 'Betreuer'}
+                        </span>
+                      </div>
+                      <h4 className="text-sm font-semibold text-white mt-1">
+                        Zu deinem Beitrag: „{note.title}“
+                      </h4>
+                      <p className="text-xs text-rose-200/90 mt-0.5 line-clamp-2 italic font-sans">
+                        „{note.caregiverResponse}“
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 w-full sm:w-auto self-end sm:self-center shrink-0">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          await api.notes.markRead(note.id);
+                          setNotesList((prev) =>
+                            prev.map((n) => (n.id === note.id ? { ...n, hasUnreadResponse: false } : n))
+                          );
+                        } catch (e) {
+                          console.error(e);
+                        }
+                      }}
+                      className="px-3.5 py-2 bg-surface-card/80 hover:bg-surface-elevated border border-surface-border text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+                    >
+                      Als gelesen abhaken
+                    </button>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          await api.notes.markRead(note.id);
+                        } catch (e) {
+                          console.error(e);
+                        }
+                        setCurrentTab('notes');
+                      }}
+                      className="px-4 py-2 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md shadow-rose-500/25 transition-all cursor-pointer"
+                    >
+                      <span>Zum Flurfunk</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+          </div>
+        )}
+
       {/* Asymmetric Bento Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
         {/* Bento 1: Bistro Hero Meal Spotlight (Span 2) */}

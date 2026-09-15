@@ -12,6 +12,7 @@ import {
   Euro,
   Tag,
   Sparkles,
+  ArrowRight,
 } from 'lucide-react';
 
 interface ShoppingListViewProps {
@@ -193,104 +194,115 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-24 md:pb-8">
-      {/* Top Header Card */}
-      <div className="bg-surface-card rounded-[2.5rem] p-6 border border-surface-border shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-xl sm:text-2xl font-display font-semibold text-white tracking-tight flex items-center gap-2">
-              <span className="text-2xl">🛒</span>
-              <span>Gemeinsame Einkaufsliste</span>
-            </h1>
-            <span className="text-xs font-bold px-3 py-1 bg-emerald-500/15 text-emerald-300 rounded-full border border-emerald-500/30 font-mono">
-              KW {weekNumber} • {year}
-            </span>
-          </div>
-          <p className="text-xs text-slate-400 mt-1.5 font-normal">
-            Alle Zutaten und Haushaltsartikel für unsere WG-Woche ({activeLocation?.name || user?.locationName || 'Emsdetten'})
-          </p>
-        </div>
+      {/* Harmonious Bento Hero Box */}
+      <div className="bg-surface-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border shadow-xl space-y-5 relative overflow-hidden">
+        {/* Subtle decorative ambient glow */}
+        <div className="absolute -right-12 -top-12 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Week Switcher */}
-        <div className="inline-flex items-center bg-surface-elevated/80 border border-surface-border rounded-2xl p-1 shadow-inner">
-          <button
-            type="button"
-            onClick={handlePrevWeek}
-            className="p-2 hover:bg-surface-card rounded-xl text-slate-300 hover:text-white transition-colors cursor-pointer"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <span className="px-3 text-xs font-bold text-white font-mono">KW {weekNumber}</span>
-          <button
-            type="button"
-            onClick={handleNextWeek}
-            className="p-2 hover:bg-surface-card rounded-xl text-slate-300 hover:text-white transition-colors cursor-pointer"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-
-      {/* Progress & Supermarket Price Estimate Card */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Progress Bar Card */}
-        <div className="bento-card rounded-[2rem] p-5 border border-surface-border">
-          <div className="flex items-center justify-between text-xs font-semibold text-slate-300 mb-2.5">
-            <span className="flex items-center gap-1.5">
-              <span>🧺</span>
-              <span className="font-display font-bold">Im Einkaufswagen</span>
-            </span>
-            <span className="text-emerald-400 font-bold font-mono">
-              {checkedCount} von {totalCount} ({progressPercent}%)
-            </span>
-          </div>
-          <div className="w-full h-3 bg-surface-elevated rounded-full overflow-hidden border border-surface-border/60">
-            <div
-              className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-300 shadow-sm"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Cost Estimate Card */}
-        <div className="bento-card rounded-[2rem] p-5 border border-surface-border flex items-center justify-between">
+        {/* Top Header Row: Title & Controls */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <div className="text-xs text-slate-400 font-medium flex items-center gap-1.5 font-display">
-              <Euro className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Geschätzter Kassenbetrag</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/15 border border-emerald-500/30 rounded-full text-xs font-semibold text-emerald-300 mb-2 font-display">
+              <span>🛒</span>
+              <span>Gemeinsame Einkaufsliste</span>
+              <span className="text-slate-600">•</span>
+              <span className="text-slate-300 font-mono">KW {weekNumber} ({year})</span>
             </div>
-            <div className="text-xl font-display font-bold text-white flex items-center gap-1.5 mt-1 font-mono">
-              <span>{shoppingData?.totalEstimatedCost?.toFixed(2) || '0.00'} €</span>
+            <h1 className="text-xl sm:text-2xl font-display font-semibold text-white tracking-tight">
+              Einkauf & Vorräte
+            </h1>
+            <p className="text-xs text-slate-400 mt-1 font-normal">
+              Alle Zutaten und Haushaltsartikel für {activeLocation?.name || user?.locationName || 'unsere WG'}
+            </p>
+          </div>
+
+          {/* Week Switcher & Navigation without duplicate KW */}
+          <div className="flex items-center gap-2 self-stretch sm:self-auto justify-between sm:justify-end">
+            <div className="inline-flex items-center bg-surface-elevated border border-surface-border rounded-2xl p-1 shadow-inner">
+              <button
+                type="button"
+                onClick={handlePrevWeek}
+                className="p-2 hover:bg-surface-card rounded-xl text-slate-300 hover:text-white transition-colors cursor-pointer"
+                title="Vorherige Woche"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="px-3 text-xs font-bold text-white font-mono">KW {weekNumber}</span>
+              <button
+                type="button"
+                onClick={handleNextWeek}
+                className="p-2 hover:bg-surface-card rounded-xl text-slate-300 hover:text-white transition-colors cursor-pointer"
+                title="Nächste Woche"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setCurrentTab('mealplan')}
+              className="px-3.5 py-2 bg-surface-elevated hover:bg-surface-card border border-surface-border text-slate-300 hover:text-white rounded-2xl text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5"
+            >
+              <span>Wochenplan</span>
+              <ArrowRight className="w-3.5 h-3.5 text-rose-400" />
+            </button>
+          </div>
+        </div>
+
+        {/* Integrated Metrics: Progress Bar & Supermarket Price Estimate */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-2 border-t border-white/5 items-center">
+          {/* Progress Bar (Col Span 2) */}
+          <div className="md:col-span-2 bg-surface-elevated/70 border border-surface-border rounded-2xl p-4">
+            <div className="flex items-center justify-between text-xs mb-2">
+              <span className="font-semibold text-slate-300 flex items-center gap-1.5 font-display">
+                <span>🧺</span>
+                <span>Im Einkaufswagen</span>
+              </span>
+              <span className="text-emerald-400 font-bold font-mono">
+                {checkedCount} von {totalCount} Artikeln ({progressPercent}%)
+              </span>
+            </div>
+            <div className="w-full h-2.5 bg-surface-card rounded-full overflow-hidden border border-surface-border/60">
+              <div
+                className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-300 shadow-sm"
+                style={{ width: `${progressPercent}%` }}
+              />
             </div>
           </div>
-          <div className="text-right">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-display">
-              Supermarkt
-            </span>
-            <div className="text-xs font-bold text-rose-200">
-              {shoppingData?.supermarketName || 'Supermarkt'}
+
+          {/* Supermarket & Cost Estimate */}
+          <div className="bg-surface-elevated/70 border border-surface-border rounded-2xl p-4 flex items-center justify-between">
+            <div>
+              <div className="text-[11px] text-slate-400 font-medium flex items-center gap-1 font-display">
+                <Euro className="w-3 h-3 text-emerald-400" />
+                <span>Kassen-Schätzung</span>
+              </div>
+              <div className="text-lg sm:text-xl font-display font-bold text-white mt-0.5 font-mono">
+                {shoppingData?.totalEstimatedCost?.toFixed(2) || '0.00'} €
+              </div>
+            </div>
+            <div className="text-right">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-display">
+                Markt
+              </span>
+              <div className="text-xs font-bold text-emerald-300">
+                {shoppingData?.supermarketName || 'Supermarkt'}
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Add Custom Item Toggle */}
-      <div className="flex justify-between items-center">
-        <button
-          type="button"
-          onClick={() => setShowAddCustom(!showAddCustom)}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-surface-elevated hover:bg-surface-card text-slate-200 hover:text-white border border-surface-border text-xs font-bold rounded-2xl transition-colors cursor-pointer shadow-xs"
-        >
-          <Plus className="w-4 h-4 text-emerald-400" />
-          <span>Zusätzlichen Artikel hinzufügen (Kaffee, Obst, Drogerie...)</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setCurrentTab('mealplan')}
-          className="text-xs text-rose-400 hover:text-rose-300 hover:underline font-semibold cursor-pointer"
-        >
-          Zum Wochenplan →
-        </button>
+        {/* Quick Add Custom Item Button */}
+        <div className="flex items-center justify-between pt-1">
+          <button
+            type="button"
+            onClick={() => setShowAddCustom(!showAddCustom)}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
+          >
+            <Plus className="w-3.5 h-3.5 text-emerald-400" />
+            <span>+ Eigenen Artikel hinzufügen (Kaffee, Obst, Drogerie...)</span>
+          </button>
+        </div>
       </div>
 
       {/* Add Custom Item Form */}

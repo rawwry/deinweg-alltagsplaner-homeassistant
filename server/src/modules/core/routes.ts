@@ -721,6 +721,10 @@ router.get('/admin/smtp', requireAuth, requireRole('ADMIN', 'BETREUER'), async (
       hasPassword: !!(setting?.password),
       fromEmail: setting?.fromEmail || '',
       fromName: setting?.fromName || 'Deine WG: Alltagsplaner',
+      residentReplyTemplateSubject: setting?.residentReplyTemplateSubject || 'Neue Antwort im Flurfunk: {noteTitle}',
+      residentReplyTemplateBody: setting?.residentReplyTemplateBody || 'Hallo {residentName},\n\n{responderName} hat auf deinen Flurfunk-Beitrag geantwortet:\n\n"{replyText}"\n\nSchau gerne im Alltagsplaner vorbei, um mehr zu erfahren.\n\nViele Grüße,\nDein WG-Team',
+      caregiverNotificationTemplateSubject: setting?.caregiverNotificationTemplateSubject || 'Neue Flurfunk-Nachricht an Betreuer ({locationName}): {noteTitle}',
+      caregiverNotificationTemplateBody: setting?.caregiverNotificationTemplateBody || 'Hallo Betreuer-Team,\n\n{authorName} hat eine neue Nachricht im Flurfunk ({locationName}) hinterlassen:\n\n"{noteContent}"\n\nBitte prüfe die Nachricht im Alltagsplaner.\n\nViele Grüße,\nDein WG-System',
       configured: !!(setting?.host && setting?.fromEmail),
     });
   } catch (err) {
@@ -731,7 +735,19 @@ router.get('/admin/smtp', requireAuth, requireRole('ADMIN', 'BETREUER'), async (
 
 router.post('/admin/smtp', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
   try {
-    const { host, port, secure, user, password, fromEmail, fromName } = req.body;
+    const {
+      host,
+      port,
+      secure,
+      user,
+      password,
+      fromEmail,
+      fromName,
+      residentReplyTemplateSubject,
+      residentReplyTemplateBody,
+      caregiverNotificationTemplateSubject,
+      caregiverNotificationTemplateBody,
+    } = req.body;
 
     const data: any = {
       host: host?.trim() || '',
@@ -741,6 +757,19 @@ router.post('/admin/smtp', requireAuth, requireRole('ADMIN', 'BETREUER'), async 
       fromEmail: fromEmail?.trim() || '',
       fromName: fromName?.trim() || 'Deine WG: Alltagsplaner',
     };
+
+    if (residentReplyTemplateSubject !== undefined) {
+      data.residentReplyTemplateSubject = residentReplyTemplateSubject.trim();
+    }
+    if (residentReplyTemplateBody !== undefined) {
+      data.residentReplyTemplateBody = residentReplyTemplateBody;
+    }
+    if (caregiverNotificationTemplateSubject !== undefined) {
+      data.caregiverNotificationTemplateSubject = caregiverNotificationTemplateSubject.trim();
+    }
+    if (caregiverNotificationTemplateBody !== undefined) {
+      data.caregiverNotificationTemplateBody = caregiverNotificationTemplateBody;
+    }
 
     if (password !== undefined && password !== '') {
       data.password = password;
@@ -767,6 +796,10 @@ router.post('/admin/smtp', requireAuth, requireRole('ADMIN', 'BETREUER'), async 
         hasPassword: !!updated.password,
         fromEmail: updated.fromEmail,
         fromName: updated.fromName,
+        residentReplyTemplateSubject: updated.residentReplyTemplateSubject,
+        residentReplyTemplateBody: updated.residentReplyTemplateBody,
+        caregiverNotificationTemplateSubject: updated.caregiverNotificationTemplateSubject,
+        caregiverNotificationTemplateBody: updated.caregiverNotificationTemplateBody,
       },
     });
   } catch (err) {

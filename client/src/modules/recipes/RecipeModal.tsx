@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { RecipeSummary } from '../../../../shared/types.js';
-import { X, Clock, Users, ChefHat, Plus, Minus, BookOpen, Trash2, Camera, Utensils } from 'lucide-react';
+import { X, Clock, Users, ChefHat, Plus, Minus, BookOpen, Trash2, Camera, Utensils, Pencil } from 'lucide-react';
 import { api } from '../../api/client.js';
+import { RecipeEditModal } from './RecipeEditModal.js';
 
 interface RecipeModalProps {
   recipe: RecipeSummary | null;
@@ -24,6 +25,7 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
   const [servings, setServings] = useState<number>(defaultServings);
   const [imageUrl, setImageUrl] = useState<string | null>(recipe?.imageUrl || null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!recipe) return null;
@@ -235,16 +237,28 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-surface-elevated/80 border-t border-surface-border flex items-center justify-between">
-          {isStaff && onDelete ? (
-            <button
-              type="button"
-              onClick={() => onDelete(recipe.id, recipe.title)}
-              className="px-4 py-2 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <Trash2 className="w-3.5 h-3.5 text-rose-400" />
-              <span>Rezept löschen</span>
-            </button>
+        <div className="p-4 bg-surface-elevated/80 border-t border-surface-border flex flex-wrap items-center justify-between gap-2.5">
+          {isStaff ? (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsEditing(true)}
+                className="px-4 py-2 bg-theme-primary/15 hover:bg-theme-primary/25 border border-theme-primary/30 text-theme-primary rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                <span>Rezept bearbeiten</span>
+              </button>
+              {onDelete && (
+                <button
+                  type="button"
+                  onClick={() => onDelete(recipe.id, recipe.title)}
+                  className="px-3.5 py-2 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                  <span className="hidden sm:inline">Löschen</span>
+                </button>
+              )}
+            </div>
           ) : (
             <div />
           )}
@@ -252,12 +266,24 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2 bg-surface-card hover:bg-surface-elevated border border-surface-border text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
+            className="px-5 py-2 bg-surface-card hover:bg-surface-elevated border border-surface-border text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-colors cursor-pointer ml-auto"
           >
             Schließen
           </button>
         </div>
       </div>
+
+      {isEditing && (
+        <RecipeEditModal
+          recipe={recipe}
+          onClose={() => setIsEditing(false)}
+          onSaved={(updated) => {
+            setIsEditing(false);
+            setImageUrl(updated.imageUrl || null);
+            if (onRecipeUpdated) onRecipeUpdated(updated);
+          }}
+        />
+      )}
     </div>,
     document.body
   );

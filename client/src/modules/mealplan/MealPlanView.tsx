@@ -337,9 +337,9 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
         </div>
       </div>
 
-      {/* Kochtage info & toggle if < 7 days */}
+      {/* Kochtage info & toggle if < 7 days - Hidden on mobile */}
       {configuredCookingDays.length < 7 && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-2 text-xs">
+        <div className="hidden sm:flex sm:flex-row sm:items-center justify-between gap-2 px-2 text-xs">
           <div className="text-slate-400 font-medium">
             Geplante Kochtage für {activeLocation?.name}:{' '}
             <strong className="text-slate-200 font-semibold">

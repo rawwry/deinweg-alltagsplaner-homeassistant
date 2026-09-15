@@ -26,6 +26,10 @@ export interface SmtpSettingSummary {
   hasPassword: boolean;
   fromEmail: string;
   fromName: string;
+  residentReplyTemplateSubject?: string;
+  residentReplyTemplateBody?: string;
+  caregiverNotificationTemplateSubject?: string;
+  caregiverNotificationTemplateBody?: string;
   configured?: boolean;
 }
 
@@ -135,6 +139,8 @@ export interface CaregiverNoteSummary {
   content: string;
   status: 'OPEN' | 'IN_PROGRESS' | 'DONE';
   isArchived: boolean;
+  isPrivate?: boolean;
+  hasUnreadResponse?: boolean;
   caregiverResponse?: string | null;
   respondedByName?: string | null;
   respondedAt?: string | null;

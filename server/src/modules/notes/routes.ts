@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { prisma } from '../../db.js';
 import { requireAuth } from '../../middleware/auth.js';
 import { requireRole } from '../../middleware/rbac.js';
+import { sendResidentReplyEmail, sendCaregiverNewNoteEmail } from '../../utils/mailer.js';
 
 const router = Router();
 
@@ -18,6 +19,13 @@ router.get('/count-open', requireAuth, async (req: Request, res: Response) => {
     };
     if (locationId) {
       whereClause.locationId = locationId;
+    }
+
+    if (!isStaff) {
+      whereClause.OR = [
+        { isPrivate: false },
+        { residentId: req.user!.id },
+      ];
     }
 
     const count = await prisma.caregiverNote.count({ where: whereClause });
@@ -50,6 +58,14 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
       whereClause.isArchived = false;
     }
 
+    // Residents only see public notes or their own private notes
+    if (!isStaff) {
+      whereClause.OR = [
+        { isPrivate: false },
+        { residentId: req.user!.id },
+      ];
+    }
+
     const notes = await prisma.caregiverNote.findMany({
       where: whereClause,
       include: {
@@ -76,6 +92,8 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
       content: n.content,
       status: n.status,
       isArchived: n.isArchived,
+      isPrivate: n.isPrivate,
+      hasUnreadResponse: n.hasUnreadResponse,
       caregiverResponse: n.caregiverResponse,
       respondedAt: n.respondedAt?.toISOString() || null,
       respondedByName: n.respondedByUserId ? responderMap.get(n.respondedByUserId) || 'Betreuer' : null,
@@ -92,7 +110,7 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
 
 router.post('/', requireAuth, async (req: Request, res: Response) => {
   try {
-    const { title, content, locationId, residentId } = req.body;
+    const { title, content, locationId, residentId, isPrivate } = req.body;
 
     if (!title || !content) {
       return res.status(400).json({ error: 'Titel und Inhalt sind erforderlich.' });
@@ -111,23 +129,41 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
         residentId: resId,
         title,
         content,
+        isPrivate: Boolean(isPrivate),
+        hasUnreadResponse: false,
         status: 'OPEN',
         isArchived: false,
       },
       include: {
         resident: { select: { name: true } },
+        location: { select: { name: true } },
       },
     });
+
+    // If private or directed to caregivers, notify caregivers via email
+    if (note.isPrivate) {
+      sendCaregiverNewNoteEmail({
+        locationId: note.locationId,
+        locationName: note.location.name,
+        authorName: note.resident.name,
+        noteTitle: note.title,
+        noteContent: note.content,
+        isPrivate: true,
+      }).catch((err) => console.error('[Mailer] Fehler beim Senden an Betreuer:', err));
+    }
 
     return res.json({
       id: note.id,
       locationId: note.locationId,
+      locationName: note.location.name,
       residentId: note.residentId,
       residentName: note.resident.name,
       title: note.title,
       content: note.content,
       status: note.status,
       isArchived: note.isArchived,
+      isPrivate: note.isPrivate,
+      hasUnreadResponse: note.hasUnreadResponse,
       caregiverResponse: null,
       respondedAt: null,
       respondedByName: null,
@@ -161,13 +197,26 @@ router.post('/:id/respond', requireAuth, requireRole('ADMIN', 'BETREUER'), async
         caregiverResponse: responseText.trim(),
         respondedAt: new Date(),
         respondedByUserId: req.user!.id,
+        hasUnreadResponse: true,
         status: note.status === 'OPEN' ? 'IN_PROGRESS' : note.status,
       },
       include: {
-        resident: { select: { name: true } },
+        resident: { select: { id: true, name: true, email: true } },
         location: { select: { name: true } },
       },
     });
+
+    // Notify resident via email if email address is configured
+    if (updated.resident?.email) {
+      sendResidentReplyEmail({
+        residentEmail: updated.resident.email,
+        residentName: updated.resident.name,
+        noteTitle: updated.title,
+        responderName: req.user!.name,
+        replyText: responseText.trim(),
+        locationName: updated.location.name,
+      }).catch((err) => console.error('[Mailer] Fehler beim Senden an Bewohner:', err));
+    }
 
     return res.json({
       id: updated.id,
@@ -179,6 +228,8 @@ router.post('/:id/respond', requireAuth, requireRole('ADMIN', 'BETREUER'), async
       content: updated.content,
       status: updated.status,
       isArchived: updated.isArchived,
+      isPrivate: updated.isPrivate,
+      hasUnreadResponse: updated.hasUnreadResponse,
       caregiverResponse: updated.caregiverResponse,
       respondedAt: updated.respondedAt?.toISOString() || null,
       respondedByName: req.user!.name,
@@ -188,6 +239,33 @@ router.post('/:id/respond', requireAuth, requireRole('ADMIN', 'BETREUER'), async
   } catch (err) {
     console.error('Fehler beim Beantworten des Tickets:', err);
     return res.status(500).json({ error: 'Fehler beim Beantworten des Tickets.' });
+  }
+});
+
+// PATCH /api/notes/:id/read - Mark unread response as read
+router.patch('/:id/read', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const note = await prisma.caregiverNote.findUnique({ where: { id } });
+    if (!note) {
+      return res.status(404).json({ error: 'Notiz nicht gefunden.' });
+    }
+
+    if (req.user!.role === 'BEWOHNER' && note.residentId !== req.user!.id) {
+      return res.status(403).json({ error: 'Zugriff verweigert.' });
+    }
+
+    const updated = await prisma.caregiverNote.update({
+      where: { id },
+      data: {
+        hasUnreadResponse: false,
+      },
+    });
+
+    return res.json({ success: true, id: updated.id, hasUnreadResponse: updated.hasUnreadResponse });
+  } catch (err) {
+    console.error('Fehler beim Markieren als gelesen:', err);
+    return res.status(500).json({ error: 'Fehler beim Markieren als gelesen.' });
   }
 });
 

@@ -100,6 +100,26 @@ router.get('/recipes/:id', requireAuth, async (req: Request, res: Response) => {
   }
 });
 
+async function resolveIngredientId(item: { ingredientId?: string; name?: string; unit?: string; category?: string }) {
+  if (item.ingredientId) return item.ingredientId;
+  const name = item.name?.trim();
+  if (!name) return null;
+
+  const existing = await prisma.ingredient.findFirst({
+    where: { name: { equals: name } },
+  });
+  if (existing) return existing.id;
+
+  const created = await prisma.ingredient.create({
+    data: {
+      name,
+      standardUnit: item.unit || 'g',
+      category: item.category || 'Sonstiges',
+    },
+  });
+  return created.id;
+}
+
 router.post('/recipes', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
   try {
     const { title, description, instructions, category, defaultServings, prepTimeMinutes, imageUrl, ingredients } = req.body;
@@ -122,11 +142,13 @@ router.post('/recipes', requireAuth, requireRole('ADMIN', 'BETREUER'), async (re
 
     if (Array.isArray(ingredients)) {
       for (const item of ingredients) {
-        if (!item.ingredientId || !item.amount) continue;
+        if (!item.amount) continue;
+        const ingId = await resolveIngredientId(item);
+        if (!ingId) continue;
         await prisma.recipeIngredient.create({
           data: {
             recipeId: recipe.id,
-            ingredientId: item.ingredientId,
+            ingredientId: ingId,
             amount: Number(item.amount),
             unit: item.unit || 'g',
             notes: item.notes,
@@ -135,7 +157,34 @@ router.post('/recipes', requireAuth, requireRole('ADMIN', 'BETREUER'), async (re
       }
     }
 
-    return res.json(recipe);
+    const createdRecipe = await prisma.recipe.findUnique({
+      where: { id: recipe.id },
+      include: {
+        ingredients: {
+          include: { ingredient: true },
+        },
+      },
+    });
+
+    return res.json({
+      id: createdRecipe!.id,
+      title: createdRecipe!.title,
+      description: createdRecipe!.description,
+      instructions: createdRecipe!.instructions,
+      category: createdRecipe!.category,
+      defaultServings: createdRecipe!.defaultServings,
+      prepTimeMinutes: createdRecipe!.prepTimeMinutes,
+      imageUrl: createdRecipe!.imageUrl,
+      ingredients: createdRecipe!.ingredients.map((ri) => ({
+        id: ri.id,
+        ingredientId: ri.ingredientId,
+        name: ri.ingredient.name,
+        amount: ri.amount,
+        unit: ri.unit,
+        category: ri.ingredient.category,
+        notes: ri.notes,
+      })),
+    });
   } catch (err) {
     console.error('Fehler beim Erstellen des Rezepts:', err);
     return res.status(500).json({ error: 'Fehler beim Erstellen des Rezepts.' });
@@ -147,7 +196,7 @@ router.put('/recipes/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), async 
     const { id } = req.params;
     const { title, description, instructions, category, defaultServings, prepTimeMinutes, imageUrl, ingredients } = req.body;
 
-    const recipe = await prisma.recipe.update({
+    await prisma.recipe.update({
       where: { id },
       data: {
         title,
@@ -163,11 +212,13 @@ router.put('/recipes/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), async 
     if (Array.isArray(ingredients)) {
       await prisma.recipeIngredient.deleteMany({ where: { recipeId: id } });
       for (const item of ingredients) {
-        if (!item.ingredientId || !item.amount) continue;
+        if (!item.amount) continue;
+        const ingId = await resolveIngredientId(item);
+        if (!ingId) continue;
         await prisma.recipeIngredient.create({
           data: {
             recipeId: id,
-            ingredientId: item.ingredientId,
+            ingredientId: ingId,
             amount: Number(item.amount),
             unit: item.unit || 'g',
             notes: item.notes,
@@ -176,7 +227,34 @@ router.put('/recipes/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), async 
       }
     }
 
-    return res.json(recipe);
+    const updatedRecipe = await prisma.recipe.findUnique({
+      where: { id },
+      include: {
+        ingredients: {
+          include: { ingredient: true },
+        },
+      },
+    });
+
+    return res.json({
+      id: updatedRecipe!.id,
+      title: updatedRecipe!.title,
+      description: updatedRecipe!.description,
+      instructions: updatedRecipe!.instructions,
+      category: updatedRecipe!.category,
+      defaultServings: updatedRecipe!.defaultServings,
+      prepTimeMinutes: updatedRecipe!.prepTimeMinutes,
+      imageUrl: updatedRecipe!.imageUrl,
+      ingredients: updatedRecipe!.ingredients.map((ri) => ({
+        id: ri.id,
+        ingredientId: ri.ingredientId,
+        name: ri.ingredient.name,
+        amount: ri.amount,
+        unit: ri.unit,
+        category: ri.ingredient.category,
+        notes: ri.notes,
+      })),
+    });
   } catch (err) {
     console.error('Fehler beim Aktualisieren des Rezepts:', err);
     return res.status(500).json({ error: 'Fehler beim Aktualisieren des Rezepts.' });

@@ -16,6 +16,9 @@ import {
   Bell,
   MessageSquare,
   Sparkles,
+  Lock,
+  Globe,
+  Check,
 } from 'lucide-react';
 
 export const CaregiverNotesView: React.FC = () => {
@@ -27,6 +30,7 @@ export const CaregiverNotesView: React.FC = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [isPrivate, setIsPrivate] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   // Response input state per ticket
@@ -60,10 +64,12 @@ export const CaregiverNotesView: React.FC = () => {
         title: title.trim(),
         content: content.trim(),
         locationId: activeLocationId,
+        isPrivate,
       });
 
       setTitle('');
       setContent('');
+      setIsPrivate(false);
       setShowAddForm(false);
       if (activeTab !== 'ACTIVE') {
         setActiveTab('ACTIVE');
@@ -168,16 +174,16 @@ export const CaregiverNotesView: React.FC = () => {
         </div>
       )}
 
-      {/* Tabs: Active vs Archive */}
-      <div className="flex items-center justify-between border-b border-surface-border pb-3">
-        <div className="flex items-center gap-2 text-xs">
+      {/* Tabs: Active vs Archive - Modern Segmented Control */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-surface-border pb-3">
+        <div className="bg-surface-card/90 p-1.5 rounded-2xl border border-surface-border flex items-center gap-1.5 w-full sm:w-auto shadow-inner">
           <button
             type="button"
             onClick={() => setActiveTab('ACTIVE')}
-            className={`px-4 py-2 rounded-2xl font-semibold transition-all flex items-center gap-2 cursor-pointer ${
+            className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
               activeTab === 'ACTIVE'
                 ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md shadow-rose-500/20'
-                : 'bg-surface-elevated text-slate-400 hover:text-white border border-surface-border'
+                : 'text-slate-400 hover:text-white hover:bg-surface-elevated/60'
             }`}
           >
             <span>📌</span>
@@ -192,14 +198,14 @@ export const CaregiverNotesView: React.FC = () => {
           <button
             type="button"
             onClick={() => setActiveTab('ARCHIVE')}
-            className={`px-4 py-2 rounded-2xl font-semibold transition-all flex items-center gap-2 cursor-pointer ${
+            className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
               activeTab === 'ARCHIVE'
                 ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md shadow-rose-500/20'
-                : 'bg-surface-elevated text-slate-400 hover:text-white border border-surface-border'
+                : 'text-slate-400 hover:text-white hover:bg-surface-elevated/60'
             }`}
           >
             <span>✅</span>
-            <span>Erledigt & Archiviert</span>
+            <span>Erledigt & Archiv</span>
           </button>
         </div>
 
@@ -217,9 +223,61 @@ export const CaregiverNotesView: React.FC = () => {
           <div className="flex items-center justify-between border-b border-white/5 pb-3">
             <h3 className="text-sm font-display font-semibold text-white flex items-center gap-2">
               <span>✏️</span>
-              <span>Neue Notiz für die WG oder Betreuer schreiben</span>
+              <span>Neuen Beitrag für den Flurfunk schreiben</span>
             </h3>
             <span className="text-xs text-slate-400">Verfasser: <strong className="text-slate-200">{user?.name}</strong></span>
+          </div>
+
+          {/* Visibility Option */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-300 font-display">Sichtbarkeit des Beitrags</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setIsPrivate(false)}
+                className={`p-3 rounded-2xl border text-left flex items-start gap-3 transition-all cursor-pointer ${
+                  !isPrivate
+                    ? 'bg-rose-500/15 border-rose-500/40 text-white shadow-sm'
+                    : 'bg-surface-elevated border-surface-border text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <div className={`p-2 rounded-xl shrink-0 ${!isPrivate ? 'bg-rose-500 text-white' : 'bg-surface-card text-slate-400'}`}>
+                  <Globe className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-slate-100 flex items-center gap-1.5">
+                    <span>Öffentlich für alle</span>
+                    {!isPrivate && <Check className="w-3.5 h-3.5 text-rose-400" />}
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
+                    Für alle Bewohner und Betreuer der WG sichtbar.
+                  </p>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsPrivate(true)}
+                className={`p-3 rounded-2xl border text-left flex items-start gap-3 transition-all cursor-pointer ${
+                  isPrivate
+                    ? 'bg-purple-500/15 border-purple-500/40 text-white shadow-sm'
+                    : 'bg-surface-elevated border-surface-border text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <div className={`p-2 rounded-xl shrink-0 ${isPrivate ? 'bg-purple-600 text-white' : 'bg-surface-card text-slate-400'}`}>
+                  <Lock className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-slate-100 flex items-center gap-1.5">
+                    <span>Privat an Betreuer</span>
+                    {isPrivate && <Check className="w-3.5 h-3.5 text-purple-400" />}
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
+                    Nur für dich und das Betreuer-Team des Standorts sichtbar.
+                  </p>
+                </div>
+              </button>
+            </div>
           </div>
 
           <div>
@@ -228,7 +286,7 @@ export const CaregiverNotesView: React.FC = () => {
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="z.B. Termin beim Bürgeramt, Rezept vom Arzt abholen, Neue Zahnpasta..."
+              placeholder="z.B. Termin beim Bürgeramt, Arzt-Rezept, Frage zur WG..."
               className="w-full px-4 py-2.5 bg-surface-elevated border border-surface-border rounded-2xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40"
               required
             />
@@ -240,7 +298,7 @@ export const CaregiverNotesView: React.FC = () => {
               rows={3}
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Was genau soll erledigt werden? Gibt es bestimmte Fristen oder Wünsche?"
+              placeholder="Was genau soll erledigt werden? Gibt es Fristen oder persönliche Wünsche?"
               className="w-full px-4 py-2.5 bg-surface-elevated border border-surface-border rounded-2xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans"
               required
             />
@@ -258,7 +316,7 @@ export const CaregiverNotesView: React.FC = () => {
               type="submit"
               className="px-5 py-2 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-rose-500/20 transition-all cursor-pointer"
             >
-              <span>Notiz anpinnen 📌</span>
+              <span>{isPrivate ? 'Private Notiz an Betreuer senden 🔒' : 'Notiz anpinnen 📌'}</span>
             </button>
           </div>
         </form>
@@ -274,10 +332,38 @@ export const CaregiverNotesView: React.FC = () => {
         <div className="bento-card rounded-[2.5rem] p-12 text-center border border-surface-border shadow-xl">
           {activeTab === 'ACTIVE' ? (
             <>
-              <div className="text-4xl mb-3">🎉 📻 ☕</div>
-              <h3 className="text-base font-display font-semibold text-slate-200">Alles erledigt & geklärt!</h3>
-              <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto leading-relaxed">
-                Im Flurfunk ist es aktuell ruhig. Wenn du ein Anliegen oder eine Frage hast, klicke einfach oben auf „Neuen Beitrag verfassen“.
+              {/* Minimalist Cigarette SVG Art */}
+              <div className="w-24 h-24 mx-auto mb-4 relative flex items-center justify-center">
+                <svg
+                  viewBox="0 0 100 100"
+                  className="w-24 h-24 text-rose-400 drop-shadow-md"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  {/* Soft rising smoke curls */}
+                  <path d="M 68 34 C 63 24, 75 16, 68 8 C 65 4, 69 2, 67 0" opacity="0.6" strokeDasharray="3 3" />
+                  <path d="M 77 32 C 84 22, 72 14, 79 6 C 83 2, 78 1, 81 0" opacity="0.35" />
+                  {/* Cigarette angled */}
+                  <g transform="rotate(-28 50 64)">
+                    {/* Filter tip */}
+                    <rect x="18" y="58" width="18" height="11" rx="2" fill="#d97706" stroke="#b45309" strokeWidth="1.5" />
+                    {/* Paper cigarette body */}
+                    <rect x="36" y="58" width="40" height="11" fill="#f8fafc" stroke="#94a3b8" strokeWidth="1.5" />
+                    {/* Ash ring */}
+                    <rect x="76" y="58" width="4" height="11" fill="#64748b" stroke="#475569" strokeWidth="1" />
+                    {/* Glowing ember */}
+                    <rect x="80" y="58" width="4" height="11" rx="1" fill="#f43f5e" stroke="#e11d48" strokeWidth="1" className="animate-pulse" />
+                    {/* Tiny glow ping */}
+                    <circle cx="85" cy="63.5" r="2.5" fill="#fda4af" className="animate-ping" opacity="0.8" />
+                  </g>
+                </svg>
+              </div>
+              <h3 className="text-base font-display font-semibold text-slate-200">Aktuell kein Flurfunk</h3>
+              <p className="text-xs text-slate-400 mt-1.5 max-w-sm mx-auto leading-relaxed">
+                Die WG-Raucherecke ist leer – aktuell gibt es keine offenen Mitteilungen oder Anliegen. Wenn du etwas besprechen möchtest, klicke einfach oben auf „Neuen Beitrag verfassen“.
               </p>
             </>
           ) : (
@@ -301,6 +387,8 @@ export const CaregiverNotesView: React.FC = () => {
                 className={`bento-card rounded-[2.5rem] p-6 sm:p-7 border shadow-md transition-all ${
                   note.isArchived
                     ? 'border-surface-border opacity-75'
+                    : note.isPrivate
+                    ? 'border-purple-500/30 bg-gradient-to-br from-purple-500/5 to-transparent'
                     : note.status === 'IN_PROGRESS'
                     ? 'border-sky-500/30 bg-gradient-to-br from-sky-500/5 to-transparent'
                     : 'border-rose-500/30 bg-gradient-to-br from-rose-500/5 to-transparent hover:border-rose-500/50'
@@ -308,7 +396,7 @@ export const CaregiverNotesView: React.FC = () => {
               >
                 {/* Meta Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span
                       className={`text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider font-display ${
                         note.isArchived
@@ -320,6 +408,20 @@ export const CaregiverNotesView: React.FC = () => {
                     >
                       {note.isArchived ? 'Gelöst & Archiviert' : note.status === 'IN_PROGRESS' ? 'In Bearbeitung' : 'Neu / Offen'}
                     </span>
+
+                    {/* Visibility Badge */}
+                    {note.isPrivate ? (
+                      <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/30 flex items-center gap-1 font-display">
+                        <Lock className="w-3 h-3 text-purple-400" />
+                        <span>Nur für Betreuer</span>
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-surface-elevated text-slate-400 border border-surface-border flex items-center gap-1 font-display">
+                        <Globe className="w-3 h-3 text-slate-400" />
+                        <span>Öffentlich</span>
+                      </span>
+                    )}
+
                     <span className="text-xs text-slate-400 flex items-center gap-1 font-mono">
                       <Clock className="w-3.5 h-3.5 text-slate-500" />
                       {formatGermanDateTime(note.createdAt)}

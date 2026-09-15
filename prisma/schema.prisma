@@ -182,6 +182,8 @@ model CaregiverNote {
   content             String
   status              String    @default("OPEN") // OPEN, IN_PROGRESS, DONE
   isArchived          Boolean   @default(false)
+  isPrivate           Boolean   @default(false)
+  hasUnreadResponse   Boolean   @default(false)
   caregiverResponse   String?
   respondedAt         DateTime?
   respondedByUserId   String?
@@ -206,14 +208,18 @@ model WastePickup {
 }
 
 model SmtpSetting {
-  id        String   @id @default("smtp-default")
-  host      String   @default("")
-  port      Int      @default(587)
-  secure    Boolean  @default(false)
-  user      String   @default("")
-  password  String   @default("")
-  fromEmail String   @default("")
-  fromName  String   @default("Dein Weg Alltagsplaner")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                                     String   @id @default("smtp-default")
+  host                                   String   @default("")
+  port                                   Int      @default(587)
+  secure                                 Boolean  @default(false)
+  user                                   String   @default("")
+  password                               String   @default("")
+  fromEmail                              String   @default("")
+  fromName                               String   @default("Dein Weg Alltagsplaner")
+  residentReplyTemplateSubject           String   @default("Neue Antwort im Flurfunk: {noteTitle}")
+  residentReplyTemplateBody              String   @default("Hallo {residentName},\n\n{responderName} hat auf deinen Flurfunk-Beitrag geantwortet:\n\n\"{replyText}\"\n\nSchau gerne im Alltagsplaner vorbei, um mehr zu erfahren.\n\nViele Grüße,\nDein WG-Team")
+  caregiverNotificationTemplateSubject   String   @default("Neue Flurfunk-Nachricht an Betreuer ({locationName}): {noteTitle}")
+  caregiverNotificationTemplateBody      String   @default("Hallo Betreuer-Team,\n\n{authorName} hat eine neue Nachricht im Flurfunk ({locationName}) hinterlassen:\n\n\"{noteContent}\"\n\nBitte prüfe die Nachricht im Alltagsplaner.\n\nViele Grüße,\nDein WG-System")
+  createdAt                              DateTime @default(now())
+  updatedAt                              DateTime @updatedAt
 }

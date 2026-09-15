@@ -97,6 +97,7 @@ const AppContent: React.FC = () => {
           recipe={selectedRecipeDetail}
           defaultServings={activeLocation?.defaultServings || 6}
           isStaff={isStaff}
+          onRecipeUpdated={(updated) => setSelectedRecipeDetail(updated)}
           onClose={() => setSelectedRecipeDetail(null)}
         />
       )}

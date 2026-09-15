@@ -131,6 +131,12 @@ export const AdminManagementView: React.FC = () => {
   const [smtpConfigured, setSmtpConfigured] = useState(false);
   const [showSmtpPassword, setShowSmtpPassword] = useState(false);
 
+  // Email Notification Templates
+  const [residentReplyTemplateSubject, setResidentReplyTemplateSubject] = useState('Neue Antwort im Flurfunk: {noteTitle}');
+  const [residentReplyTemplateBody, setResidentReplyTemplateBody] = useState('Hallo {residentName},\n\n{responderName} hat auf deinen Flurfunk-Beitrag geantwortet:\n\n"{replyText}"\n\nSchau gerne im Alltagsplaner vorbei, um mehr zu erfahren.\n\nViele Grüße,\nDein WG-Team');
+  const [caregiverNotificationTemplateSubject, setCaregiverNotificationTemplateSubject] = useState('Neue Flurfunk-Nachricht an Betreuer ({locationName}): {noteTitle}');
+  const [caregiverNotificationTemplateBody, setCaregiverNotificationTemplateBody] = useState('Hallo Betreuer-Team,\n\n{authorName} hat eine neue Nachricht im Flurfunk ({locationName}) hinterlassen:\n\n"{noteContent}"\n\nBitte prüfe die Nachricht im Alltagsplaner.\n\nViele Grüße,\nDein WG-System');
+
   const [isLoadingSmtp, setIsLoadingSmtp] = useState(false);
   const [isSavingSmtp, setIsSavingSmtp] = useState(false);
   const [smtpSaveSuccess, setSmtpSaveSuccess] = useState<string | null>(null);
@@ -179,6 +185,10 @@ export const AdminManagementView: React.FC = () => {
         setSmtpPassword(data.password || '');
         setSmtpFromEmail(data.fromEmail || '');
         setSmtpFromName(data.fromName || 'Deine WG: Alltagsplaner');
+        if (data.residentReplyTemplateSubject) setResidentReplyTemplateSubject(data.residentReplyTemplateSubject);
+        if (data.residentReplyTemplateBody) setResidentReplyTemplateBody(data.residentReplyTemplateBody);
+        if (data.caregiverNotificationTemplateSubject) setCaregiverNotificationTemplateSubject(data.caregiverNotificationTemplateSubject);
+        if (data.caregiverNotificationTemplateBody) setCaregiverNotificationTemplateBody(data.caregiverNotificationTemplateBody);
         setSmtpConfigured(!!data.configured);
       }
     } catch (err) {
@@ -468,6 +478,10 @@ export const AdminManagementView: React.FC = () => {
         password: smtpPassword,
         fromEmail: smtpFromEmail.trim(),
         fromName: smtpFromName.trim() || 'Deine WG: Alltagsplaner',
+        residentReplyTemplateSubject,
+        residentReplyTemplateBody,
+        caregiverNotificationTemplateSubject,
+        caregiverNotificationTemplateBody,
       });
 
       setSmtpConfigured(true);
@@ -2033,6 +2047,95 @@ export const AdminManagementView: React.FC = () => {
                     placeholder="Deine WG: Alltagsplaner"
                     className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
                   />
+                </div>
+              </div>
+
+              {/* Email Templates Section */}
+              <div className="pt-6 border-t border-slate-800 space-y-5">
+                <div>
+                  <h4 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+                    <span>✉️</span>
+                    <span>Flurfunk E-Mail-Benachrichtigungsvorlagen</span>
+                  </h4>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Passe Betreff und Nachrichtentexte der automatischen Benachrichtigungs-Mails an. Du kannst dynamische Platzhalter wie <code className="text-rose-300 bg-slate-800 px-1 py-0.5 rounded font-mono">{"{residentName}"}</code> nutzen.
+                  </p>
+                </div>
+
+                {/* Template 1: Caregiver Reply to Resident */}
+                <div className="bg-slate-950/60 p-4 sm:p-5 rounded-2xl border border-slate-800 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-rose-300 flex items-center gap-1.5">
+                      <span>💬</span>
+                      <span>Vorlage 1: Betreuer-Antwort an Bewohner</span>
+                    </span>
+                    <span className="text-[11px] text-slate-400 font-mono">
+                      Platzhalter: {"{residentName}"}, {"{noteTitle}"}, {"{responderName}"}, {"{replyText}"}, {"{locationName}"}
+                    </span>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                      E-Mail-Betreff
+                    </label>
+                    <input
+                      type="text"
+                      value={residentReplyTemplateSubject}
+                      onChange={(e) => setResidentReplyTemplateSubject(e.target.value)}
+                      placeholder="Neue Antwort im Flurfunk: {noteTitle}"
+                      className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                      Nachrichtentext
+                    </label>
+                    <textarea
+                      rows={4}
+                      value={residentReplyTemplateBody}
+                      onChange={(e) => setResidentReplyTemplateBody(e.target.value)}
+                      className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500 font-sans leading-relaxed"
+                    />
+                  </div>
+                </div>
+
+                {/* Template 2: Notification to Caregiver on Note */}
+                <div className="bg-slate-950/60 p-4 sm:p-5 rounded-2xl border border-slate-800 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-purple-300 flex items-center gap-1.5">
+                      <span>🔒</span>
+                      <span>Vorlage 2: Benachrichtigung an Betreuer bei Direktnachricht</span>
+                    </span>
+                    <span className="text-[11px] text-slate-400 font-mono">
+                      Platzhalter: {"{authorName}"}, {"{noteTitle}"}, {"{noteContent}"}, {"{locationName}"}
+                    </span>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                      E-Mail-Betreff
+                    </label>
+                    <input
+                      type="text"
+                      value={caregiverNotificationTemplateSubject}
+                      onChange={(e) => setCaregiverNotificationTemplateSubject(e.target.value)}
+                      placeholder="Neue Flurfunk-Nachricht an Betreuer ({locationName}): {noteTitle}"
+                      className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                      Nachrichtentext
+                    </label>
+                    <textarea
+                      rows={4}
+                      value={caregiverNotificationTemplateBody}
+                      onChange={(e) => setCaregiverNotificationTemplateBody(e.target.value)}
+                      className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 font-sans leading-relaxed"
+                    />
+                  </div>
                 </div>
               </div>
 
