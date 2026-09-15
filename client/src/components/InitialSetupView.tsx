@@ -239,7 +239,7 @@ export const InitialSetupView: React.FC<InitialSetupViewProps> = ({ onComplete }
         </div>
 
         <p className="mt-6 text-center text-xs text-slate-500">
-          Dein Weg Alltagsplaner <span className="font-semibold text-slate-400">v{APP_VERSION}</span>
+          Deine WG: Alltagsplaner <span className="font-semibold text-slate-400">v{APP_VERSION}</span>
         </p>
       </div>
     </div>

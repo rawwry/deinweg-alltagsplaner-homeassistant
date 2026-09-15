@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-echo "=== Starte Dein Weg Alltagsplaner ==="
+echo "=== Starte Deine WG: Alltagsplaner ==="
 
 # 1. Sicherstellen, dass /share Verzeichnisse auf Home Assistant OS existieren
 mkdir -p /share/deinweg-alltagsplaner/db

@@ -1,4 +1,4 @@
-# Dein Weg Alltagsplaner 🍽️📋
+# Deine WG: Alltagsplaner 🍽️📋
 
 Modulare Fullstack-Web-Applikation für das ambulant betreute Wohnen, die den wöchentlichen Essens- und Einkaufsplanungsprozess digitalisiert und als **Home Assistant Add-on** betrieben werden kann.
 
@@ -20,7 +20,7 @@ Modulare Fullstack-Web-Applikation für das ambulant betreute Wohnen, die den w�
   - Berechnung der Gesamtkosten für die Woche und Aufschlüsselung pro Tag.
 - **Rollenbasierte Benutzerverwaltung & Multi-Standort**:
   - **Bewohner**: Haben ausschließlich Zugriff auf ihren eigenen Standort.
-  - **Betreuer & Admin**: Standortübergreifender Zugriff mit schnellem Standortwechsler im Header.
+  - **Betreuer**: Standortübergreifender Zugriff mit schnellem Standortwechsler im Header.
   - Individueller Login mit Benutzername & Passwort („Eingeloggt bleiben“ Option).
 - **Erweiterungs-Module**:
   - **Bewohner-Notizen**: Eigene To-Dos & Anliegen direkt an die zuständigen Betreuer des Standorts.
@@ -40,7 +40,7 @@ Das Add-on lauscht auf **Port 4731**. Für den gesicherten Fernzugriff kann ein 
    ```
    https://github.com/rawwry/deinweg-alltagsplaner-homeassistant
    ```
-2. Wähle **Dein Weg Alltagsplaner** aus und klicke auf **Installieren**.
+2. Wähle **Deine WG: Alltagsplaner** aus und klicke auf **Installieren**.
 3. Starte das Add-on. Port 4731 ist im lokalen Netzwerk freigegeben.
 
 ---

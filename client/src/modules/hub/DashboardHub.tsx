@@ -382,20 +382,31 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             {/* Quick Preview Items */}
             <div className="space-y-2 mb-4">
               {shoppingSummary?.items && shoppingSummary.items.length > 0 ? (
-                shoppingSummary.items.slice(0, 3).map((item: any) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center justify-between p-2.5 rounded-2xl bg-surface-elevated/70 border border-surface-border text-xs"
-                  >
-                    <span className="flex items-center gap-2 text-slate-200 font-medium truncate">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />
-                      <span className="truncate">{item.title} ({item.amount} {item.unit})</span>
-                    </span>
-                    <span className="text-slate-400 font-mono flex-shrink-0 ml-2">
-                      {item.estimatedPrice ? `${item.estimatedPrice.toFixed(2)} €` : '—'}
-                    </span>
-                  </div>
-                ))
+                shoppingSummary.items.slice(0, 3).map((item: any, idx: number) => {
+                  const itemName = item.name || item.title || 'Artikel';
+                  const itemAmount = item.totalAmount ?? item.amount;
+                  return (
+                    <div
+                      key={item.ingredientId || item.id || idx}
+                      className="flex items-center justify-between p-2.5 rounded-2xl bg-surface-elevated/70 border border-surface-border text-xs"
+                    >
+                      <span className="flex items-center gap-2 text-slate-200 font-medium truncate">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />
+                        <span className="truncate">
+                          {itemName}
+                          {itemAmount !== undefined && itemAmount !== null && itemAmount !== ''
+                            ? ` (${itemAmount} ${item.unit || ''})`.trim()
+                            : item.unit
+                            ? ` (${item.unit})`
+                            : ''}
+                        </span>
+                      </span>
+                      <span className="text-slate-400 font-mono flex-shrink-0 ml-2">
+                        {item.estimatedPrice ? `${item.estimatedPrice.toFixed(2)} €` : '—'}
+                      </span>
+                    </div>
+                  );
+                })
               ) : (
                 <div className="p-3.5 rounded-2xl bg-surface-elevated/50 border border-surface-border text-xs text-slate-400 text-center font-medium">
                   Alle Einkäufe erledigt! 🎉

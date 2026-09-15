@@ -43,7 +43,7 @@ if (fs.existsSync(configYamlPath)) {
 // 3. Update shared/version.ts
 const sharedVersionPath = path.join(rootDir, 'shared', 'version.ts');
 if (fs.existsSync(sharedVersionPath)) {
-  const content = `export const APP_VERSION = '${newVersion}';\nexport const APP_NAME = 'Dein Weg Alltagsplaner';\n`;
+  const content = `export const APP_VERSION = '${newVersion}';\nexport const APP_NAME = 'Deine WG: Alltagsplaner';\n`;
   fs.writeFileSync(sharedVersionPath, content);
   console.log(`✓ shared/version.ts aktualisiert`);
 }

@@ -32,7 +32,7 @@ const AppContent: React.FC = () => {
           <img src={logoImg} alt="Dein Weg" className="h-12 w-auto object-contain animate-pulse drop-shadow-[0_12px_24px_rgba(0,0,0,0.5)]" />
         </div>
         <div className="text-sm font-medium text-rose-200/90 relative z-10 font-sans tracking-wide">
-          Dein Weg Alltagsplaner wird geladen...
+          Deine WG: Alltagsplaner wird geladen...
         </div>
       </div>
     );

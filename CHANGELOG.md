@@ -1,7 +1,20 @@
-# Changelog - Dein Weg Alltagsplaner
+# Changelog - Deine WG: Alltagsplaner
 
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
+
+## [0.1.0-beta.18] - 2026-09-15
+
+### Hinzugefügt & Behoben
+- **App-Umbenennung zu „Deine WG: Alltagsplaner“**:
+  - Web-Applikation, Home Assistant Add-on (`config.yaml`), HTML-Titel und Metadaten offiziell auf **„Deine WG: Alltagsplaner“** aktualisiert.
+- **Apple Touch Icon & Android Homescreen PWA Support**:
+  - Neues offizielles App-Icon als `apple-touch-icon.png` (180x180) für iOS-Homescreens implementiert.
+  - Vollständiges Web App Manifest (`manifest.json`) mit hochauflösenden Icons (`icon-192.png`, `icon-512.png`) für Android-Geräte („Zum Startbildschirm hinzufügen“ / Standalone-Modus).
+- **Home Assistant Add-on Icon**:
+  - Bereitstellung des neuen Icons als hochauflösendes `icon.png` (512x512) im Hauptverzeichnis für die Kacheldarstellung im Home Assistant Add-on Store.
+- **Bugfix Einkaufskorb-Vorschau im Dashboard**:
+  - Behoben: Im Dashboard-Bento „Einkaufskorb“ wurden zuvor fälschlicherweise nur `(g)` oder `(stück)` ohne Artikelnamen angezeigt, da die Eigenschaften `name` und `totalAmount` der aggregierten Liste nicht angesprochen wurden. Artikelname, Menge und Preis werden nun einwandfrei dargestellt.
 
 ## [0.1.0-beta.17] - 2026-09-15
 

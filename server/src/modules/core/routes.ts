@@ -654,7 +654,7 @@ router.get('/admin/smtp', requireAuth, requireRole('ADMIN', 'BETREUER'), async (
       user: setting?.user || '',
       hasPassword: !!(setting?.password),
       fromEmail: setting?.fromEmail || '',
-      fromName: setting?.fromName || 'Dein Weg Alltagsplaner',
+      fromName: setting?.fromName || 'Deine WG: Alltagsplaner',
       configured: !!(setting?.host && setting?.fromEmail),
     });
   } catch (err) {
@@ -673,7 +673,7 @@ router.post('/admin/smtp', requireAuth, requireRole('ADMIN', 'BETREUER'), async 
       secure: Boolean(secure),
       user: user?.trim() || '',
       fromEmail: fromEmail?.trim() || '',
-      fromName: fromName?.trim() || 'Dein Weg Alltagsplaner',
+      fromName: fromName?.trim() || 'Deine WG: Alltagsplaner',
     };
 
     if (password !== undefined && password !== '') {
@@ -747,12 +747,12 @@ router.post('/admin/smtp/test', requireAuth, requireRole('ADMIN', 'BETREUER'), a
 
     if (testRecipient && testRecipient.trim()) {
       await transporter.sendMail({
-        from: `"${smtpFromName || 'Dein Weg Alltagsplaner'}" <${smtpFromEmail || smtpUser}>`,
+        from: `"${smtpFromName || 'Deine WG: Alltagsplaner'}" <${smtpFromEmail || smtpUser}>`,
         to: testRecipient.trim(),
-        subject: '✅ Dein Weg Alltagsplaner: SMTP-Test erfolgreich!',
-        text: `Hallo,\n\ndiese Test-E-Mail bestätigt, dass die SMTP-Konfiguration in Ihrem Dein Weg Alltagsplaner erfolgreich funktioniert.\n\nServer: ${smtpHost}:${smtpPort}\nAbsender: ${smtpFromEmail || smtpUser}\nZeitpunkt: ${new Date().toLocaleString('de-DE')}\n\nViele Grüße,\nDein Weg Alltagsplaner Team`,
+        subject: '✅ Deine WG: Alltagsplaner: SMTP-Test erfolgreich!',
+        text: `Hallo,\n\ndiese Test-E-Mail bestätigt, dass die SMTP-Konfiguration in Ihrem Deine WG: Alltagsplaner erfolgreich funktioniert.\n\nServer: ${smtpHost}:${smtpPort}\nAbsender: ${smtpFromEmail || smtpUser}\nZeitpunkt: ${new Date().toLocaleString('de-DE')}\n\nViele Grüße,\nDeine WG: Alltagsplaner Team`,
         html: `<div style="font-family: sans-serif; padding: 20px; color: #1e293b; background-color: #f8fafc; border-radius: 12px;">
-          <h2 style="color: #0284c7; margin-top: 0;">✅ Dein Weg Alltagsplaner</h2>
+          <h2 style="color: #0284c7; margin-top: 0;">✅ Deine WG: Alltagsplaner</h2>
           <p>Diese Test-E-Mail bestätigt, dass die Verbindung zu Ihrem Mailserver erfolgreich hergestellt wurde!</p>
           <table style="border-collapse: collapse; margin-top: 15px; font-size: 13px;">
             <tr><td style="padding: 4px 8px; font-weight: bold; color: #64748b;">SMTP-Server:</td><td style="padding: 4px 8px;">${smtpHost}:${smtpPort}</td></tr>
@@ -760,7 +760,7 @@ router.post('/admin/smtp/test', requireAuth, requireRole('ADMIN', 'BETREUER'), a
             <tr><td style="padding: 4px 8px; font-weight: bold; color: #64748b;">Empfänger:</td><td style="padding: 4px 8px;">${testRecipient}</td></tr>
             <tr><td style="padding: 4px 8px; font-weight: bold; color: #64748b;">Datum:</td><td style="padding: 4px 8px;">${new Date().toLocaleString('de-DE')}</td></tr>
           </table>
-          <p style="font-size: 12px; color: #94a3b8; margin-top: 25px;">Automatische Benachrichtigung von Dein Weg Alltagsplaner</p>
+          <p style="font-size: 12px; color: #94a3b8; margin-top: 25px;">Automatische Benachrichtigung von Deine WG: Alltagsplaner</p>
         </div>`,
       });
     }

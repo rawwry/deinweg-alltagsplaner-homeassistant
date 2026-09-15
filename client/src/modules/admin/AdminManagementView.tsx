@@ -124,7 +124,7 @@ export const AdminManagementView: React.FC = () => {
   const [smtpUser, setSmtpUser] = useState('');
   const [smtpPassword, setSmtpPassword] = useState('');
   const [smtpFromEmail, setSmtpFromEmail] = useState('');
-  const [smtpFromName, setSmtpFromName] = useState('Dein Weg Alltagsplaner');
+  const [smtpFromName, setSmtpFromName] = useState('Deine WG: Alltagsplaner');
   const [smtpConfigured, setSmtpConfigured] = useState(false);
   const [showSmtpPassword, setShowSmtpPassword] = useState(false);
 
@@ -175,7 +175,7 @@ export const AdminManagementView: React.FC = () => {
         setSmtpUser(data.user || '');
         setSmtpPassword(data.password || '');
         setSmtpFromEmail(data.fromEmail || '');
-        setSmtpFromName(data.fromName || 'Dein Weg Alltagsplaner');
+        setSmtpFromName(data.fromName || 'Deine WG: Alltagsplaner');
         setSmtpConfigured(!!data.configured);
       }
     } catch (err) {
@@ -462,7 +462,7 @@ export const AdminManagementView: React.FC = () => {
         user: smtpUser.trim(),
         password: smtpPassword,
         fromEmail: smtpFromEmail.trim(),
-        fromName: smtpFromName.trim() || 'Dein Weg Alltagsplaner',
+        fromName: smtpFromName.trim() || 'Deine WG: Alltagsplaner',
       });
 
       setSmtpConfigured(true);
@@ -1995,7 +1995,7 @@ export const AdminManagementView: React.FC = () => {
                     type="text"
                     value={smtpFromName}
                     onChange={(e) => setSmtpFromName(e.target.value)}
-                    placeholder="Dein Weg Alltagsplaner"
+                    placeholder="Deine WG: Alltagsplaner"
                     className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
                   />
                 </div>
