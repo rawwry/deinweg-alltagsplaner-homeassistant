@@ -763,4 +763,202 @@ router.delete('/shopping-list/custom-item/:id', requireAuth, async (req: Request
   }
 });
 
+// ==================== STANDORT-BUDGET & SONDERKASSE ====================
+
+router.get('/budget', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const locationId = resolveLocationId(req);
+    if (!locationId) {
+      return res.status(403).json({ error: 'Zugriff auf fremden Standort verweigert.' });
+    }
+
+    const year = Number(req.query.year) || new Date().getFullYear();
+    const weekNumber = Number(req.query.weekNumber) || 36;
+
+    const location = await prisma.location.findUnique({
+      where: { id: locationId },
+    });
+
+    if (!location) {
+      return res.status(404).json({ error: 'Standort nicht gefunden.' });
+    }
+
+    const defaultWeeklyBudget = location.weeklyBudget ?? 350.0;
+
+    // 1. Calculate current estimated shopping cost from ingredients
+    let estimatedShoppingCost = 0;
+    try {
+      const shoppingData = await aggregateWeeklyShoppingList(locationId, year, weekNumber);
+      estimatedShoppingCost = shoppingData.totalEstimatedCost;
+    } catch (e) {
+      console.warn('Could not aggregate shopping list for budget estimation:', e);
+    }
+
+    // 2. Fetch or prepare weekly budget entry
+    const weeklyBudgetRecord = await prisma.locationWeeklyBudget.findUnique({
+      where: {
+        locationId_year_weekNumber: {
+          locationId,
+          year,
+          weekNumber,
+        },
+      },
+    });
+
+    const weeklyBudget = weeklyBudgetRecord ? weeklyBudgetRecord.budgetAmount : defaultWeeklyBudget;
+    const actualSpent = weeklyBudgetRecord?.actualSpent ?? null;
+    const receiptNote = weeklyBudgetRecord?.receiptNote ?? null;
+    const isConfirmed = weeklyBudgetRecord?.isConfirmed ?? false;
+
+    // Effective spent: if actual receipt entered, use that; otherwise use estimated shopping cost
+    const effectiveSpent = actualSpent !== null ? actualSpent : estimatedShoppingCost;
+    const remainingBudget = Math.round((weeklyBudget - effectiveSpent) * 100) / 100;
+
+    // 3. Calculate Sonderkasse (savings pot balance):
+    // Sum of confirmed weekly surpluses
+    const confirmedBudgets = await prisma.locationWeeklyBudget.findMany({
+      where: {
+        locationId,
+        isConfirmed: true,
+      },
+    });
+
+    const confirmedSurplusTotal = confirmedBudgets.reduce((sum, b) => {
+      const spent = b.actualSpent ?? 0;
+      return sum + (b.budgetAmount - spent);
+    }, 0);
+
+    // Sum of transactions (expenditures are negative, deposits are positive)
+    const transactions = await prisma.locationSavingsTransaction.findMany({
+      where: { locationId },
+      orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
+    });
+
+    const extraTransactionsTotal = transactions.reduce((sum, t) => sum + t.amount, 0);
+
+    const totalSavingsBalance = Math.round((confirmedSurplusTotal + extraTransactionsTotal) * 100) / 100;
+
+    return res.json({
+      locationId,
+      year,
+      weekNumber,
+      weeklyBudget,
+      estimatedShoppingCost: Math.round(estimatedShoppingCost * 100) / 100,
+      actualSpent,
+      receiptNote,
+      isConfirmed,
+      effectiveSpent: Math.round(effectiveSpent * 100) / 100,
+      remainingBudget,
+      totalSavingsBalance,
+      confirmedSurplusTotal: Math.round(confirmedSurplusTotal * 100) / 100,
+      extraTransactionsTotal: Math.round(extraTransactionsTotal * 100) / 100,
+      recentTransactions: transactions.slice(0, 20),
+    });
+  } catch (err) {
+    console.error('Fehler beim Abrufen des Budgets:', err);
+    return res.status(500).json({ error: 'Fehler beim Abrufen der Budgetdaten.' });
+  }
+});
+
+router.post('/budget/receipt', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
+  try {
+    const { locationId, year, weekNumber, actualSpent, receiptNote, isConfirmed, budgetAmount } = req.body;
+
+    if (!locationId || year === undefined || weekNumber === undefined) {
+      return res.status(400).json({ error: 'Standort, Jahr und Kalenderwoche sind erforderlich.' });
+    }
+
+    const location = await prisma.location.findUnique({ where: { id: locationId } });
+    if (!location) {
+      return res.status(404).json({ error: 'Standort nicht gefunden.' });
+    }
+
+    const baseBudget = budgetAmount !== undefined && budgetAmount !== null
+      ? Number(budgetAmount)
+      : (location.weeklyBudget ?? 350.0);
+
+    const parsedActualSpent = actualSpent !== null && actualSpent !== undefined && actualSpent !== ''
+      ? Number(actualSpent)
+      : null;
+
+    const saved = await prisma.locationWeeklyBudget.upsert({
+      where: {
+        locationId_year_weekNumber: {
+          locationId,
+          year: Number(year),
+          weekNumber: Number(weekNumber),
+        },
+      },
+      create: {
+        locationId,
+        year: Number(year),
+        weekNumber: Number(weekNumber),
+        budgetAmount: baseBudget,
+        actualSpent: parsedActualSpent,
+        receiptNote: receiptNote || null,
+        isConfirmed: !!isConfirmed,
+      },
+      update: {
+        ...(budgetAmount !== undefined && budgetAmount !== null ? { budgetAmount: Number(budgetAmount) } : {}),
+        actualSpent: parsedActualSpent,
+        receiptNote: receiptNote !== undefined ? (receiptNote || null) : undefined,
+        isConfirmed: isConfirmed !== undefined ? !!isConfirmed : undefined,
+      },
+    });
+
+    return res.json(saved);
+  } catch (err) {
+    console.error('Fehler beim Speichern des Kassenbons:', err);
+    return res.status(500).json({ error: 'Fehler beim Speichern des Kassenbons.' });
+  }
+});
+
+router.post('/budget/transaction', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
+  try {
+    const { locationId, date, amount, type, category, purpose } = req.body;
+
+    if (!locationId || !purpose || amount === undefined) {
+      return res.status(400).json({ error: 'Standort, Verwendungszweck und Betrag sind erforderlich.' });
+    }
+
+    const numAmount = Number(amount);
+    let finalAmount = numAmount;
+    if (type === 'EXPENSE' && numAmount > 0) {
+      finalAmount = -numAmount;
+    } else if (type === 'DEPOSIT' && numAmount < 0) {
+      finalAmount = Math.abs(numAmount);
+    }
+
+    const transaction = await prisma.locationSavingsTransaction.create({
+      data: {
+        locationId,
+        date: date || new Date().toISOString().split('T')[0],
+        amount: Math.round(finalAmount * 100) / 100,
+        type: type || (finalAmount < 0 ? 'EXPENSE' : 'DEPOSIT'),
+        category: category || 'SONSTIGES',
+        purpose,
+        recordedById: req.user!.id,
+      },
+    });
+
+    return res.json(transaction);
+  } catch (err) {
+    console.error('Fehler beim Erfassen der Sonderkassen-Buchung:', err);
+    return res.status(500).json({ error: 'Fehler beim Speichern der Buchung.' });
+  }
+});
+
+router.delete('/budget/transaction/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.locationSavingsTransaction.delete({
+      where: { id },
+    });
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('Fehler beim Löschen der Buchung:', err);
+    return res.status(500).json({ error: 'Fehler beim Löschen der Buchung.' });
+  }
+});
+
 export default router;

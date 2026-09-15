@@ -28,6 +28,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
   const { user, activeLocation, activeLocationId } = useAuth();
   const [mealPlan, setMealPlan] = useState<any>(null);
   const [shoppingSummary, setShoppingSummary] = useState<any>(null);
+  const [budgetSummary, setBudgetSummary] = useState<any>(null);
   const [wasteSummary, setWasteSummary] = useState<any[]>([]);
   const [notesList, setNotesList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,11 +77,12 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
     const loadOverview = async () => {
       try {
         setLoading(true);
-        const [planRes, shopRes, wasteRes, notesRes] = await Promise.all([
+        const [planRes, shopRes, wasteRes, notesRes, budgetRes] = await Promise.all([
           api.food.mealplan(activeLocationId, currentYear, currentWeek).catch(() => null),
           api.food.shoppingList(activeLocationId, currentYear, currentWeek).catch(() => null),
           api.waste.list(activeLocationId).catch(() => []),
           api.notes.list(activeLocationId).catch(() => []),
+          api.food.budget(activeLocationId, currentYear, currentWeek).catch(() => null),
         ]);
 
         if (!isMounted) return;
@@ -88,6 +90,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
         setShoppingSummary(shopRes);
         setWasteSummary(wasteRes || []);
         setNotesList(notesRes || []);
+        setBudgetSummary(budgetRes);
       } catch (err) {
         console.error('Fehler beim Laden des Dashboards:', err);
       } finally {
@@ -141,6 +144,16 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          {budgetSummary && (
+            <button
+              type="button"
+              onClick={() => setCurrentTab('shopping')}
+              className="px-3.5 py-1.5 rounded-2xl bg-surface-card border border-emerald-500/30 text-xs text-emerald-300 font-medium hover:bg-surface-elevated transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+            >
+              <span>🪙</span>
+              <span>Budget: {budgetSummary.remainingBudget.toFixed(2)} € frei</span>
+            </button>
+          )}
           {openNotes.length > 0 && (
             <button
               type="button"
@@ -449,6 +462,30 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             <p className="text-xs text-slate-300 mb-4 leading-relaxed font-sans">
               Geplant bei <strong className="text-white font-semibold">{shoppingSummary?.supermarketName || 'Supermarkt'}</strong> für diese Woche.
             </p>
+
+            {/* Weekly Budget Status Widget */}
+            {budgetSummary && (
+              <div className="p-3 mb-3.5 rounded-2xl bg-surface-elevated/80 border border-emerald-500/30 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
+                    🪙
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase font-bold text-slate-400 font-sans">
+                      Wochen-Budget KW {currentWeek}
+                    </div>
+                    <div className="text-xs font-bold text-emerald-400 font-mono">
+                      Noch {budgetSummary.remainingBudget.toFixed(2)} € frei
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] text-slate-400 font-sans">
+                    von {budgetSummary.weeklyBudget.toFixed(0)} €
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* Quick Preview Items */}
             <div className="space-y-2 mb-4">

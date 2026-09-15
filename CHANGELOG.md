@@ -3,6 +3,29 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.22] - 2026-09-16
+
+### Hinzugefügt & Verbessert
+- **Flurfunk: Gesprächsstränge & Threading (`CaregiverNoteMessage`)**:
+  - Unterstützung für echte, mehrteilige Dialoge zwischen Bewohnern und Betreuern (Bewohner schreibt -> Betreuer antwortet -> Bewohner nimmt Bezug -> Betreuer reagiert weiter).
+  - Neuer chronologischer Gesprächsverlauf im Bento-Card-Design mit Verfasser-Avatar, Initialen, Name, Rollen-Badge („Betreuer“ / „Bewohner“) und Zeitstempel.
+  - Direkte Inline-Antwortmöglichkeit („Auf Mitteilung antworten...“) für alle Gesprächsteilnehmer.
+  - Automatische Bereinigung des Ungelesen-Status beim Öffnen durch den Bewohner.
+- **Flurfunk: Ästhetische, statische SVG-Vektorgrafik im Empty State**:
+  - Ersatz der animierten Zeichnung durch ein elegantes, minimalistisches und professionelles Vektor-Icon ohne störende Blink- oder Ping-Animationen.
+- **Einkaufsliste: Hero Box Feinschliff & Symmetrie**:
+  - **Identische Box-Höhen**: Vollständige Symmetrie der inneren Metrik-Boxen (`items-stretch`) mit einheitlicher vertikaler Ausrichtung.
+  - **Dezentes Hintergrundmotiv & Ambient Glow**: Sanftes Wasserzeichen (`🛒`) in Kombination mit einem dezenten Glow im oberen rechten Bereich – parallel zur „Heute frisch auf den Tisch“-Box auf dem Dashboard.
+  - **Tippfehler behoben**: Korrektur von „x von x Artikeln“ zu „x von x Artikel“.
+- **Wöchentliches Standort-Budget & WG-Sonderkasse**:
+  - **Standort-Budget**: Jeder Standort erhält ein wöchentlich hinterlegtes Einkaufsbudget (Standard: 350,00 €), das Betreuer in den Standort-Einstellungen individuell anpassen können.
+  - **Transparenter Budget-Tracker für Bewohner**: Bewohner sehen auf dem Dashboard und in der Einkaufsliste jederzeit auf einen Blick, wie viel Geld für den aktuellen Wocheneinkauf noch zur Verfügung steht.
+  - **Kassenbon-Erfassung für Betreuer**: Betreuer können den tatsächlichen Rechnungsbetrag laut Kassenbon erfassen, Notizen hinterlegen und die Woche als abgerechnet markieren.
+  - **WG-Sonderkasse (Rücklagen-Konto)**:
+    - Nicht ausgeschöpfte Wocheneinkaufs-Beträge fließen automatisch und transparent in die WG-Sonderkasse.
+    - Vollständiges Kassenbuch (`LocationSavingsTransaction`): Betreuer können Sonderanschaffungen (z. B. Toaster), Aktivitäten (z. B. Kinoabend) und Reparaturen mit Verwendungszweck, Kategorie und Datum eintragen oder verwalten.
+    - Transparentes Informations-Modal (`LocationBudgetModal`), das auch Bewohnern jederzeit Einsicht in den Gesamtstand und die Ausgaben gibt.
+
 ## [0.1.0-beta.21] - 2026-09-16
 
 ### Hinzugefügt & Verbessert

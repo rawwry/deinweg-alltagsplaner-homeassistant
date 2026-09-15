@@ -71,6 +71,12 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
       include: {
         resident: { select: { id: true, name: true, username: true } },
         location: { select: { id: true, name: true } },
+        messages: {
+          include: {
+            author: { select: { id: true, name: true, role: true, avatarColor: true, avatarUrl: true } },
+          },
+          orderBy: { createdAt: 'asc' },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -99,6 +105,17 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
       respondedByName: n.respondedByUserId ? responderMap.get(n.respondedByUserId) || 'Betreuer' : null,
       resolvedAt: n.resolvedAt?.toISOString() || null,
       createdAt: n.createdAt.toISOString(),
+      messages: n.messages?.map((m) => ({
+        id: m.id,
+        noteId: m.noteId,
+        authorId: m.authorId,
+        authorName: m.author.name,
+        authorRole: m.author.role,
+        authorAvatarColor: m.author.avatarColor,
+        authorAvatarUrl: m.author.avatarUrl,
+        content: m.content,
+        createdAt: m.createdAt.toISOString(),
+      })) || [],
     }));
 
     return res.json(formatted);
@@ -206,6 +223,15 @@ router.post('/:id/respond', requireAuth, requireRole('ADMIN', 'BETREUER'), async
       },
     });
 
+    // Also persist into messages thread
+    await prisma.caregiverNoteMessage.create({
+      data: {
+        noteId: id,
+        authorId: req.user!.id,
+        content: responseText.trim(),
+      },
+    });
+
     // Notify resident via email if email address is configured
     if (updated.resident?.email) {
       sendResidentReplyEmail({
@@ -239,6 +265,111 @@ router.post('/:id/respond', requireAuth, requireRole('ADMIN', 'BETREUER'), async
   } catch (err) {
     console.error('Fehler beim Beantworten des Tickets:', err);
     return res.status(500).json({ error: 'Fehler beim Beantworten des Tickets.' });
+  }
+});
+
+// POST /api/notes/:id/messages - Post a follow-up reply in a conversation thread (Resident or Caregiver)
+router.post('/:id/messages', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { content } = req.body;
+
+    if (!content || !content.trim()) {
+      return res.status(400).json({ error: 'Nachrichtentext ist erforderlich.' });
+    }
+
+    const note = await prisma.caregiverNote.findUnique({
+      where: { id },
+      include: {
+        resident: { select: { id: true, name: true, email: true } },
+        location: { select: { id: true, name: true } },
+      },
+    });
+
+    if (!note) {
+      return res.status(404).json({ error: 'Notiz nicht gefunden.' });
+    }
+
+    const isStaff = req.user!.role === 'ADMIN' || req.user!.role === 'BETREUER';
+    if (!isStaff) {
+      if (note.locationId !== req.user!.locationId) {
+        return res.status(403).json({ error: 'Zugriff verweigert.' });
+      }
+      if (note.isPrivate && note.residentId !== req.user!.id) {
+        return res.status(403).json({ error: 'Zugriff verweigert.' });
+      }
+    }
+
+    const message = await prisma.caregiverNoteMessage.create({
+      data: {
+        noteId: id,
+        authorId: req.user!.id,
+        content: content.trim(),
+      },
+      include: {
+        author: {
+          select: { id: true, name: true, role: true, avatarColor: true, avatarUrl: true },
+        },
+      },
+    });
+
+    if (isStaff) {
+      await prisma.caregiverNote.update({
+        where: { id },
+        data: {
+          caregiverResponse: content.trim(),
+          respondedAt: new Date(),
+          respondedByUserId: req.user!.id,
+          hasUnreadResponse: true,
+          status: note.status === 'OPEN' ? 'IN_PROGRESS' : note.status,
+        },
+      });
+
+      if (note.resident?.email && note.residentId !== req.user!.id) {
+        sendResidentReplyEmail({
+          residentEmail: note.resident.email,
+          residentName: note.resident.name,
+          noteTitle: note.title,
+          responderName: req.user!.name,
+          replyText: content.trim(),
+          locationName: note.location.name,
+        }).catch((err) => console.error('[Mailer] Fehler beim Senden an Bewohner:', err));
+      }
+    } else {
+      await prisma.caregiverNote.update({
+        where: { id },
+        data: {
+          hasUnreadResponse: false,
+          status: note.status === 'DONE' ? 'OPEN' : note.status,
+        },
+      });
+
+      if (note.isPrivate) {
+        sendCaregiverNewNoteEmail({
+          locationId: note.locationId,
+          locationName: note.location.name,
+          authorName: req.user!.name,
+          noteTitle: `Neue Antwort zu: ${note.title}`,
+          noteContent: content.trim(),
+          isPrivate: true,
+        }).catch((err) => console.error('[Mailer] Fehler beim Senden an Betreuer:', err));
+      }
+    }
+
+    return res.json({
+      id: message.id,
+      noteId: message.noteId,
+      authorId: message.authorId,
+      authorName: message.author.name,
+      authorRole: message.author.role,
+      authorAvatarColor: message.author.avatarColor,
+      authorAvatarUrl: message.author.avatarUrl,
+      content: message.content,
+      createdAt: message.createdAt.toISOString(),
+    });
+  } catch (err) {
+    console.error('Fehler beim Senden der Antwort:', err);
+    return res.status(500).json({ error: 'Fehler beim Senden der Antwort.' });
   }
 });
 

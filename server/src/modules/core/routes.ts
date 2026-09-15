@@ -270,6 +270,7 @@ router.get('/locations', requireAuth, async (req: Request, res: Response) => {
         defaultSupermarketName: loc.defaultSupermarket?.name || null,
         defaultServings: loc.defaultServings,
         cookingDays: loc.cookingDays || '1,2,3,4,5,6,7',
+        weeklyBudget: loc.weeklyBudget ?? 350.0,
         residentCount: residents.length,
         residents: residents.map((r) => ({
           id: r.id,
@@ -291,7 +292,7 @@ router.get('/locations', requireAuth, async (req: Request, res: Response) => {
 
 router.post('/locations', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
   try {
-    const { name, address, defaultSupermarketId, defaultServings, cookingDays } = req.body;
+    const { name, address, defaultSupermarketId, defaultServings, cookingDays, weeklyBudget } = req.body;
     if (!name) {
       return res.status(400).json({ error: 'Name des Standorts ist erforderlich.' });
     }
@@ -303,6 +304,7 @@ router.post('/locations', requireAuth, requireRole('ADMIN', 'BETREUER'), async (
         defaultSupermarketId,
         defaultServings: Number(defaultServings) || 6,
         cookingDays: cookingDays || '1,2,3,4,5,6,7',
+        weeklyBudget: weeklyBudget !== undefined ? Number(weeklyBudget) : 350.0,
       },
     });
 
@@ -316,7 +318,7 @@ router.post('/locations', requireAuth, requireRole('ADMIN', 'BETREUER'), async (
 router.put('/locations/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, address, defaultSupermarketId, defaultServings, cookingDays } = req.body;
+    const { name, address, defaultSupermarketId, defaultServings, cookingDays, weeklyBudget } = req.body;
 
     const location = await prisma.location.update({
       where: { id },
@@ -326,6 +328,7 @@ router.put('/locations/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), asyn
         defaultSupermarketId,
         defaultServings: defaultServings !== undefined ? (Number(defaultServings) || 6) : undefined,
         cookingDays: cookingDays !== undefined ? cookingDays : undefined,
+        weeklyBudget: weeklyBudget !== undefined ? Number(weeklyBudget) : undefined,
       },
       include: { defaultSupermarket: true },
     });

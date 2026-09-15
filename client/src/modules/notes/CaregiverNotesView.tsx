@@ -34,9 +34,8 @@ export const CaregiverNotesView: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   // Response input state per ticket
-  const [replyingId, setReplyingId] = useState<string | null>(null);
-  const [replyText, setReplyText] = useState('');
-  const [isSubmittingReply, setIsSubmittingReply] = useState(false);
+  const [threadReplyInputs, setThreadReplyInputs] = useState<Record<string, string>>({});
+  const [isSubmittingMap, setIsSubmittingMap] = useState<Record<string, boolean>>({});
 
   const fetchNotes = async () => {
     try {
@@ -44,6 +43,13 @@ export const CaregiverNotesView: React.FC = () => {
       const isArchived = activeTab === 'ARCHIVE';
       const data = await api.notes.list(activeLocationId, isArchived);
       setNotes(data);
+
+      // Auto-mark unread notes as read for resident
+      if (!isStaff) {
+        data.filter(n => n.hasUnreadResponse && n.residentId === user?.id).forEach(n => {
+          api.notes.markRead(n.id).catch(() => {});
+        });
+      }
     } catch (err) {
       console.error('Fehler beim Laden der Tickets:', err);
     } finally {
@@ -81,19 +87,19 @@ export const CaregiverNotesView: React.FC = () => {
     }
   };
 
-  const handleSendReply = async (noteId: string) => {
-    if (!replyText.trim()) return;
+  const handleSendThreadMessage = async (noteId: string) => {
+    const text = threadReplyInputs[noteId]?.trim();
+    if (!text) return;
 
     try {
-      setIsSubmittingReply(true);
-      const updated = await api.notes.respond(noteId, replyText.trim());
+      setIsSubmittingMap((prev) => ({ ...prev, [noteId]: true }));
+      const updated = await api.notes.addMessage(noteId, text);
       setNotes((prev) => prev.map((n) => (n.id === noteId ? updated : n)));
-      setReplyingId(null);
-      setReplyText('');
+      setThreadReplyInputs((prev) => ({ ...prev, [noteId]: '' }));
     } catch (err: any) {
       alert(`Fehler beim Senden der Antwort: ${err.message || err}`);
     } finally {
-      setIsSubmittingReply(false);
+      setIsSubmittingMap((prev) => ({ ...prev, [noteId]: false }));
     }
   };
 
@@ -332,38 +338,30 @@ export const CaregiverNotesView: React.FC = () => {
         <div className="bento-card rounded-[2.5rem] p-12 text-center border border-surface-border shadow-xl">
           {activeTab === 'ACTIVE' ? (
             <>
-              {/* Minimalist Cigarette SVG Art */}
-              <div className="w-24 h-24 mx-auto mb-4 relative flex items-center justify-center">
+              {/* Clean, static minimalist SVG vector icon */}
+              <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shadow-inner">
                 <svg
-                  viewBox="0 0 100 100"
-                  className="w-24 h-24 text-rose-400 drop-shadow-md"
+                  viewBox="0 0 48 48"
+                  className="w-10 h-10"
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth="2.5"
+                  strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
-                  {/* Soft rising smoke curls */}
-                  <path d="M 68 34 C 63 24, 75 16, 68 8 C 65 4, 69 2, 67 0" opacity="0.6" strokeDasharray="3 3" />
-                  <path d="M 77 32 C 84 22, 72 14, 79 6 C 83 2, 78 1, 81 0" opacity="0.35" />
-                  {/* Cigarette angled */}
-                  <g transform="rotate(-28 50 64)">
-                    {/* Filter tip */}
-                    <rect x="18" y="58" width="18" height="11" rx="2" fill="#d97706" stroke="#b45309" strokeWidth="1.5" />
-                    {/* Paper cigarette body */}
-                    <rect x="36" y="58" width="40" height="11" fill="#f8fafc" stroke="#94a3b8" strokeWidth="1.5" />
-                    {/* Ash ring */}
-                    <rect x="76" y="58" width="4" height="11" fill="#64748b" stroke="#475569" strokeWidth="1" />
-                    {/* Glowing ember */}
-                    <rect x="80" y="58" width="4" height="11" rx="1" fill="#f43f5e" stroke="#e11d48" strokeWidth="1" className="animate-pulse" />
-                    {/* Tiny glow ping */}
-                    <circle cx="85" cy="63.5" r="2.5" fill="#fda4af" className="animate-ping" opacity="0.8" />
-                  </g>
+                  <path d="M28 10c0-3 3-5 3-8" className="stroke-rose-300" strokeWidth="1.8" opacity="0.6" />
+                  <path d="M33 13c0-3 4-5 4-8" className="stroke-rose-400" strokeWidth="1.8" opacity="0.8" />
+                  <rect x="6" y="24" width="8" height="6" rx="1.5" className="fill-amber-600/30 stroke-amber-500" strokeWidth="1.8" />
+                  <line x1="14" y1="24" x2="34" y2="24" strokeWidth="1.8" />
+                  <line x1="14" y1="30" x2="34" y2="30" strokeWidth="1.8" />
+                  <line x1="34" y1="24" x2="34" y2="30" strokeWidth="1.8" />
+                  <path d="M34 25.5h2.5a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H34" className="stroke-rose-500 fill-rose-500/30" strokeWidth="1.8" />
+                  <path d="M10 38h28a4 4 0 0 0 4-4H6a4 4 0 0 0 4 4z" className="stroke-slate-500 fill-surface-elevated" strokeWidth="1.8" />
                 </svg>
               </div>
               <h3 className="text-base font-display font-semibold text-slate-200">Aktuell kein Flurfunk</h3>
               <p className="text-xs text-slate-400 mt-1.5 max-w-sm mx-auto leading-relaxed">
-                Die WG-Raucherecke ist leer – aktuell gibt es keine offenen Mitteilungen oder Anliegen. Wenn du etwas besprechen möchtest, klicke einfach oben auf „Neuen Beitrag verfassen“.
+                Keine offenen Mitteilungen oder Anliegen vorhanden. Wenn du etwas besprechen möchtest, klicke einfach oben auf „Neuen Beitrag verfassen“.
               </p>
             </>
           ) : (
@@ -379,7 +377,8 @@ export const CaregiverNotesView: React.FC = () => {
       ) : (
         <div className="space-y-4">
           {notes.map((note) => {
-            const isReplying = replyingId === note.id;
+            const hasMessages = note.messages && note.messages.length > 0;
+            const canReply = !note.isArchived;
 
             return (
               <div
@@ -403,7 +402,7 @@ export const CaregiverNotesView: React.FC = () => {
                           ? 'bg-surface-elevated text-slate-400 border border-surface-border'
                           : note.status === 'IN_PROGRESS'
                           ? 'bg-sky-500/15 text-sky-300 border border-sky-500/30'
-                          : 'bg-rose-500/15 text-rose-300 border border-rose-500/30 animate-pulse'
+                          : 'bg-rose-500/15 text-rose-300 border border-rose-500/30'
                       }`}
                     >
                       {note.isArchived ? 'Gelöst & Archiviert' : note.status === 'IN_PROGRESS' ? 'In Bearbeitung' : 'Neu / Offen'}
@@ -443,8 +442,61 @@ export const CaregiverNotesView: React.FC = () => {
                   {note.content}
                 </p>
 
-                {/* Caregiver Response Display */}
-                {note.caregiverResponse && (
+                {/* Thread / Conversation History */}
+                {hasMessages ? (
+                  <div className="mt-4 pt-3.5 border-t border-white/5 space-y-2.5">
+                    <div className="text-[11px] font-display font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-2">
+                      <MessageSquare className="w-3.5 h-3.5 text-rose-400" />
+                      <span>Gesprächsverlauf ({note.messages!.length})</span>
+                    </div>
+
+                    <div className="space-y-2">
+                      {note.messages!.map((msg) => {
+                        const isStaffMsg = msg.authorRole === 'BETREUER' || msg.authorRole === 'ADMIN';
+                        return (
+                          <div
+                            key={msg.id}
+                            className={`p-3.5 rounded-2xl border text-xs ${
+                              isStaffMsg
+                                ? 'bg-rose-500/10 border-rose-500/25 ml-2 sm:ml-5'
+                                : 'bg-surface-elevated/70 border-surface-border mr-2 sm:mr-5'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between gap-2 mb-1">
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white uppercase shrink-0"
+                                  style={{ backgroundColor: msg.authorAvatarColor || (isStaffMsg ? '#f43f5e' : '#3b82f6') }}
+                                >
+                                  {msg.authorName.charAt(0)}
+                                </div>
+                                <span className="font-semibold text-slate-200">
+                                  {msg.authorName}
+                                </span>
+                                <span
+                                  className={`text-[9px] px-1.5 py-0.5 font-bold rounded-md uppercase tracking-wider ${
+                                    isStaffMsg
+                                      ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                                      : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                                  }`}
+                                >
+                                  {isStaffMsg ? 'Betreuer' : 'Bewohner'}
+                                </span>
+                              </div>
+                              <span className="text-[10px] text-slate-400 font-mono">
+                                {formatGermanDateTime(msg.createdAt)}
+                              </span>
+                            </div>
+                            <p className="text-slate-200 whitespace-pre-line leading-relaxed pl-7 font-normal">
+                              {msg.content}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : note.caregiverResponse ? (
+                  /* Legacy response fallback if no messages array yet */
                   <div className="mt-4 p-4 sm:p-5 bg-surface-elevated/70 border border-rose-500/30 rounded-2xl">
                     <div className="flex items-center justify-between text-xs mb-1.5">
                       <span className="font-display font-bold text-rose-300 flex items-center gap-1.5">
@@ -461,64 +513,41 @@ export const CaregiverNotesView: React.FC = () => {
                       {note.caregiverResponse}
                     </p>
                   </div>
-                )}
+                ) : null}
 
-                {/* Inline Reply Form (Caregivers) */}
-                {isReplying && (
-                  <div className="mt-4 p-4 sm:p-5 bg-surface-card border border-rose-500/40 rounded-2xl space-y-3 animate-in fade-in duration-150">
-                    <div className="text-xs font-display font-bold text-rose-300 flex items-center gap-1.5">
-                      <MessageSquare className="w-4 h-4" />
-                      <span>Rückmeldung an {note.residentName} verfassen</span>
-                    </div>
-                    <textarea
-                      rows={3}
-                      value={replyText}
-                      onChange={(e) => setReplyText(e.target.value)}
-                      placeholder="z.B. Termin ist vereinbart, ich komme morgen um 14 Uhr vorbei..."
-                      className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans"
+                {/* Inline Thread Reply Input (for Active Notes) */}
+                {canReply && (
+                  <div className="mt-3.5 pt-3 border-t border-white/5 flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={threadReplyInputs[note.id] || ''}
+                      onChange={(e) =>
+                        setThreadReplyInputs((prev) => ({ ...prev, [note.id]: e.target.value }))
+                      }
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendThreadMessage(note.id);
+                        }
+                      }}
+                      placeholder="Auf Mitteilung antworten..."
+                      className="flex-1 px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40"
                     />
-                    <div className="flex justify-end gap-2.5">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setReplyingId(null);
-                          setReplyText('');
-                        }}
-                        className="px-4 py-2 bg-surface-elevated hover:bg-surface-card text-slate-300 rounded-xl text-xs font-semibold cursor-pointer"
-                      >
-                        Abbrechen
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleSendReply(note.id)}
-                        disabled={isSubmittingReply || !replyText.trim()}
-                        className="px-4 py-2 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-sm"
-                      >
-                        <Send className="w-3.5 h-3.5" />
-                        <span>Antwort speichern</span>
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleSendThreadMessage(note.id)}
+                      disabled={!threadReplyInputs[note.id]?.trim() || isSubmittingMap[note.id]}
+                      className="px-3.5 py-2 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 disabled:opacity-40 transition-all cursor-pointer shrink-0 shadow-sm"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Antworten</span>
+                    </button>
                   </div>
                 )}
 
                 {/* Action Bar */}
-                <div className="mt-5 pt-3.5 border-t border-white/5 flex items-center justify-between gap-3 flex-wrap">
+                <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between gap-3 flex-wrap">
                   <div className="flex items-center gap-2.5">
-                    {/* Caregiver Reply Toggle */}
-                    {isStaff && !note.isArchived && !isReplying && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setReplyingId(note.id);
-                          setReplyText(note.caregiverResponse || '');
-                        }}
-                        className="px-3.5 py-2 bg-surface-elevated hover:bg-surface-card hover:text-rose-300 text-slate-200 border border-surface-border rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
-                      >
-                        <MessageSquare className="w-3.5 h-3.5 text-rose-400" />
-                        <span>{note.caregiverResponse ? 'Antwort bearbeiten' : 'Rückmeldung geben'}</span>
-                      </button>
-                    )}
-
                     {/* Resolve Button (Active tab) */}
                     {!note.isArchived ? (
                       <button
@@ -527,7 +556,7 @@ export const CaregiverNotesView: React.FC = () => {
                         className="px-4 py-2 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
                       >
                         <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                        <span>Als gelöst markieren & archivieren</span>
+                        <span>Als erledigt markieren & archivieren</span>
                       </button>
                     ) : (
                       /* Reopen Button (Archive tab) */

@@ -165,6 +165,27 @@ export const api = {
     }) => request<any>('food/shopping-list/custom-item', { method: 'POST', body: JSON.stringify(body) }),
     toggleCustomItem: (id: string) => request<any>(`food/shopping-list/custom-item/${id}/toggle`, { method: 'PATCH' }),
     deleteCustomItem: (id: string) => request<any>(`food/shopping-list/custom-item/${id}`, { method: 'DELETE' }),
+    budget: (locationId: string, year: number, weekNumber: number) =>
+      request<any>(`food/budget?locationId=${locationId}&year=${year}&weekNumber=${weekNumber}`),
+    saveReceipt: (body: {
+      locationId: string;
+      year: number;
+      weekNumber: number;
+      actualSpent?: number | null;
+      receiptNote?: string | null;
+      isConfirmed?: boolean;
+      budgetAmount?: number;
+    }) => request<any>('food/budget/receipt', { method: 'POST', body: JSON.stringify(body) }),
+    createSavingsTransaction: (body: {
+      locationId: string;
+      date?: string;
+      amount: number;
+      type?: 'EXPENSE' | 'DEPOSIT';
+      category?: string;
+      purpose: string;
+    }) => request<any>('food/budget/transaction', { method: 'POST', body: JSON.stringify(body) }),
+    deleteSavingsTransaction: (id: string) =>
+      request<{ success: boolean }>(`food/budget/transaction/${id}`, { method: 'DELETE' }),
   },
 
   notes: {
@@ -176,6 +197,8 @@ export const api = {
       request<any>('notes', { method: 'POST', body: JSON.stringify(body) }),
     respond: (id: string, response: string) =>
       request<any>(`notes/${id}/respond`, { method: 'POST', body: JSON.stringify({ response }) }),
+    addMessage: (id: string, content: string) =>
+      request<any>(`notes/${id}/messages`, { method: 'POST', body: JSON.stringify({ content }) }),
     markRead: (id: string) =>
       request<any>(`notes/${id}/read`, { method: 'PATCH' }),
     resolve: (id: string) =>

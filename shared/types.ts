@@ -38,8 +38,10 @@ export interface LocationSummary {
   name: string;
   address?: string | null;
   defaultSupermarketId?: string | null;
+  defaultSupermarketName?: string | null;
   defaultServings: number;
   cookingDays?: string | null;
+  weeklyBudget?: number;
   residentCount?: number;
   residents?: {
     id: string;
@@ -129,6 +131,18 @@ export interface CustomShoppingItemSummary {
   isChecked: boolean;
 }
 
+export interface CaregiverNoteMessageSummary {
+  id: string;
+  noteId: string;
+  authorId: string;
+  authorName: string;
+  authorRole: UserRole;
+  authorAvatarColor?: string | null;
+  authorAvatarUrl?: string | null;
+  content: string;
+  createdAt: string;
+}
+
 export interface CaregiverNoteSummary {
   id: string;
   locationId: string;
@@ -146,6 +160,7 @@ export interface CaregiverNoteSummary {
   respondedAt?: string | null;
   resolvedAt?: string | null;
   createdAt: string;
+  messages?: CaregiverNoteMessageSummary[];
 }
 
 export type WasteType = 'REST' | 'BIO' | 'PAPER' | 'YELLOW';
@@ -157,3 +172,33 @@ export interface WastePickupSummary {
   wasteType: WasteType;
   notes?: string | null;
 }
+
+export interface LocationSavingsTransactionSummary {
+  id: string;
+  locationId: string;
+  date: string;
+  amount: number;
+  type: 'EXPENSE' | 'DEPOSIT';
+  category: string;
+  purpose: string;
+  recordedById?: string | null;
+  createdAt: string;
+}
+
+export interface LocationBudgetSummary {
+  locationId: string;
+  year: number;
+  weekNumber: number;
+  weeklyBudget: number;
+  estimatedShoppingCost: number;
+  actualSpent?: number | null;
+  receiptNote?: string | null;
+  isConfirmed: boolean;
+  effectiveSpent: number;
+  remainingBudget: number;
+  totalSavingsBalance: number;
+  confirmedSurplusTotal: number;
+  extraTransactionsTotal: number;
+  recentTransactions: LocationSavingsTransactionSummary[];
+}
+

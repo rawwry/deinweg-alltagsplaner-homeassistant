@@ -13,7 +13,9 @@ import {
   Tag,
   Sparkles,
   ArrowRight,
+  PiggyBank,
 } from 'lucide-react';
+import { LocationBudgetModal } from './LocationBudgetModal.js';
 
 interface ShoppingListViewProps {
   setCurrentTab: (tab: string) => void;
@@ -52,6 +54,8 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
   const [weekNumber, setWeekNumber] = useState(initial.week);
 
   const [shoppingData, setShoppingData] = useState<any>(null);
+  const [budgetData, setBudgetData] = useState<any>(null);
+  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   // New custom item form
@@ -61,11 +65,18 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
   const [customCategory, setCustomCategory] = useState('Sonstiges');
   const [showAddCustom, setShowAddCustom] = useState(false);
 
-  const fetchShoppingList = async () => {
+  const fetchShoppingAndBudget = async () => {
     try {
       setIsLoading(true);
-      const data = await api.food.shoppingList(activeLocationId, year, weekNumber);
-      setShoppingData(data);
+      const [shopData, bData] = await Promise.all([
+        api.food.shoppingList(activeLocationId, year, weekNumber),
+        api.food.budget(activeLocationId, year, weekNumber).catch((e) => {
+          console.warn('Budget konnte nicht geladen werden:', e);
+          return null;
+        }),
+      ]);
+      setShoppingData(shopData);
+      setBudgetData(bData);
     } catch (err) {
       console.error('Fehler beim Laden der Einkaufsliste:', err);
     } finally {
@@ -74,7 +85,7 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
   };
 
   useEffect(() => {
-    fetchShoppingList();
+    fetchShoppingAndBudget();
   }, [activeLocationId, year, weekNumber]);
 
   const handlePrevWeek = () => {
@@ -116,7 +127,7 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
       });
     } catch (err) {
       console.error('Fehler beim Abhaken des Artikels:', err);
-      fetchShoppingList();
+      fetchShoppingAndBudget();
     }
   };
 
@@ -139,7 +150,7 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
       setCustomAmount('');
       setCustomUnit('');
       setShowAddCustom(false);
-      fetchShoppingList();
+      fetchShoppingAndBudget();
     } catch (err) {
       console.error('Fehler beim Hinzufügen des Zusatzartikels:', err);
     }
@@ -158,14 +169,14 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
       await api.food.toggleCustomItem(id);
     } catch (err) {
       console.error('Fehler beim Umschalten des Zusatzartikels:', err);
-      fetchShoppingList();
+      fetchShoppingAndBudget();
     }
   };
 
   const handleDeleteCustom = async (id: string) => {
     try {
       await api.food.deleteCustomItem(id);
-      fetchShoppingList();
+      fetchShoppingAndBudget();
     } catch (err) {
       console.error('Fehler beim Löschen des Zusatzartikels:', err);
     }
@@ -195,12 +206,15 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-24 md:pb-8">
       {/* Harmonious Bento Hero Box */}
-      <div className="bg-surface-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border shadow-xl space-y-5 relative overflow-hidden">
-        {/* Subtle decorative ambient glow */}
-        <div className="absolute -right-12 -top-12 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="bg-surface-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border shadow-xl space-y-5 relative overflow-hidden group">
+        {/* Subtle decorative ambient glow & watermark */}
+        <div className="absolute -right-16 -top-16 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute right-6 top-6 opacity-10 group-hover:opacity-15 transition-opacity pointer-events-none text-9xl select-none">
+          🛒
+        </div>
 
         {/* Top Header Row: Title & Controls */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/15 border border-emerald-500/30 rounded-full text-xs font-semibold text-emerald-300 mb-2 font-display">
               <span>🛒</span>
@@ -249,45 +263,91 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
           </div>
         </div>
 
-        {/* Integrated Metrics: Progress Bar & Supermarket Price Estimate */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-2 border-t border-white/5 items-center">
-          {/* Progress Bar (Col Span 2) */}
-          <div className="md:col-span-2 bg-surface-elevated/70 border border-surface-border rounded-2xl p-4">
-            <div className="flex items-center justify-between text-xs mb-2">
-              <span className="font-semibold text-slate-300 flex items-center gap-1.5 font-display">
-                <span>🧺</span>
-                <span>Im Einkaufswagen</span>
-              </span>
-              <span className="text-emerald-400 font-bold font-mono">
-                {checkedCount} von {totalCount} Artikeln ({progressPercent}%)
-              </span>
+        {/* Integrated Metrics: Progress Bar, Supermarket Price Estimate, & Weekly Budget (Pixel-Perfect Equal Heights) */}
+        <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-2 border-t border-white/5 items-stretch">
+          {/* Progress Bar Box */}
+          <div className="bg-surface-elevated/70 border border-surface-border rounded-2xl p-4 flex flex-col justify-between h-full">
+            <div>
+              <div className="flex items-center justify-between text-xs mb-2">
+                <span className="font-semibold text-slate-300 flex items-center gap-1.5 font-display">
+                  <span>🧺</span>
+                  <span>Im Einkaufswagen</span>
+                </span>
+                <span className="text-emerald-400 font-bold font-mono">
+                  {checkedCount} von {totalCount} Artikel ({progressPercent}%)
+                </span>
+              </div>
+              <div className="w-full h-2 bg-surface-card rounded-full overflow-hidden border border-surface-border/60">
+                <div
+                  className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-300 shadow-sm"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
             </div>
-            <div className="w-full h-2.5 bg-surface-card rounded-full overflow-hidden border border-surface-border/60">
-              <div
-                className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-300 shadow-sm"
-                style={{ width: `${progressPercent}%` }}
-              />
+            <div className="text-[11px] text-slate-400 mt-3 flex items-center justify-between font-mono">
+              <span>Erledigt: {checkedCount}</span>
+              <span>Offen: {totalCount - checkedCount}</span>
             </div>
           </div>
 
-          {/* Supermarket & Cost Estimate */}
-          <div className="bg-surface-elevated/70 border border-surface-border rounded-2xl p-4 flex items-center justify-between">
-            <div>
+          {/* Supermarket & Cost Estimate Box */}
+          <div className="bg-surface-elevated/70 border border-surface-border rounded-2xl p-4 flex flex-col justify-between h-full">
+            <div className="flex items-center justify-between">
               <div className="text-[11px] text-slate-400 font-medium flex items-center gap-1 font-display">
-                <Euro className="w-3 h-3 text-emerald-400" />
+                <Euro className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Kassen-Schätzung</span>
               </div>
-              <div className="text-lg sm:text-xl font-display font-bold text-white mt-0.5 font-mono">
-                {shoppingData?.totalEstimatedCost?.toFixed(2) || '0.00'} €
+              <div className="text-right">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-display">
+                  Markt
+                </span>
+                <div className="text-xs font-bold text-emerald-300">
+                  {shoppingData?.supermarketName || 'Supermarkt'}
+                </div>
               </div>
             </div>
-            <div className="text-right">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-display">
-                Markt
-              </span>
-              <div className="text-xs font-bold text-emerald-300">
-                {shoppingData?.supermarketName || 'Supermarkt'}
+            <div className="flex items-baseline justify-between mt-3">
+              <div className="text-lg sm:text-xl font-display font-bold text-white font-mono">
+                {shoppingData?.totalEstimatedCost?.toFixed(2) || '0.00'} €
               </div>
+              <span className="text-[11px] text-slate-400 font-sans">ca. Zutatenpreis</span>
+            </div>
+          </div>
+
+          {/* Weekly Budget & WG-Sonderkasse Pot Box */}
+          <div className="bg-surface-elevated/70 border border-surface-border rounded-2xl p-4 flex flex-col justify-between h-full">
+            <div className="flex items-center justify-between">
+              <div className="text-[11px] text-emerald-300 font-bold flex items-center gap-1 font-display">
+                <PiggyBank className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Wochen-Budget</span>
+              </div>
+              <span
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                  budgetData?.isConfirmed
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                    : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                }`}
+              >
+                {budgetData?.isConfirmed ? 'Abgerechnet' : 'Verfügbar'}
+              </span>
+            </div>
+            <div className="flex items-baseline justify-between mt-3">
+              <div>
+                <div className="text-lg sm:text-xl font-display font-bold text-emerald-400 font-mono">
+                  {budgetData ? `${budgetData.remainingBudget.toFixed(2)} €` : '...'}
+                </div>
+                <div className="text-[10px] text-slate-400 font-sans">
+                  von {budgetData ? `${budgetData.weeklyBudget.toFixed(0)} €` : '350 €'} Budget
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsBudgetModalOpen(true)}
+                className="px-2.5 py-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 rounded-xl text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer shadow-xs"
+              >
+                <span>WG-Kasse</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
             </div>
           </div>
         </div>
@@ -493,6 +553,18 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
           ))}
         </div>
       )}
+
+      {/* WG-Budget & Sonderkasse Modal */}
+      <LocationBudgetModal
+        isOpen={isBudgetModalOpen}
+        onClose={() => setIsBudgetModalOpen(false)}
+        locationId={activeLocationId}
+        locationName={activeLocation?.name || user?.locationName || 'unsere WG'}
+        year={year}
+        weekNumber={weekNumber}
+        isStaff={user?.role === 'ADMIN' || user?.role === 'BETREUER'}
+        onBudgetUpdated={fetchShoppingAndBudget}
+      />
     </div>
   );
 };
