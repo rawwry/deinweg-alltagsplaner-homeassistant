@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { RecipeSummary } from '../../../../shared/types.js';
 import { X, Clock, Users, ChefHat, Plus, Minus, BookOpen, Trash2, Camera, Utensils } from 'lucide-react';
 import { api } from '../../api/client.js';
@@ -77,8 +78,21 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
     reader.readAsDataURL(file);
   };
 
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
+  return createPortal(
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-[100] min-h-screen min-h-[100dvh] overflow-y-auto bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4"
+    >
       <div className="bg-surface-card rounded-[2.5rem] max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-surface-border overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Cover / Hero Image if available */}
         <div className="relative w-full bg-slate-950 border-b border-surface-border">
@@ -244,6 +258,7 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

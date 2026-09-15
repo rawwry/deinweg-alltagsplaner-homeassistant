@@ -9,5 +9,6 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true
-  }
+  },
+  "exclude": ["client", "dist", "node_modules"]
 }

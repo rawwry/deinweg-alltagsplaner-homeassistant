@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../../context/AuthContext.js';
 import { api } from '../../api/client.js';
 import { RecipeSummary } from '../../../../shared/types.js';
@@ -421,11 +422,17 @@ export const RecipeCatalogView: React.FC = () => {
       )}
 
       {/* Add Recipe Modal (Staff) */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-surface-card rounded-[2.5rem] max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-surface-border space-y-4 text-slate-100">
-            <div className="flex items-center justify-between border-b border-surface-border pb-3.5">
-              <h3 className="text-base font-display font-semibold text-white">Neues Rezept anlegen</h3>
+      {showAddModal &&
+        createPortal(
+          <div
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setShowAddModal(false);
+            }}
+            className="fixed inset-0 z-[100] min-h-screen min-h-[100dvh] bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4"
+          >
+            <div className="bg-surface-card rounded-[2.5rem] max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-surface-border space-y-4 text-slate-100 animate-in fade-in zoom-in-95 duration-150">
+              <div className="flex items-center justify-between border-b border-surface-border pb-3.5">
+                <h3 className="text-base font-display font-semibold text-white">Neues Rezept anlegen</h3>
               <button
                 type="button"
                 onClick={() => setShowAddModal(false)}
@@ -570,7 +577,8 @@ export const RecipeCatalogView: React.FC = () => {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

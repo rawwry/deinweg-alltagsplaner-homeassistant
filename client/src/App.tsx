@@ -20,9 +20,10 @@ import { RecipeSummary } from '../../shared/types.js';
 import logoImg from './assets/logo.png';
 
 const AppContent: React.FC = () => {
-  const { user, isLoading, isSetupRequired, handleSetupComplete } = useAuth();
+  const { user, isLoading, isSetupRequired, handleSetupComplete, activeLocation } = useAuth();
   const [currentTab, setCurrentTab] = useState<string>('hub');
   const [selectedRecipeDetail, setSelectedRecipeDetail] = useState<RecipeSummary | null>(null);
+  const isStaff = user?.role === 'ADMIN' || user?.role === 'BETREUER';
 
   if (isLoading) {
     return (
@@ -94,6 +95,8 @@ const AppContent: React.FC = () => {
       {selectedRecipeDetail && (
         <RecipeModal
           recipe={selectedRecipeDetail}
+          defaultServings={activeLocation?.defaultServings || 6}
+          isStaff={isStaff}
           onClose={() => setSelectedRecipeDetail(null)}
         />
       )}

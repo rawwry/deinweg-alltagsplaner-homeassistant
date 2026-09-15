@@ -18,7 +18,7 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab }) => 
     <>
       <header className="bg-surface-card/90 backdrop-blur-xl border-b border-surface-border sticky top-0 z-30 shadow-xl shadow-black/40">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-18 sm:h-20 gap-2">
+          <div className="flex items-center justify-between h-16 sm:h-20 gap-2">
             {/* Brand Logo (prominently sized, clean without extra text) */}
             <div className="flex items-center shrink-0">
               <button

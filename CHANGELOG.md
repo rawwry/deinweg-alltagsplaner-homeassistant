@@ -3,6 +3,28 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.20] - 2026-09-16
+
+### Hinzugefügt & Verbessert
+- **Umbenennung „WG-Pinnwand“ zu „Flurfunk“**:
+  - Der Bereich „WG-Pinnwand“ heißt nun durchgängig **„Flurfunk“** (Desktop-Navigation, mobile Navigationsleiste, Dashboard-Bento-Widgets, Schnellzugriff und Detailansicht).
+  - Frischere, lebendige WG-Sprache („Flurfunk & Mitteilungen“, „Alles ruhig im Flurfunk“, „Neuen Beitrag verfassen“).
+- **Wochenplan-Redesign (Desktop & Mobile)**:
+  - **Desktop**: Großformatige, ansprechende 16:9-Rezeptbilder (`aspect-video`) anstelle kleiner quadratischer Vorschauen.
+  - **Identische Breiten**: Die Felder „Portionen“, „Koch:“ und der Aktionsbutton („Gericht ändern“ bzw. „+ Gericht wählen“) sind nun in einer aufgeräumten Spalte untereinander mit pixelgenau identischer Breite angeordnet. Das verschafft den Rezeptkarten und Bildern maximalen Freiraum.
+  - **Mobile-Optimierung**: Moderne Rezept-Kartenhierarchie auf Mobilgeräten mit vollflächigem 16:9-Coverbild oben, großem Titel und Zubereitungszeit, aufgeräumtem 2-Spalten-Raster für Portionen und Koch sowie einem großzügigen, daumenfreundlichen Aktionsbutton über die volle Kartenbreite.
+  - **Orientierung**: Automatische Hervorhebung des heutigen Wochentags mit einem „Heute“-Badge.
+  - **Rezeptauswahl**: Das Modal zur Gerichtauswahl zeigt nun ebenfalls Rezept-Vorschaubilder direkt in der Liste an.
+- **Lightbox-Spalt oben am Menü behoben**:
+  - Sämtliche Dialoge und Modals (`RecipeModal`, `RecipeSelectModal`, `UserProfileModal`, `ChangelogModal` und `RecipeAddModal`) werden nun per React `createPortal` direkt im `document.body` mit `z-[100]` gerendert.
+  - Dadurch werden jegliche Stacking-Context-Traps und Layout-Clipping-Effekte durch übergeordnete Container verhindert: Die abdunkelnde Lightbox überdeckt nun zu 100% den gesamten Viewport inklusive des oberen Menübalkens ohne Spalt.
+  - Integrierter Body-Scroll-Lock verhindert das Scrollen des Hintergrunds und Verschieben der Menüs bei geöffneter Lightbox.
+  - Klick auf den Hintergrund schließt die Lightbox komfortabel.
+- **Code-Qualitätsverbesserungen**:
+  - Root `tsconfig.json` um Excludes für Client und Dist erweitert, um JSX-Konflikte im Stammverzeichnis zu beheben.
+  - Ungültige Tailwind-Klasse `h-18` im Header durch `h-16 sm:h-20` ersetzt.
+  - Rechte- und Portionsübergabe für das globale Rezept-Modal in `App.tsx` vervollständigt.
+
 ## [0.1.0-beta.19] - 2026-09-15
 
 ### Hinzugefügt & Verbessert

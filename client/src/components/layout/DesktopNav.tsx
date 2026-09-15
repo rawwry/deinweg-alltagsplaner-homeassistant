@@ -65,7 +65,7 @@ export const DesktopNav: React.FC<DesktopNavProps> = ({ currentTab, setCurrentTa
     { id: 'mealplan', label: 'Wochenplan', icon: Calendar },
     { id: 'shopping', label: 'Einkaufsliste', icon: ShoppingCart },
     { id: 'recipes', label: 'Rezepte', icon: BookOpen },
-    { id: 'notes', label: 'WG-Pinnwand', icon: MessageSquareText, badge: openTicketCount > 0 ? openTicketCount : undefined },
+    { id: 'notes', label: 'Flurfunk', icon: MessageSquareText, badge: openTicketCount > 0 ? openTicketCount : undefined },
     { id: 'waste', label: 'Abfallkalender', icon: Trash2 },
   ];
 

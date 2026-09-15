@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../../context/AuthContext.js';
 import { api } from '../../api/client.js';
 import { RecipeSelectModal } from './RecipeSelectModal.js';
@@ -187,6 +188,7 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
 
   const handleUpdateServings = async (dayOfWeek: number, currentServings: number, delta: number) => {
     const newServings = Math.max(1, currentServings + delta);
+    if (newServings === currentServings) return;
     try {
       // Optimistic update
       setMealPlan((prev: any) => ({
@@ -364,210 +366,271 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
         </div>
       ) : (
         <div className="space-y-4">
-          {DAY_NAMES.map((dayName, idx) => {
-            const dayOfWeek = idx + 1;
-            const isConfiguredDay = configuredCookingDays.includes(dayOfWeek);
-            const dayData = mealPlan?.days?.find((d: any) => d.dayOfWeek === dayOfWeek);
-            const hasRecipe = !!dayData?.recipe;
-            const hasCustom = !!dayData?.customDishTitle;
-            const dateStr = getDateForDay(dayOfWeek);
+          {(() => {
+            const todayStr = formatGermanDate(new Date());
 
-            // If not a cooking day and no meal planned, check if we should hide it
-            if (!showAllDays && !isConfiguredDay && !hasRecipe && !hasCustom) {
-              return null;
-            }
+            return DAY_NAMES.map((dayName, idx) => {
+              const dayOfWeek = idx + 1;
+              const isConfiguredDay = configuredCookingDays.includes(dayOfWeek);
+              const dayData = mealPlan?.days?.find((d: any) => d.dayOfWeek === dayOfWeek);
+              const hasRecipe = !!dayData?.recipe;
+              const hasCustom = !!dayData?.customDishTitle;
+              const dateStr = getDateForDay(dayOfWeek);
+              const isToday = isCurrentWeek && dateStr === todayStr;
 
-            // Inactive cooking day with no planned recipe -> Selbstversorgung card
-            if (!isConfiguredDay && !hasRecipe && !hasCustom) {
+              // If not a cooking day and no meal planned, check if we should hide it
+              if (!showAllDays && !isConfiguredDay && !hasRecipe && !hasCustom) {
+                return null;
+              }
+
+              // Inactive cooking day with no planned recipe -> Selbstversorgung card
+              if (!isConfiguredDay && !hasRecipe && !hasCustom) {
+                return (
+                  <div
+                    key={dayOfWeek}
+                    className="bg-surface-card/60 rounded-[2.5rem] p-5 sm:p-6 border border-dashed border-rose-500/25 hover:border-rose-500/45 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 opacity-80 hover:opacity-100 shadow-sm"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2.5 mb-1.5 flex-wrap">
+                        <span className="text-base font-display font-semibold text-slate-300 font-sans">
+                          {dayName}
+                        </span>
+                        <span className="text-xs text-slate-500 font-mono">{dateStr}</span>
+                        {isToday && (
+                          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 tracking-wide uppercase">
+                            Heute
+                          </span>
+                        )}
+                        <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-surface-elevated text-rose-300 border border-rose-500/30">
+                          🍽️ Selbstversorgung
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-400 font-sans font-medium">
+                        An diesem Tag findet am Standort kein gemeinsames Kochen statt (individuelle Selbstversorgung).
+                      </p>
+                    </div>
+
+                    <div className="pt-2 sm:pt-0 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedDayOfWeek(dayOfWeek);
+                          setModalOpen(true);
+                        }}
+                        className="px-4 py-2 rounded-2xl text-xs font-semibold text-slate-300 hover:text-white bg-surface-elevated hover:bg-surface-card border border-surface-border transition-colors inline-flex items-center gap-1.5 cursor-pointer font-sans hover:border-theme"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Trotzdem Gericht planen</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              }
+
               return (
                 <div
                   key={dayOfWeek}
-                  className="bg-surface-card/60 rounded-[2rem] p-5 border border-dashed border-rose-500/25 hover:border-rose-500/45 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 opacity-80 hover:opacity-100"
+                  className={`bento-card rounded-[2.5rem] p-5 sm:p-6 md:p-7 border ${
+                    !isConfiguredDay
+                      ? 'border-rose-500/30 bg-gradient-to-r from-rose-500/5 to-transparent shadow-rose-950/20'
+                      : 'border-surface-border'
+                  } shadow-lg transition-all group overflow-hidden`}
                 >
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-semibold text-slate-300 font-sans">{dayName}</span>
-                      <span className="text-xs text-slate-500 font-mono">{dateStr}</span>
-                      <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-surface-elevated text-rose-300 border border-rose-500/30">
-                        🍽️ Selbstversorgung
+                  {/* Day Card Header: Tag, Datum, Heute-Badge, Kategorie-Badge */}
+                  <div className="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-white/5 flex-wrap">
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <span className="text-base sm:text-lg font-display font-bold text-white tracking-tight">
+                        {dayName}
                       </span>
+                      <span className="text-xs text-slate-400 font-mono font-medium">
+                        {dateStr}
+                      </span>
+                      {isToday && (
+                        <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 tracking-wide uppercase">
+                          Heute
+                        </span>
+                      )}
                     </div>
-                    <p className="text-xs text-slate-400 font-sans font-medium">
-                      An diesem Tag findet am Standort kein gemeinsames Kochen statt (individuelle Selbstversorgung).
-                    </p>
+
+                    <div className="flex items-center gap-2">
+                      {hasRecipe && (
+                        <span className="text-xs font-semibold px-3 py-0.5 rounded-full badge-theme">
+                          {dayData.recipe.category}
+                        </span>
+                      )}
+                      {!isConfiguredDay && (
+                        <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full badge-theme">
+                          Zusatz-Kochen
+                        </span>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="pt-2 sm:pt-0">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedDayOfWeek(dayOfWeek);
-                        setModalOpen(true);
-                      }}
-                      className="px-3.5 py-2 rounded-2xl text-xs font-semibold text-slate-300 hover:text-white bg-surface-elevated hover:bg-surface-card border border-surface-border transition-colors inline-flex items-center gap-1.5 cursor-pointer font-sans hover:border-rose-500/30"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Trotzdem Gericht planen</span>
-                    </button>
+                  {/* Main Content: Left (Recipe details & 16:9 Image) vs Right (Stacked identical-width Controls) */}
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
+                    {/* Left: Recipe presentation */}
+                    <div className="flex-1 min-w-0">
+                      {hasRecipe ? (
+                        <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-5">
+                          {/* 16:9 Recipe Image on Desktop and Mobile */}
+                          {dayData.recipe.imageUrl ? (
+                            <div className="w-full sm:w-56 md:w-60 lg:w-64 aspect-video rounded-2xl overflow-hidden shrink-0 shadow-lg ring-1 ring-white/10 group-hover:ring-theme/40 transition-all bg-slate-950 relative">
+                              <img
+                                src={dayData.recipe.imageUrl}
+                                alt={dayData.recipe.title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                              {onOpenRecipeDetail && (
+                                <button
+                                  type="button"
+                                  onClick={() => onOpenRecipeDetail(dayData.recipe.id)}
+                                  className="absolute inset-0 bg-black/20 hover:bg-black/45 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white text-xs font-semibold gap-1.5 backdrop-blur-xs"
+                                >
+                                  <Utensils className="w-4 h-4 text-theme-primary" />
+                                  <span>Rezept öffnen</span>
+                                </button>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="w-full sm:w-56 md:w-60 lg:w-64 aspect-video rounded-2xl bg-surface-elevated/70 border border-surface-border flex flex-col items-center justify-center text-slate-500 shrink-0 gap-1.5 shadow-inner">
+                              <Utensils className="w-6 h-6 text-theme-primary opacity-40" />
+                              <span className="text-[11px] text-slate-400 font-medium">Rezept ohne Bild</span>
+                            </div>
+                          )}
+
+                          {/* Recipe metadata & descriptions */}
+                          <div className="flex-1 min-w-0 space-y-2">
+                            <h3 className="text-base sm:text-xl font-display font-bold text-slate-100 group-hover:text-theme-primary transition-colors flex items-center gap-2 tracking-tight">
+                              <Utensils className="w-4 h-4 text-theme-primary flex-shrink-0" />
+                              <span className="truncate">{dayData.recipe.title}</span>
+                            </h3>
+                            {dayData.recipe.description && (
+                              <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed font-normal font-sans line-clamp-2">
+                                {dayData.recipe.description}
+                              </p>
+                            )}
+                            <div className="flex items-center gap-3 sm:gap-4 text-xs text-slate-400 pt-2 border-t border-white/5 font-sans flex-wrap">
+                              <span className="flex items-center gap-1 font-mono">
+                                <Clock className="w-3.5 h-3.5 text-theme-primary" />
+                                ca. {dayData.recipe.prepTimeMinutes || 30} Min
+                              </span>
+                              <span>{dayData.recipe.ingredients?.length || 0} Zutaten</span>
+                              {onOpenRecipeDetail && (
+                                <button
+                                  type="button"
+                                  onClick={() => onOpenRecipeDetail(dayData.recipe.id)}
+                                  className="text-theme hover:underline font-semibold cursor-pointer flex items-center gap-1 ml-auto sm:ml-0"
+                                >
+                                  <span>Rezept ansehen</span>
+                                  <span>→</span>
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ) : hasCustom ? (
+                        <div className="space-y-2 py-2">
+                          <h3 className="text-lg font-display font-bold text-theme-primary flex items-center gap-2">
+                            <Sparkles className="w-5 h-5 text-theme-primary flex-shrink-0" />
+                            <span>{dayData.customDishTitle}</span>
+                          </h3>
+                          <p className="text-xs text-slate-400 font-sans italic">
+                            Freies Gericht (kein Rezept aus der Rezeptedatenbank)
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="py-4 flex items-center gap-3 text-slate-400 italic text-sm font-sans">
+                          <span className="w-2.5 h-2.5 rounded-full bg-slate-600" />
+                          <span>Noch kein Gericht für diesen Tag eingetragen.</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Right: Servings & Cook Assignment & Action Button (Identical Width Column) */}
+                    <div className="w-full md:w-52 lg:w-56 shrink-0 flex flex-col gap-2.5 pt-4 md:pt-0 border-t md:border-t-0 border-white/5">
+                      {/* Mobile: 2-column grid / Desktop: stacked */}
+                      <div className="grid grid-cols-2 md:grid-cols-1 gap-2.5">
+                        {/* Servings Counter (Identical full width) */}
+                        <div className="w-full bg-surface-elevated/90 border border-surface-border rounded-2xl px-3 py-2 flex items-center justify-between shadow-inner">
+                          <span className="text-xs text-slate-400 font-medium flex items-center gap-1.5 font-sans">
+                            <Users className="w-3.5 h-3.5 text-slate-400" />
+                            <span>Port.:</span>
+                          </span>
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateServings(dayOfWeek, dayData?.servings || 6, -1)}
+                              className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center bg-surface-card rounded-xl text-slate-200 hover:text-white hover:bg-surface-elevated active:scale-95 transition-all cursor-pointer"
+                            >
+                              <Minus className="w-3 h-3" />
+                            </button>
+                            <span className="w-5 sm:w-6 text-center text-xs font-bold text-white font-mono">
+                              {dayData?.servings || 6}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateServings(dayOfWeek, dayData?.servings || 6, 1)}
+                              className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center bg-surface-card rounded-xl text-slate-200 hover:text-white hover:bg-surface-elevated active:scale-95 transition-all cursor-pointer"
+                            >
+                              <Plus className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Cook Selector (Identical full width) */}
+                        <div className="w-full bg-surface-elevated/90 border border-surface-border rounded-2xl px-3 py-2 flex items-center gap-2 text-xs shadow-inner">
+                          <ChefHat className="w-3.5 h-3.5 text-theme-primary shrink-0" />
+                          <select
+                            value={dayData?.cookUserId || ''}
+                            onChange={(e) => handleUpdateCook(dayOfWeek, e.target.value || null)}
+                            className="w-full bg-transparent text-slate-200 font-semibold focus:outline-none cursor-pointer pr-1 font-sans truncate text-xs"
+                          >
+                            <option value="" className="bg-surface-card text-slate-200">Koch: Offen / Team</option>
+                            {residents.map((r) => (
+                              <option key={r.id} value={r.id} className="bg-surface-card text-slate-200">
+                                Koch: {r.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Choose / Change Dish Button (Identical full width) */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedDayOfWeek(dayOfWeek);
+                          setModalOpen(true);
+                        }}
+                        className={`w-full py-2.5 rounded-2xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer font-sans shadow-sm ${
+                          hasRecipe || hasCustom
+                            ? 'bg-surface-elevated hover:bg-surface-card text-slate-200 hover:text-white border border-surface-border hover:border-theme'
+                            : 'btn-theme-gradient text-white'
+                        }`}
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>{hasRecipe || hasCustom ? 'Gericht ändern' : '+ Gericht wählen'}</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
-            }
-
-            return (
-              <div
-                key={dayOfWeek}
-                className={`bento-card rounded-[2rem] p-5 sm:p-6 border ${
-                  !isConfiguredDay
-                    ? 'border-rose-500/30 bg-gradient-to-r from-rose-500/5 to-transparent shadow-rose-950/20'
-                    : 'border-surface-border'
-                } shadow-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 group`}
-              >
-                {/* Left: Day info & Recipe title */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-3 flex-wrap">
-                    <span className="text-sm font-semibold text-white font-sans">
-                      {dayName}
-                    </span>
-                    <span className="text-xs text-slate-400 font-medium">
-                      {dateStr}
-                    </span>
-                    {hasRecipe && (
-                      <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full badge-theme">
-                        {dayData.recipe.category}
-                      </span>
-                    )}
-                    {!isConfiguredDay && (
-                      <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full badge-theme">
-                        Zusatz-Kochen (an Selbstversorgungs-Tag)
-                      </span>
-                    )}
-                  </div>
-
-                  {hasRecipe ? (
-                    <div className="flex items-start gap-3.5 sm:gap-4">
-                      {dayData.recipe.imageUrl && (
-                        <img
-                          src={dayData.recipe.imageUrl}
-                          alt={dayData.recipe.title}
-                          className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover ring-1 ring-surface-border shrink-0 shadow-md mt-0.5"
-                        />
-                      )}
-                      <div className="flex-1 min-w-0 space-y-2">
-                        <h3 className="text-base sm:text-lg font-display font-semibold text-slate-100 group-hover:text-theme-primary transition-colors flex items-center gap-2 tracking-tight">
-                          <Utensils className="w-4 h-4 text-theme-primary flex-shrink-0" />
-                          <span className="truncate">{dayData.recipe.title}</span>
-                        </h3>
-                        {dayData.recipe.description && (
-                          <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed font-normal font-sans line-clamp-2 pt-0.5">
-                            {dayData.recipe.description}
-                          </p>
-                        )}
-                        <div className="flex items-center gap-4 text-xs text-slate-400 pt-1.5 border-t border-white/5 font-sans flex-wrap">
-                          <span className="flex items-center gap-1 font-mono">
-                            <Clock className="w-3.5 h-3.5 text-theme-primary" />
-                            ca. {dayData.recipe.prepTimeMinutes || 30} Min
-                          </span>
-                          <span>{dayData.recipe.ingredients?.length || 0} Zutaten</span>
-                          {onOpenRecipeDetail && (
-                            <button
-                              type="button"
-                              onClick={() => onOpenRecipeDetail(dayData.recipe.id)}
-                              className="text-theme hover:underline font-semibold cursor-pointer"
-                            >
-                              Rezept ansehen
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ) : hasCustom ? (
-                    <div className="space-y-1.5 py-1">
-                      <h3 className="text-base font-semibold text-theme-primary flex items-center gap-2 font-sans">
-                        <Sparkles className="w-4 h-4 text-theme-primary flex-shrink-0" />
-                        <span>{dayData.customDishTitle}</span>
-                      </h3>
-                      <p className="text-xs text-slate-400 font-sans italic pt-1">
-                        Freies Gericht (kein Rezept hinterlegt)
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="text-sm text-slate-400 italic py-2 font-sans">
-                      Noch kein Gericht geplant
-                    </div>
-                  )}
-                </div>
-
-                {/* Right: Servings & Cook Assignment & Action Button */}
-                <div className="flex flex-wrap items-center gap-3 pt-3 md:pt-0 border-t md:border-t-0 border-white/5 justify-between md:justify-end">
-                  {/* Servings Counter */}
-                  <div className="flex items-center gap-1.5 bg-surface-elevated/80 border border-surface-border rounded-2xl p-1 shadow-inner">
-                    <span className="text-[11px] text-slate-400 pl-2 font-medium flex items-center gap-1 font-sans">
-                      <Users className="w-3 h-3 text-slate-400" />
-                      Portionen:
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => handleUpdateServings(dayOfWeek, dayData?.servings || 6, -1)}
-                      className="w-7 h-7 flex items-center justify-center bg-surface-card rounded-xl text-slate-200 hover:text-white hover:bg-surface-elevated active:scale-95 transition-all cursor-pointer"
-                    >
-                      <Minus className="w-3.5 h-3.5" />
-                    </button>
-                    <span className="w-6 text-center text-xs font-semibold text-white font-mono">
-                      {dayData?.servings || 6}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => handleUpdateServings(dayOfWeek, dayData?.servings || 6, 1)}
-                      className="w-7 h-7 flex items-center justify-center bg-surface-card rounded-xl text-slate-200 hover:text-white hover:bg-surface-elevated active:scale-95 transition-all cursor-pointer"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-
-                  {/* Cook Selector */}
-                  <div className="flex items-center gap-1.5 bg-surface-elevated/80 border border-surface-border rounded-2xl px-3 py-1.5 text-xs shadow-inner">
-                    <ChefHat className="w-3.5 h-3.5 text-rose-400" />
-                    <select
-                      value={dayData?.cookUserId || ''}
-                      onChange={(e) => handleUpdateCook(dayOfWeek, e.target.value || null)}
-                      className="bg-transparent text-slate-200 font-medium focus:outline-none cursor-pointer pr-1 font-sans"
-                    >
-                      <option value="" className="bg-surface-card text-slate-200">Koch: Offen / Team</option>
-                      {residents.map((r) => (
-                        <option key={r.id} value={r.id} className="bg-surface-card text-slate-200">
-                          Koch: {r.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Choose / Change Dish Button */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedDayOfWeek(dayOfWeek);
-                      setModalOpen(true);
-                    }}
-                    className={`px-4 py-2 rounded-2xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer font-sans ${
-                      hasRecipe || hasCustom
-                        ? 'bg-surface-elevated hover:bg-surface-card text-slate-200 hover:text-white border border-surface-border'
-                        : 'bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white shadow-md shadow-rose-500/20'
-                    }`}
-                  >
-                    <span>{hasRecipe || hasCustom ? 'Ändern' : '+ Gericht wählen'}</span>
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+            });
+          })()}
         </div>
       )}
 
       {/* Quick Location Settings Modal */}
-      {showLocationSettings && activeLocation && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-surface-card border border-surface-border rounded-[2.5rem] p-6 sm:p-7 w-full max-w-md shadow-2xl relative">
+      {showLocationSettings &&
+        activeLocation &&
+        createPortal(
+          <div
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setShowLocationSettings(false);
+            }}
+            className="fixed inset-0 z-[100] min-h-screen min-h-[100dvh] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in"
+          >
+            <div className="bg-surface-card border border-surface-border rounded-[2.5rem] p-6 sm:p-7 w-full max-w-md shadow-2xl relative">
             <div className="flex items-center justify-between pb-4 border-b border-surface-border">
               <div className="flex items-center gap-2.5">
                 <div className="p-2.5 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-300">
@@ -679,9 +742,10 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+            </div>
+          </div>,
+          document.body
+        )}
 
       {/* Recipe Selection Modal */}
       <RecipeSelectModal

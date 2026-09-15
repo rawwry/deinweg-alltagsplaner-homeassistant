@@ -148,7 +148,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
               className="px-3.5 py-1.5 rounded-2xl bg-surface-card border border-rose-500/30 text-xs text-rose-300 font-medium hover:bg-surface-elevated transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
             >
               <span>🔔</span>
-              <span>{openNotes.length} {openNotes.length === 1 ? 'Notiz' : 'Notizen'} an der Pinnwand</span>
+              <span>{openNotes.length} {openNotes.length === 1 ? 'Eintrag' : 'Einträge'} im Flurfunk</span>
             </button>
           )}
         </div>
@@ -431,7 +431,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2.5">
                 <span className="px-3.5 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-semibold uppercase tracking-wider font-sans">
-                  WG-Pinnwand & Notizen
+                  Flurfunk & Notizen
                 </span>
                 {openNotes.length > 0 && (
                   <span className="text-xs text-rose-300 font-semibold bg-rose-500/15 border border-rose-500/30 px-2.5 py-0.5 rounded-full font-mono">
@@ -468,7 +468,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
               ) : (
                 <div className="sm:col-span-2 p-4 rounded-2xl bg-surface-elevated/60 border border-surface-border text-center">
                   <p className="text-xs text-slate-300 font-medium">
-                    Alles ruhig an der Pinnwand! Noch keine Notizen vorhanden.
+                    Alles ruhig im Flurfunk! Noch keine Einträge vorhanden.
                   </p>
                   <p className="text-[11px] text-slate-400 mt-1">
                     Trage einen Wunsch, eine Frage oder eine Erinnerung für die Gruppe ein.
@@ -487,7 +487,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
               onClick={() => setCurrentTab('notes')}
               className="w-full sm:w-auto px-4 py-2 rounded-xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 hover:border-theme"
             >
-              <span>+ Zur WG-Pinnwand</span>
+              <span>+ Zum Flurfunk</span>
             </button>
           </div>
         </div>
@@ -534,7 +534,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             className="flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-surface-elevated/70 hover:bg-surface-elevated border border-surface-border hover:border-violet-500/40 text-slate-200 hover:text-white text-xs font-medium transition-all group cursor-pointer"
           >
             <MessageSquareText className="w-3.5 h-3.5 text-violet-400 group-hover:scale-110 transition-transform" />
-            <span className="truncate">WG-Pinnwand</span>
+            <span className="truncate">Flurfunk</span>
           </button>
 
           <button

@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Sparkles, Tag, GitCommit, ExternalLink, ShieldCheck } from 'lucide-react';
 import { APP_VERSION } from '../../../shared/version.js';
 
@@ -293,9 +294,9 @@ export const ChangelogModal: React.FC<ChangelogModalProps> = ({ onClose }) => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-150"
+      className="fixed inset-0 z-[100] min-h-screen min-h-[100dvh] flex items-center justify-center p-3 sm:p-4 md:p-6 bg-black/85 backdrop-blur-md animate-in fade-in duration-150"
       onClick={onClose}
     >
       <div
@@ -401,6 +402,7 @@ export const ChangelogModal: React.FC<ChangelogModalProps> = ({ onClose }) => {
           </a>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

@@ -129,12 +129,12 @@ export const CaregiverNotesView: React.FC = () => {
       <div className="bg-surface-card rounded-[2.5rem] p-6 border border-surface-border shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-rose-500/15 border border-rose-500/30 rounded-full text-xs font-semibold text-rose-300 mb-2 font-display">
-            <span className="text-sm">📌</span>
-            <span>WG-Pinnwand & Mitteilungen</span>
+            <span className="text-sm">📻</span>
+            <span>Flurfunk & Mitteilungen</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-display font-semibold text-white tracking-tight flex items-center gap-2">
             <MessageSquareText className="w-6 h-6 text-rose-400" />
-            <span>Unsere WG-Pinnwand</span>
+            <span>Unser Flurfunk</span>
           </h1>
           <p className="text-xs text-slate-400 mt-1">
             Fragen, Notizen, Wünsche und Absprachen für Bewohner und Betreuer ({activeLocation?.name || user?.locationName || 'Emsdetten'})
@@ -147,7 +147,7 @@ export const CaregiverNotesView: React.FC = () => {
           className="px-4 py-2.5 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white rounded-2xl text-xs font-semibold flex items-center gap-1.5 shadow-lg shadow-rose-500/25 transition-all self-stretch sm:self-auto justify-center cursor-pointer"
         >
           <Plus className="w-4 h-4" />
-          <span>Neue Notiz anpinnen</span>
+          <span>Neuen Beitrag verfassen</span>
         </button>
       </div>
 
@@ -268,16 +268,16 @@ export const CaregiverNotesView: React.FC = () => {
       {isLoading ? (
         <div className="py-20 text-center text-slate-400">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-3 border-rose-500 border-t-transparent mb-2" />
-          <div>Pinnwand wird geladen...</div>
+          <div>Flurfunk wird geladen...</div>
         </div>
       ) : notes.length === 0 ? (
         <div className="bento-card rounded-[2.5rem] p-12 text-center border border-surface-border shadow-xl">
           {activeTab === 'ACTIVE' ? (
             <>
-              <div className="text-4xl mb-3">🎉 📌 ☕</div>
+              <div className="text-4xl mb-3">🎉 📻 ☕</div>
               <h3 className="text-base font-display font-semibold text-slate-200">Alles erledigt & geklärt!</h3>
               <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto leading-relaxed">
-                Die Pinnwand ist aktuell sauber. Wenn du ein Anliegen oder eine Frage hast, klicke einfach oben auf „Neue Notiz anpinnen“.
+                Im Flurfunk ist es aktuell ruhig. Wenn du ein Anliegen oder eine Frage hast, klicke einfach oben auf „Neuen Beitrag verfassen“.
               </p>
             </>
           ) : (
