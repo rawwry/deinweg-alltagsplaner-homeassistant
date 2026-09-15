@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext.js';
 import { api } from '../../api/client.js';
 import { RecipeSummary } from '../../../../shared/types.js';
@@ -15,6 +15,8 @@ import {
   LayoutGrid,
   List,
   Trash2,
+  Camera,
+  Image as ImageIcon,
 } from 'lucide-react';
 
 export const RecipeCatalogView: React.FC = () => {
@@ -57,6 +59,8 @@ export const RecipeCatalogView: React.FC = () => {
   const [newInstructions, setNewInstructions] = useState('');
   const [newPrepTime, setNewPrepTime] = useState('30');
   const [newServings, setNewServings] = useState('4');
+  const [newImageUrl, setNewImageUrl] = useState<string>('');
+  const addFileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchRecipes = async () => {
     try {
@@ -84,6 +88,40 @@ export const RecipeCatalogView: React.FC = () => {
     return matchesSearch && matchesCat;
   });
 
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxW = 800;
+        const maxH = 500;
+        let w = img.width;
+        let h = img.height;
+        if (w > maxW) {
+          h = Math.round((h * maxW) / w);
+          w = maxW;
+        }
+        if (h > maxH) {
+          w = Math.round((w * maxH) / h);
+          h = maxH;
+        }
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        ctx.drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+        setNewImageUrl(dataUrl);
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleCreateRecipe = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim()) return;
@@ -96,6 +134,7 @@ export const RecipeCatalogView: React.FC = () => {
         instructions: newInstructions.trim() || undefined,
         prepTimeMinutes: Number(newPrepTime) || 30,
         defaultServings: Number(newServings) || 4,
+        imageUrl: newImageUrl || undefined,
         ingredients: [],
       });
 
@@ -103,6 +142,7 @@ export const RecipeCatalogView: React.FC = () => {
       setNewTitle('');
       setNewDescription('');
       setNewInstructions('');
+      setNewImageUrl('');
       fetchRecipes();
     } catch (err) {
       console.error('Fehler beim Anlegen des Rezepts:', err);
@@ -221,55 +261,74 @@ export const RecipeCatalogView: React.FC = () => {
             <div
               key={recipe.id}
               onClick={() => setActiveRecipe(recipe)}
-              className="bento-card rounded-[2rem] p-6 border border-surface-border shadow-md hover:shadow-xl cursor-pointer transition-all flex flex-col justify-between group"
+              className="bento-card rounded-[2.2rem] overflow-hidden border border-surface-border shadow-md hover:shadow-xl cursor-pointer transition-all flex flex-col justify-between group"
             >
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-2.5">
-                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/30">
+              {/* Recipe Cover Image or Placeholder Header */}
+              <div className="w-full h-44 relative bg-slate-950 overflow-hidden border-b border-surface-border shrink-0">
+                {recipe.imageUrl ? (
+                  <img
+                    src={recipe.imageUrl}
+                    alt={recipe.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-surface-elevated via-surface-card to-surface-elevated flex flex-col items-center justify-center gap-1.5 text-slate-500 group-hover:text-theme-primary transition-colors">
+                    <Utensils className="w-8 h-8 opacity-40" />
+                    <span className="text-[11px] font-sans font-medium text-slate-500">Kein Bild hinterlegt</span>
+                  </div>
+                )}
+                <div className="absolute top-3 left-3 flex items-center gap-1.5 z-10">
+                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full badge-theme backdrop-blur-md">
                     {recipe.category}
                   </span>
-                  <span className="text-xs text-slate-400 flex items-center gap-1 font-mono">
-                    <Clock className="w-3.5 h-3.5 text-rose-400" />
+                </div>
+                <div className="absolute top-3 right-3 z-10">
+                  <span className="text-xs text-slate-200 flex items-center gap-1 font-mono bg-black/60 px-2.5 py-0.5 rounded-full backdrop-blur-sm">
+                    <Clock className="w-3.5 h-3.5 text-theme-primary" />
                     ca. {recipe.prepTimeMinutes || 30} Min
                   </span>
                 </div>
-
-                <h3 className="text-base font-display font-semibold text-slate-100 group-hover:text-rose-300 transition-colors line-clamp-1">
-                  {recipe.title}
-                </h3>
-
-                {recipe.description && (
-                  <p className="text-xs text-slate-300 mt-1.5 line-clamp-2 leading-relaxed font-normal">
-                    {recipe.description}
-                  </p>
-                )}
               </div>
 
-              <div className="mt-5 pt-3.5 border-t border-white/5 flex items-center justify-between text-xs">
-                <span className="text-slate-400 flex items-center gap-1">
-                  <ChefHat className="w-3.5 h-3.5 text-rose-400" />
-                  <span>{recipe.ingredients.length} Zutaten</span>
-                </span>
+              <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between">
+                <div>
+                  <h3 className="text-base font-display font-semibold text-slate-100 group-hover:text-theme-primary transition-colors line-clamp-1">
+                    {recipe.title}
+                  </h3>
 
-                <div className="flex items-center gap-2">
-                  {isStaff && (
+                  {recipe.description && (
+                    <p className="text-xs text-slate-300 mt-2 line-clamp-2 leading-relaxed font-normal">
+                      {recipe.description}
+                    </p>
+                  )}
+                </div>
+
+                <div className="mt-5 pt-3.5 border-t border-white/5 flex items-center justify-between text-xs">
+                  <span className="text-slate-400 flex items-center gap-1">
+                    <ChefHat className="w-3.5 h-3.5 text-theme-primary" />
+                    <span>{recipe.ingredients.length} Zutaten</span>
+                  </span>
+
+                  <div className="flex items-center gap-2">
+                    {isStaff && (
+                      <button
+                        type="button"
+                        onClick={(e) => handleDeleteRecipe(e, recipe.id, recipe.title)}
+                        disabled={deletingId === recipe.id}
+                        title="Rezept löschen"
+                        className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/15 rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                     <button
                       type="button"
-                      onClick={(e) => handleDeleteRecipe(e, recipe.id, recipe.title)}
-                      disabled={deletingId === recipe.id}
-                      title="Rezept löschen"
-                      className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/15 rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
+                      className="px-3.5 py-1.5 bg-surface-elevated group-hover:btn-theme-gradient text-slate-200 group-hover:text-white rounded-xl font-semibold transition-all flex items-center gap-1 text-xs cursor-pointer shadow-xs"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>Öffnen</span>
                     </button>
-                  )}
-                  <button
-                    type="button"
-                    className="px-3.5 py-1.5 bg-surface-elevated group-hover:bg-gradient-to-r group-hover:from-rose-500 group-hover:to-pink-500 text-slate-200 group-hover:text-white rounded-xl font-semibold transition-all flex items-center gap-1 text-xs cursor-pointer shadow-xs"
-                  >
-                    <Eye className="w-3.5 h-3.5" />
-                    <span>Öffnen</span>
-                  </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -282,27 +341,40 @@ export const RecipeCatalogView: React.FC = () => {
             <div
               key={recipe.id}
               onClick={() => setActiveRecipe(recipe)}
-              className="bento-card rounded-[2rem] p-4 sm:p-5 border border-surface-border shadow-sm cursor-pointer transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
+              className="bento-card rounded-[2rem] p-3 sm:p-4 border border-surface-border shadow-sm cursor-pointer transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
             >
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/30 shrink-0">
-                    {recipe.category}
-                  </span>
-                  <h3 className="text-base font-display font-semibold text-slate-100 group-hover:text-rose-300 transition-colors truncate">
-                    {recipe.title}
-                  </h3>
-                </div>
-                {recipe.description && (
-                  <p className="text-xs text-slate-300 line-clamp-1 leading-relaxed font-normal">
-                    {recipe.description}
-                  </p>
+              <div className="flex items-center gap-3.5 flex-1 min-w-0">
+                {recipe.imageUrl ? (
+                  <img
+                    src={recipe.imageUrl}
+                    alt={recipe.title}
+                    className="w-14 h-14 rounded-2xl object-cover ring-1 ring-surface-border shrink-0 shadow-sm"
+                  />
+                ) : (
+                  <div className="w-14 h-14 rounded-2xl bg-surface-elevated flex items-center justify-center text-slate-500 shrink-0 border border-surface-border">
+                    <Utensils className="w-6 h-6 text-slate-500" />
+                  </div>
                 )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full badge-theme shrink-0">
+                      {recipe.category}
+                    </span>
+                    <h3 className="text-base font-display font-semibold text-slate-100 group-hover:text-theme-primary transition-colors truncate">
+                      {recipe.title}
+                    </h3>
+                  </div>
+                  {recipe.description && (
+                    <p className="text-xs text-slate-300 line-clamp-1 leading-relaxed font-normal">
+                      {recipe.description}
+                    </p>
+                  )}
+                </div>
               </div>
 
               <div className="flex items-center gap-3 shrink-0 text-xs text-slate-400 justify-between sm:justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-white/5">
                 <span className="flex items-center gap-1 font-mono">
-                  <Clock className="w-3.5 h-3.5 text-rose-400" />
+                  <Clock className="w-3.5 h-3.5 text-theme-primary" />
                   {recipe.prepTimeMinutes || 30} Min
                 </span>
                 <span className="flex items-center gap-1">
@@ -322,7 +394,7 @@ export const RecipeCatalogView: React.FC = () => {
                 )}
                 <button
                   type="button"
-                  className="px-3.5 py-1.5 bg-surface-elevated group-hover:bg-gradient-to-r group-hover:from-rose-500 group-hover:to-pink-500 text-slate-200 group-hover:text-white rounded-xl font-semibold transition-all flex items-center gap-1 text-xs cursor-pointer shadow-xs"
+                  className="px-3.5 py-1.5 bg-surface-elevated group-hover:btn-theme-gradient text-slate-200 group-hover:text-white rounded-xl font-semibold transition-all flex items-center gap-1 text-xs cursor-pointer shadow-xs"
                 >
                   <Eye className="w-3.5 h-3.5" />
                   <span>Öffnen</span>
@@ -340,6 +412,10 @@ export const RecipeCatalogView: React.FC = () => {
           defaultServings={activeLocation?.defaultServings || 6}
           isStaff={isStaff}
           onDelete={(id, title) => handleDeleteRecipe({ stopPropagation: () => {} } as any, id, title)}
+          onRecipeUpdated={(updated) => {
+            setActiveRecipe(updated);
+            setRecipes((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
+          }}
           onClose={() => setActiveRecipe(null)}
         />
       )}
@@ -402,6 +478,59 @@ export const RecipeCatalogView: React.FC = () => {
                 </div>
               </div>
 
+              {/* Recipe Image Picker */}
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1 font-display">
+                  Rezeptbild (Foto oder URL)
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    ref={addFileInputRef}
+                    type="file"
+                    accept="image/png, image/jpeg, image/webp"
+                    onChange={handleImageFileChange}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => addFileInputRef.current?.click()}
+                    className="px-3.5 py-2 bg-surface-elevated hover:bg-surface-elevated/80 border border-surface-border text-slate-200 text-xs font-semibold rounded-xl flex items-center gap-2 cursor-pointer transition-colors"
+                  >
+                    <Camera className="w-4 h-4 text-theme-primary" />
+                    <span>Foto hochladen</span>
+                  </button>
+
+                  <input
+                    type="url"
+                    value={newImageUrl.startsWith('data:') ? '(Lokales Foto ausgewählt)' : newImageUrl}
+                    onChange={(e) => setNewImageUrl(e.target.value)}
+                    placeholder="Oder Bild-URL einfügen (https://...)"
+                    className="flex-1 px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-theme-primary"
+                  />
+
+                  {newImageUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setNewImageUrl('')}
+                      className="p-2 text-slate-400 hover:text-rose-300 rounded-xl hover:bg-rose-500/15 transition-colors cursor-pointer"
+                      title="Bild entfernen"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+
+                {newImageUrl && (
+                  <div className="mt-2.5 w-full h-32 rounded-2xl overflow-hidden border border-surface-border bg-black/40 relative">
+                    <img
+                      src={newImageUrl}
+                      alt="Vorschau"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+              </div>
+
               <div>
                 <label className="block font-semibold text-slate-300 mb-1 font-display">Kurzbeschreibung</label>
                 <input
@@ -409,7 +538,7 @@ export const RecipeCatalogView: React.FC = () => {
                   value={newDescription}
                   onChange={(e) => setNewDescription(e.target.value)}
                   placeholder="Leckere Lasagne mit Béchamelsauce..."
-                  className="w-full px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40"
+                  className="w-full px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-theme-primary"
                 />
               </div>
 
@@ -420,7 +549,7 @@ export const RecipeCatalogView: React.FC = () => {
                   value={newInstructions}
                   onChange={(e) => setNewInstructions(e.target.value)}
                   placeholder="1. Hackfleisch anbraten...&#10;2. Schichten..."
-                  className="w-full px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans"
+                  className="w-full px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-theme-primary font-sans"
                 />
               </div>
 
@@ -434,7 +563,7 @@ export const RecipeCatalogView: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white rounded-xl font-semibold shadow-md shadow-rose-500/20 transition-all cursor-pointer"
+                  className="btn-theme-gradient px-5 py-2 rounded-xl text-xs font-semibold shadow-md transition-all cursor-pointer"
                 >
                   Speichern
                 </button>

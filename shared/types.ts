@@ -10,6 +10,7 @@ export interface UserSummary {
   locationName?: string | null;
   avatarColor?: string | null;
   avatarUrl?: string | null;
+  birthday?: string | null;
 }
 
 export interface SetupStatusResponse {

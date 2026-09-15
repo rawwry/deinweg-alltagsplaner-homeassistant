@@ -105,6 +105,7 @@ router.post('/auth/setup', async (req: Request, res: Response) => {
         locationName: null,
         avatarColor: user.avatarColor,
         avatarUrl: user.avatarUrl,
+        birthday: user.birthday,
       },
       message: 'Betreuer-Konto erfolgreich eingerichtet!',
     });
@@ -159,6 +160,7 @@ router.post('/auth/login', async (req: Request, res: Response) => {
         locationName: user.location?.name || null,
         avatarColor: user.avatarColor,
         avatarUrl: user.avatarUrl,
+        birthday: user.birthday,
       },
     });
   } catch (err) {
@@ -190,6 +192,7 @@ router.get('/auth/me', requireAuth, async (req: Request, res: Response) => {
         location: user.location,
         avatarColor: user.avatarColor,
         avatarUrl: user.avatarUrl,
+        birthday: user.birthday,
       },
     });
   } catch (err) {
@@ -462,6 +465,7 @@ router.get('/users', requireAuth, async (req: Request, res: Response) => {
         locationId: true,
         avatarColor: true,
         avatarUrl: true,
+        birthday: true,
         isActive: true,
         location: { select: { name: true } },
       },
@@ -478,6 +482,7 @@ router.get('/users', requireAuth, async (req: Request, res: Response) => {
       locationName: u.location?.name || null,
       avatarColor: u.avatarColor,
       avatarUrl: u.avatarUrl,
+      birthday: u.birthday,
       isActive: u.isActive,
     }));
 
@@ -485,6 +490,63 @@ router.get('/users', requireAuth, async (req: Request, res: Response) => {
   } catch (err) {
     console.error('Fehler beim Laden der Benutzer:', err);
     return res.status(500).json({ error: 'Fehler beim Laden der Benutzer.' });
+  }
+});
+
+/**
+ * Self-service update for current logged in user (Bewohner & Betreuer)
+ * Allows updating name, email, birthday, password, avatarUrl
+ */
+router.put('/users/me', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const { name, email, birthday, password, avatarUrl } = req.body;
+
+    const dataToUpdate: any = {};
+    if (typeof name === 'string' && name.trim()) {
+      dataToUpdate.name = name.trim();
+    }
+    if (email !== undefined) {
+      dataToUpdate.email = email && typeof email === 'string' && email.trim() ? email.toLowerCase().trim() : null;
+    }
+    if (birthday !== undefined) {
+      dataToUpdate.birthday = birthday && typeof birthday === 'string' && birthday.trim() ? birthday.trim() : null;
+    }
+    if (typeof password === 'string' && password.trim().length >= 4) {
+      dataToUpdate.passwordHash = await bcrypt.hash(password.trim(), 10);
+    }
+    if (avatarUrl !== undefined) {
+      if (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.length > 3 * 1024 * 1024) {
+        return res.status(400).json({ error: 'Das Profilbild ist zu groß (maximal ca. 2 MB).' });
+      }
+      dataToUpdate.avatarUrl = avatarUrl || null;
+    }
+
+    const updated = await prisma.user.update({
+      where: { id: userId },
+      data: dataToUpdate,
+      include: { location: { select: { name: true } } },
+    });
+
+    return res.json({
+      success: true,
+      user: {
+        id: updated.id,
+        username: updated.username,
+        email: updated.email,
+        name: updated.name,
+        role: updated.role,
+        locationId: updated.locationId,
+        locationName: updated.location?.name || null,
+        avatarColor: updated.avatarColor,
+        avatarUrl: updated.avatarUrl,
+        birthday: updated.birthday,
+      },
+      message: 'Profil erfolgreich aktualisiert!',
+    });
+  } catch (err: any) {
+    console.error('Fehler beim Aktualisieren des Profils:', err);
+    return res.status(500).json({ error: err.message || 'Fehler beim Aktualisieren des Profils.' });
   }
 });
 
@@ -514,7 +576,7 @@ router.post('/users/me/avatar', requireAuth, async (req: Request, res: Response)
 
 router.post('/users', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
   try {
-    const { username, name, email, password, role, locationId, avatarColor, avatarUrl } = req.body;
+    const { username, name, email, password, role, locationId, avatarColor, avatarUrl, birthday } = req.body;
 
     if (!username || !name || !password) {
       return res.status(400).json({ error: 'Benutzername, Name und Passwort sind erforderlich.' });
@@ -537,6 +599,7 @@ router.post('/users', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req:
         locationId: locationId || null,
         avatarColor: avatarColor || '#3b82f6',
         avatarUrl: avatarUrl || null,
+        birthday: birthday ? String(birthday).trim() : null,
       },
       include: { location: true },
     });
@@ -551,6 +614,7 @@ router.post('/users', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req:
       locationName: newUser.location?.name || null,
       avatarColor: newUser.avatarColor,
       avatarUrl: newUser.avatarUrl,
+      birthday: newUser.birthday,
     });
   } catch (err) {
     console.error('Fehler beim Anlegen des Benutzers:', err);
@@ -583,7 +647,7 @@ router.put('/users/:id/reset-password', requireAuth, requireRole('ADMIN', 'BETRE
 router.put('/users/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, email, role, locationId, avatarColor, avatarUrl, isActive } = req.body;
+    const { name, email, role, locationId, avatarColor, avatarUrl, birthday, isActive } = req.body;
 
     const existing = await prisma.user.findUnique({ where: { id } });
     if (!existing) {
@@ -599,6 +663,7 @@ router.put('/users/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), async (r
         locationId: locationId !== undefined ? (locationId || null) : undefined,
         avatarColor: avatarColor !== undefined ? avatarColor : undefined,
         avatarUrl: avatarUrl !== undefined ? avatarUrl : undefined,
+        birthday: birthday !== undefined ? (birthday ? String(birthday).trim() : null) : undefined,
         isActive: isActive !== undefined ? isActive : undefined,
       },
       include: { location: true },
@@ -614,6 +679,7 @@ router.put('/users/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), async (r
       locationName: updated.location?.name || null,
       avatarColor: updated.avatarColor,
       avatarUrl: updated.avatarUrl,
+      birthday: updated.birthday,
       isActive: updated.isActive,
     });
   } catch (err: any) {

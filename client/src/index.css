@@ -178,4 +178,24 @@
 .shadow-theme {
   box-shadow: 0 10px 25px -5px var(--theme-glow);
 }
+.btn-theme-gradient {
+  background: linear-gradient(135deg, var(--theme-from) 0%, var(--theme-to) 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 10px 25px -5px var(--theme-glow);
+}
+.btn-theme-gradient:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 12px 28px -5px var(--theme-glow-hover);
+}
+.badge-theme {
+  background-color: var(--theme-subtle) !important;
+  color: var(--theme-text) !important;
+  border: 1px solid var(--theme-border) !important;
+}
+.active-nav-theme {
+  background: linear-gradient(90deg, var(--theme-subtle) 0%, rgba(255, 255, 255, 0.02) 100%) !important;
+  border-color: var(--theme-border) !important;
+  color: #ffffff !important;
+}
+
 

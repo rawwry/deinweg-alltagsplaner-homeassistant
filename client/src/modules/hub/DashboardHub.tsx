@@ -246,7 +246,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             <button
               type="button"
               onClick={() => setCurrentTab('mealplan')}
-              className="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 hover:from-rose-400 hover:to-pink-500 text-white font-semibold text-xs shadow-lg shadow-rose-500/25 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2 font-sans"
+              className="btn-theme-gradient w-full sm:w-auto px-5 py-2.5 rounded-2xl text-white font-semibold text-xs shadow-lg hover:scale-[1.02] active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2 font-sans"
             >
               <span>Wochenplan & Rezepte ansehen</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -449,14 +449,10 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                   return (
                     <div
                       key={note.id || idx}
-                      className={`p-4 rounded-2xl border shadow-inner ${
-                        idx === 0
-                          ? 'bg-gradient-to-br from-rose-500/10 to-rose-600/5 border-rose-500/30 text-rose-100'
-                          : 'bg-gradient-to-br from-pink-500/10 to-pink-600/5 border-pink-500/30 text-pink-100'
-                      }`}
+                      className="p-4 rounded-2xl border shadow-inner bg-theme-subtle border-theme text-slate-100"
                     >
                       <div className="flex items-center justify-between text-xs font-semibold mb-1.5">
-                        <span className={idx === 0 ? 'text-rose-300' : 'text-pink-300'}>
+                        <span className="text-theme font-medium">
                           {isStaffNote ? 'Betreuer-Notiz' : 'WG-Notiz'} · {note.authorName || 'WG-Mitglied'}
                         </span>
                         <span className="text-[10px] font-mono text-slate-400">
@@ -489,7 +485,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             <button
               type="button"
               onClick={() => setCurrentTab('notes')}
-              className="w-full sm:w-auto px-4 py-2 rounded-xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 hover:border-rose-500/30"
+              className="w-full sm:w-auto px-4 py-2 rounded-xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 hover:border-theme"
             >
               <span>+ Zur WG-Pinnwand</span>
             </button>
@@ -500,7 +496,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
       {/* Compact WG Areas Quick Access Bento Dock */}
       <div className="bento-card rounded-2xl p-3 sm:p-4 flex flex-col md:flex-row items-center justify-between gap-3 shadow-md">
         <div className="flex items-center gap-2 text-slate-300 text-xs font-semibold px-2 self-start md:self-center">
-          <Sparkles className="w-4 h-4 text-pink-400 shrink-0" />
+          <Sparkles className="w-4 h-4 text-theme-primary shrink-0" />
           <span className="font-sans font-bold">Schnellzugriff:</span>
         </div>
 
@@ -508,9 +504,9 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           <button
             type="button"
             onClick={() => setCurrentTab('mealplan')}
-            className="flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-surface-elevated/70 hover:bg-surface-elevated border border-surface-border hover:border-pink-500/40 text-slate-200 hover:text-white text-xs font-medium transition-all group cursor-pointer"
+            className="flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-surface-elevated/70 hover:bg-surface-elevated border border-surface-border hover:border-theme text-slate-200 hover:text-white text-xs font-medium transition-all group cursor-pointer"
           >
-            <Calendar className="w-3.5 h-3.5 text-pink-400 group-hover:scale-110 transition-transform" />
+            <Calendar className="w-3.5 h-3.5 text-theme-primary group-hover:scale-110 transition-transform" />
             <span className="truncate">Wochenplan</span>
           </button>
 

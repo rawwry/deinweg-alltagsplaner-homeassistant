@@ -96,6 +96,11 @@ export const api = {
         method: 'POST',
         body: JSON.stringify({ avatarUrl }),
       }),
+    updateMe: (body: { name?: string; email?: string; birthday?: string; password?: string; avatarUrl?: string | null }) =>
+      request<{ success: boolean; user: any; message: string }>('users/me', {
+        method: 'PUT',
+        body: JSON.stringify(body),
+      }),
     resetPassword: (id: string, newPassword: string) =>
       request<{ success: boolean; message: string }>(`users/${id}/reset-password`, {
         method: 'PUT',

@@ -3,6 +3,33 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.19] - 2026-09-15
+
+### Hinzugefügt & Verbessert
+- **Mobile Fußzeile vollständig ausgeblendet**:
+  - Auf Smartphones (< 640px) wird die Fußzeile nun vollständig ausgeblendet (`hidden sm:block`), um wertvollen Platz zu sparen und kein Sichtfeld zu verdecken.
+- **Header-Entlastung & Standortanzeige für Bewohner mobil entfernt**:
+  - Bewohner-Accounts sehen auf Mobilgeräten keine Standort-Badge mehr.
+  - Der obere Menübalken wurde entschlackt: Der Logout-Button wurde aus der oberen Navigation entfernt und befindet sich nun sauber im Profil-Menü und in den Einstellungen, wodurch auf Smartphones keinerlei Icons mehr überlappen.
+  - Der Standortwähler für Betreuer ist auf kleinen Bildschirmen kompakt und überlappungsfrei dimensioniert.
+- **Bewohner-Profil & Selbstverwaltungs-Menü**:
+  - Klick auf das eigene Profilbild im Header öffnet ein maßgeschneidertes Einstellungsmenü (`UserProfileModal`).
+  - Bewohner können selbstständig ihren Namen, ihre E-Mail-Adresse, ihr Passwort, ihren Geburtstag (mit TT.MM.JJJJ-Anzeige) sowie ihr Profilbild (inkl. 256x256-Zuschnitt und Komprimierung) ändern.
+  - Bewohner können ihr persönliches Farbschema direkt im Profil-Menü wählen.
+  - Dedizierter Abmelde-Button (Logout) im Profil-Menü und im Admin-Bereich.
+- **Reaktives Farbschema (Theming-Fix)**:
+  - Vollständige Anbindung der CSS-Variablen `--theme-primary`, `--theme-from`, `--theme-to` und `--theme-subtle` an Tailwind und UI-Klassen (`btn-theme-gradient`, `badge-theme`, `active-nav-theme`, `border-theme`).
+  - Ein Klick auf ein Farbschema (Magenta, Amber, Emerald, Ocean, Violett) schaltet nun alle Aktionsbuttons, Badges, Menüleisten und Akzente sofort live im gesamten Interface um.
+- **Seitenleiste standardmäßig eingeklappt**:
+  - Die Hauptnavigationsleiste startet nun auf Desktop-Geräten standardmäßig eingeklappt (`deinewg_sidebar_collapsed = true`).
+- **Rezept-Bilder im Rezepte-Katalog**:
+  - Im Rezepte-Katalog werden hinterlegte Rezepte mit einem ansprechenden 16:9-Cover-Bild (Grid-View) bzw. einer 64x64-Miniatur (List-View) dargestellt.
+  - Beim Anlegen oder Bearbeiten eines Rezepts kann direkt ein Foto ausgewählt (mit automatischer Client-Kompression) oder eine URL angegeben werden.
+  - Im Rezept-Detail-Modal (`RecipeModal`) wird das Gericht mit einem großzügigen Hero-Header präsentiert.
+- **Wochenplan: Mehr Abstand zwischen Rezeptname und Detailtext**:
+  - Die täglichen Gerichtkarten im Wochenplan besitzen nun großzügigen vertikalen Raum zwischen Titel, Detailbeschreibung und Metadaten.
+  - Bei Rezepten mit Bild wird im Wochenplan zusätzlich ein ansprechendes Thumbnail angezeigt.
+
 ## [0.1.0-beta.18] - 2026-09-15
 
 ### Hinzugefügt & Behoben

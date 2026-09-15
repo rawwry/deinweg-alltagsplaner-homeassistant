@@ -27,8 +27,10 @@ import {
   Pencil,
   Palette,
   Camera,
+  LogOut,
 } from 'lucide-react';
 import { AvatarUploadModal } from '../../components/profile/AvatarUploadModal.js';
+import { formatGermanDate } from '../../utils/formatters.js';
 
 const WEEKDAY_ITEMS = [
   { id: 1, label: 'Mo', name: 'Montag' },
@@ -55,7 +57,7 @@ export const formatCookingDays = (daysStr?: string | null): string => {
 };
 
 export const AdminManagementView: React.FC = () => {
-  const { user, locations, refreshLocations } = useAuth();
+  const { user, locations, refreshLocations, logout } = useAuth();
   const { themeId, setThemeId, availableThemes } = useTheme();
   const [activeSubTab, setActiveSubTab] = useState<'users' | 'locations' | 'prices' | 'smtp' | 'appearance' | 'system'>('users');
   const [avatarModalUserId, setAvatarModalUserId] = useState<string | null>(null);
@@ -70,6 +72,7 @@ export const AdminManagementView: React.FC = () => {
   const [newUsername, setNewUsername] = useState('');
   const [newName, setNewName] = useState('');
   const [newEmail, setNewEmail] = useState('');
+  const [newBirthday, setNewBirthday] = useState('');
   const [newPassword, setNewPassword] = useState('start2026!');
   const [newRole, setNewRole] = useState<'BEWOHNER' | 'BETREUER'>('BEWOHNER');
   const [newLocationId, setNewLocationId] = useState(locations[0]?.id || '');
@@ -220,6 +223,7 @@ export const AdminManagementView: React.FC = () => {
         username: newUsername.trim(),
         name: newName.trim(),
         email: newEmail.trim() || undefined,
+        birthday: newBirthday || undefined,
         password: newPassword,
         role: newRole,
         locationId: newRole === 'BEWOHNER' ? (newLocationId || locations[0]?.id) : undefined,
@@ -229,6 +233,7 @@ export const AdminManagementView: React.FC = () => {
       setNewUsername('');
       setNewName('');
       setNewEmail('');
+      setNewBirthday('');
       setShowAddUser(false);
       fetchUsers();
       setTimeout(() => setUserSuccessMsg(null), 5000);
@@ -525,75 +530,91 @@ export const AdminManagementView: React.FC = () => {
           </p>
         </div>
 
-        {/* Subtab navigation */}
-        <div className="flex flex-wrap items-center gap-1.5 bg-surface-elevated/90 border border-surface-border p-1.5 rounded-2xl text-xs font-semibold">
+        {/* Subtab navigation & Logout */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5 bg-surface-elevated/90 border border-surface-border p-1.5 rounded-2xl text-xs font-semibold">
+            <button
+              type="button"
+              onClick={() => setActiveSubTab('users')}
+              className={`px-3.5 py-2 rounded-xl transition-all ${
+                activeSubTab === 'users'
+                  ? 'btn-theme-gradient text-white font-semibold shadow-md'
+                  : 'text-surface-muted hover:text-surface-cream'
+              }`}
+            >
+              Benutzer
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveSubTab('locations')}
+              className={`px-3.5 py-2 rounded-xl transition-all ${
+                activeSubTab === 'locations'
+                  ? 'btn-theme-gradient text-white font-semibold shadow-md'
+                  : 'text-surface-muted hover:text-surface-cream'
+              }`}
+            >
+              Standorte
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveSubTab('prices')}
+              className={`px-3.5 py-2 rounded-xl transition-all ${
+                activeSubTab === 'prices'
+                  ? 'btn-theme-gradient text-white font-semibold shadow-md'
+                  : 'text-surface-muted hover:text-surface-cream'
+              }`}
+            >
+              Preise
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveSubTab('smtp')}
+              className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
+                activeSubTab === 'smtp'
+                  ? 'btn-theme-gradient text-white font-semibold shadow-md'
+                  : 'text-surface-muted hover:text-surface-cream'
+              }`}
+            >
+              <Mail className="w-3.5 h-3.5" />
+              <span>E-Mail / SMTP</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveSubTab('appearance')}
+              className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
+                activeSubTab === 'appearance'
+                  ? 'btn-theme-gradient text-white font-semibold shadow-md'
+                  : 'text-surface-muted hover:text-surface-cream'
+              }`}
+            >
+              <Palette className="w-3.5 h-3.5" />
+              <span>Erscheinungsbild</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveSubTab('system')}
+              className={`px-3.5 py-2 rounded-xl transition-all ${
+                activeSubTab === 'system'
+                  ? 'btn-theme-gradient text-white font-semibold shadow-md'
+                  : 'text-surface-muted hover:text-surface-cream'
+              }`}
+            >
+              System
+            </button>
+          </div>
+
           <button
             type="button"
-            onClick={() => setActiveSubTab('users')}
-            className={`px-3.5 py-2 rounded-xl transition-all ${
-              activeSubTab === 'users'
-                ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white font-semibold shadow-md shadow-rose-500/20'
-                : 'text-surface-muted hover:text-surface-cream'
-            }`}
+            onClick={() => {
+              if (window.confirm('Möchtest du dich abmelden?')) {
+                logout();
+              }
+            }}
+            className="px-3.5 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer hover:border-rose-500/50"
+            title="Abmelden"
           >
-            Benutzer
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('locations')}
-            className={`px-3.5 py-2 rounded-xl transition-all ${
-              activeSubTab === 'locations'
-                ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white font-semibold shadow-md shadow-rose-500/20'
-                : 'text-surface-muted hover:text-surface-cream'
-            }`}
-          >
-            Standorte
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('prices')}
-            className={`px-3.5 py-2 rounded-xl transition-all ${
-              activeSubTab === 'prices'
-                ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white font-semibold shadow-md shadow-rose-500/20'
-                : 'text-surface-muted hover:text-surface-cream'
-            }`}
-          >
-            Preise
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('smtp')}
-            className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
-              activeSubTab === 'smtp'
-                ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white font-semibold shadow-md shadow-rose-500/20'
-                : 'text-surface-muted hover:text-surface-cream'
-            }`}
-          >
-            <Mail className="w-3.5 h-3.5" />
-            <span>E-Mail / SMTP</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('appearance')}
-            className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
-              activeSubTab === 'appearance'
-                ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white font-semibold shadow-md shadow-rose-500/20'
-                : 'text-surface-muted hover:text-surface-cream'
-            }`}
-          >
-            <Palette className="w-3.5 h-3.5" />
-            <span>Erscheinungsbild</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('system')}
-            className={`px-3.5 py-2 rounded-xl transition-all ${
-              activeSubTab === 'system'
-                ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white font-semibold shadow-md shadow-rose-500/20'
-                : 'text-surface-muted hover:text-surface-cream'
-            }`}
-          >
-            System
+            <LogOut className="w-4 h-4" />
+            <span className="hidden sm:inline">Abmelden</span>
           </button>
         </div>
       </div>
@@ -673,6 +694,17 @@ export const AdminManagementView: React.FC = () => {
                     onChange={(e) => setNewEmail(e.target.value)}
                     placeholder={newRole === 'BEWOHNER' ? 'optional' : 'z.B. name@deinweg.de'}
                     className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Geburtstag <span className="text-slate-500 font-normal">(optional)</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={newBirthday}
+                    onChange={(e) => setNewBirthday(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono"
                   />
                 </div>
                 <div>
@@ -778,7 +810,10 @@ export const AdminManagementView: React.FC = () => {
                         </div>
                         <div>
                           <div className="font-bold text-slate-100">{u.name}</div>
-                          <div className="text-slate-500 font-mono text-[10px]">@{u.username}</div>
+                          <div className="text-slate-500 font-mono text-[10px]">
+                            @{u.username}
+                            {u.birthday ? ` · 🎂 ${formatGermanDate(u.birthday)}` : ''}
+                          </div>
                         </div>
                       </div>
                     </td>
@@ -2111,7 +2146,7 @@ export const AdminManagementView: React.FC = () => {
                     onClick={() => setThemeId(config.id)}
                     className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3 ${
                       isActive
-                        ? 'bg-surface-elevated border-pink-500/60 shadow-lg shadow-pink-500/10 ring-2 ring-pink-500/30'
+                        ? 'bg-surface-elevated border-theme-border shadow-lg shadow-theme ring-2 ring-theme-primary'
                         : 'bg-surface-elevated/50 border-surface-border hover:bg-surface-elevated hover:border-surface-border/80'
                     }`}
                   >
@@ -2129,7 +2164,7 @@ export const AdminManagementView: React.FC = () => {
                         </div>
                       </div>
                       {isActive && (
-                        <span className="w-5 h-5 rounded-full bg-pink-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                        <span className="w-5 h-5 rounded-full bg-theme-primary text-white flex items-center justify-center shrink-0 shadow-sm">
                           <Check className="w-3 h-3 stroke-[3]" />
                         </span>
                       )}

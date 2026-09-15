@@ -424,8 +424,8 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
                 } shadow-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 group`}
               >
                 {/* Left: Day info & Recipe title */}
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-3 flex-wrap">
                     <span className="text-sm font-semibold text-white font-sans">
                       {dayName}
                     </span>
@@ -433,55 +433,66 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
                       {dateStr}
                     </span>
                     {hasRecipe && (
-                      <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/30">
+                      <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full badge-theme">
                         {dayData.recipe.category}
                       </span>
                     )}
                     {!isConfiguredDay && (
-                      <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40">
+                      <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full badge-theme">
                         Zusatz-Kochen (an Selbstversorgungs-Tag)
                       </span>
                     )}
                   </div>
 
                   {hasRecipe ? (
-                    <div>
-                      <h3 className="text-base font-semibold text-slate-100 group-hover:text-rose-300 transition-colors flex items-center gap-2 font-sans tracking-tight">
-                        <Utensils className="w-4 h-4 text-rose-400 flex-shrink-0" />
-                        <span>{dayData.recipe.title}</span>
-                      </h3>
-                      {dayData.recipe.description && (
-                        <p className="text-xs text-slate-300 mt-1 line-clamp-1 font-normal font-sans">
-                          {dayData.recipe.description}
-                        </p>
+                    <div className="flex items-start gap-3.5 sm:gap-4">
+                      {dayData.recipe.imageUrl && (
+                        <img
+                          src={dayData.recipe.imageUrl}
+                          alt={dayData.recipe.title}
+                          className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover ring-1 ring-surface-border shrink-0 shadow-md mt-0.5"
+                        />
                       )}
-                      <div className="flex items-center gap-4 text-xs text-slate-400 mt-2 font-sans">
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3.5 h-3.5 text-rose-400" />
-                          ca. {dayData.recipe.prepTimeMinutes || 30} Min
-                        </span>
-                        <span>{dayData.recipe.ingredients?.length || 0} Zutaten</span>
-                        {onOpenRecipeDetail && (
-                          <button
-                            type="button"
-                            onClick={() => onOpenRecipeDetail(dayData.recipe.id)}
-                            className="text-rose-400 hover:text-rose-300 hover:underline font-semibold cursor-pointer"
-                          >
-                            Rezept ansehen
-                          </button>
+                      <div className="flex-1 min-w-0 space-y-2">
+                        <h3 className="text-base sm:text-lg font-display font-semibold text-slate-100 group-hover:text-theme-primary transition-colors flex items-center gap-2 tracking-tight">
+                          <Utensils className="w-4 h-4 text-theme-primary flex-shrink-0" />
+                          <span className="truncate">{dayData.recipe.title}</span>
+                        </h3>
+                        {dayData.recipe.description && (
+                          <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed font-normal font-sans line-clamp-2 pt-0.5">
+                            {dayData.recipe.description}
+                          </p>
                         )}
+                        <div className="flex items-center gap-4 text-xs text-slate-400 pt-1.5 border-t border-white/5 font-sans flex-wrap">
+                          <span className="flex items-center gap-1 font-mono">
+                            <Clock className="w-3.5 h-3.5 text-theme-primary" />
+                            ca. {dayData.recipe.prepTimeMinutes || 30} Min
+                          </span>
+                          <span>{dayData.recipe.ingredients?.length || 0} Zutaten</span>
+                          {onOpenRecipeDetail && (
+                            <button
+                              type="button"
+                              onClick={() => onOpenRecipeDetail(dayData.recipe.id)}
+                              className="text-theme hover:underline font-semibold cursor-pointer"
+                            >
+                              Rezept ansehen
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ) : hasCustom ? (
-                    <div>
-                      <h3 className="text-base font-semibold text-rose-300 flex items-center gap-2 font-sans">
-                        <Sparkles className="w-4 h-4 text-rose-400 flex-shrink-0" />
+                    <div className="space-y-1.5 py-1">
+                      <h3 className="text-base font-semibold text-theme-primary flex items-center gap-2 font-sans">
+                        <Sparkles className="w-4 h-4 text-theme-primary flex-shrink-0" />
                         <span>{dayData.customDishTitle}</span>
                       </h3>
-                      <span className="text-xs text-slate-400 font-sans">Freies Gericht (kein Rezept hinterlegt)</span>
+                      <p className="text-xs text-slate-400 font-sans italic pt-1">
+                        Freies Gericht (kein Rezept hinterlegt)
+                      </p>
                     </div>
                   ) : (
-                    <div className="text-sm text-slate-400 italic py-1 font-sans">
+                    <div className="text-sm text-slate-400 italic py-2 font-sans">
                       Noch kein Gericht geplant
                     </div>
                   )}
