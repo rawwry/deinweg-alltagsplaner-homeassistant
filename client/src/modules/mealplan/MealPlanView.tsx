@@ -609,7 +609,7 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
                         }`}
                       >
                         <Plus className="w-3.5 h-3.5" />
-                        <span>{hasRecipe || hasCustom ? 'Gericht ändern' : '+ Gericht wählen'}</span>
+                        <span>{hasRecipe || hasCustom ? 'Gericht ändern' : 'Gericht wählen'}</span>
                       </button>
                     </div>
                   </div>

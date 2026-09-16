@@ -3,6 +3,27 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.24] - 2026-09-16
+
+### Hinzugefügt & Verbessert
+- **Dashboard: Harmonisches 2-Spalten Bento-Raster & Einkaufskorb-Breite**:
+  - Umstellung des asymmetrischen 3-Spalten-Rasters auf ein gleichmäßiges 2-Spalten-Layout (`grid-cols-1 lg:grid-cols-2`).
+  - Großzügige Breite für die *Einkaufskorb*-Box: Keine gedrängten Textumbrüche mehr im Wochen-Budget-Bereich (`Wochen-Budget KW xx` und `Noch xx € frei` stehen jetzt aufgeräumt nebeneinander).
+  - Sinnvolle thematische Bündelung: Zeile 1 widmet sich Kochen & Einkauf (Rezept-Spotlight + Einkaufskorb); Zeile 2 Alltag & Austausch (Abfall-Radar + Flurfunk).
+- **Abfall-Radar: Bereinigung & Zähler-Entfernung**:
+  - Entfernung der verwirrenden Zähler-Pille oben rechts (wie `In -247 Tagen`).
+  - Automatische Filterung auf anstehende und heutige Abholtermine (vergangene Alttermine werden ignoriert).
+- **Button-Labels: Doppelte Plus-Zeichen bereinigt**:
+  - Entfernung doppelter Pluszeichen in Beschriftungen (`+ Gericht wählen`, `Termin eintragen`, `Neues Rezept eintragen`, `Zum Flurfunk`).
+- **Supermarkt-Stammdaten: Umbenennung in „Netto“**:
+  - Umbenennung von *Netto Marken Discoun(t)* in **Netto** in Initial-Seed und automatische Bereinigung in bestehenden Datenbanken.
+- **Wöchentliches Budget: Sonntag-Abschluss & Bewohner-Transparenz**:
+  - **Automatischer Sonntag-Abschluss**: Jede Woche gilt ab Sonntag automatisch als abgeschlossen (`isConfirmed: true`). Nicht verbrauchte Überschüsse fließen verlässlich in die Sonderkasse.
+  - **Fokussierte Bewohneransicht**: Bewohner sehen auf einen Blick das noch verfügbare Wocheneinkaufs-Budget (`Noch xx € frei`); Betreuer-Verwaltungsbuttons und komplexe Kassenbuch-Aktionen sind für Bewohner ausgeblendet.
+- **Flurfunk: Direktnachrichten von Betreuern an Bewohner & Entspannungs-Icon**:
+  - **Betreuer-Direktnachrichten**: Wenn Betreuer einen vertraulichen Beitrag schreiben, wählen sie nun gezielt *„Direkt an Bewohner“* mit praktischem Bewohner-Auswahlfeld. Der gewählte Bewohner sieht den Hinweis sofort auf seinem Dashboard und erhält eine Benachrichtigung.
+  - **Neues Entspannungs-Icon (Flaticon 5522984)**: Ersatz des alten Zigaretten-Icons im Leerzustand durch eine friedlich auf einem Kissen ruhende Person mit hinter dem Kopf verschränkten Armen.
+
 ## [0.1.0-beta.23] - 2026-09-16
 
 ### Hinzugefügt & Verbessert

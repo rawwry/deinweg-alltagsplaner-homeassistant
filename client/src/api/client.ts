@@ -199,7 +199,7 @@ export const api = {
       request<any[]>(`notes?${locationId ? `locationId=${locationId}&` : ''}archived=${archived}`),
     countOpen: (locationId?: string) =>
       request<{ count: number }>(`notes/count-open${locationId ? `?locationId=${locationId}` : ''}`),
-    create: (body: { title: string; content: string; locationId?: string; isPrivate?: boolean }) =>
+    create: (body: { title: string; content: string; locationId?: string; residentId?: string; isPrivate?: boolean }) =>
       request<any>('notes', { method: 'POST', body: JSON.stringify(body) }),
     respond: (id: string, response: string) =>
       request<any>(`notes/${id}/respond`, { method: 'POST', body: JSON.stringify({ response }) }),

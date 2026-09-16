@@ -355,7 +355,7 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
                     : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                 }`}
               >
-                {budgetData?.isConfirmed ? 'Abgerechnet' : 'Verfügbar'}
+                {budgetData?.isConfirmed ? 'Abgeschlossen' : 'Verfügbar'}
               </span>
             </div>
 
@@ -365,25 +365,30 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
                   {budgetData ? budgetData.remainingBudget.toFixed(2) : '—'}
                 </span>
                 <span className="text-lg font-bold text-emerald-400/80 font-mono">€</span>
-                <span className="text-slate-400 text-xs font-medium ml-1">verbleibend</span>
+                <span className="text-slate-400 text-xs font-medium ml-1">frei</span>
               </div>
               <p className="text-[11px] text-slate-400 mt-1.5 font-sans">
-                von {budgetData ? `${budgetData.weeklyBudget.toFixed(0)} €` : '350 €'} Wochensatz
+                {user?.role === 'BEWOHNER'
+                  ? 'Noch verfügbar für den Wocheneinkauf'
+                  : `von ${budgetData ? `${budgetData.weeklyBudget.toFixed(0)} €` : '350 €'} Wochensatz`}
               </p>
             </div>
           </div>
 
-          <div className="pt-3 border-t border-white/5 mt-2">
-            <button
-              type="button"
-              onClick={() => setIsBudgetModalOpen(true)}
-              className="w-full py-1.5 px-3 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 hover:text-white text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
-            >
-              <PiggyBank className="w-3.5 h-3.5" />
-              <span>WG-Kasse verwalten</span>
-              <ArrowRight className="w-3 h-3 text-emerald-400" />
-            </button>
-          </div>
+          {/* Caregiver cashbox management button (staff only) */}
+          {(user?.role === 'ADMIN' || user?.role === 'BETREUER') && (
+            <div className="pt-3 border-t border-white/5 mt-2">
+              <button
+                type="button"
+                onClick={() => setIsBudgetModalOpen(true)}
+                className="w-full py-1.5 px-3 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 hover:text-white text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+              >
+                <PiggyBank className="w-3.5 h-3.5" />
+                <span>WG-Kasse verwalten</span>
+                <ArrowRight className="w-3 h-3 text-emerald-400" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

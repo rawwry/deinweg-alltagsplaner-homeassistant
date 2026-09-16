@@ -8,10 +8,12 @@ async function main() {
   // 1. Supermärkte anlegen
   const netto = await prisma.supermarket.upsert({
     where: { id: 'supermarket-netto' },
-    update: {},
+    update: {
+      name: 'Netto',
+    },
     create: {
       id: 'supermarket-netto',
-      name: 'Netto Marken-Discount',
+      name: 'Netto',
       isGlobal: true,
     },
   });

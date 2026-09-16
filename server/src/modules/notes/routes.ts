@@ -152,21 +152,43 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
         isArchived: false,
       },
       include: {
-        resident: { select: { name: true } },
+        resident: { select: { id: true, name: true, email: true } },
         location: { select: { name: true } },
       },
     });
 
-    // If private or directed to caregivers, notify caregivers via email
+    // If private: notify caregivers if resident wrote; notify resident if caregiver wrote
     if (note.isPrivate) {
-      sendCaregiverNewNoteEmail({
-        locationId: note.locationId,
-        locationName: note.location.name,
-        authorName: note.resident.name,
-        noteTitle: note.title,
-        noteContent: note.content,
-        isPrivate: true,
-      }).catch((err) => console.error('[Mailer] Fehler beim Senden an Betreuer:', err));
+      if (req.user!.role === 'BEWOHNER') {
+        sendCaregiverNewNoteEmail({
+          locationId: note.locationId,
+          locationName: note.location.name,
+          authorName: note.resident.name,
+          noteTitle: note.title,
+          noteContent: note.content,
+          isPrivate: true,
+        }).catch((err: any) => console.error('[Mailer] Fehler beim Senden an Betreuer:', err));
+      } else {
+        // Caregiver directly wrote to resident -> alert resident on dashboard & email
+        await prisma.caregiverNote.update({
+          where: { id: note.id },
+          data: {
+            hasUnreadResponse: true,
+            respondedByUserId: req.user!.id,
+            caregiverResponse: note.content,
+          },
+        });
+        if (note.resident?.email) {
+          sendResidentReplyEmail({
+            residentEmail: note.resident.email,
+            residentName: note.resident.name,
+            noteTitle: note.title,
+            responderName: req.user!.name,
+            replyText: note.content,
+            locationName: note.location.name,
+          }).catch((err: any) => console.error('[Mailer] Fehler beim Senden an Bewohner:', err));
+        }
+      }
     }
 
     return res.json({

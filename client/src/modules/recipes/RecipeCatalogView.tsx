@@ -204,7 +204,7 @@ export const RecipeCatalogView: React.FC = () => {
               className="px-4 py-2.5 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white rounded-2xl text-xs font-semibold flex items-center gap-1.5 shadow-lg shadow-rose-500/25 transition-all flex-1 sm:flex-none justify-center cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              <span>+ Neues Rezept eintragen</span>
+              <span>Neues Rezept eintragen</span>
             </button>
           )}
         </div>

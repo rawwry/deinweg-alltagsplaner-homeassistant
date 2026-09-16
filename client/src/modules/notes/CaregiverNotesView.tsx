@@ -37,6 +37,23 @@ export const CaregiverNotesView: React.FC = () => {
   const [threadReplyInputs, setThreadReplyInputs] = useState<Record<string, string>>({});
   const [isSubmittingMap, setIsSubmittingMap] = useState<Record<string, boolean>>({});
 
+  const [residents, setResidents] = useState<any[]>([]);
+  const [targetResidentId, setTargetResidentId] = useState<string>('');
+
+  useEffect(() => {
+    if (isStaff && activeLocationId) {
+      api.users.list(activeLocationId)
+        .then((users) => {
+          const resList = (users || []).filter((u: any) => u.role === 'BEWOHNER');
+          setResidents(resList);
+          if (resList.length > 0) {
+            setTargetResidentId(resList[0].id);
+          }
+        })
+        .catch((e) => console.warn('Konnte Bewohner nicht laden:', e));
+    }
+  }, [isStaff, activeLocationId]);
+
   const fetchNotes = async () => {
     try {
       setIsLoading(true);
@@ -65,11 +82,17 @@ export const CaregiverNotesView: React.FC = () => {
     e.preventDefault();
     if (!title.trim() || !content.trim()) return;
 
+    if (isStaff && isPrivate && !targetResidentId) {
+      alert('Bitte wähle einen Bewohner aus, an den die Mitteilung gerichtet ist.');
+      return;
+    }
+
     try {
       await api.notes.create({
         title: title.trim(),
         content: content.trim(),
         locationId: activeLocationId,
+        residentId: isStaff && isPrivate ? targetResidentId : undefined,
         isPrivate,
       });
 
@@ -236,7 +259,9 @@ export const CaregiverNotesView: React.FC = () => {
 
           {/* Visibility Option */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-slate-300 font-display">Sichtbarkeit des Beitrags</label>
+            <label className="block text-xs font-semibold text-slate-300 font-display">
+              Sichtbarkeit des Beitrags
+            </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 type="button"
@@ -275,15 +300,45 @@ export const CaregiverNotesView: React.FC = () => {
                 </div>
                 <div>
                   <div className="text-xs font-bold text-slate-100 flex items-center gap-1.5">
-                    <span>Privat an Betreuer</span>
+                    <span>{isStaff ? 'Direkt an Bewohner' : 'Privat an Betreuer'}</span>
                     {isPrivate && <Check className="w-3.5 h-3.5 text-purple-400" />}
                   </div>
                   <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
-                    Nur für dich und das Betreuer-Team des Standorts sichtbar.
+                    {isStaff
+                      ? 'Vertrauliche Mitteilung gezielt an einen Bewohner dieser WG.'
+                      : 'Nur für dich und das Betreuer-Team des Standorts sichtbar.'}
                   </p>
                 </div>
               </button>
             </div>
+
+            {/* Resident dropdown when caregiver sends direct note */}
+            {isStaff && isPrivate && (
+              <div className="p-3.5 rounded-2xl bg-purple-500/10 border border-purple-500/30 space-y-1.5 mt-2 animate-in fade-in duration-150">
+                <label className="block text-xs font-semibold text-purple-300 font-display flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5" />
+                  <span>Empfänger (Bewohner auswählen):</span>
+                </label>
+                {residents.length === 0 ? (
+                  <div className="text-xs text-slate-400 italic">
+                    Keine Bewohner mit Rolle „BEWOHNER“ an diesem Standort registriert.
+                  </div>
+                ) : (
+                  <select
+                    value={targetResidentId}
+                    onChange={(e) => setTargetResidentId(e.target.value)}
+                    className="w-full px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-purple-500/40 cursor-pointer font-sans"
+                    required
+                  >
+                    {residents.map((r) => (
+                      <option key={r.id} value={r.id} className="bg-slate-900 text-white">
+                        {r.name} (@{r.username})
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            )}
           </div>
 
           <div>
@@ -292,37 +347,40 @@ export const CaregiverNotesView: React.FC = () => {
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="z.B. Termin beim Bürgeramt, Arzt-Rezept, Frage zur WG..."
-              className="w-full px-4 py-2.5 bg-surface-elevated border border-surface-border rounded-2xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40"
+              placeholder="Worum geht es? (z.B. Arzttermin, Waffeleisen leihen, Einkaufswunsch...)"
+              className="w-full px-4 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans"
               required
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5 font-display">Genaue Beschreibung</label>
+            <label className="block text-xs font-semibold text-slate-300 mb-1.5 font-display">Nachricht / Anliegen</label>
             <textarea
-              rows={3}
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Was genau soll erledigt werden? Gibt es Fristen oder persönliche Wünsche?"
-              className="w-full px-4 py-2.5 bg-surface-elevated border border-surface-border rounded-2xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans"
+              placeholder="Schreibe hier deine Nachricht ausführlicher..."
+              rows={4}
+              className="w-full px-4 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans resize-none"
               required
             />
           </div>
 
-          <div className="flex justify-end gap-2.5 pt-2 border-t border-white/5">
+          <div className="flex justify-end gap-2.5 pt-2">
             <button
               type="button"
-              onClick={() => setShowAddForm(false)}
-              className="px-4 py-2 bg-surface-elevated hover:bg-surface-card text-slate-300 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+              onClick={() => {
+                setShowAddForm(false);
+                setIsPrivate(false);
+              }}
+              className="px-4 py-2 bg-surface-elevated hover:bg-surface-card text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer"
             >
               Abbrechen
             </button>
             <button
               type="submit"
-              className="px-5 py-2 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-rose-500/20 transition-all cursor-pointer"
+              className="px-5 py-2 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white rounded-xl text-xs font-bold shadow-md shadow-rose-500/20 transition-all cursor-pointer"
             >
-              <span>{isPrivate ? 'Private Notiz an Betreuer senden 🔒' : 'Notiz anpinnen 📌'}</span>
+              Beitrag veröffentlichen
             </button>
           </div>
         </form>
@@ -338,26 +396,13 @@ export const CaregiverNotesView: React.FC = () => {
         <div className="bento-card rounded-[2.5rem] p-12 text-center border border-surface-border shadow-xl">
           {activeTab === 'ACTIVE' ? (
             <>
-              {/* Clean, static minimalist SVG vector icon */}
-              <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shadow-inner">
-                <svg
-                  viewBox="0 0 48 48"
-                  className="w-10 h-10"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M28 10c0-3 3-5 3-8" className="stroke-rose-300" strokeWidth="1.8" opacity="0.6" />
-                  <path d="M33 13c0-3 4-5 4-8" className="stroke-rose-400" strokeWidth="1.8" opacity="0.8" />
-                  <rect x="6" y="24" width="8" height="6" rx="1.5" className="fill-amber-600/30 stroke-amber-500" strokeWidth="1.8" />
-                  <line x1="14" y1="24" x2="34" y2="24" strokeWidth="1.8" />
-                  <line x1="14" y1="30" x2="34" y2="30" strokeWidth="1.8" />
-                  <line x1="34" y1="24" x2="34" y2="30" strokeWidth="1.8" />
-                  <path d="M34 25.5h2.5a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H34" className="stroke-rose-500 fill-rose-500/30" strokeWidth="1.8" />
-                  <path d="M10 38h28a4 4 0 0 0 4-4H6a4 4 0 0 0 4 4z" className="stroke-slate-500 fill-surface-elevated" strokeWidth="1.8" />
-                </svg>
+              {/* Relaxing person icon (Flaticon 5522984) */}
+              <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center p-3.5 shadow-inner">
+                <img
+                  src="/relax-empty.png"
+                  alt="Entspannung"
+                  className="w-12 h-12 object-contain opacity-85 invert filter brightness-125 select-none pointer-events-none"
+                />
               </div>
               <h3 className="text-base font-display font-semibold text-slate-200">Aktuell kein Flurfunk</h3>
               <p className="text-xs text-slate-400 mt-1.5 max-w-sm mx-auto leading-relaxed">
@@ -412,7 +457,7 @@ export const CaregiverNotesView: React.FC = () => {
                     {note.isPrivate ? (
                       <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/30 flex items-center gap-1 font-display">
                         <Lock className="w-3 h-3 text-purple-400" />
-                        <span>Nur für Betreuer</span>
+                        <span>{isStaff ? `Direkt an ${note.residentName}` : 'Nur für Betreuer'}</span>
                       </span>
                     ) : (
                       <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-surface-elevated text-slate-400 border border-surface-border flex items-center gap-1 font-display">
@@ -429,7 +474,10 @@ export const CaregiverNotesView: React.FC = () => {
 
                   <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
                     <User className="w-3.5 h-3.5 text-rose-400" />
-                    <span>Von: <span className="text-white font-bold">{note.residentName}</span></span>
+                    <span>
+                      {note.isPrivate ? 'An: ' : 'Von: '}
+                      <span className="text-white font-bold">{note.residentName}</span>
+                    </span>
                   </div>
                 </div>
 

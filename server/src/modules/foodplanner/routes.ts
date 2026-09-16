@@ -423,6 +423,18 @@ router.post('/ingredients/clear-all', requireAuth, requireRole('ADMIN', 'BETREUE
 
 router.get('/supermarkets', requireAuth, async (_req: Request, res: Response) => {
   try {
+    // Automatically normalize any legacy "Netto Marken Discoun" / "Netto Marken-Discount" to "Netto"
+    await prisma.supermarket.updateMany({
+      where: {
+        name: {
+          contains: 'Netto Marken',
+        },
+      },
+      data: {
+        name: 'Netto',
+      },
+    });
+
     const markets = await prisma.supermarket.findMany({ orderBy: { name: 'asc' } });
     return res.json(markets);
   } catch (err) {
@@ -844,6 +856,24 @@ router.delete('/shopping-list/custom-item/:id', requireAuth, async (req: Request
 
 // ==================== STANDORT-BUDGET & SONDERKASSE ====================
 
+function isWeekClosedBySunday(year: number, weekNumber: number): boolean {
+  const now = new Date();
+  const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const currentWeek = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  const currentYear = d.getUTCFullYear();
+
+  if (year < currentYear) return true;
+  if (year > currentYear) return false;
+  if (weekNumber < currentWeek) return true;
+  if (weekNumber > currentWeek) return false;
+
+  // On Sunday (getDay() === 0), current week automatically closes
+  return now.getDay() === 0;
+}
+
 router.get('/budget', requireAuth, async (req: Request, res: Response) => {
   try {
     const locationId = resolveLocationId(req);
@@ -887,11 +917,40 @@ router.get('/budget', requireAuth, async (req: Request, res: Response) => {
     const weeklyBudget = weeklyBudgetRecord ? weeklyBudgetRecord.budgetAmount : defaultWeeklyBudget;
     const actualSpent = weeklyBudgetRecord?.actualSpent ?? null;
     const receiptNote = weeklyBudgetRecord?.receiptNote ?? null;
-    const isConfirmed = weeklyBudgetRecord?.isConfirmed ?? false;
+
+    // Automatic closing every Sunday: week is confirmed if record is confirmed or Sunday arrived
+    const weekClosedAutomatically = isWeekClosedBySunday(year, weekNumber);
+    const isConfirmed = (weeklyBudgetRecord?.isConfirmed ?? false) || weekClosedAutomatically;
 
     // Effective spent: if actual receipt entered, use that; otherwise use estimated shopping cost
     const effectiveSpent = actualSpent !== null ? actualSpent : estimatedShoppingCost;
     const remainingBudget = Math.round((weeklyBudget - effectiveSpent) * 100) / 100;
+
+    // Residents should only receive the available budget info without caregiver bookkeeping
+    const isResident = req.user?.role === 'BEWOHNER';
+    if (isResident) {
+      return res.json({
+        locationId,
+        year,
+        weekNumber,
+        weeklyBudget,
+        remainingBudget,
+        isConfirmed,
+      });
+    }
+
+    // Auto-confirm past weeks where Sunday has passed
+    const unconfirmedBudgets = await prisma.locationWeeklyBudget.findMany({
+      where: { locationId, isConfirmed: false },
+    });
+    for (const b of unconfirmedBudgets) {
+      if (isWeekClosedBySunday(b.year, b.weekNumber)) {
+        await prisma.locationWeeklyBudget.update({
+          where: { id: b.id },
+          data: { isConfirmed: true },
+        });
+      }
+    }
 
     // 3. Calculate Sonderkasse (savings pot balance):
     // Sum of confirmed weekly surpluses

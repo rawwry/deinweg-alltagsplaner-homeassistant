@@ -192,7 +192,7 @@ export const WasteCalendarView: React.FC = () => {
               className="flex-1 sm:flex-none px-4 py-2.5 bg-surface-elevated hover:bg-surface-elevated/80 text-surface-cream rounded-2xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all border border-surface-border shadow-xs hover:border-rose-500/30"
             >
               <Plus className="w-4 h-4 text-rose-400" />
-              <span>+ Termin eintragen</span>
+              <span>Termin eintragen</span>
             </button>
 
             <button

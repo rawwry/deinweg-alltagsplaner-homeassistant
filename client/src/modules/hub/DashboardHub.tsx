@@ -105,17 +105,29 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
   }, [activeLocationId, currentYear, currentWeek]);
 
   const todayMeal = mealPlan?.days?.find((d: any) => d.dayOfWeek === currentDayOfWeek);
-  const nextWaste = wasteSummary.length > 0 ? wasteSummary[0] : null;
   const openNotes = notesList.filter((n: any) => n.status !== 'DONE');
+
+  // Filter waste pickups to today or upcoming dates only (ignoring past dates)
+  const todayDate = new Date();
+  todayDate.setHours(0, 0, 0, 0);
+
+  const upcomingWasteList = (wasteSummary || [])
+    .filter((w: any) => {
+      if (!w.date) return false;
+      const target = new Date(w.date);
+      target.setHours(0, 0, 0, 0);
+      return target.getTime() >= todayDate.getTime();
+    })
+    .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  const nextWaste = upcomingWasteList.length > 0 ? upcomingWasteList[0] : null;
 
   // Calculate days until next waste pickup
   let daysUntilWaste: number | null = null;
   if (nextWaste?.date) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
     const target = new Date(nextWaste.date);
     target.setHours(0, 0, 0, 0);
-    daysUntilWaste = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    daysUntilWaste = Math.round((target.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24));
   }
 
   // Waste type title mapping
@@ -238,10 +250,10 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           </div>
         )}
 
-      {/* Asymmetric Bento Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
-        {/* Bento 1: Bistro Hero Meal Spotlight (Span 2) */}
-        <div className="bento-card lg:col-span-2 rounded-[2.5rem] p-7 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
+      {/* Balanced 2-Column Bento Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+        {/* Bento 1: Bistro Hero Meal Spotlight */}
+        <div className="bento-card rounded-[2.5rem] p-7 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
           {/* Ambient warm glow */}
           <div className="absolute -right-16 -top-16 w-72 h-72 bg-rose-500/10 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute right-6 top-6 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none text-9xl select-none">
@@ -332,14 +344,106 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
               onClick={() => setCurrentTab('mealplan')}
               className="btn-theme-gradient w-full sm:w-auto px-5 py-2.5 rounded-2xl text-white font-semibold text-xs shadow-lg hover:scale-[1.02] active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2 font-sans"
             >
-              <span>Wochenplan & Rezepte ansehen</span>
+              <span>Wochenplan & Rezepte</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
 
-        {/* Bento 2: Visual Waste Radar (Span 1) */}
-        <div className="bento-card rounded-[2.5rem] p-7 flex flex-col justify-between relative overflow-hidden group">
+        {/* Bento 2: Shopping Radar & Basket (Paired with Food spotlight, ample width, no text wraps) */}
+        <div className="bento-card rounded-[2.5rem] p-7 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
+          <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <span className="px-3.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold uppercase tracking-wider font-sans">
+                Einkaufskorb
+              </span>
+              <span className="text-xs font-semibold text-emerald-400 font-mono">
+                ~ {shoppingSummary?.totalEstimatedCost ? `${shoppingSummary.totalEstimatedCost.toFixed(2)} €` : '0.00 €'}
+              </span>
+            </div>
+
+            <h3 className="text-xl font-semibold text-white mb-1.5 font-sans tracking-tight">
+              {shoppingSummary?.items?.length || 0}{' '}
+              {shoppingSummary?.items?.length === 1 ? 'Artikel auf der Liste' : 'Artikel auf der Liste'}
+            </h3>
+            <p className="text-xs text-slate-300 mb-4 leading-relaxed font-sans">
+              Geplant bei <strong className="text-white font-semibold">{shoppingSummary?.supermarketName || 'Supermarkt'}</strong> für diese Woche.
+            </p>
+
+            {/* Weekly Budget Status Widget (Clean horizontal layout with ample space) */}
+            {budgetSummary && (
+              <div className="p-3.5 mb-4 rounded-2xl bg-surface-elevated/80 border border-emerald-500/30 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 shrink-0 text-base">
+                    🪙
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase font-bold text-slate-400 font-sans tracking-wide">
+                      Wochen-Budget KW {currentWeek}
+                    </div>
+                    <div className="text-sm font-bold text-emerald-400 font-mono">
+                      Noch {budgetSummary.remainingBudget.toFixed(2)} € frei
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <span className="text-xs text-slate-400 font-sans">
+                    von {budgetSummary.weeklyBudget.toFixed(0)} €
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Quick Preview Items */}
+            <div className="space-y-2 mb-4">
+              {shoppingSummary?.items && shoppingSummary.items.length > 0 ? (
+                shoppingSummary.items.slice(0, 3).map((item: any, idx: number) => {
+                  const itemName = item.name || item.title || 'Artikel';
+                  const itemAmount = item.totalAmount ?? item.amount;
+                  return (
+                    <div
+                      key={item.ingredientId || item.id || idx}
+                      className="flex items-center justify-between p-2.5 rounded-2xl bg-surface-elevated/70 border border-surface-border text-xs"
+                    >
+                      <span className="flex items-center gap-2 text-slate-200 font-medium truncate">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />
+                        <span className="truncate">
+                          {itemName}
+                          {itemAmount !== undefined && itemAmount !== null && itemAmount !== ''
+                            ? ` (${itemAmount} ${item.unit || ''})`.trim()
+                            : item.unit
+                            ? ` (${item.unit})`
+                            : ''}
+                        </span>
+                      </span>
+                      <span className="text-slate-400 font-mono flex-shrink-0 ml-2">
+                        {item.estimatedPrice ? `${item.estimatedPrice.toFixed(2)} €` : '—'}
+                      </span>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="p-3.5 rounded-2xl bg-surface-elevated/50 border border-surface-border text-xs text-slate-400 text-center font-medium">
+                  Alle Einkäufe erledigt! 🎉
+                </div>
+              )}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setCurrentTab('shopping')}
+            className="w-full py-2.5 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer font-sans"
+          >
+            <span>Einkaufsliste öffnen</span>
+            <ArrowRight className="w-3.5 h-3.5 text-emerald-400" />
+          </button>
+        </div>
+
+        {/* Bento 3: Visual Waste Radar (Clean header without confusing negative day counter) */}
+        <div className="bento-card rounded-[2.5rem] p-7 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
           <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-yellow-500/10 rounded-full blur-3xl pointer-events-none" />
 
           <div>
@@ -347,23 +451,6 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
               <span className="px-3.5 py-1 rounded-full bg-yellow-500/15 border border-yellow-500/30 text-yellow-300 text-xs font-semibold uppercase tracking-wider font-sans">
                 Abfall-Radar
               </span>
-              {nextWaste ? (
-                daysUntilWaste === 0 ? (
-                  <span className="text-xs font-semibold text-rose-400 bg-rose-950/80 border border-rose-800 px-2.5 py-0.5 rounded-full animate-pulse">
-                    Heute Abholung!
-                  </span>
-                ) : daysUntilWaste === 1 ? (
-                  <span className="text-xs font-semibold text-amber-300 bg-amber-950/80 border border-amber-800 px-2.5 py-0.5 rounded-full animate-pulse">
-                    Morgen!
-                  </span>
-                ) : (
-                  <span className="text-xs font-medium text-slate-400 bg-surface-elevated px-2.5 py-0.5 rounded-full border border-surface-border">
-                    In {daysUntilWaste} Tagen
-                  </span>
-                )
-              ) : (
-                <span className="text-xs text-slate-400 font-medium">Alles erledigt</span>
-              )}
             </div>
 
             <h3 className="text-xl font-semibold text-white mb-1.5 font-sans tracking-tight">
@@ -441,100 +528,8 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           </button>
         </div>
 
-        {/* Bento 3: Shopping Radar & Basket (Span 1) */}
-        <div className="bento-card rounded-[2.5rem] p-7 flex flex-col justify-between relative overflow-hidden group">
-          <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <span className="px-3.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold uppercase tracking-wider font-sans">
-                Einkaufskorb
-              </span>
-              <span className="text-xs font-semibold text-emerald-400 font-mono">
-                ~ {shoppingSummary?.totalEstimatedCost ? `${shoppingSummary.totalEstimatedCost.toFixed(2)} €` : '0.00 €'}
-              </span>
-            </div>
-
-            <h3 className="text-xl font-semibold text-white mb-1.5 font-sans tracking-tight">
-              {shoppingSummary?.items?.length || 0}{' '}
-              {shoppingSummary?.items?.length === 1 ? 'Artikel auf der Liste' : 'Artikel auf der Liste'}
-            </h3>
-            <p className="text-xs text-slate-300 mb-4 leading-relaxed font-sans">
-              Geplant bei <strong className="text-white font-semibold">{shoppingSummary?.supermarketName || 'Supermarkt'}</strong> für diese Woche.
-            </p>
-
-            {/* Weekly Budget Status Widget */}
-            {budgetSummary && (
-              <div className="p-3 mb-3.5 rounded-2xl bg-surface-elevated/80 border border-emerald-500/30 flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
-                    🪙
-                  </div>
-                  <div>
-                    <div className="text-[10px] uppercase font-bold text-slate-400 font-sans">
-                      Wochen-Budget KW {currentWeek}
-                    </div>
-                    <div className="text-xs font-bold text-emerald-400 font-mono">
-                      Noch {budgetSummary.remainingBudget.toFixed(2)} € frei
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <span className="text-[10px] text-slate-400 font-sans">
-                    von {budgetSummary.weeklyBudget.toFixed(0)} €
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* Quick Preview Items */}
-            <div className="space-y-2 mb-4">
-              {shoppingSummary?.items && shoppingSummary.items.length > 0 ? (
-                shoppingSummary.items.slice(0, 3).map((item: any, idx: number) => {
-                  const itemName = item.name || item.title || 'Artikel';
-                  const itemAmount = item.totalAmount ?? item.amount;
-                  return (
-                    <div
-                      key={item.ingredientId || item.id || idx}
-                      className="flex items-center justify-between p-2.5 rounded-2xl bg-surface-elevated/70 border border-surface-border text-xs"
-                    >
-                      <span className="flex items-center gap-2 text-slate-200 font-medium truncate">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />
-                        <span className="truncate">
-                          {itemName}
-                          {itemAmount !== undefined && itemAmount !== null && itemAmount !== ''
-                            ? ` (${itemAmount} ${item.unit || ''})`.trim()
-                            : item.unit
-                            ? ` (${item.unit})`
-                            : ''}
-                        </span>
-                      </span>
-                      <span className="text-slate-400 font-mono flex-shrink-0 ml-2">
-                        {item.estimatedPrice ? `${item.estimatedPrice.toFixed(2)} €` : '—'}
-                      </span>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="p-3.5 rounded-2xl bg-surface-elevated/50 border border-surface-border text-xs text-slate-400 text-center font-medium">
-                  Alle Einkäufe erledigt! 🎉
-                </div>
-              )}
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setCurrentTab('shopping')}
-            className="w-full py-2.5 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer font-sans"
-          >
-            <span>Einkaufsliste abhaken</span>
-            <ArrowRight className="w-3.5 h-3.5 text-emerald-400" />
-          </button>
-        </div>
-
-        {/* Bento 4: WG Bulletin Sticky Board (Span 2) */}
-        <div className="bento-card lg:col-span-2 rounded-[2.5rem] p-7 sm:p-8 flex flex-col justify-between relative overflow-hidden">
+        {/* Bento 4: WG Bulletin Sticky Board (Flurfunk) */}
+        <div className="bento-card rounded-[2.5rem] p-7 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
           <div>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2.5">
@@ -547,7 +542,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                   </span>
                 )}
               </div>
-              <span className="text-xs text-slate-400 hidden sm:inline font-medium">Mitteilungen, Wünsche & Alltag</span>
+              <span className="text-xs text-slate-400 hidden sm:inline font-medium">Mitteilungen & Absprachen</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
@@ -595,7 +590,8 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
               onClick={() => setCurrentTab('notes')}
               className="w-full sm:w-auto px-4 py-2 rounded-xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 hover:border-theme"
             >
-              <span>+ Zum Flurfunk</span>
+              <span>Zum Flurfunk</span>
+              <ArrowRight className="w-3.5 h-3.5 text-rose-400" />
             </button>
           </div>
         </div>
