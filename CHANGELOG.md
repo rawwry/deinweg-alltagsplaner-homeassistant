@@ -3,6 +3,22 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.26] - 2026-09-16
+
+### Hinzugefügt & Verbessert
+- **Aufgabenplaner Desktop-Redesign (`ChorePlannerView`)**:
+  - **Abschied von unbenutzbaren 7 Quetschspalten**: Die bisherige 7-Spalten-Darstellung auf großen Bildschirmen wurde durch ein großzügiges, strukturiertes 2-Spalten-Kartenraster (`grid-cols-1 xl:grid-cols-2 gap-6`) ersetzt.
+  - **Viel Platz für Inhalte**: Jeder Wochentag erhält eine 550–650px breite Bento-Tageskarte mit großem Wochentag-Titel, vollständigem Datum, leuchtendem "Heute"-Statusbadge und Fortschrittszähler ("X von Y erledigt" bzw. "Alle erledigt ✅").
+  - **Wochentag-Schnellauswahl & Fokus-Modus**: Neue Filterleiste am oberen Rand (`[ 📅 Ganze Woche (7 Tage) ]` sowie Direkttasten für jeden Wochentag `[ Mo 15.09. ]` bis `[ So 21.09. ]`). Mit einem Klick kann auf einen einzelnen Tag im Vollbild-Fokus gewechselt werden, um Aufgaben für diesen Tag konzentriert einzuteilen.
+  - **Horizontale, lesbare Aufgabenzeilen**:
+    - Großes 42×42px Emoji-Icon für jede Aufgabe (Küche, Zimmer, Müll, Bad, etc.).
+    - Vollständige, lesbare Aufgabenbeschreibungen ohne willkürlichen Zeilenabriss.
+    - Zuweisungs-Badge für Bewohner mit Foto/Avatar, Namensanzeige und Stift-Icon für Betreuer zum schnellen Ändern.
+    - Grüne "Erledigt"-Schaltfläche mit CheckCircle-Icon vs. interaktiver "Abhaken"-Button mit geschmeidigem Klick-Feedback.
+  - **Feiner Fortschrittsbalken** pro Wochentag zur visuellen Rückmeldung des Erledigungsstands.
+- **Dashboard-Begrüßung: Harmonischer Zeilenabstand (`DashboardHub`)**:
+  - Der vertikale Abstand zwischen dem Begrüßungstitel (*"Gute Nacht, Timo! 🌙"*) und der Datumsunterzeile wurde entzerrt (`mt-3`, `leading-relaxed`). Die Typografie wirkt nun entspannt, ausgewogen und nicht mehr gedrungen.
+
 ## [0.1.0-beta.25] - 2026-09-16
 
 ### Hinzugefügt & Verbessert

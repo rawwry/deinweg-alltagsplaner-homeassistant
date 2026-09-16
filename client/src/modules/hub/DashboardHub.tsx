@@ -166,7 +166,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
       {/* Top Welcome Headline */}
       <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 pt-1">
         <div>
-          <div className="inline-flex items-center gap-2 text-rose-400 text-xs font-semibold tracking-wider uppercase mb-1.5 font-sans">
+          <div className="inline-flex items-center gap-2 text-rose-400 text-xs font-semibold tracking-wider uppercase mb-2 font-sans">
             <span className="w-2 h-2 rounded-full bg-theme-primary animate-pulse" />
             <span className="text-slate-300 font-medium">WG {activeLocation?.name || user?.locationName || 'Emsdetten'}</span>
             <span className="text-slate-600">•</span>
@@ -176,7 +176,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             <span>{timeGreeting}, {firstName}!</span>
             <span className="text-2xl sm:text-3xl filter drop-shadow-sm">{timeEmoji}</span>
           </h1>
-          <p className="text-xs text-slate-400 mt-1 font-medium">
+          <p className="text-xs sm:text-sm text-slate-400 mt-3 font-medium leading-relaxed">
             {formattedToday} — Schön, dass du da bist. Hier ist dein WG-Überblick für heute.
           </p>
         </div>

@@ -53,6 +53,9 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
   const todayDayOfWeek = now.getDay() === 0 ? 7 : now.getDay();
   const [selectedMobileDay, setSelectedMobileDay] = useState<number>(todayDayOfWeek);
 
+  // Desktop day filter: 'ALL' or dayOfWeek (1..7)
+  const [desktopDayFilter, setDesktopDayFilter] = useState<'ALL' | number>('ALL');
+
   // Assign Modal State (for Staff)
   const [assignModal, setAssignModal] = useState<{
     isOpen: boolean;
@@ -154,6 +157,266 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
     (weekData?.templates?.length || 0) * (weekData?.days?.length || 0);
   const completedAssignmentsCount =
     (weekData?.assignments || []).filter((a: any) => a.isCompleted).length;
+
+  // Helper to render a single day's card
+  const renderDayCard = (day: any, isSingleFocus: boolean = false, isLastSunday: boolean = false) => {
+    const isToday =
+      year === realCurrentYear &&
+      weekNumber === realCurrentWeek &&
+      day.dayOfWeek === todayDayOfWeek;
+
+    const dayAssignments = (weekData?.assignments || []).filter(
+      (a: any) => a.date === day.date
+    );
+    const dayCompletedCount = dayAssignments.filter((a: any) => a.isCompleted).length;
+    const totalDayTasks = weekData?.templates?.length || 0;
+    const progressPercent =
+      totalDayTasks > 0 ? Math.round((dayCompletedCount / totalDayTasks) * 100) : 0;
+    const isAllDone = totalDayTasks > 0 && dayCompletedCount >= totalDayTasks;
+
+    const visibleTemplates = (weekData?.templates || []).filter((tmpl: any) => {
+      if (filterMode === 'MINE') {
+        const assignment = dayAssignments.find((a: any) => a.templateId === tmpl.id);
+        return assignment?.residentId === user?.id;
+      }
+      return true;
+    });
+
+    return (
+      <div
+        key={day.dayOfWeek}
+        className={`bento-card bg-surface-card rounded-[2.5rem] border p-5 sm:p-6 md:p-7 shadow-xl transition-all ${
+          isToday
+            ? 'border-indigo-500/60 ring-1 ring-indigo-500/30 shadow-indigo-500/10'
+            : 'border-surface-border'
+        } ${isLastSunday && !isSingleFocus ? 'xl:col-span-2' : ''}`}
+      >
+        {/* Day Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-surface-border">
+          <div className="flex items-center gap-3 flex-wrap">
+            <h3 className="text-xl font-bold text-white font-display">
+              {day.name}
+            </h3>
+            <span className="text-xs text-slate-400 font-mono font-medium">
+              {formatGermanDate(day.date)}
+            </span>
+            {isToday && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 text-[11px] font-bold uppercase tracking-wider">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+                Heute
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2.5">
+            {isAllDone ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold shadow-xs">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <span>Alle {totalDayTasks} erledigt</span>
+              </span>
+            ) : dayCompletedCount > 0 ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-elevated border border-surface-border text-slate-300 text-xs font-semibold">
+                <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                <span>{dayCompletedCount} von {totalDayTasks} erledigt</span>
+              </span>
+            ) : (
+              <span className="text-xs text-slate-500 font-medium px-2">
+                0 von {totalDayTasks} erledigt
+              </span>
+            )}
+
+            {isSingleFocus && (
+              <button
+                type="button"
+                onClick={() => setDesktopDayFilter('ALL')}
+                className="hidden lg:inline-flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300 px-2.5 py-1 rounded-xl bg-surface-elevated hover:bg-white/5 border border-surface-border transition-colors cursor-pointer ml-1"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+                <span>Woche zeigen</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Mini Progress Bar */}
+        <div className="w-full bg-slate-800/80 h-1.5 rounded-full overflow-hidden mt-3.5 mb-4">
+          <div
+            className={`h-full transition-all duration-500 ${
+              isAllDone
+                ? 'bg-emerald-400'
+                : 'bg-gradient-to-r from-indigo-500 to-emerald-400'
+            }`}
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+
+        {/* Tasks List */}
+        <div className="space-y-3">
+          {visibleTemplates.length === 0 ? (
+            <div className="py-8 text-center text-xs text-slate-400 italic bg-surface-elevated/20 rounded-2xl border border-surface-border/40">
+              {filterMode === 'MINE'
+                ? 'Keine Aufgaben für dich an diesem Tag eingeteilt.'
+                : 'Keine Aufgaben für diesen Tag vorhanden.'}
+            </div>
+          ) : (
+            visibleTemplates.map((tmpl: any) => {
+              const assignment = dayAssignments.find(
+                (a: any) => a.templateId === tmpl.id
+              );
+              const isAssigned = !!assignment?.resident;
+              const isCompleted = !!assignment?.isCompleted;
+
+              return (
+                <div
+                  key={tmpl.id}
+                  className={`rounded-2xl border p-4 sm:p-4.5 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 ${
+                    isCompleted
+                      ? 'bg-emerald-950/15 border-emerald-500/30 text-emerald-200/90'
+                      : isAssigned
+                      ? 'bg-surface-elevated/70 hover:bg-surface-elevated border-surface-border hover:border-indigo-500/40 shadow-xs'
+                      : 'bg-surface-elevated/30 border-surface-border/60 border-dashed hover:border-surface-border'
+                  }`}
+                >
+                  {/* Left: Icon + Title + Full Description */}
+                  <div className="flex items-start gap-3.5 min-w-0 flex-1">
+                    <div className="w-11 h-11 rounded-2xl bg-surface-card border border-surface-border flex items-center justify-center text-xl shrink-0 shadow-xs">
+                      {tmpl.icon || '🧹'}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span
+                          className={`text-sm font-bold tracking-tight ${
+                            isCompleted
+                              ? 'line-through text-slate-400'
+                              : 'text-white'
+                          }`}
+                        >
+                          {tmpl.title}
+                        </span>
+                        {isCompleted && (
+                          <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded-md border border-emerald-500/30 font-mono">
+                            Erledigt
+                          </span>
+                        )}
+                      </div>
+                      {tmpl.description && (
+                        <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                          {tmpl.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Right: Resident Assignment + Completion Button */}
+                  <div className="flex items-center gap-3 shrink-0 justify-between md:justify-end pt-2 md:pt-0 border-t md:border-t-0 border-surface-border/50 flex-wrap sm:flex-nowrap">
+                    {/* Resident Pill */}
+                    {assignment?.resident ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (isStaff) {
+                            setAssignModal({
+                              isOpen: true,
+                              template: tmpl,
+                              day,
+                              currentResidentId: assignment.residentId,
+                            });
+                          }
+                        }}
+                        disabled={!isStaff}
+                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+                          isStaff
+                            ? 'bg-surface-card hover:bg-indigo-600/10 border-surface-border hover:border-indigo-500/40 text-slate-200 hover:text-white cursor-pointer shadow-xs group'
+                            : 'bg-surface-card border-surface-border text-slate-300 cursor-default'
+                        }`}
+                        title={isStaff ? 'Einteilung ändern oder aufheben' : undefined}
+                      >
+                        {assignment.resident.avatarUrl ? (
+                          <img
+                            src={assignment.resident.avatarUrl}
+                            alt={assignment.resident.name}
+                            className="w-5 h-5 rounded-full object-cover shrink-0 ring-1 ring-white/10"
+                          />
+                        ) : (
+                          <div
+                            className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] text-white font-bold shrink-0"
+                            style={{
+                              backgroundColor:
+                                assignment.resident.avatarColor || '#6366f1',
+                            }}
+                          >
+                            {assignment.resident.name.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <span className="truncate max-w-[130px]">
+                          {assignment.resident.name}
+                        </span>
+                        {isStaff && (
+                          <span className="text-[10px] text-slate-500 group-hover:text-indigo-300 ml-0.5">
+                            ✎
+                          </span>
+                        )}
+                      </button>
+                    ) : isStaff ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setAssignModal({
+                            isOpen: true,
+                            template: tmpl,
+                            day,
+                            currentResidentId: null,
+                          })
+                        }
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-dashed border-indigo-500/40 text-indigo-300 hover:text-white hover:bg-indigo-500/15 hover:border-indigo-500/60 text-xs font-semibold transition-all cursor-pointer"
+                      >
+                        <User className="w-3.5 h-3.5 text-indigo-400" />
+                        <span>Bewohner zuweisen</span>
+                      </button>
+                    ) : (
+                      <span className="text-xs text-slate-500 italic px-2">
+                        Nicht eingeteilt
+                      </span>
+                    )}
+
+                    {/* Completion Toggle Button */}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleToggleCompletion(tmpl.id, day, assignment)
+                      }
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shadow-xs active:scale-95 ${
+                        isCompleted
+                          ? 'bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold shadow-emerald-500/20'
+                          : 'bg-surface-card hover:bg-white/10 text-slate-300 hover:text-white border border-surface-border hover:border-indigo-400'
+                      }`}
+                      title={
+                        isCompleted
+                          ? 'Als noch offen markieren'
+                          : 'Als erledigt abhaken'
+                      }
+                    >
+                      {isCompleted ? (
+                        <>
+                          <CheckCircle2 className="w-4 h-4 text-slate-950 stroke-[2.5]" />
+                          <span>Erledigt</span>
+                        </>
+                      ) : (
+                        <>
+                          <Circle className="w-4 h-4 text-slate-400" />
+                          <span>Abhaken</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-24 md:pb-12">
@@ -268,6 +531,62 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
         </div>
       </div>
 
+      {/* Desktop Weekday Quick-Filter Bar (visible on >= lg screens) */}
+      <div className="hidden lg:flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        <button
+          type="button"
+          onClick={() => setDesktopDayFilter('ALL')}
+          className={`px-4 py-2.5 rounded-2xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 border ${
+            desktopDayFilter === 'ALL'
+              ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-600/30'
+              : 'bg-surface-card border-surface-border text-slate-300 hover:bg-surface-elevated hover:text-white'
+          }`}
+        >
+          <Calendar className="w-3.5 h-3.5" />
+          <span>Ganze Woche (7 Tage)</span>
+        </button>
+
+        {(weekData?.days || []).map((day: any) => {
+          const isToday =
+            year === realCurrentYear &&
+            weekNumber === realCurrentWeek &&
+            day.dayOfWeek === todayDayOfWeek;
+          const isSelected = desktopDayFilter === day.dayOfWeek;
+          const dayAssignments = (weekData?.assignments || []).filter(
+            (a: any) => a.date === day.date
+          );
+          const dayDone = dayAssignments.filter((a: any) => a.isCompleted).length;
+          const totalDayTasks = weekData?.templates?.length || 0;
+          const isAllDone = totalDayTasks > 0 && dayDone >= totalDayTasks;
+
+          return (
+            <button
+              key={day.dayOfWeek}
+              type="button"
+              onClick={() => setDesktopDayFilter(day.dayOfWeek)}
+              className={`px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 border ${
+                isSelected
+                  ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-600/30'
+                  : isToday
+                  ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-300 hover:bg-indigo-500/25'
+                  : 'bg-surface-card border-surface-border text-slate-300 hover:bg-surface-elevated hover:text-white'
+              }`}
+            >
+              <span>{day.name}</span>
+              <span className="font-mono text-[11px] opacity-75">
+                {day.date ? day.date.slice(8, 10) + '.' + day.date.slice(5, 7) : ''}
+              </span>
+              {isToday && (
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+              )}
+              {isAllDone && (
+                <span className="text-[10px] text-emerald-400 font-bold">✓</span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Mobile Day Tabs (visible only on < lg screens) */}
       <div className="lg:hidden flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none">
         {(weekData?.days || []).map((day: any) => {
@@ -277,7 +596,6 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
             day.dayOfWeek === todayDayOfWeek;
           const isSelected = selectedMobileDay === day.dayOfWeek;
 
-          // Day assignments
           const dayAssignments = (weekData?.assignments || []).filter(
             (a: any) => a.date === day.date
           );
@@ -288,7 +606,7 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
               key={day.dayOfWeek}
               type="button"
               onClick={() => setSelectedMobileDay(day.dayOfWeek)}
-              className={`flex-1 min-w-[75px] py-2 px-2 rounded-2xl border flex flex-col items-center text-center transition-all cursor-pointer relative ${
+              className={`flex-1 min-w-[75px] py-2.5 px-2 rounded-2xl border flex flex-col items-center text-center transition-all cursor-pointer relative ${
                 isSelected
                   ? 'bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-600/30 font-bold'
                   : isToday
@@ -308,7 +626,7 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
         })}
       </div>
 
-      {/* Main Grid View */}
+      {/* Main Content Area */}
       {isLoading ? (
         <div className="bg-surface-card rounded-3xl p-12 text-center text-slate-400 font-sans border border-surface-border">
           Aufgabenplan wird geladen...
@@ -337,360 +655,35 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
         </div>
       ) : (
         <>
-          {/* Desktop 7-Column Board (hidden on mobile) */}
-          <div className="hidden lg:grid lg:grid-cols-7 gap-3.5 items-start">
-            {weekData.days.map((day: any) => {
-              const isToday =
-                year === realCurrentYear &&
-                weekNumber === realCurrentWeek &&
-                day.dayOfWeek === todayDayOfWeek;
-
-              return (
-                <div
-                  key={day.dayOfWeek}
-                  className={`bg-surface-card/90 rounded-3xl border flex flex-col min-h-[500px] overflow-hidden transition-all ${
-                    isToday
-                      ? 'border-indigo-500/60 ring-1 ring-indigo-500/30 shadow-xl shadow-indigo-500/10'
-                      : 'border-surface-border'
-                  }`}
-                >
-                  {/* Day Column Header */}
-                  <div
-                    className={`p-3.5 border-b border-surface-border text-center flex flex-col gap-0.5 ${
-                      isToday ? 'bg-indigo-500/15' : 'bg-surface-elevated/40'
-                    }`}
-                  >
-                    <div className="flex items-center justify-center gap-1.5">
-                      <span className="text-xs font-bold text-white font-display">
-                        {day.name}
-                      </span>
-                      {isToday && (
-                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-indigo-500 text-white uppercase font-sans">
-                          Heute
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-[10px] text-slate-400 font-mono font-medium">
-                      {formatGermanDate(day.date)}
-                    </span>
-                  </div>
-
-                  {/* Tasks List for Day */}
-                  <div className="p-2.5 space-y-2.5 flex-1">
-                    {weekData.templates.map((tmpl: any) => {
-                      const assignment = (weekData.assignments || []).find(
-                        (a: any) => a.templateId === tmpl.id && a.date === day.date
-                      );
-                      const isAssigned = !!assignment?.resident;
-                      const isCompleted = !!assignment?.isCompleted;
-
-                      // Filter check if filterMode === 'MINE'
-                      if (
-                        filterMode === 'MINE' &&
-                        assignment?.residentId !== user?.id
-                      ) {
-                        return null;
-                      }
-
-                      return (
-                        <div
-                          key={tmpl.id}
-                          className={`rounded-2xl border p-3 flex flex-col justify-between gap-2.5 transition-all text-left relative group ${
-                            isCompleted
-                              ? 'bg-emerald-950/20 border-emerald-500/40 text-emerald-200'
-                              : isAssigned
-                              ? 'bg-surface-elevated/80 border-surface-border hover:border-indigo-500/40'
-                              : 'bg-surface-elevated/30 border-surface-border/50 border-dashed hover:border-surface-border'
-                          }`}
-                        >
-                          {/* Task Header & Completion Checkbox */}
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex items-start gap-2 min-w-0">
-                              <span className="text-lg shrink-0 select-none">
-                                {tmpl.icon || '🧹'}
-                              </span>
-                              <div className="min-w-0">
-                                <span
-                                  className={`text-xs font-semibold block leading-tight truncate ${
-                                    isCompleted ? 'line-through text-slate-400' : 'text-white'
-                                  }`}
-                                  title={tmpl.title}
-                                >
-                                  {tmpl.title}
-                                </span>
-                                {tmpl.description && (
-                                  <span
-                                    className="text-[10px] text-slate-400 line-clamp-1 mt-0.5 leading-snug"
-                                    title={tmpl.description}
-                                  >
-                                    {tmpl.description}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Complete Toggle Checkbox */}
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleToggleCompletion(tmpl.id, day, assignment)
-                              }
-                              title={
-                                isCompleted
-                                  ? 'Als offen markieren'
-                                  : 'Als erledigt abhaken'
-                              }
-                              className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all shrink-0 cursor-pointer ${
-                                isCompleted
-                                  ? 'bg-emerald-500 text-slate-950 shadow-sm'
-                                  : 'border border-slate-600 hover:border-indigo-400 text-transparent hover:text-slate-400'
-                              }`}
-                            >
-                              <Check className="w-3.5 h-3.5 stroke-[3]" />
-                            </button>
-                          </div>
-
-                          {/* Resident Assigned Badge / Selector Button */}
-                          <div className="pt-1 border-t border-white/5 flex items-center justify-between gap-1">
-                            {assignment?.resident ? (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (isStaff) {
-                                    setAssignModal({
-                                      isOpen: true,
-                                      template: tmpl,
-                                      day,
-                                      currentResidentId: assignment.residentId,
-                                    });
-                                  }
-                                }}
-                                className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-xl text-[11px] font-semibold transition-all truncate max-w-full ${
-                                  isStaff
-                                    ? 'hover:bg-white/10 cursor-pointer text-indigo-300'
-                                    : 'cursor-default text-slate-300'
-                                }`}
-                              >
-                                {assignment.resident.avatarUrl ? (
-                                  <img
-                                    src={assignment.resident.avatarUrl}
-                                    alt={assignment.resident.name}
-                                    className="w-4 h-4 rounded-full object-cover shrink-0"
-                                  />
-                                ) : (
-                                  <div
-                                    className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] text-white font-bold shrink-0"
-                                    style={{
-                                      backgroundColor:
-                                        assignment.resident.avatarColor || '#6366f1',
-                                    }}
-                                  >
-                                    {assignment.resident.name.charAt(0).toUpperCase()}
-                                  </div>
-                                )}
-                                <span className="truncate">{assignment.resident.name}</span>
-                              </button>
-                            ) : isStaff ? (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setAssignModal({
-                                    isOpen: true,
-                                    template: tmpl,
-                                    day,
-                                    currentResidentId: null,
-                                  })
-                                }
-                                className="inline-flex items-center gap-1 text-[10px] text-slate-500 hover:text-indigo-300 px-2 py-0.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
-                              >
-                                <User className="w-3 h-3" />
-                                <span>Zuweisen</span>
-                              </button>
-                            ) : (
-                              <span className="text-[10px] text-slate-600 italic px-1">
-                                Nicht eingeteilt
-                              </span>
-                            )}
-
-                            {isCompleted && (
-                              <span className="text-[9px] font-bold text-emerald-400 font-mono shrink-0">
-                                Erledigt
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
+          {/* Desktop View (>= lg) */}
+          <div className="hidden lg:block">
+            {desktopDayFilter === 'ALL' ? (
+              /* Spacious 2-Column Grid for all 7 Days */
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
+                {weekData.days.map((day: any, idx: number) =>
+                  renderDayCard(day, false, idx === 6)
+                )}
+              </div>
+            ) : (
+              /* Single-Day Focused View on Desktop */
+              <div className="max-w-4xl mx-auto space-y-4">
+                {(() => {
+                  const targetDay = weekData.days.find(
+                    (d: any) => d.dayOfWeek === desktopDayFilter
+                  );
+                  return targetDay ? renderDayCard(targetDay, true, false) : null;
+                })()}
+              </div>
+            )}
           </div>
 
-          {/* Mobile Single-Day View (visible only on < lg screens) */}
+          {/* Mobile Single-Day View (< lg) */}
           <div className="lg:hidden space-y-3">
             {(() => {
               const currentDay = (weekData?.days || []).find(
                 (d: any) => d.dayOfWeek === selectedMobileDay
               );
-              if (!currentDay) return null;
-
-              const isToday =
-                year === realCurrentYear &&
-                weekNumber === realCurrentWeek &&
-                currentDay.dayOfWeek === todayDayOfWeek;
-
-              return (
-                <div className="bg-surface-card rounded-3xl border border-surface-border p-4 sm:p-5 shadow-xl space-y-4">
-                  <div className="flex items-center justify-between pb-3 border-b border-surface-border">
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-base font-bold text-white font-display">
-                        {currentDay.name}
-                      </h2>
-                      {isToday && (
-                        <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-500 text-white uppercase font-sans">
-                          Heute
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-xs text-slate-400 font-mono">
-                      {formatGermanDate(currentDay.date)}
-                    </span>
-                  </div>
-
-                  <div className="space-y-3">
-                    {weekData.templates.map((tmpl: any) => {
-                      const assignment = (weekData.assignments || []).find(
-                        (a: any) =>
-                          a.templateId === tmpl.id && a.date === currentDay.date
-                      );
-                      const isCompleted = !!assignment?.isCompleted;
-
-                      if (
-                        filterMode === 'MINE' &&
-                        assignment?.residentId !== user?.id
-                      ) {
-                        return null;
-                      }
-
-                      return (
-                        <div
-                          key={tmpl.id}
-                          className={`rounded-2xl border p-4 flex flex-col gap-3 transition-all ${
-                            isCompleted
-                              ? 'bg-emerald-950/20 border-emerald-500/40 text-emerald-200'
-                              : 'bg-surface-elevated/70 border-surface-border text-slate-100'
-                          }`}
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex items-start gap-3 min-w-0">
-                              <span className="text-2xl shrink-0">
-                                {tmpl.icon || '🧹'}
-                              </span>
-                              <div>
-                                <h4
-                                  className={`text-sm font-semibold ${
-                                    isCompleted ? 'line-through text-slate-400' : 'text-white'
-                                  }`}
-                                >
-                                  {tmpl.title}
-                                </h4>
-                                {tmpl.description && (
-                                  <p className="text-xs text-slate-400 mt-0.5">
-                                    {tmpl.description}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleToggleCompletion(tmpl.id, currentDay, assignment)
-                              }
-                              className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all shrink-0 cursor-pointer ${
-                                isCompleted
-                                  ? 'bg-emerald-500 text-slate-950 shadow-md'
-                                  : 'border-2 border-slate-600 hover:border-indigo-400 text-slate-400'
-                              }`}
-                            >
-                              <Check className="w-4 h-4 stroke-[3]" />
-                            </button>
-                          </div>
-
-                          <div className="pt-2 border-t border-white/5 flex items-center justify-between">
-                            {assignment?.resident ? (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (isStaff) {
-                                    setAssignModal({
-                                      isOpen: true,
-                                      template: tmpl,
-                                      day: currentDay,
-                                      currentResidentId: assignment.residentId,
-                                    });
-                                  }
-                                }}
-                                className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-xl text-xs font-semibold ${
-                                  isStaff
-                                    ? 'hover:bg-white/10 cursor-pointer text-indigo-300'
-                                    : 'cursor-default text-slate-300'
-                                }`}
-                              >
-                                {assignment.resident.avatarUrl ? (
-                                  <img
-                                    src={assignment.resident.avatarUrl}
-                                    alt={assignment.resident.name}
-                                    className="w-5 h-5 rounded-full object-cover"
-                                  />
-                                ) : (
-                                  <div
-                                    className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] text-white font-bold"
-                                    style={{
-                                      backgroundColor:
-                                        assignment.resident.avatarColor || '#6366f1',
-                                    }}
-                                  >
-                                    {assignment.resident.name.charAt(0).toUpperCase()}
-                                  </div>
-                                )}
-                                <span>{assignment.resident.name}</span>
-                              </button>
-                            ) : isStaff ? (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setAssignModal({
-                                    isOpen: true,
-                                    template: tmpl,
-                                    day: currentDay,
-                                    currentResidentId: null,
-                                  })
-                                }
-                                className="inline-flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 px-2.5 py-1 rounded-xl hover:bg-white/5 transition-colors cursor-pointer"
-                              >
-                                <User className="w-3.5 h-3.5" />
-                                <span>Bewohner zuweisen</span>
-                              </button>
-                            ) : (
-                              <span className="text-xs text-slate-500 italic">
-                                Niemand eingeteilt
-                              </span>
-                            )}
-
-                            {isCompleted && (
-                              <span className="text-xs font-bold text-emerald-400 font-mono">
-                                Erledigt ✅
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
+              return currentDay ? renderDayCard(currentDay, false, false) : null;
             })()}
           </div>
         </>
