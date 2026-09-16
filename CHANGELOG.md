@@ -3,6 +3,19 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.30] - 2026-09-17
+
+### Hinzugefügt & Verbessert
+- **Dashboard: Vollständige visuelle und typografische Harmonisierung aller Bento-Karten (`DashboardHub`)**:
+  - **„Heute frisch auf den Tisch“ angeglichen**: Die zuvor überdimensionierte Überschrift (`text-2xl sm:text-3xl`) wurde exakt an die anderen Boxen angepasst (`text-xl font-semibold text-white mb-1.5 font-sans tracking-tight`).
+  - **Identische Typografie über alle 5 Dashboard-Boxen**:
+    - **Header-Pillen**: Einheitlich `inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider font-sans whitespace-nowrap` mit passendem Emoji-Icon für alle Karten (*Deine Aufgaben / Heute frisch auf den Tisch / Einkaufskorb / Abfall-Radar / Flurfunk & Notizen*).
+    - **Box-Überschriften**: Alle 5 Karten verwenden nun ausnahmslos `<h3>` mit `text-xl font-semibold text-white mb-1.5 font-sans tracking-tight`.
+    - **Untertitel**: Alle 5 Karten verwenden exakt `text-xs text-slate-300 mb-4 leading-relaxed font-sans`.
+    - **Innenabstände (Padding)**: Alle Karten nutzen einheitlich `rounded-[2.5rem] p-6 sm:p-8`.
+    - **Aktions-Buttons**: Alle Karten-Buttons im Footer sind nun einheitlich auf `py-2.5 rounded-2xl text-xs font-semibold font-sans` mit dezenter Trennlinie (`pt-4 border-t`) harmonisiert.
+  - **Flurfunk & Notizen**: Vollwertige Überschrift *„Mitteilungen & Notizen“* und Untertitel integriert, wodurch auch in der unteren Spaltenreihe beide Boxen (*Abfall-Radar* & *Flurfunk*) eine perfekte vertikale Symmetrie besitzen.
+
 ## [0.1.0-beta.29] - 2026-09-17
 
 ### Hinzugefügt & Verbessert

@@ -280,7 +280,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             <h3 className="text-xl font-semibold text-white mb-1.5 font-sans tracking-tight">
               Was heute ansteht
             </h3>
-            <p className="text-xs text-slate-300 mb-5 leading-relaxed font-sans">
+            <p className="text-xs text-slate-300 mb-4 leading-relaxed font-sans">
               {todayChores.myTasks.length === 0
                 ? 'Heute stehen keine anstehenden Aufgaben für dich an.'
                 : 'Hier siehst du deine eingeteilten Haushalts- und Alltagsdienste für den heutigen Tag.'}
@@ -444,7 +444,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
       {/* Balanced 2-Column Bento Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
         {/* Bento 1: Bistro Hero Meal Spotlight */}
-        <div className="bento-card rounded-[2.5rem] p-7 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
+        <div className="bento-card rounded-[2.5rem] p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
           {/* Ambient warm glow */}
           <div className="absolute -right-16 -top-16 w-72 h-72 bg-rose-500/10 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute right-6 top-6 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none text-9xl select-none">
@@ -453,20 +453,20 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
 
           <div className="relative z-10">
             <div className="flex items-center justify-between gap-3 mb-4">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-semibold">
+              <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-semibold uppercase tracking-wider font-sans whitespace-nowrap">
                 <span>🍽️</span>
                 <span>Heute frisch auf den Tisch</span>
               </div>
-              <span className="text-xs font-medium text-slate-400 hidden sm:inline">
+              <span className="text-xs font-medium text-slate-400 hidden sm:inline font-sans">
                 {todayMeal?.customDishTitle ? 'Individuelles Gericht' : 'Gemeinsames Abendessen'}
               </span>
             </div>
 
-            <h2 className="text-2xl sm:text-3xl font-semibold text-white group-hover:text-rose-300 transition-colors leading-tight mb-3 font-sans tracking-tight">
+            <h3 className="text-xl font-semibold text-white group-hover:text-rose-300 transition-colors leading-snug mb-1.5 font-sans tracking-tight">
               {todayMeal?.recipe?.title || todayMeal?.customDishTitle || 'Heute Selbstversorgung'}
-            </h2>
+            </h3>
 
-            <p className="text-slate-300 text-sm leading-relaxed max-w-xl mb-6 font-normal font-sans">
+            <p className="text-xs text-slate-300 mb-4 leading-relaxed font-sans">
               {todayMeal?.recipe?.description ||
                 (todayMeal?.customDishTitle
                   ? 'Frei gewähltes Gericht ohne festes Rezept.'
@@ -474,7 +474,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             </p>
 
             {/* Culinary Tags */}
-            <div className="flex flex-wrap gap-2 mb-6">
+            <div className="flex flex-wrap gap-2 mb-4">
               {todayMeal?.recipe?.prepTimeMinutes ? (
                 <span className="px-3 py-1 rounded-xl bg-surface-elevated/80 border border-surface-border text-xs text-slate-300 font-medium flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5 text-rose-400" />
@@ -501,7 +501,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           </div>
 
           {/* Meal Footer Bar */}
-          <div className="relative z-10 pt-5 border-t border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="relative z-10 pt-4 border-t border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-2xl bg-rose-500/15 text-rose-300 border border-rose-500/30 flex items-center justify-center font-bold text-sm shadow-inner">
@@ -542,13 +542,14 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
         </div>
 
         {/* Bento 2: Shopping Radar & Basket (Paired with Food spotlight, ample width, no text wraps) */}
-        <div className="bento-card rounded-[2.5rem] p-7 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
+        <div className="bento-card rounded-[2.5rem] p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
           <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
           <div>
             <div className="flex items-center justify-between mb-4">
-              <span className="px-3.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold uppercase tracking-wider font-sans">
-                Einkaufskorb
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold uppercase tracking-wider font-sans whitespace-nowrap">
+                <span>🛒</span>
+                <span>Einkaufskorb</span>
               </span>
               <span className="text-xs font-semibold text-emerald-400 font-mono">
                 ~ {shoppingSummary?.totalEstimatedCost ? `${shoppingSummary.totalEstimatedCost.toFixed(2)} €` : '0.00 €'}
@@ -634,20 +635,21 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
         </div>
 
         {/* Bento 3: Visual Waste Radar (Clean header without confusing negative day counter) */}
-        <div className="bento-card rounded-[2.5rem] p-7 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
+        <div className="bento-card rounded-[2.5rem] p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
           <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-yellow-500/10 rounded-full blur-3xl pointer-events-none" />
 
           <div>
             <div className="flex items-center justify-between mb-4">
-              <span className="px-3.5 py-1 rounded-full bg-yellow-500/15 border border-yellow-500/30 text-yellow-300 text-xs font-semibold uppercase tracking-wider font-sans">
-                Abfall-Radar
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-yellow-500/15 border border-yellow-500/30 text-yellow-300 text-xs font-semibold uppercase tracking-wider font-sans whitespace-nowrap">
+                <span>🗑️</span>
+                <span>Abfall-Radar</span>
               </span>
             </div>
 
             <h3 className="text-xl font-semibold text-white mb-1.5 font-sans tracking-tight">
               {nextWaste ? wasteTypeNames[nextWaste.wasteType] || 'Abfalltermin' : 'Keine Abfuhr'}
             </h3>
-            <p className="text-xs text-slate-300 mb-5 leading-relaxed font-sans">
+            <p className="text-xs text-slate-300 mb-4 leading-relaxed font-sans">
               {nextWaste
                 ? daysUntilWaste === 1
                   ? 'Bitte heute Abend nach dem Abendessen vor das Tor stellen.'
@@ -720,12 +722,13 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
         </div>
 
         {/* Bento 4: WG Bulletin Sticky Board (Flurfunk) */}
-        <div className="bento-card rounded-[2.5rem] p-7 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
+        <div className="bento-card rounded-[2.5rem] p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
           <div>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2.5">
-                <span className="px-3.5 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-semibold uppercase tracking-wider font-sans">
-                  Flurfunk & Notizen
+                <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-semibold uppercase tracking-wider font-sans whitespace-nowrap">
+                  <span>💬</span>
+                  <span>Flurfunk & Notizen</span>
                 </span>
                 {openNotes.length > 0 && (
                   <span className="text-xs text-rose-300 font-semibold bg-rose-500/15 border border-rose-500/30 px-2.5 py-0.5 rounded-full font-mono">
@@ -733,8 +736,15 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                   </span>
                 )}
               </div>
-              <span className="text-xs text-slate-400 hidden sm:inline font-medium">Mitteilungen & Absprachen</span>
+              <span className="text-xs text-slate-400 hidden sm:inline font-medium font-sans">WG-Pinnwand</span>
             </div>
+
+            <h3 className="text-xl font-semibold text-white mb-1.5 font-sans tracking-tight">
+              Mitteilungen & Notizen
+            </h3>
+            <p className="text-xs text-slate-300 mb-4 leading-relaxed font-sans">
+              Wichtige Absprachen, Termine und Wünsche für alle WG-Mitglieder.
+            </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               {notesList && notesList.length > 0 ? (
@@ -772,14 +782,14 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between pt-3 border-t border-white/5 text-xs gap-3 font-sans">
+          <div className="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-white/5 text-xs gap-3 font-sans">
             <span className="text-slate-400 font-medium">
               Alle Bewohner und Betreuer können Zettel und Wünsche anheften.
             </span>
             <button
               type="button"
               onClick={() => setCurrentTab('notes')}
-              className="w-full sm:w-auto px-4 py-2 rounded-xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 hover:border-theme"
+              className="w-full sm:w-auto px-4 py-2.5 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 font-sans shadow-xs hover:border-theme"
             >
               <span>Zum Flurfunk</span>
               <ArrowRight className="w-3.5 h-3.5 text-rose-400" />
