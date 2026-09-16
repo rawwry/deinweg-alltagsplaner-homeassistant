@@ -3,6 +3,17 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.28] - 2026-09-17
+
+### Hinzugefügt & Verbessert
+- **Aufgabenplaner: Abhaken für Bewohner auch im Wochenplan deaktiviert (`ChorePlannerView` & Backend)**:
+  - Bewohner haben im Aufgabenplan keine interaktiven Abhake-Buttons mehr, sondern sehen ausschließlich lesbare Status-Badges (`✓ Erledigt` oder `○ Offen`).
+  - Absicherung auf Server-Ebene: `/api/chores/toggle-complete` ist mit `requireRole('ADMIN', 'BETREUER')` geschützt, sodass nur Betreuer und Admins Aufgaben abhaken können.
+- **Dashboard: Optimierung der Aufgabenbox für Bewohner & Mobile Ansicht (`DashboardHub`)**:
+  - **Pille gekürzt & Umbruch behoben**: In der Pille steht nun prägnant `[📋 Deine Aufgaben]` mit `whitespace-nowrap` – bricht auf mobilen Bildschirmen nicht mehr um.
+  - **Doppelung entfernt**: Titel harmonisiert auf *„Was heute ansteht“* anstelle der vorherigen doppelten Benennung *„Deine Aufgaben für heute“*.
+  - **Neues, sauberes Action-Design**: Der bisher unschön in den Header gequetschte Textlink samt Pfeil wurde entfernt. Stattdessen befindet sich am Fuß der Karte nun eine aufgeräumte, moderne Aktionsleiste mit `[📅 Wochenplan öffnen]` (bzw. für Betreuer `[📅 Aufgabenplan verwalten]`), passend zum Bento-Design der übrigen Karten.
+
 ## [0.1.0-beta.27] - 2026-09-17
 
 ### Hinzugefügt & Verbessert

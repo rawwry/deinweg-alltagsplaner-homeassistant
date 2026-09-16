@@ -554,8 +554,8 @@ router.post('/assign', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req
   }
 });
 
-// 7. Toggle completion status of an assignment
-router.post('/toggle-complete', requireAuth, async (req: Request, res: Response) => {
+// 7. Toggle completion status of an assignment (Staff Only)
+router.post('/toggle-complete', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
   try {
     const locationId = resolveLocationId(req);
     const { assignmentId, templateId, date, year, weekNumber, dayOfWeek } = req.body;

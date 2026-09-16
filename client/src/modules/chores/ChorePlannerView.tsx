@@ -477,35 +477,51 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                       </span>
                     )}
 
-                    {/* Completion Toggle Button */}
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleToggleCompletion(tmpl.id, day, assignment)
-                      }
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shadow-xs active:scale-95 ${
-                        isCompleted
-                          ? 'bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold shadow-emerald-500/20'
-                          : 'bg-surface-card hover:bg-white/10 text-slate-300 hover:text-white border border-surface-border hover:border-indigo-400'
-                      }`}
-                      title={
-                        isCompleted
-                          ? 'Als noch offen markieren'
-                          : 'Als erledigt abhaken'
-                      }
-                    >
-                      {isCompleted ? (
-                        <>
-                          <CheckCircle2 className="w-4 h-4 text-slate-950 stroke-[2.5]" />
-                          <span>Erledigt</span>
-                        </>
-                      ) : (
-                        <>
-                          <Circle className="w-4 h-4 text-slate-400" />
-                          <span>Abhaken</span>
-                        </>
-                      )}
-                    </button>
+                    {/* Completion Status: Button for Staff, Read-Only Badge for Residents */}
+                    {isStaff ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleToggleCompletion(tmpl.id, day, assignment)
+                        }
+                        className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shadow-xs active:scale-95 ${
+                          isCompleted
+                            ? 'bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold shadow-emerald-500/20'
+                            : 'bg-surface-card hover:bg-white/10 text-slate-300 hover:text-white border border-surface-border hover:border-indigo-400'
+                        }`}
+                        title={
+                          isCompleted
+                            ? 'Als noch offen markieren'
+                            : 'Als erledigt abhaken'
+                        }
+                      >
+                        {isCompleted ? (
+                          <>
+                            <CheckCircle2 className="w-4 h-4 text-slate-950 stroke-[2.5]" />
+                            <span>Erledigt</span>
+                          </>
+                        ) : (
+                          <>
+                            <Circle className="w-4 h-4 text-slate-400" />
+                            <span>Abhaken</span>
+                          </>
+                        )}
+                      </button>
+                    ) : (
+                      <div className="flex items-center">
+                        {isCompleted ? (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/20 border border-emerald-500/35 text-emerald-300 text-xs font-semibold shadow-xs select-none">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                            <span>Erledigt</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-elevated/70 border border-surface-border text-slate-400 text-xs font-medium select-none">
+                            <Circle className="w-3.5 h-3.5 text-slate-500" />
+                            <span>Offen</span>
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               );

@@ -285,28 +285,19 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
 
       {/* Today's Tasks Widget (Resident View) */}
       {user?.role === 'BEWOHNER' && todayChores && (
-        <div className="bento-card rounded-[2.5rem] p-7 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
+        <div className="bento-card rounded-[2.5rem] p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
           <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
           <div>
             <div className="flex items-center justify-between mb-4">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-semibold uppercase tracking-wider font-sans">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-semibold uppercase tracking-wider font-sans whitespace-nowrap">
                 <span>📋</span>
-                <span>Aufgaben für heute</span>
+                <span>Deine Aufgaben</span>
               </div>
-
-              <button
-                type="button"
-                onClick={() => setCurrentTab('chores')}
-                className="inline-flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 font-semibold cursor-pointer transition-colors font-sans"
-              >
-                <span>Ganzen Aufgabenplan ansehen</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
             </div>
 
             <h3 className="text-xl font-semibold text-white mb-1.5 font-sans tracking-tight">
-              Deine Aufgaben für heute
+              Was heute ansteht
             </h3>
             <p className="text-xs text-slate-300 mb-5 leading-relaxed font-sans">
               {todayChores.myTasks.length === 0
@@ -359,44 +350,48 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
               </div>
             )}
           </div>
+
+          {/* Clean modern footer action */}
+          <div className="mt-5 pt-4 border-t border-surface-border/50 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <span className="text-[11px] text-slate-400 font-sans hidden sm:inline">
+              Einteilung für die gesamte Woche im Aufgabenplan
+            </span>
+            <button
+              type="button"
+              onClick={() => setCurrentTab('chores')}
+              className="w-full sm:w-auto px-4 py-2.5 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border hover:border-indigo-500/40 text-slate-200 hover:text-white text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 font-sans shadow-xs group"
+            >
+              <Calendar className="w-3.5 h-3.5 text-indigo-400 group-hover:text-indigo-300 transition-colors" />
+              <span>Wochenplan öffnen</span>
+            </button>
+          </div>
         </div>
       )}
 
       {/* Today's Tasks Widget (Caregiver / Staff View) */}
       {user?.role !== 'BEWOHNER' && todayChores && (
-        <div className="bento-card rounded-[2.5rem] p-7 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
+        <div className="bento-card rounded-[2.5rem] p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
           <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
           <div>
             <div className="flex items-center justify-between mb-4">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-semibold uppercase tracking-wider font-sans">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-semibold uppercase tracking-wider font-sans whitespace-nowrap">
                 <span>📋</span>
-                <span>Aufgaben für heute</span>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setCurrentTab('chores')}
-                className="inline-flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 font-semibold cursor-pointer transition-colors font-sans"
-              >
-                <span>Aufgabenplan verwalten</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-              <div>
-                <h3 className="text-xl font-semibold text-white mb-1.5 font-sans tracking-tight">
-                  Heutige Aufgaben der WG
-                </h3>
-                <p className="text-xs text-slate-300 leading-relaxed font-sans">
-                  Überblick über alle eingeteilten Haushalts- & Alltagsaufgaben von heute.
-                </p>
+                <span>Heutige Aufgaben</span>
               </div>
 
               <span className="text-xs font-bold px-3 py-1 rounded-full bg-surface-elevated text-indigo-300 border border-surface-border font-mono self-start sm:self-auto">
                 {todayChores.completedCount} von {todayChores.totalCount} erledigt
               </span>
+            </div>
+
+            <div className="mb-4">
+              <h3 className="text-xl font-semibold text-white mb-1.5 font-sans tracking-tight">
+                Heutige Aufgaben der WG
+              </h3>
+              <p className="text-xs text-slate-300 leading-relaxed font-sans">
+                Überblick über alle eingeteilten Haushalts- & Alltagsaufgaben von heute.
+              </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
@@ -446,6 +441,21 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Staff Footer Action */}
+          <div className="mt-5 pt-4 border-t border-surface-border/50 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <span className="text-[11px] text-slate-400 font-sans hidden sm:inline">
+              Wöchentliche Einteilung und Zuweisungen für alle Wochentage
+            </span>
+            <button
+              type="button"
+              onClick={() => setCurrentTab('chores')}
+              className="w-full sm:w-auto px-4 py-2.5 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border hover:border-indigo-500/40 text-slate-200 hover:text-white text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 font-sans shadow-xs group"
+            >
+              <Calendar className="w-3.5 h-3.5 text-indigo-400 group-hover:text-indigo-300 transition-colors" />
+              <span>Aufgabenplan verwalten</span>
+            </button>
           </div>
         </div>
       )}
