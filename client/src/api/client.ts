@@ -244,6 +244,7 @@ export const api = {
       description?: string;
       icon?: string;
       sortOrder?: number;
+      assignedResidentIds?: string[] | string | null;
     }) => request<any>('chores/templates', { method: 'POST', body: JSON.stringify(body) }),
     updateTemplate: (
       id: string,
@@ -253,6 +254,7 @@ export const api = {
         icon?: string;
         sortOrder?: number;
         isActive?: boolean;
+        assignedResidentIds?: string[] | string | null;
       }
     ) => request<any>(`chores/templates/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
     deleteTemplate: (id: string) =>
@@ -266,7 +268,8 @@ export const api = {
       year: number;
       weekNumber: number;
       dayOfWeek: number;
-      residentId: string | null;
+      residentId?: string | null;
+      assignedResidentIds?: string[] | string | null;
     }) => request<any>('chores/assign', { method: 'POST', body: JSON.stringify(body) }),
     toggleComplete: (body: {
       assignmentId?: string;

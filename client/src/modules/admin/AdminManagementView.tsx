@@ -79,15 +79,18 @@ export const AdminManagementView: React.FC = () => {
   // Chores State
   const [choreTemplates, setChoreTemplates] = useState<any[]>([]);
   const [selectedChoreLocId, setSelectedChoreLocId] = useState<string>(locations[0]?.id || '');
+  const [choreResidents, setChoreResidents] = useState<any[]>([]);
   const [isLoadingChores, setIsLoadingChores] = useState(false);
   const [showAddChore, setShowAddChore] = useState(false);
   const [newChoreTitle, setNewChoreTitle] = useState('');
   const [newChoreDesc, setNewChoreDesc] = useState('');
   const [newChoreIcon, setNewChoreIcon] = useState('🧹');
+  const [newChoreAssignedResidents, setNewChoreAssignedResidents] = useState<string[]>([]);
   const [editingChoreId, setEditingChoreId] = useState<string | null>(null);
   const [editChoreTitle, setEditChoreTitle] = useState('');
   const [editChoreDesc, setEditChoreDesc] = useState('');
   const [editChoreIcon, setEditChoreIcon] = useState('🧹');
+  const [editChoreAssignedResidents, setEditChoreAssignedResidents] = useState<string[]>([]);
   const [choreSuccessMsg, setChoreSuccessMsg] = useState<string | null>(null);
   const [choreErrorMsg, setChoreErrorMsg] = useState<string | null>(null);
 
@@ -309,8 +312,12 @@ export const AdminManagementView: React.FC = () => {
     if (!targetLoc) return;
     try {
       setIsLoadingChores(true);
-      const data = await api.chores.templates(targetLoc);
+      const [data, usersData] = await Promise.all([
+        api.chores.templates(targetLoc),
+        api.users.list(targetLoc).catch(() => []),
+      ]);
       setChoreTemplates(data);
+      setChoreResidents((usersData || []).filter((u: any) => u.role === 'BEWOHNER'));
     } catch (err) {
       console.error('Fehler beim Laden der Aufgaben-Vorlagen:', err);
     } finally {
@@ -330,11 +337,14 @@ export const AdminManagementView: React.FC = () => {
         title: newChoreTitle.trim(),
         description: newChoreDesc.trim() || undefined,
         icon: newChoreIcon.trim() || '🧹',
+        assignedResidentIds:
+          newChoreAssignedResidents.length > 0 ? newChoreAssignedResidents : null,
       });
       setShowAddChore(false);
       setNewChoreTitle('');
       setNewChoreDesc('');
       setNewChoreIcon('🧹');
+      setNewChoreAssignedResidents([]);
       setChoreSuccessMsg('Aufgaben-Vorlage erfolgreich angelegt!');
       setTimeout(() => setChoreSuccessMsg(null), 3000);
       fetchChoreTemplates(locId);
@@ -352,8 +362,11 @@ export const AdminManagementView: React.FC = () => {
         title: editChoreTitle.trim(),
         description: editChoreDesc.trim() || undefined,
         icon: editChoreIcon.trim() || '🧹',
+        assignedResidentIds:
+          editChoreAssignedResidents.length > 0 ? editChoreAssignedResidents : null,
       });
       setEditingChoreId(null);
+      setEditChoreAssignedResidents([]);
       setChoreSuccessMsg('Aufgaben-Vorlage aktualisiert!');
       setTimeout(() => setChoreSuccessMsg(null), 3000);
       fetchChoreTemplates(locId);
@@ -1964,10 +1977,84 @@ export const AdminManagementView: React.FC = () => {
                   />
                 </div>
 
+                {/* Assigned Residents Multi-Select */}
+                <div className="pt-1">
+                  <div className="flex items-center justify-between mb-1.5 flex-wrap gap-2">
+                    <label className="text-xs font-semibold text-slate-300">
+                      Zugeordnete Bewohner (Mehrfachauswahl möglich)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (newChoreAssignedResidents.includes('ALL')) {
+                          setNewChoreAssignedResidents([]);
+                        } else {
+                          setNewChoreAssignedResidents(['ALL']);
+                        }
+                      }}
+                      className={`px-3 py-1 rounded-xl text-xs font-semibold border transition-all cursor-pointer flex items-center gap-1.5 ${
+                        newChoreAssignedResidents.includes('ALL')
+                          ? 'bg-indigo-600 text-white border-indigo-500 shadow-xs'
+                          : 'bg-surface-card border-surface-border text-slate-300 hover:bg-surface-elevated hover:text-white'
+                      }`}
+                    >
+                      <span>👥</span>
+                      <span>Allen Bewohnern zuweisen</span>
+                    </button>
+                  </div>
+
+                  <p className="text-[11px] text-slate-400 mb-2 leading-snug">
+                    Ideal für Aufgaben wie z.B. Zimmerreinigung, die jeder Bewohner an seinem Tag erledigen soll, oder wähle einzelne Bewohner aus.
+                  </p>
+
+                  {!newChoreAssignedResidents.includes('ALL') && (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {choreResidents.map((res) => {
+                        const isSelected = newChoreAssignedResidents.includes(res.id);
+                        return (
+                          <button
+                            key={res.id}
+                            type="button"
+                            onClick={() => {
+                              if (isSelected) {
+                                setNewChoreAssignedResidents(
+                                  newChoreAssignedResidents.filter((id) => id !== res.id)
+                                );
+                              } else {
+                                setNewChoreAssignedResidents([...newChoreAssignedResidents, res.id]);
+                              }
+                            }}
+                            className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+                              isSelected
+                                ? 'bg-indigo-600/30 border-indigo-500 text-white shadow-xs'
+                                : 'bg-surface-card border-surface-border text-slate-400 hover:text-slate-200'
+                            }`}
+                          >
+                            <span
+                              className="w-2.5 h-2.5 rounded-full shrink-0"
+                              style={{ backgroundColor: res.avatarColor || '#6366f1' }}
+                            />
+                            <span>{res.name}</span>
+                            {isSelected && <Check className="w-3 h-3 text-indigo-400" />}
+                          </button>
+                        );
+                      })}
+                      {choreResidents.length === 0 && (
+                        <span className="text-xs text-slate-500 italic">
+                          Keine Bewohner an diesem Standort registriert.
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex items-center justify-end gap-2 pt-2">
                   <button
                     type="button"
-                    onClick={() => setShowAddChore(false)}
+                    onClick={() => {
+                      setShowAddChore(false);
+                      setNewChoreAssignedResidents([]);
+                    }}
                     className="px-4 py-2 rounded-xl bg-surface-card border border-surface-border text-slate-300 text-xs font-semibold hover:bg-surface-elevated cursor-pointer"
                   >
                     Abbrechen
@@ -2002,7 +2089,7 @@ export const AdminManagementView: React.FC = () => {
                       className="bg-surface-elevated/70 border border-surface-border rounded-2xl p-4 flex flex-col justify-between gap-3 shadow-md hover:border-surface-border/80 transition-all"
                     >
                       {isEditing ? (
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           <div className="flex items-center gap-2">
                             <input
                               type="text"
@@ -2025,18 +2112,86 @@ export const AdminManagementView: React.FC = () => {
                             placeholder="Beschreibung"
                             className="w-full px-2.5 py-1 bg-surface-card border border-surface-border rounded-lg text-xs text-white placeholder-slate-500"
                           />
+
+                          {/* Edit Assigned Residents */}
+                          <div className="pt-1 border-t border-surface-border/50">
+                            <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
+                              <span className="text-[11px] font-semibold text-slate-300">
+                                Bewohner-Zuordnung:
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (editChoreAssignedResidents.includes('ALL')) {
+                                    setEditChoreAssignedResidents([]);
+                                  } else {
+                                    setEditChoreAssignedResidents(['ALL']);
+                                  }
+                                }}
+                                className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold border transition-all cursor-pointer ${
+                                  editChoreAssignedResidents.includes('ALL')
+                                    ? 'bg-indigo-600 text-white border-indigo-500'
+                                    : 'bg-surface-card border-surface-border text-slate-300 hover:bg-surface-elevated'
+                                }`}
+                              >
+                                👥 Allen Bewohnern
+                              </button>
+                            </div>
+
+                            {!editChoreAssignedResidents.includes('ALL') && (
+                              <div className="flex flex-wrap gap-1.5 pt-1">
+                                {choreResidents.map((res) => {
+                                  const isSelected = editChoreAssignedResidents.includes(res.id);
+                                  return (
+                                    <button
+                                      key={res.id}
+                                      type="button"
+                                      onClick={() => {
+                                        if (isSelected) {
+                                          setEditChoreAssignedResidents(
+                                            editChoreAssignedResidents.filter((id) => id !== res.id)
+                                          );
+                                        } else {
+                                          setEditChoreAssignedResidents([
+                                            ...editChoreAssignedResidents,
+                                            res.id,
+                                          ]);
+                                        }
+                                      }}
+                                      className={`px-2.5 py-1 rounded-lg border text-[11px] font-medium flex items-center gap-1.5 transition-all cursor-pointer ${
+                                        isSelected
+                                          ? 'bg-indigo-600/30 border-indigo-500 text-white'
+                                          : 'bg-surface-card border-surface-border text-slate-400 hover:text-slate-200'
+                                      }`}
+                                    >
+                                      <span
+                                        className="w-2 h-2 rounded-full shrink-0"
+                                        style={{ backgroundColor: res.avatarColor || '#6366f1' }}
+                                      />
+                                      <span>{res.name}</span>
+                                      {isSelected && <Check className="w-2.5 h-2.5 text-indigo-400" />}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+
                           <div className="flex items-center justify-end gap-1.5 pt-1">
                             <button
                               type="button"
-                              onClick={() => setEditingChoreId(null)}
-                              className="px-2.5 py-1 rounded-lg text-[11px] text-slate-400 hover:text-white"
+                              onClick={() => {
+                                setEditingChoreId(null);
+                                setEditChoreAssignedResidents([]);
+                              }}
+                              className="px-2.5 py-1 rounded-lg text-[11px] text-slate-400 hover:text-white cursor-pointer"
                             >
                               Abbrechen
                             </button>
                             <button
                               type="button"
                               onClick={() => handleUpdateChoreTemplate(tmpl.id)}
-                              className="btn-theme-gradient px-3 py-1 rounded-lg text-[11px] font-semibold text-white shadow-sm"
+                              className="btn-theme-gradient px-3 py-1 rounded-lg text-[11px] font-semibold text-white shadow-sm cursor-pointer"
                             >
                               Speichern
                             </button>
@@ -2044,45 +2199,82 @@ export const AdminManagementView: React.FC = () => {
                         </div>
                       ) : (
                         <>
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex items-start gap-2.5 min-w-0">
-                              <span className="text-2xl shrink-0 select-none">
-                                {tmpl.icon || '🧹'}
-                              </span>
-                              <div className="min-w-0">
-                                <h4 className="text-xs font-bold text-white leading-tight truncate">
-                                  {tmpl.title}
-                                </h4>
-                                {tmpl.description && (
-                                  <p className="text-[11px] text-slate-400 mt-0.5 leading-snug line-clamp-2">
-                                    {tmpl.description}
-                                  </p>
-                                )}
+                          <div className="space-y-2.5">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex items-start gap-2.5 min-w-0">
+                                <span className="text-2xl shrink-0 select-none">
+                                  {tmpl.icon || '🧹'}
+                                </span>
+                                <div className="min-w-0">
+                                  <h4 className="text-xs font-bold text-white leading-tight truncate">
+                                    {tmpl.title}
+                                  </h4>
+                                  {tmpl.description && (
+                                    <p className="text-[11px] text-slate-400 mt-0.5 leading-snug line-clamp-2">
+                                      {tmpl.description}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-1 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingChoreId(tmpl.id);
+                                    setEditChoreTitle(tmpl.title);
+                                    setEditChoreDesc(tmpl.description || '');
+                                    setEditChoreIcon(tmpl.icon || '🧹');
+                                    setEditChoreAssignedResidents(
+                                      tmpl.assignedResidentIdsList || (tmpl.isAllResidents ? ['ALL'] : [])
+                                    );
+                                  }}
+                                  className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+                                  title="Bearbeiten"
+                                >
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteChoreTemplate(tmpl.id, tmpl.title)}
+                                  className="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition-colors cursor-pointer"
+                                  title="Deaktivieren"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
                               </div>
                             </div>
 
-                            <div className="flex items-center gap-1 shrink-0">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setEditingChoreId(tmpl.id);
-                                  setEditChoreTitle(tmpl.title);
-                                  setEditChoreDesc(tmpl.description || '');
-                                  setEditChoreIcon(tmpl.icon || '🧹');
-                                }}
-                                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
-                                title="Bearbeiten"
-                              >
-                                <Pencil className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteChoreTemplate(tmpl.id, tmpl.title)}
-                                className="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition-colors"
-                                title="Deaktivieren"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
+                            {/* Assigned Residents Display on Card */}
+                            <div className="pt-2 border-t border-surface-border/50 flex items-center justify-between gap-2">
+                              <div className="text-[11px] font-medium text-slate-400 flex items-center gap-1.5 flex-wrap">
+                                <span className="text-slate-500">Zuweisung:</span>
+                                {tmpl.isAllResidents || (tmpl.assignedResidentIdsList && tmpl.assignedResidentIdsList.includes('ALL')) ? (
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold">
+                                    <span>👥</span>
+                                    <span>Alle Bewohner</span>
+                                  </span>
+                                ) : tmpl.assignedResidents && tmpl.assignedResidents.length > 0 ? (
+                                  <div className="flex flex-wrap gap-1">
+                                    {tmpl.assignedResidents.map((r: any) => (
+                                      <span
+                                        key={r.id}
+                                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-card border border-surface-border text-slate-200 text-[10px]"
+                                      >
+                                        <span
+                                          className="w-1.5 h-1.5 rounded-full shrink-0"
+                                          style={{ backgroundColor: r.avatarColor || '#6366f1' }}
+                                        />
+                                        <span>{r.name}</span>
+                                      </span>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <span className="text-slate-500 italic text-[10px]">
+                                    Freie Einteilung im Wochenplan
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </>

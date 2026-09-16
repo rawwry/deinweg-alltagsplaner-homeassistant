@@ -3,6 +3,20 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.27] - 2026-09-17
+
+### Hinzugefügt & Verbessert
+- **Dashboard: Redesign der Bewohner-Aufgabenbox (`DashboardHub`)**:
+  - **Einheitliches Bento-Design**: Die Box *„Aufgaben für heute“* für Bewohner entspricht nun exakt dem Design der übrigen Bento-Karten (`rounded-[2.5rem] p-7 sm:p-8 relative overflow-hidden group`).
+  - **Header-Pille**: Ergänzt um die standardmäßige Badge-Pille `[📋 AUFGABEN FÜR HEUTE]`.
+  - **Größere Überschrift**: Titel angepasst auf `text-xl font-semibold` analog zum Einkaufskorb.
+  - **Besen-Icon & Abhaken für Bewohner entfernt**: Wie gewünscht wurde das Besen-Icon im Header entfernt und das interaktive Abhaken für Bewohner deaktiviert (rein informative Tagesübersicht der Aufgaben). Entsprechend wurde der Zähler *„x / x erledigt“* für Bewohner entfernt.
+- **Aufgabenplan: Multi-Bewohner-Zuweisung & „Allen Bewohnern zuweisen“ (`ChorePlannerView` & `AdminManagementView`)**:
+  - **Aufgaben mehreren Bewohnern zuordnen**: Aufgaben (z. B. Zimmerreinigung oder gemeinsame WG-Dienste) können nun mehreren Bewohnern gleichzeitig oder mit 1 Klick *allen Bewohnern* zugewiesen werden.
+  - **Einstellungen / Vorlagen**: Bei der Erstellung und Bearbeitung von Aufgaben-Vorlagen können Betreuer mit `[👥 Allen Bewohnern zuweisen]` oder via Checkboxen mehrere Bewohner auswählen.
+  - **Wochenplaner / Tages-Einteilung**: Auch im Wochenplan können Betreuer Aufgaben flexibel allen Bewohnern oder einer beliebigen Auswahl an Bewohnern zuordnen, mit visueller Avatar-Stapelung und Namensauflistung auf den Tageskarten.
+  - **Datenbank & Backend**: `assignedResidentIds` unterstützt JSON-Listen und `'["ALL"]'`, mit intelligenter Vererbung von Vorlagen-Standards und tagesbezogenen Überschreibungen.
+
 ## [0.1.0-beta.26] - 2026-09-16
 
 ### Hinzugefügt & Verbessert

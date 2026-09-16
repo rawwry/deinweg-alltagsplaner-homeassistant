@@ -285,164 +285,167 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
 
       {/* Today's Tasks Widget (Resident View) */}
       {user?.role === 'BEWOHNER' && todayChores && (
-        <div className="bg-surface-card border border-surface-border rounded-3xl p-5 sm:p-6 shadow-xl relative overflow-hidden">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-surface-border">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-xl shrink-0 shadow-inner">
-                🧹
+        <div className="bento-card rounded-[2.5rem] p-7 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
+          <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-semibold uppercase tracking-wider font-sans">
+                <span>📋</span>
+                <span>Aufgaben für heute</span>
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-base font-semibold text-white font-display">
-                    Deine Aufgaben für heute
-                  </h3>
-                  {todayChores.myTotalCount > 0 && (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 font-mono">
-                      {todayChores.myCompletedCount} / {todayChores.myTotalCount} erledigt
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-slate-400">
-                  {todayChores.myTotalCount === 0
-                    ? 'Heute stehen keine Aufgaben für dich an.'
-                    : todayChores.myCompletedCount === todayChores.myTotalCount
-                    ? 'Alles erledigt für heute! Super gemacht! 🎉'
-                    : 'Hier siehst du deine eingeteilten Alltagsaufgaben. Klicke zum Abhaken einfach auf die Karte.'}
-                </p>
-              </div>
+
+              <button
+                type="button"
+                onClick={() => setCurrentTab('chores')}
+                className="inline-flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 font-semibold cursor-pointer transition-colors font-sans"
+              >
+                <span>Ganzen Aufgabenplan ansehen</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setCurrentTab('chores')}
-              className="inline-flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 font-semibold cursor-pointer self-start sm:self-center transition-colors"
-            >
-              <span>Ganzen Aufgabenplan ansehen</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
+            <h3 className="text-xl font-semibold text-white mb-1.5 font-sans tracking-tight">
+              Deine Aufgaben für heute
+            </h3>
+            <p className="text-xs text-slate-300 mb-5 leading-relaxed font-sans">
+              {todayChores.myTasks.length === 0
+                ? 'Heute stehen keine anstehenden Aufgaben für dich an.'
+                : 'Hier siehst du deine eingeteilten Haushalts- und Alltagsdienste für den heutigen Tag.'}
+            </p>
 
-          {todayChores.myTasks.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-4">
-              {todayChores.myTasks.map((task: any) => (
-                <div
-                  key={task.templateId}
-                  onClick={() => handleToggleChore(task)}
-                  className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 select-none ${
-                    task.isCompleted
-                      ? 'bg-emerald-950/20 border-emerald-500/40 text-emerald-200 shadow-sm'
-                      : 'bg-surface-elevated/60 border-surface-border hover:border-indigo-500/50 hover:bg-surface-elevated text-slate-100 shadow-md'
-                  }`}
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-2xl shrink-0">{task.icon || '🧹'}</span>
-                    <div className="min-w-0">
-                      <div className={`text-sm font-semibold truncate ${task.isCompleted ? 'line-through text-slate-400' : 'text-white'}`}>
-                        {task.title}
+            {todayChores.myTasks.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                {todayChores.myTasks.map((task: any) => (
+                  <div
+                    key={task.templateId}
+                    className={`p-4 rounded-2xl border transition-all flex items-center justify-between gap-3 select-none ${
+                      task.isCompleted
+                        ? 'bg-emerald-950/20 border-emerald-500/30 text-emerald-200'
+                        : 'bg-surface-elevated/70 border-surface-border text-slate-100'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-10 h-10 rounded-2xl bg-surface-card border border-surface-border flex items-center justify-center text-xl shrink-0 shadow-xs">
+                        {task.icon || '🧹'}
                       </div>
-                      {task.description && (
-                        <p className="text-[11px] text-slate-400 truncate max-w-[200px]">
-                          {task.description}
-                        </p>
-                      )}
+                      <div className="min-w-0">
+                        <div
+                          className={`text-sm font-semibold truncate ${
+                            task.isCompleted ? 'line-through text-slate-400' : 'text-white'
+                          }`}
+                        >
+                          {task.title}
+                        </div>
+                        {task.description && (
+                          <p className="text-xs text-slate-400 truncate max-w-[220px] mt-0.5 leading-snug">
+                            {task.description}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="shrink-0">
-                    {task.isCompleted ? (
-                      <div className="w-8 h-8 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center font-bold shadow-md shadow-emerald-500/30">
-                        <Check className="w-4 h-4 stroke-[3]" />
-                      </div>
-                    ) : (
-                      <div className="w-8 h-8 rounded-full border-2 border-slate-500 hover:border-indigo-400 flex items-center justify-center text-slate-400 transition-colors">
-                        <Circle className="w-3.5 h-3.5" />
-                      </div>
+                    {task.isCompleted && (
+                      <span className="shrink-0 text-[10px] font-bold text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded-md border border-emerald-500/30 font-mono">
+                        Erledigt ✅
+                      </span>
                     )}
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="py-4 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
-              <span>☕ Keine anstehenden Aufgaben für dich eingeteilt. Zeit für eine Pause!</span>
-            </div>
-          )}
+                ))}
+              </div>
+            ) : (
+              <div className="py-6 text-center text-xs text-slate-400 bg-surface-elevated/30 rounded-2xl border border-surface-border/50 flex items-center justify-center gap-2 font-sans">
+                <span>☕ Keine anstehenden Aufgaben für dich heute eingeteilt. Genieße deinen Tag!</span>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
       {/* Today's Tasks Widget (Caregiver / Staff View) */}
       {user?.role !== 'BEWOHNER' && todayChores && (
-        <div className="bg-surface-card border border-surface-border rounded-3xl p-5 sm:p-6 shadow-xl relative overflow-hidden">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-surface-border">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-xl shrink-0 shadow-inner">
-                📋
+        <div className="bento-card rounded-[2.5rem] p-7 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
+          <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-semibold uppercase tracking-wider font-sans">
+                <span>📋</span>
+                <span>Aufgaben für heute</span>
               </div>
+
+              <button
+                type="button"
+                onClick={() => setCurrentTab('chores')}
+                className="inline-flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 font-semibold cursor-pointer transition-colors font-sans"
+              >
+                <span>Aufgabenplan verwalten</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
               <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-base font-semibold text-white font-display">
-                    Heutige Aufgaben der WG
-                  </h3>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 font-mono">
-                    {todayChores.completedCount} von {todayChores.totalCount} erledigt
-                  </span>
-                </div>
-                <p className="text-xs text-slate-400">
+                <h3 className="text-xl font-semibold text-white mb-1.5 font-sans tracking-tight">
+                  Heutige Aufgaben der WG
+                </h3>
+                <p className="text-xs text-slate-300 leading-relaxed font-sans">
                   Überblick über alle eingeteilten Haushalts- & Alltagsaufgaben von heute.
                 </p>
               </div>
+
+              <span className="text-xs font-bold px-3 py-1 rounded-full bg-surface-elevated text-indigo-300 border border-surface-border font-mono self-start sm:self-auto">
+                {todayChores.completedCount} von {todayChores.totalCount} erledigt
+              </span>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setCurrentTab('chores')}
-              className="px-4 py-2 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer self-start sm:self-center"
-            >
-              <span>Aufgabenplan verwalten</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-4">
-            {todayChores.todayItems.map((task: any) => (
-              <div
-                key={task.templateId}
-                onClick={() => handleToggleChore(task)}
-                className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 select-none ${
-                  task.isCompleted
-                    ? 'bg-emerald-950/20 border-emerald-500/40 text-emerald-200'
-                    : 'bg-surface-elevated/60 border-surface-border hover:border-indigo-500/50 text-slate-100'
-                }`}
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-xl shrink-0">{task.icon || '🧹'}</span>
-                  <div className="min-w-0">
-                    <div className={`text-xs font-semibold truncate ${task.isCompleted ? 'line-through text-slate-400' : 'text-white'}`}>
-                      {task.title}
-                    </div>
-                    <div className="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
-                      {task.resident ? (
-                        <span className="text-indigo-300 font-medium">👤 {task.resident.name}</span>
-                      ) : (
-                        <span className="text-slate-500 italic">Niemand eingeteilt</span>
-                      )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              {todayChores.todayItems.map((task: any) => (
+                <div
+                  key={task.templateId}
+                  onClick={() => handleToggleChore(task)}
+                  className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 select-none ${
+                    task.isCompleted
+                      ? 'bg-emerald-950/20 border-emerald-500/40 text-emerald-200'
+                      : 'bg-surface-elevated/60 border-surface-border hover:border-indigo-500/50 text-slate-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="text-xl shrink-0">{task.icon || '🧹'}</span>
+                    <div className="min-w-0">
+                      <div className={`text-xs font-semibold truncate ${task.isCompleted ? 'line-through text-slate-400' : 'text-white'}`}>
+                        {task.title}
+                      </div>
+                      <div className="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
+                        {task.isAllResidents ? (
+                          <span className="text-indigo-300 font-medium">👥 Alle Bewohner</span>
+                        ) : task.assignedResidents && task.assignedResidents.length > 0 ? (
+                          <span className="text-indigo-300 font-medium truncate max-w-[150px]">
+                            👤 {task.assignedResidents.map((r: any) => r.name).join(', ')}
+                          </span>
+                        ) : task.resident ? (
+                          <span className="text-indigo-300 font-medium">👤 {task.resident.name}</span>
+                        ) : (
+                          <span className="text-slate-500 italic">Niemand eingeteilt</span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="shrink-0">
-                  {task.isCompleted ? (
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
-                      Erledigt ✅
-                    </span>
-                  ) : (
-                    <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 text-[10px] font-medium">
-                      Offen
-                    </span>
-                  )}
+                  <div className="shrink-0">
+                    {task.isCompleted ? (
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
+                        Erledigt ✅
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 text-[10px] font-medium">
+                        Offen
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       )}

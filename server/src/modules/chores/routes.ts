@@ -19,28 +19,77 @@ const DEFAULT_CHORE_TEMPLATES = [
     title: 'Küche & Abwasch',
     description: 'Spülmaschine ein-/ausräumen, Herd & Spüle sauber wischen, Arbeitsflächen freihalten.',
     icon: '🍽️',
+    assignedResidentIds: null,
   },
   {
     title: 'Zimmerreinigung',
     description: 'Eigenes Zimmer lüften, aufräumen, Boden saugen und Mülleimer leeren.',
     icon: '🧹',
+    assignedResidentIds: JSON.stringify(['ALL']),
   },
   {
     title: 'Müll & Recycling',
     description: 'Mülleimer in Küche und Flur prüfen, Gelben Sack/Restmüll rausbringen.',
     icon: '🗑️',
+    assignedResidentIds: null,
   },
   {
     title: 'Gemeinschaftsräume',
     description: 'Wohnzimmer und Flur ordentlich halten, lüften und Tisch abwischen.',
     icon: '✨',
+    assignedResidentIds: null,
   },
   {
     title: 'Badezimmer',
     description: 'Waschbecken, Ablagen und Spiegel sauber halten, Handtücher wechseln.',
     icon: '🧼',
+    assignedResidentIds: null,
   },
 ];
+
+// Helper to parse resident ID arrays safely
+function parseResidentIds(raw: string | null | undefined): string[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed.map(String);
+    if (typeof parsed === 'string') return [parsed];
+  } catch {
+    if (raw.includes(',')) {
+      return raw.split(',').map((s) => s.trim()).filter(Boolean);
+    }
+    return [raw.trim()];
+  }
+  return [];
+}
+
+// Helper to resolve assigned residents given raw IDs, legacy fallback, and location residents
+function resolveResidents(
+  assignedResidentIdsRaw: string | null | undefined,
+  fallbackResidentId: string | null | undefined,
+  allResidents: any[]
+): { isAllResidents: boolean; residentIds: string[]; assignedResidents: any[] } {
+  const ids = parseResidentIds(assignedResidentIdsRaw);
+  if (ids.length === 0 && fallbackResidentId) {
+    ids.push(fallbackResidentId);
+  }
+
+  const isAllResidents = ids.includes('ALL');
+  if (isAllResidents) {
+    return {
+      isAllResidents: true,
+      residentIds: ['ALL'],
+      assignedResidents: allResidents,
+    };
+  }
+
+  const assignedResidents = allResidents.filter((r) => ids.includes(r.id));
+  return {
+    isAllResidents: false,
+    residentIds: ids,
+    assignedResidents,
+  };
+}
 
 // Ensure default templates exist for a given location
 async function ensureDefaultTemplates(locationId: string) {
@@ -59,9 +108,22 @@ async function ensureDefaultTemplates(locationId: string) {
           icon: def.icon,
           sortOrder: i,
           isActive: true,
+          assignedResidentIds: def.assignedResidentIds,
         },
       });
     }
+  } else {
+    // If Zimmerreinigung exists without assignedResidentIds, set to ALL as default
+    await prisma.choreTemplate.updateMany({
+      where: {
+        locationId,
+        title: 'Zimmerreinigung',
+        assignedResidentIds: null,
+      },
+      data: {
+        assignedResidentIds: JSON.stringify(['ALL']),
+      },
+    });
   }
 }
 
@@ -94,12 +156,34 @@ router.get('/templates', requireAuth, async (req: Request, res: Response) => {
     const locationId = resolveLocationId(req);
     await ensureDefaultTemplates(locationId);
 
-    const templates = await prisma.choreTemplate.findMany({
-      where: { locationId, isActive: true },
-      orderBy: [{ sortOrder: 'asc' }, { title: 'asc' }],
+    const [templates, locationResidents] = await Promise.all([
+      prisma.choreTemplate.findMany({
+        where: { locationId, isActive: true },
+        orderBy: [{ sortOrder: 'asc' }, { title: 'asc' }],
+      }),
+      prisma.user.findMany({
+        where: { locationId, role: 'BEWOHNER', isActive: true },
+        select: {
+          id: true,
+          name: true,
+          username: true,
+          avatarColor: true,
+          avatarUrl: true,
+        },
+      }),
+    ]);
+
+    const enrichedTemplates = templates.map((tmpl) => {
+      const resolved = resolveResidents(tmpl.assignedResidentIds, null, locationResidents);
+      return {
+        ...tmpl,
+        isAllResidents: resolved.isAllResidents,
+        assignedResidents: resolved.assignedResidents,
+        assignedResidentIdsList: resolved.residentIds,
+      };
     });
 
-    return res.json(templates);
+    return res.json(enrichedTemplates);
   } catch (err) {
     console.error('Fehler beim Laden der Aufgaben-Vorlagen:', err);
     return res.status(500).json({ error: 'Fehler beim Laden der Aufgaben-Vorlagen.' });
@@ -110,11 +194,17 @@ router.get('/templates', requireAuth, async (req: Request, res: Response) => {
 router.post('/templates', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
   try {
     const locationId = resolveLocationId(req);
-    const { title, description, icon, sortOrder } = req.body;
+    const { title, description, icon, sortOrder, assignedResidentIds } = req.body;
 
     if (!title || !title.trim()) {
       return res.status(400).json({ error: 'Titel der Aufgabe ist erforderlich.' });
     }
+
+    const assignedResidentIdsStr = Array.isArray(assignedResidentIds)
+      ? JSON.stringify(assignedResidentIds)
+      : typeof assignedResidentIds === 'string'
+      ? assignedResidentIds
+      : null;
 
     const currentCount = await prisma.choreTemplate.count({ where: { locationId } });
     const template = await prisma.choreTemplate.create({
@@ -125,6 +215,7 @@ router.post('/templates', requireAuth, requireRole('ADMIN', 'BETREUER'), async (
         icon: icon?.trim() || '🧹',
         sortOrder: typeof sortOrder === 'number' ? sortOrder : currentCount,
         isActive: true,
+        assignedResidentIds: assignedResidentIdsStr,
       },
     });
 
@@ -139,11 +230,20 @@ router.post('/templates', requireAuth, requireRole('ADMIN', 'BETREUER'), async (
 router.put('/templates/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { title, description, icon, sortOrder, isActive } = req.body;
+    const { title, description, icon, sortOrder, isActive, assignedResidentIds } = req.body;
 
     const existing = await prisma.choreTemplate.findUnique({ where: { id } });
     if (!existing) {
       return res.status(404).json({ error: 'Aufgaben-Vorlage nicht gefunden.' });
+    }
+
+    let assignedResidentIdsStr: string | null | undefined = undefined;
+    if (assignedResidentIds !== undefined) {
+      assignedResidentIdsStr = Array.isArray(assignedResidentIds)
+        ? JSON.stringify(assignedResidentIds)
+        : typeof assignedResidentIds === 'string'
+        ? assignedResidentIds
+        : null;
     }
 
     const updated = await prisma.choreTemplate.update({
@@ -154,6 +254,7 @@ router.put('/templates/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), asyn
         icon: icon !== undefined ? icon?.trim() || '🧹' : undefined,
         sortOrder: typeof sortOrder === 'number' ? sortOrder : undefined,
         isActive: typeof isActive === 'boolean' ? isActive : undefined,
+        assignedResidentIds: assignedResidentIdsStr,
       },
     });
 
@@ -178,10 +279,10 @@ router.delete('/templates/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), a
       data: { isActive: false },
     });
 
-    return res.json({ success: true, message: 'Aufgaben-Vorlage erfolgreich deaktiviert.' });
+    return res.json({ success: true });
   } catch (err) {
-    console.error('Fehler beim Löschen der Aufgaben-Vorlage:', err);
-    return res.status(500).json({ error: 'Fehler beim Löschen der Aufgaben-Vorlage.' });
+    console.error('Fehler beim Deaktivieren der Aufgaben-Vorlage:', err);
+    return res.status(500).json({ error: 'Fehler beim Deaktivieren der Aufgaben-Vorlage.' });
   }
 });
 
@@ -213,38 +314,85 @@ router.get('/week', requireAuth, async (req: Request, res: Response) => {
       });
     }
 
-    // Active templates for location
-    const templates = await prisma.choreTemplate.findMany({
-      where: { locationId, isActive: true },
-      orderBy: [{ sortOrder: 'asc' }, { title: 'asc' }],
+    // Active templates and residents for location
+    const [templates, locationResidents, assignments] = await Promise.all([
+      prisma.choreTemplate.findMany({
+        where: { locationId, isActive: true },
+        orderBy: [{ sortOrder: 'asc' }, { title: 'asc' }],
+      }),
+      prisma.user.findMany({
+        where: { locationId, role: 'BEWOHNER', isActive: true },
+        select: {
+          id: true,
+          name: true,
+          username: true,
+          avatarColor: true,
+          avatarUrl: true,
+        },
+      }),
+      prisma.choreAssignment.findMany({
+        where: {
+          locationId,
+          year,
+          weekNumber,
+        },
+        include: {
+          resident: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              avatarColor: true,
+              avatarUrl: true,
+            },
+          },
+          template: {
+            select: {
+              id: true,
+              title: true,
+              icon: true,
+              description: true,
+              assignedResidentIds: true,
+            },
+          },
+        },
+      }),
+    ]);
+
+    // Enrich templates with resolved residents
+    const enrichedTemplates = templates.map((tmpl) => {
+      const resolved = resolveResidents(tmpl.assignedResidentIds, null, locationResidents);
+      return {
+        ...tmpl,
+        isAllResidents: resolved.isAllResidents,
+        assignedResidents: resolved.assignedResidents,
+        assignedResidentIdsList: resolved.residentIds,
+      };
     });
 
-    // Assignments for this week
-    const assignments = await prisma.choreAssignment.findMany({
-      where: {
-        locationId,
-        year,
-        weekNumber,
-      },
-      include: {
-        resident: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            avatarColor: true,
-            avatarUrl: true,
-          },
-        },
-        template: {
-          select: {
-            id: true,
-            title: true,
-            icon: true,
-            description: true,
-          },
-        },
-      },
+    // Enrich assignments with resolved residents (inheriting template default if assignment has none set)
+    const enrichedAssignments = assignments.map((assign) => {
+      let resolved = resolveResidents(
+        assign.assignedResidentIds,
+        assign.residentId,
+        locationResidents
+      );
+
+      // If assignment has no explicit setting (assignedResidentIds === null) and no resident assigned, inherit template default
+      if (assign.assignedResidentIds === null && !assign.residentId && assign.template?.assignedResidentIds) {
+        resolved = resolveResidents(
+          assign.template.assignedResidentIds,
+          null,
+          locationResidents
+        );
+      }
+
+      return {
+        ...assign,
+        isAllResidents: resolved.isAllResidents,
+        assignedResidents: resolved.assignedResidents,
+        assignedResidentIdsList: resolved.residentIds,
+      };
     });
 
     return res.json({
@@ -252,8 +400,8 @@ router.get('/week', requireAuth, async (req: Request, res: Response) => {
       year,
       weekNumber,
       days,
-      templates,
-      assignments,
+      templates: enrichedTemplates,
+      assignments: enrichedAssignments,
     });
   } catch (err) {
     console.error('Fehler beim Laden des Aufgabenplans:', err);
@@ -261,43 +409,95 @@ router.get('/week', requireAuth, async (req: Request, res: Response) => {
   }
 });
 
-// 6. Assign resident to a task on a specific day
+// 6. Assign resident(s) to a task on a specific day
 router.post('/assign', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
   try {
     const locationId = resolveLocationId(req);
-    const { templateId, date, year, weekNumber, dayOfWeek, residentId } = req.body;
+    const { templateId, date, year, weekNumber, dayOfWeek, residentId, assignedResidentIds } = req.body;
 
     if (!templateId || !date || !year || !weekNumber || !dayOfWeek) {
       return res.status(400).json({ error: 'Unvollständige Zuweisungsdaten.' });
     }
 
-    // If residentId is null or empty string, unassign
-    if (!residentId) {
-      const existing = await prisma.choreAssignment.findUnique({
-        where: {
-          locationId_templateId_date: {
+    // Determine resident IDs to assign
+    let ids: string[] = [];
+    if (Array.isArray(assignedResidentIds)) {
+      ids = assignedResidentIds.map(String).filter(Boolean);
+    } else if (typeof assignedResidentIds === 'string' && assignedResidentIds.trim()) {
+      ids = parseResidentIds(assignedResidentIds);
+    } else if (residentId) {
+      ids = [String(residentId)];
+    }
+
+    // If ids is empty, unassign
+    if (ids.length === 0) {
+      const template = await prisma.choreTemplate.findUnique({ where: { id: templateId } });
+      const hasTemplateDefault = !!template?.assignedResidentIds;
+
+      if (hasTemplateDefault) {
+        // Store explicit empty array '[]' to override the template's default assignment for this date
+        const assignment = await prisma.choreAssignment.upsert({
+          where: {
+            locationId_templateId_date: {
+              locationId,
+              templateId,
+              date,
+            },
+          },
+          update: {
+            residentId: null,
+            assignedResidentIds: JSON.stringify([]),
+            year: Number(year),
+            weekNumber: Number(weekNumber),
+            dayOfWeek: Number(dayOfWeek),
+          },
+          create: {
             locationId,
             templateId,
             date,
+            year: Number(year),
+            weekNumber: Number(weekNumber),
+            dayOfWeek: Number(dayOfWeek),
+            residentId: null,
+            assignedResidentIds: JSON.stringify([]),
+            isCompleted: false,
           },
-        },
-      });
+          include: {
+            resident: true,
+            template: true,
+          },
+        });
+        return res.json({ success: true, assignment });
+      } else {
+        const existing = await prisma.choreAssignment.findUnique({
+          where: {
+            locationId_templateId_date: {
+              locationId,
+              templateId,
+              date,
+            },
+          },
+        });
 
-      if (existing) {
-        if (!existing.isCompleted) {
-          await prisma.choreAssignment.delete({ where: { id: existing.id } });
-          return res.json({ success: true, assignment: null });
-        } else {
-          const updated = await prisma.choreAssignment.update({
-            where: { id: existing.id },
-            data: { residentId: null },
-            include: { resident: true, template: true },
-          });
-          return res.json({ success: true, assignment: updated });
+        if (existing) {
+          if (!existing.isCompleted) {
+            await prisma.choreAssignment.delete({ where: { id: existing.id } });
+            return res.json({ success: true, assignment: null });
+          } else {
+            const updated = await prisma.choreAssignment.update({
+              where: { id: existing.id },
+              data: { residentId: null, assignedResidentIds: JSON.stringify([]) },
+              include: { resident: true, template: true },
+            });
+            return res.json({ success: true, assignment: updated });
+          }
         }
+        return res.json({ success: true, assignment: null });
       }
-      return res.json({ success: true, assignment: null });
     }
+
+    const assignedResidentIdsStr = JSON.stringify(ids);
+    const primaryResidentId = ids.includes('ALL') || ids.length === 0 ? null : ids[0];
 
     // Upsert assignment
     const assignment = await prisma.choreAssignment.upsert({
@@ -309,7 +509,8 @@ router.post('/assign', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req
         },
       },
       update: {
-        residentId,
+        residentId: primaryResidentId,
+        assignedResidentIds: assignedResidentIdsStr,
         year: Number(year),
         weekNumber: Number(weekNumber),
         dayOfWeek: Number(dayOfWeek),
@@ -321,7 +522,8 @@ router.post('/assign', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req
         year: Number(year),
         weekNumber: Number(weekNumber),
         dayOfWeek: Number(dayOfWeek),
-        residentId,
+        residentId: primaryResidentId,
+        assignedResidentIds: assignedResidentIdsStr,
         isCompleted: false,
       },
       include: {
@@ -466,48 +668,73 @@ router.get('/today', requireAuth, async (req: Request, res: Response) => {
     const now = new Date();
     const todayDate = formatDate(now);
 
-    const templates = await prisma.choreTemplate.findMany({
-      where: { locationId, isActive: true },
-      orderBy: [{ sortOrder: 'asc' }, { title: 'asc' }],
-    });
-
-    const assignments = await prisma.choreAssignment.findMany({
-      where: {
-        locationId,
-        date: todayDate,
-      },
-      include: {
-        resident: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            avatarColor: true,
-            avatarUrl: true,
+    const [templates, locationResidents, assignments] = await Promise.all([
+      prisma.choreTemplate.findMany({
+        where: { locationId, isActive: true },
+        orderBy: [{ sortOrder: 'asc' }, { title: 'asc' }],
+      }),
+      prisma.user.findMany({
+        where: { locationId, role: 'BEWOHNER', isActive: true },
+        select: {
+          id: true,
+          name: true,
+          username: true,
+          avatarColor: true,
+          avatarUrl: true,
+        },
+      }),
+      prisma.choreAssignment.findMany({
+        where: {
+          locationId,
+          date: todayDate,
+        },
+        include: {
+          resident: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              avatarColor: true,
+              avatarUrl: true,
+            },
+          },
+          template: {
+            select: {
+              id: true,
+              title: true,
+              icon: true,
+              description: true,
+              assignedResidentIds: true,
+            },
           },
         },
-        template: {
-          select: {
-            id: true,
-            title: true,
-            icon: true,
-            description: true,
-          },
-        },
-      },
-    });
+      }),
+    ]);
 
     // Map each active template to today's assignment status
     const todayItems = templates.map((tmpl) => {
       const match = assignments.find((a) => a.templateId === tmpl.id);
+      let resolved = resolveResidents(
+        match?.assignedResidentIds,
+        match?.residentId,
+        locationResidents
+      );
+
+      // Inherit template's assignedResidentIds if assignment has no explicit setting
+      if ((!match || (match.assignedResidentIds === null && !match.residentId)) && resolved.residentIds.length === 0 && tmpl.assignedResidentIds) {
+        resolved = resolveResidents(tmpl.assignedResidentIds, null, locationResidents);
+      }
+
       return {
         templateId: tmpl.id,
         title: tmpl.title,
         description: tmpl.description,
         icon: tmpl.icon,
         assignmentId: match ? match.id : null,
-        resident: match?.resident || null,
-        residentId: match?.residentId || null,
+        resident: match?.resident || resolved.assignedResidents[0] || null,
+        residentId: match?.residentId || resolved.residentIds[0] || null,
+        assignedResidents: resolved.assignedResidents,
+        isAllResidents: resolved.isAllResidents,
         isCompleted: match ? match.isCompleted : false,
         completedAt: match?.completedAt || null,
         date: todayDate,
@@ -515,7 +742,11 @@ router.get('/today', requireAuth, async (req: Request, res: Response) => {
     });
 
     const myTasks = req.user
-      ? todayItems.filter((item) => item.residentId === req.user?.id)
+      ? todayItems.filter((item) => {
+          if (item.isAllResidents) return true;
+          if (item.assignedResidents.some((r: any) => r.id === req.user?.id)) return true;
+          return item.residentId === req.user?.id;
+        })
       : [];
 
     const totalCount = todayItems.length;
