@@ -3,6 +3,21 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.29] - 2026-09-17
+
+### Hinzugefügt & Verbessert
+- **Gesamtaufgabenplan: Vollständige Bereinigung & Umbenennung (`ChorePlannerView`)**:
+  - **Abhaken vollständig entfernt**: Das Abhaken von Aufgaben wurde im gesamten Wochenaufgabenplan restlos entfernt. Die Ansicht fungiert als saubere, verlässliche Alltags- und Dienstübersicht.
+  - **Statuspille & Zähler entfernt**: Die Kopfzeilen-Pille *„x / x erledigt“* sowie Erledigungs-Häkchen auf den Wochentagsbuttons und Tages-Tabs wurden komplett entfernt.
+  - **Titel & Beschreibung vereinfacht**: Der Haupttitel heißt nun schlicht **„Aufgabenübersicht“** (statt *„Haushalts- & Alltagsorganisation“*).
+- **Dashboard: Zentrierter Begrüßungsbereich & Bereinigung (`DashboardHub`)**:
+  - **Zentriertes Layout**: Der gesamte Begrüßungskopf (`Guten Abend / Gute Nacht <Name>!`) ist nun exakt mittig zentriert.
+  - **Textbereinigung**: Die Floskel *„Hier ist dein WG-Überblick für heute“* wurde entfernt. Die Zeile lautet nun einheitlich und klar: `{Wochentag, Datum} — Schön, dass du da bist.`
+  - **Buttons entfernt**: Die beiden Schnellwahlbuttons *„Aufgabenplan“* und *„Budget“* unterhalb der Begrüßung wurden entfernt. Ungelesene Flurfunk-Meldungen bleiben bei Bedarf dezent zentriert erreichbar.
+- **Dashboard: Vollständige Lesbarkeit der Aufgabendetails auf Mobilgeräten (`DashboardHub`)**:
+  - In der Bewohner-Box *„Deine Aufgaben“* wurden die Beschneidung (`truncate`) und Breitenbegrenzung (`max-w-[220px]`) der Detailbeschreibungen vollständig entfernt.
+  - Mit `items-start`, natürlichem Zeilenumbruch (`break-words whitespace-normal`) und optimierter Schriftfarbe (`text-slate-300`) sind nun alle Anweisungen und Detailhinweise zu den Diensten auf Smartphones sowie Desktop vollständig lesbar.
+
 ## [0.1.0-beta.28] - 2026-09-17
 
 ### Hinzugefügt & Verbessert

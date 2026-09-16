@@ -163,43 +163,24 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
 
   return (
     <div className="space-y-7 max-w-6xl mx-auto pb-10">
-      {/* Top Welcome Headline */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 pt-1">
-        <div>
-          <div className="inline-flex items-center gap-2 text-rose-400 text-xs font-semibold tracking-wider uppercase mb-2 font-sans">
-            <span className="w-2 h-2 rounded-full bg-theme-primary animate-pulse" />
-            <span className="text-slate-300 font-medium">WG {activeLocation?.name || user?.locationName || 'Emsdetten'}</span>
-            <span className="text-slate-600">•</span>
-            <span className="text-slate-400 font-medium">Kalenderwoche {currentWeek}</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white font-sans flex items-center gap-2.5">
-            <span>{timeGreeting}, {firstName}!</span>
-            <span className="text-2xl sm:text-3xl filter drop-shadow-sm">{timeEmoji}</span>
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-3 font-medium leading-relaxed">
-            {formattedToday} — Schön, dass du da bist. Hier ist dein WG-Überblick für heute.
-          </p>
+      {/* Top Welcome Headline (Centered) */}
+      <div className="text-center flex flex-col items-center justify-center pt-2 pb-1">
+        <div className="inline-flex items-center gap-2 text-rose-400 text-xs font-semibold tracking-wider uppercase mb-2 font-sans">
+          <span className="w-2 h-2 rounded-full bg-theme-primary animate-pulse" />
+          <span className="text-slate-300 font-medium">WG {activeLocation?.name || user?.locationName || 'Emsdetten'}</span>
+          <span className="text-slate-600">•</span>
+          <span className="text-slate-400 font-medium">Kalenderwoche {currentWeek}</span>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <button
-            type="button"
-            onClick={() => setCurrentTab('chores')}
-            className="px-3.5 py-1.5 rounded-2xl bg-surface-card border border-indigo-500/30 text-xs text-indigo-300 font-medium hover:bg-surface-elevated transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
-          >
-            <span>📋</span>
-            <span>Aufgabenplan</span>
-          </button>
-          {budgetSummary && (
-            <button
-              type="button"
-              onClick={() => setCurrentTab('shopping')}
-              className="px-3.5 py-1.5 rounded-2xl bg-surface-card border border-emerald-500/30 text-xs text-emerald-300 font-medium hover:bg-surface-elevated transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
-            >
-              <span>🪙</span>
-              <span>Budget: {budgetSummary.remainingBudget.toFixed(2)} € frei</span>
-            </button>
-          )}
-          {openNotes.length > 0 && (
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white font-sans flex items-center justify-center gap-2.5">
+          <span>{timeGreeting}, {firstName}!</span>
+          <span className="text-2xl sm:text-3xl filter drop-shadow-sm">{timeEmoji}</span>
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-400 mt-2 font-medium leading-relaxed">
+          {formattedToday} — Schön, dass du da bist.
+        </p>
+
+        {openNotes.length > 0 && (
+          <div className="mt-4">
             <button
               type="button"
               onClick={() => setCurrentTab('notes')}
@@ -208,8 +189,8 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
               <span>🔔</span>
               <span>{openNotes.length} {openNotes.length === 1 ? 'Eintrag' : 'Einträge'} im Flurfunk</span>
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Resident Reply Notification Banner */}
@@ -310,26 +291,26 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                 {todayChores.myTasks.map((task: any) => (
                   <div
                     key={task.templateId}
-                    className={`p-4 rounded-2xl border transition-all flex items-center justify-between gap-3 select-none ${
+                    className={`p-4 rounded-2xl border transition-all flex items-start justify-between gap-3.5 select-none ${
                       task.isCompleted
                         ? 'bg-emerald-950/20 border-emerald-500/30 text-emerald-200'
                         : 'bg-surface-elevated/70 border-surface-border text-slate-100'
                     }`}
                   >
-                    <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="w-10 h-10 rounded-2xl bg-surface-card border border-surface-border flex items-center justify-center text-xl shrink-0 shadow-xs">
+                    <div className="flex items-start gap-3.5 min-w-0 flex-1">
+                      <div className="w-10 h-10 rounded-2xl bg-surface-card border border-surface-border flex items-center justify-center text-xl shrink-0 shadow-xs mt-0.5">
                         {task.icon || '🧹'}
                       </div>
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <div
-                          className={`text-sm font-semibold truncate ${
+                          className={`text-sm font-semibold leading-snug break-words ${
                             task.isCompleted ? 'line-through text-slate-400' : 'text-white'
                           }`}
                         >
                           {task.title}
                         </div>
                         {task.description && (
-                          <p className="text-xs text-slate-400 truncate max-w-[220px] mt-0.5 leading-snug">
+                          <p className="text-xs text-slate-300 mt-1.5 leading-relaxed break-words whitespace-normal font-sans">
                             {task.description}
                           </p>
                         )}
@@ -337,7 +318,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                     </div>
 
                     {task.isCompleted && (
-                      <span className="shrink-0 text-[10px] font-bold text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded-md border border-emerald-500/30 font-mono">
+                      <span className="shrink-0 text-[10px] font-bold text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded-md border border-emerald-500/30 font-mono mt-0.5">
                         Erledigt ✅
                       </span>
                     )}
