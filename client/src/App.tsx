@@ -12,6 +12,7 @@ import { ShoppingListView } from './modules/shopping/ShoppingListView.js';
 import { RecipeCatalogView } from './modules/recipes/RecipeCatalogView.js';
 import { CaregiverNotesView } from './modules/notes/CaregiverNotesView.js';
 import { WasteCalendarView } from './modules/waste/WasteCalendarView.js';
+import { ChorePlannerView } from './modules/chores/ChorePlannerView.js';
 import { AdminManagementView } from './modules/admin/AdminManagementView.js';
 import { RecipeModal } from './modules/recipes/RecipeModal.js';
 import { Footer } from './components/layout/Footer.js';
@@ -70,6 +71,7 @@ const AppContent: React.FC = () => {
         <main className="flex-1 p-4 sm:p-6 lg:p-8 min-h-0 overflow-y-auto flex flex-col justify-between">
           <div className="flex-1">
             {currentTab === 'hub' && <DashboardHub setCurrentTab={setCurrentTab} />}
+            {currentTab === 'chores' && <ChorePlannerView setCurrentTab={setCurrentTab} />}
             {currentTab === 'mealplan' && (
               <MealPlanView
                 setCurrentTab={setCurrentTab}
@@ -105,13 +107,66 @@ const AppContent: React.FC = () => {
   );
 };
 
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-[#0c0b10] text-white flex flex-col items-center justify-center p-6 text-center">
+          <div className="p-6 bg-surface-card border border-rose-500/30 rounded-3xl max-w-md w-full space-y-4 shadow-2xl">
+            <div className="text-4xl">⚠️</div>
+            <h2 className="text-lg font-bold">Hoppla, etwas ist schiefgelaufen!</h2>
+            <p className="text-xs text-slate-300">
+              {this.state.error?.message || 'Ein unerwarteter Fehler ist aufgetreten.'}
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                this.setState({ hasError: false, error: null });
+                window.location.reload();
+              }}
+              className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold cursor-pointer shadow-md transition-colors"
+            >
+              Seite neu laden
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export const App: React.FC = () => {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 };
 

@@ -26,6 +26,8 @@ model Location {
   customShoppingItems  CustomShoppingItem[]
   weeklyBudgets        LocationWeeklyBudget[]
   savingsTransactions  LocationSavingsTransaction[]
+  choreTemplates       ChoreTemplate[]
+  choreAssignments     ChoreAssignment[]
 }
 
 model User {
@@ -46,6 +48,7 @@ model User {
   location     Location?     @relation(fields: [locationId], references: [id], onDelete: SetNull)
   notes        CaregiverNote[]
   noteMessages CaregiverNoteMessage[]
+  choreAssignments ChoreAssignment[] @relation("ResidentChores")
 }
 
 model Supermarket {
@@ -269,4 +272,50 @@ model SmtpSetting {
   caregiverNotificationTemplateBody      String   @default("Hallo Betreuer-Team,\n\n{authorName} hat eine neue Nachricht im Flurfunk ({locationName}) hinterlassen:\n\n\"{noteContent}\"\n\nBitte prüfe die Nachricht im Alltagsplaner.\n\nViele Grüße,\nDein WG-System")
   createdAt                              DateTime @default(now())
   updatedAt                              DateTime @updatedAt
+}
+
+model RecipeCategory {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ChoreTemplate {
+  id          String            @id @default(cuid())
+  locationId  String
+  title       String            // e.g. "Küche & Abwasch", "Zimmerreinigung"
+  description String?           // Details / guidelines
+  icon        String?           @default("🧹") // Emoji / Icon
+  sortOrder   Int               @default(0)
+  isActive    Boolean           @default(true)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  location    Location          @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  assignments ChoreAssignment[]
+}
+
+model ChoreAssignment {
+  id            String         @id @default(cuid())
+  locationId    String
+  templateId    String
+  date          String         // Format: YYYY-MM-DD
+  year          Int
+  weekNumber    Int
+  dayOfWeek     Int            // 1 (Mo) - 7 (So)
+  residentId    String?        // Assigned resident
+  isCompleted   Boolean        @default(false)
+  completedAt   DateTime?
+  completedById String?
+  notes         String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  location      Location       @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  template      ChoreTemplate  @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  resident      User?          @relation("ResidentChores", fields: [residentId], references: [id], onDelete: SetNull)
+
+  @@unique([locationId, templateId, date])
 }

@@ -125,10 +125,12 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab }) => 
       </header>
 
       {/* User Profile & Settings Modal */}
-      <UserProfileModal
-        isOpen={isProfileModalOpen}
-        onClose={() => setIsProfileModalOpen(false)}
-      />
+      {isProfileModalOpen && (
+        <UserProfileModal
+          isOpen={isProfileModalOpen}
+          onClose={() => setIsProfileModalOpen(false)}
+        />
+      )}
     </>
   );
 };

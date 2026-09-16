@@ -55,6 +55,7 @@ export const RecipeEditModal: React.FC<RecipeEditModalProps> = ({
 }) => {
   const [title, setTitle] = useState(recipe.title || '');
   const [category, setCategory] = useState(recipe.category || 'Alltagsküche');
+  const [dbCategories, setDbCategories] = useState<string[]>([]);
   const [prepTimeMinutes, setPrepTimeMinutes] = useState(recipe.prepTimeMinutes || 30);
   const [defaultServings, setDefaultServings] = useState(recipe.defaultServings || 4);
   const [description, setDescription] = useState(recipe.description || '');
@@ -80,10 +81,25 @@ export const RecipeEditModal: React.FC<RecipeEditModalProps> = ({
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+
+    const loadCategories = async () => {
+      try {
+        const cats = await api.food.categories();
+        const names = cats.map((c: any) => c.name);
+        if (recipe.category && !names.includes(recipe.category)) {
+          names.unshift(recipe.category);
+        }
+        setDbCategories(names);
+      } catch (e) {
+        console.error('Fehler beim Laden der Kategorien:', e);
+      }
+    };
+    loadCategories();
+
     return () => {
       document.body.style.overflow = originalOverflow;
     };
-  }, []);
+  }, [recipe.category]);
 
   const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -246,10 +262,10 @@ export const RecipeEditModal: React.FC<RecipeEditModalProps> = ({
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full bg-surface-elevated border border-surface-border rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-theme-primary"
+                className="w-full bg-surface-elevated border border-surface-border rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-theme-primary cursor-pointer"
               >
-                {CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
+                {(dbCategories.length > 0 ? dbCategories : CATEGORIES).map((cat) => (
+                  <option key={cat} value={cat} className="bg-surface-card text-white">
                     {cat}
                   </option>
                 ))}

@@ -18,6 +18,131 @@ function resolveLocationId(req: Request): string | null {
   return queryLoc || req.user?.locationId || 'location-emsdetten';
 }
 
+// ==================== REZEPT-KATEGORIEN ====================
+
+const DEFAULT_RECIPE_CATEGORIES = [
+  'Alltagsküche',
+  'Pasta & Teigwaren',
+  'Fleisch & Geflügel',
+  'Vegetarisch & Vegan',
+  'Suppen & Eintöpfe',
+  'Schnelle Küche',
+  'Fisch & Meeresfrüchte',
+  'Salate & Bowls',
+  'Desserts & Süßspeisen',
+];
+
+router.get('/categories', requireAuth, async (_req: Request, res: Response) => {
+  try {
+    let categories = await prisma.recipeCategory.findMany({
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+    });
+
+    if (categories.length === 0) {
+      for (let i = 0; i < DEFAULT_RECIPE_CATEGORIES.length; i++) {
+        await prisma.recipeCategory.upsert({
+          where: { name: DEFAULT_RECIPE_CATEGORIES[i] },
+          update: {},
+          create: { name: DEFAULT_RECIPE_CATEGORIES[i], sortOrder: i },
+        });
+      }
+      categories = await prisma.recipeCategory.findMany({
+        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+      });
+    }
+
+    return res.json(categories);
+  } catch (err) {
+    console.error('Fehler beim Laden der Rezept-Kategorien:', err);
+    return res.status(500).json({ error: 'Fehler beim Laden der Rezept-Kategorien.' });
+  }
+});
+
+router.post('/categories', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
+  try {
+    const { name } = req.body;
+    const cleanName = (name || '').trim();
+    if (!cleanName) {
+      return res.status(400).json({ error: 'Name der Kategorie ist erforderlich.' });
+    }
+
+    const existing = await prisma.recipeCategory.findUnique({
+      where: { name: cleanName },
+    });
+    if (existing) {
+      return res.status(400).json({ error: 'Diese Kategorie existiert bereits.' });
+    }
+
+    const count = await prisma.recipeCategory.count();
+    const category = await prisma.recipeCategory.create({
+      data: {
+        name: cleanName,
+        sortOrder: count,
+      },
+    });
+
+    return res.status(201).json(category);
+  } catch (err) {
+    console.error('Fehler beim Erstellen der Kategorie:', err);
+    return res.status(500).json({ error: 'Fehler beim Erstellen der Kategorie.' });
+  }
+});
+
+router.put('/categories/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { name } = req.body;
+    const cleanName = (name || '').trim();
+    if (!cleanName) {
+      return res.status(400).json({ error: 'Name der Kategorie ist erforderlich.' });
+    }
+
+    const existing = await prisma.recipeCategory.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ error: 'Kategorie nicht gefunden.' });
+    }
+
+    const oldName = existing.name;
+    const updated = await prisma.recipeCategory.update({
+      where: { id },
+      data: { name: cleanName },
+    });
+
+    if (oldName !== cleanName) {
+      await prisma.recipe.updateMany({
+        where: { category: oldName },
+        data: { category: cleanName },
+      });
+    }
+
+    return res.json(updated);
+  } catch (err) {
+    console.error('Fehler beim Aktualisieren der Kategorie:', err);
+    return res.status(500).json({ error: 'Fehler beim Aktualisieren der Kategorie.' });
+  }
+});
+
+router.delete('/categories/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const existing = await prisma.recipeCategory.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ error: 'Kategorie nicht gefunden.' });
+    }
+
+    await prisma.recipe.updateMany({
+      where: { category: existing.name },
+      data: { category: 'Alltagsküche' },
+    });
+
+    await prisma.recipeCategory.delete({ where: { id } });
+    return res.json({ success: true, message: 'Kategorie erfolgreich gelöscht.' });
+  } catch (err) {
+    console.error('Fehler beim Löschen der Kategorie:', err);
+    return res.status(500).json({ error: 'Fehler beim Löschen der Kategorie.' });
+  }
+});
+
 // ==================== REZEPTE ====================
 
 router.get('/recipes', requireAuth, async (_req: Request, res: Response) => {

@@ -6,6 +6,7 @@ import {
   MessageSquareText,
   Trash2,
   Home,
+  ListTodo,
   PanelLeftClose,
   PanelLeftOpen,
 } from 'lucide-react';
@@ -62,6 +63,7 @@ export const DesktopNav: React.FC<DesktopNavProps> = ({ currentTab, setCurrentTa
 
   const navItems = [
     { id: 'hub', label: 'Übersicht', icon: Home },
+    { id: 'chores', label: 'Aufgabenplan', icon: ListTodo },
     { id: 'mealplan', label: 'Wochenplan', icon: Calendar },
     { id: 'shopping', label: 'Einkaufsliste', icon: ShoppingCart },
     { id: 'recipes', label: 'Rezepte', icon: BookOpen },

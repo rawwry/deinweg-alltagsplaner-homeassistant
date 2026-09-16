@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Calendar, ShoppingCart, BookOpen, MessageSquareText, Trash2 } from 'lucide-react';
+import { Calendar, ShoppingCart, BookOpen, MessageSquareText, Trash2, ListTodo } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.js';
 import { api } from '../../api/client.js';
 
@@ -33,6 +33,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, setCurrentTab 
   }, [isStaff, activeLocationId]);
 
   const navItems = [
+    { id: 'chores', label: 'Aufgaben', icon: ListTodo },
     { id: 'mealplan', label: 'Wochenplan', icon: Calendar },
     { id: 'shopping', label: 'Einkauf', icon: ShoppingCart },
     { id: 'recipes', label: 'Rezepte', icon: BookOpen },
@@ -41,7 +42,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, setCurrentTab 
   ];
 
   return (
-    <div className="md:hidden flex-shrink-0 z-30 bg-surface-card/95 backdrop-blur-xl border-t border-surface-border px-3 py-1.5 shadow-2xl shadow-black/60">
+    <div className="md:hidden flex-shrink-0 z-30 bg-surface-card/95 backdrop-blur-xl border-t border-surface-border px-2 py-1 shadow-2xl shadow-black/60">
       <nav className="flex items-center justify-around">
         {navItems.map((item) => {
           const Icon = item.icon;

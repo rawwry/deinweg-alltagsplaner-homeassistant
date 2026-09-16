@@ -118,6 +118,13 @@ export const api = {
   },
 
   food: {
+    categories: () => request<any[]>('food/categories'),
+    createCategory: (name: string) =>
+      request<any>('food/categories', { method: 'POST', body: JSON.stringify({ name }) }),
+    updateCategory: (id: string, name: string) =>
+      request<any>(`food/categories/${id}`, { method: 'PUT', body: JSON.stringify({ name }) }),
+    deleteCategory: (id: string) =>
+      request<{ success: boolean; message: string }>(`food/categories/${id}`, { method: 'DELETE' }),
     recipes: () => request<any[]>('food/recipes'),
     recipe: (id: string) => request<any>(`food/recipes/${id}`),
     createRecipe: (body: any) => request<any>('food/recipes', { method: 'POST', body: JSON.stringify(body) }),
@@ -226,5 +233,50 @@ export const api = {
         method: 'POST',
         body: JSON.stringify({ locationId, icsContent }),
       }),
+  },
+
+  chores: {
+    templates: (locationId?: string) =>
+      request<any[]>(`chores/templates${locationId ? `?locationId=${locationId}` : ''}`),
+    createTemplate: (body: {
+      locationId?: string;
+      title: string;
+      description?: string;
+      icon?: string;
+      sortOrder?: number;
+    }) => request<any>('chores/templates', { method: 'POST', body: JSON.stringify(body) }),
+    updateTemplate: (
+      id: string,
+      body: {
+        title?: string;
+        description?: string;
+        icon?: string;
+        sortOrder?: number;
+        isActive?: boolean;
+      }
+    ) => request<any>(`chores/templates/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+    deleteTemplate: (id: string) =>
+      request<{ success: boolean; message: string }>(`chores/templates/${id}`, { method: 'DELETE' }),
+    week: (locationId: string, year: number, weekNumber: number) =>
+      request<any>(`chores/week?locationId=${locationId}&year=${year}&weekNumber=${weekNumber}`),
+    assign: (body: {
+      locationId: string;
+      templateId: string;
+      date: string;
+      year: number;
+      weekNumber: number;
+      dayOfWeek: number;
+      residentId: string | null;
+    }) => request<any>('chores/assign', { method: 'POST', body: JSON.stringify(body) }),
+    toggleComplete: (body: {
+      assignmentId?: string;
+      templateId?: string;
+      date?: string;
+      year?: number;
+      weekNumber?: number;
+      dayOfWeek?: number;
+    }) => request<any>('chores/toggle-complete', { method: 'POST', body: JSON.stringify(body) }),
+    today: (locationId?: string) =>
+      request<any>(`chores/today${locationId ? `?locationId=${locationId}` : ''}`),
   },
 };

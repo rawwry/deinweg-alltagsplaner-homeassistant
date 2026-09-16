@@ -63,6 +63,8 @@ export const RecipeCatalogView: React.FC = () => {
   const [newImageUrl, setNewImageUrl] = useState<string>('');
   const addFileInputRef = useRef<HTMLInputElement>(null);
 
+  const [dbCategories, setDbCategories] = useState<any[]>([]);
+
   const fetchRecipes = async () => {
     try {
       setIsLoading(true);
@@ -75,11 +77,32 @@ export const RecipeCatalogView: React.FC = () => {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const cats = await api.food.categories();
+      setDbCategories(cats);
+      if (cats.length > 0 && !newCategory) {
+        setNewCategory(cats[0].name);
+      }
+    } catch (err) {
+      console.error('Fehler beim Laden der Kategorien:', err);
+    }
+  };
+
   useEffect(() => {
     fetchRecipes();
+    fetchCategories();
   }, []);
 
-  const categories = ['ALLE', ...Array.from(new Set(recipes.map((r) => r.category)))];
+  const categories = [
+    'ALLE',
+    ...Array.from(
+      new Set([
+        ...dbCategories.map((c: any) => c.name),
+        ...recipes.map((r) => r.category),
+      ])
+    ),
+  ];
 
   const filtered = recipes.filter((r) => {
     const matchesSearch =
@@ -458,12 +481,23 @@ export const RecipeCatalogView: React.FC = () => {
               <div className="grid grid-cols-3 gap-2.5">
                 <div>
                   <label className="block font-semibold text-slate-300 mb-1 font-display">Kategorie</label>
-                  <input
-                    type="text"
+                  <select
                     value={newCategory}
                     onChange={(e) => setNewCategory(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40"
-                  />
+                    className="w-full px-3 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-rose-500/40 cursor-pointer"
+                  >
+                    {dbCategories.length > 0 ? (
+                      dbCategories.map((cat: any) => (
+                        <option key={cat.id} value={cat.name} className="bg-surface-card text-white">
+                          {cat.name}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="Alltagsküche" className="bg-surface-card text-white">
+                        Alltagsküche
+                      </option>
+                    )}
+                  </select>
                 </div>
                 <div>
                   <label className="block font-semibold text-slate-300 mb-1 font-display">Zeit (Min)</label>

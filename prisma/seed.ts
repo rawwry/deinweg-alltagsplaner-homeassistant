@@ -48,8 +48,34 @@ async function main() {
     },
   });
 
+  // 2. Standard Rezept-Kategorien initialisieren
+  const defaultCategories = [
+    'Alltagsküche',
+    'Pasta & Teigwaren',
+    'Fleisch & Geflügel',
+    'Vegetarisch & Vegan',
+    'Suppen & Eintöpfe',
+    'Schnelle Küche',
+    'Fisch & Meeresfrüchte',
+    'Salate & Bowls',
+    'Desserts & Süßspeisen',
+  ];
+
+  for (let i = 0; i < defaultCategories.length; i++) {
+    const catName = defaultCategories[i];
+    await prisma.recipeCategory.upsert({
+      where: { name: catName },
+      update: {},
+      create: {
+        name: catName,
+        sortOrder: i,
+      },
+    });
+  }
+
   console.log('✅ Initialer Stammdaten-Katalog erfolgreich vorbereitet:');
   console.log(`- 4 Supermärkte (Netto, Rewe, Aldi Nord, Lidl)`);
+  console.log(`- ${defaultCategories.length} Rezept-Kategorien hinterlegt`);
   console.log(`- 0 Zutaten hinterlegt (Preise & Lebensmittel werden manuell gepflegt)`);
   console.log(`- 0 Rezepte im Katalog hinterlegt (Katalog startet leer)`);
   console.log(`- 0 Benutzer hinterlegt (Ersteinrichtungs-Modus aktiv)`);

@@ -3,6 +3,30 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.25] - 2026-09-16
+
+### Hinzugefügt & Verbessert
+- **Neues Modul: Aufgabenplan (Haushalts- & Alltagsorganisation)**:
+  - **Zentrale digitale Aufgabenplanung**: Vollständiger Ersatz unübersichtlicher Zettel durch einen interaktiven Wochenplan (`ChorePlannerView`) mit Wochentagen Mo - So.
+  - **Betreuer-Konfiguration in den Einstellungen**: Neuer Bereich *„Aufgaben-Vorlagen“* in der Verwaltung (`AdminManagementView`), in dem Betreuer wiederkehrende Aufgaben (z. B. Küche & Abwasch, Zimmerreinigung, Müll & Recycling, Bad reinigen) mit Emojis, Beschreibungen und Sortierung pflegen können.
+  - **Intuitive Bewohner-Zuweisung**: Mit einem Klick können Betreuer jedem Tag und jeder Aufgabe Bewohner zuweisen.
+  - **Tägliches Dashboard-Widget & 1-Klick-Abhaken**:
+    - **Für Bewohner**: Prominentes persönliches Widget *„Deine Aufgaben für heute“* direkt auf der Startseite mit Anzeige des Erledigungsfortschritts und interaktiver Checkbox zum sofortigen Abhaken.
+    - **Für Betreuer**: Übersicht aller heutigen WG-Aufgaben mit Zuweisungs- und Erledigungsstatus.
+    - Filterfunktion im Wochenplan zwischen *„Alle Aufgaben“* und *„Nur meine Aufgaben“*.
+  - **Navigation**: Aufgabenplan ist in Desktop- und Mobile-Navigation sowie im Dashboard-Header direkt erreichbar.
+- **Rezept-Kategorien: Betreuer-Pflege & Dropdown-Auswahl**:
+  - Freies Textfeld beim Anlegen/Bearbeiten von Rezepten durch ein sauberes Dropdown ersetzt.
+  - Neuer Verwaltungsbereich *„Rezept-Kategorien“* in den Einstellungen (`AdminManagementView`), in dem Betreuer Kategorien anlegen, umbenennen (inkl. synchroner Aktualisierung bestehender Rezepte) und löschen können.
+  - Dynamische Filterung im Rezeptkatalog anhand der konfigurierten Kategorien.
+- **Bugfix: Profilbild-Klick (Leere Seite behoben)**:
+  - Behebung des React Hooks Violation Fehlers in `UserProfileModal.tsx` (Hook-Aufrufe nach bedingtem `return null` hatten die React-App zum Absturz gebracht).
+  - Saubere State-Synchronisierung der Profildaten beim Öffnen des Modals.
+  - Einbau einer globalen `ErrorBoundary` in `App.tsx` zur Ausfallsicherheit.
+- **Dashboard: Harmonische Begrüßung**:
+  - Entfernung der doppelten Begrüßung (*"Guten Abend Timo!"* + *"Hallo Timo, schön dass du da bist!"*).
+  - Aufgeräumte Struktur: Status-Zeile mit WG und Kalenderwoche oben, zeitbasierte Hauptbegrüßung mit Emoji (*"Guten Abend, Timo! 🍲"*) und deutscher Datumszeile darunter.
+
 ## [0.1.0-beta.24] - 2026-09-16
 
 ### Hinzugefügt & Verbessert

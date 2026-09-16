@@ -18,6 +18,9 @@ import {
   AlertTriangle,
   CalendarCheck,
   PlusCircle,
+  Check,
+  Circle,
+  ListTodo,
 } from 'lucide-react';
 
 interface DashboardHubProps {
@@ -31,6 +34,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
   const [budgetSummary, setBudgetSummary] = useState<any>(null);
   const [wasteSummary, setWasteSummary] = useState<any[]>([]);
   const [notesList, setNotesList] = useState<any[]>([]);
+  const [todayChores, setTodayChores] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   const now = new Date();
@@ -72,17 +76,35 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
   // Formatted date string in strict German format
   const formattedToday = formatGermanDate(now, { withWeekday: true });
 
+  const handleToggleChore = async (chore: any) => {
+    try {
+      await api.chores.toggleComplete({
+        assignmentId: chore.assignmentId || undefined,
+        templateId: chore.templateId,
+        date: chore.date,
+        year: currentYear,
+        weekNumber: currentWeek,
+        dayOfWeek: currentDayOfWeek,
+      });
+      const refreshed = await api.chores.today(activeLocationId);
+      setTodayChores(refreshed);
+    } catch (err) {
+      console.error('Fehler beim Abhaken der Aufgabe:', err);
+    }
+  };
+
   useEffect(() => {
     let isMounted = true;
     const loadOverview = async () => {
       try {
         setLoading(true);
-        const [planRes, shopRes, wasteRes, notesRes, budgetRes] = await Promise.all([
+        const [planRes, shopRes, wasteRes, notesRes, budgetRes, choresRes] = await Promise.all([
           api.food.mealplan(activeLocationId, currentYear, currentWeek).catch(() => null),
           api.food.shoppingList(activeLocationId, currentYear, currentWeek).catch(() => null),
           api.waste.list(activeLocationId).catch(() => []),
           api.notes.list(activeLocationId).catch(() => []),
           api.food.budget(activeLocationId, currentYear, currentWeek).catch(() => null),
+          api.chores.today(activeLocationId).catch(() => null),
         ]);
 
         if (!isMounted) return;
@@ -91,6 +113,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
         setWasteSummary(wasteRes || []);
         setNotesList(notesRes || []);
         setBudgetSummary(budgetRes);
+        setTodayChores(choresRes);
       } catch (err) {
         console.error('Fehler beim Laden des Dashboards:', err);
       } finally {
@@ -144,18 +167,28 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
       <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 pt-1">
         <div>
           <div className="inline-flex items-center gap-2 text-rose-400 text-xs font-semibold tracking-wider uppercase mb-1.5 font-sans">
-            <span>{timeEmoji} {timeGreeting}, {firstName}!</span>
+            <span className="w-2 h-2 rounded-full bg-theme-primary animate-pulse" />
+            <span className="text-slate-300 font-medium">WG {activeLocation?.name || user?.locationName || 'Emsdetten'}</span>
             <span className="text-slate-600">•</span>
-            <span className="text-slate-400 font-medium">WG {activeLocation?.name || user?.locationName || 'Emsdetten'} · KW {currentWeek}</span>
+            <span className="text-slate-400 font-medium">Kalenderwoche {currentWeek}</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white font-sans">
-            Hallo {firstName}, schön dass du da bist!
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white font-sans flex items-center gap-2.5">
+            <span>{timeGreeting}, {firstName}!</span>
+            <span className="text-2xl sm:text-3xl filter drop-shadow-sm">{timeEmoji}</span>
           </h1>
           <p className="text-xs text-slate-400 mt-1 font-medium">
-            {formattedToday} — Dein schneller Überblick für heute
+            {formattedToday} — Schön, dass du da bist. Hier ist dein WG-Überblick für heute.
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setCurrentTab('chores')}
+            className="px-3.5 py-1.5 rounded-2xl bg-surface-card border border-indigo-500/30 text-xs text-indigo-300 font-medium hover:bg-surface-elevated transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+          >
+            <span>📋</span>
+            <span>Aufgabenplan</span>
+          </button>
           {budgetSummary && (
             <button
               type="button"
@@ -249,6 +282,170 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
               ))}
           </div>
         )}
+
+      {/* Today's Tasks Widget (Resident View) */}
+      {user?.role === 'BEWOHNER' && todayChores && (
+        <div className="bg-surface-card border border-surface-border rounded-3xl p-5 sm:p-6 shadow-xl relative overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-surface-border">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-xl shrink-0 shadow-inner">
+                🧹
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-semibold text-white font-display">
+                    Deine Aufgaben für heute
+                  </h3>
+                  {todayChores.myTotalCount > 0 && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 font-mono">
+                      {todayChores.myCompletedCount} / {todayChores.myTotalCount} erledigt
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-slate-400">
+                  {todayChores.myTotalCount === 0
+                    ? 'Heute stehen keine Aufgaben für dich an.'
+                    : todayChores.myCompletedCount === todayChores.myTotalCount
+                    ? 'Alles erledigt für heute! Super gemacht! 🎉'
+                    : 'Hier siehst du deine eingeteilten Alltagsaufgaben. Klicke zum Abhaken einfach auf die Karte.'}
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setCurrentTab('chores')}
+              className="inline-flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 font-semibold cursor-pointer self-start sm:self-center transition-colors"
+            >
+              <span>Ganzen Aufgabenplan ansehen</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {todayChores.myTasks.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-4">
+              {todayChores.myTasks.map((task: any) => (
+                <div
+                  key={task.templateId}
+                  onClick={() => handleToggleChore(task)}
+                  className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 select-none ${
+                    task.isCompleted
+                      ? 'bg-emerald-950/20 border-emerald-500/40 text-emerald-200 shadow-sm'
+                      : 'bg-surface-elevated/60 border-surface-border hover:border-indigo-500/50 hover:bg-surface-elevated text-slate-100 shadow-md'
+                  }`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="text-2xl shrink-0">{task.icon || '🧹'}</span>
+                    <div className="min-w-0">
+                      <div className={`text-sm font-semibold truncate ${task.isCompleted ? 'line-through text-slate-400' : 'text-white'}`}>
+                        {task.title}
+                      </div>
+                      {task.description && (
+                        <p className="text-[11px] text-slate-400 truncate max-w-[200px]">
+                          {task.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="shrink-0">
+                    {task.isCompleted ? (
+                      <div className="w-8 h-8 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center font-bold shadow-md shadow-emerald-500/30">
+                        <Check className="w-4 h-4 stroke-[3]" />
+                      </div>
+                    ) : (
+                      <div className="w-8 h-8 rounded-full border-2 border-slate-500 hover:border-indigo-400 flex items-center justify-center text-slate-400 transition-colors">
+                        <Circle className="w-3.5 h-3.5" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="py-4 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
+              <span>☕ Keine anstehenden Aufgaben für dich eingeteilt. Zeit für eine Pause!</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Today's Tasks Widget (Caregiver / Staff View) */}
+      {user?.role !== 'BEWOHNER' && todayChores && (
+        <div className="bg-surface-card border border-surface-border rounded-3xl p-5 sm:p-6 shadow-xl relative overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-surface-border">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-xl shrink-0 shadow-inner">
+                📋
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-semibold text-white font-display">
+                    Heutige Aufgaben der WG
+                  </h3>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 font-mono">
+                    {todayChores.completedCount} von {todayChores.totalCount} erledigt
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400">
+                  Überblick über alle eingeteilten Haushalts- & Alltagsaufgaben von heute.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setCurrentTab('chores')}
+              className="px-4 py-2 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer self-start sm:self-center"
+            >
+              <span>Aufgabenplan verwalten</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-4">
+            {todayChores.todayItems.map((task: any) => (
+              <div
+                key={task.templateId}
+                onClick={() => handleToggleChore(task)}
+                className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 select-none ${
+                  task.isCompleted
+                    ? 'bg-emerald-950/20 border-emerald-500/40 text-emerald-200'
+                    : 'bg-surface-elevated/60 border-surface-border hover:border-indigo-500/50 text-slate-100'
+                }`}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="text-xl shrink-0">{task.icon || '🧹'}</span>
+                  <div className="min-w-0">
+                    <div className={`text-xs font-semibold truncate ${task.isCompleted ? 'line-through text-slate-400' : 'text-white'}`}>
+                      {task.title}
+                    </div>
+                    <div className="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
+                      {task.resident ? (
+                        <span className="text-indigo-300 font-medium">👤 {task.resident.name}</span>
+                      ) : (
+                        <span className="text-slate-500 italic">Niemand eingeteilt</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="shrink-0">
+                  {task.isCompleted ? (
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
+                      Erledigt ✅
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 text-[10px] font-medium">
+                      Offen
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Balanced 2-Column Bento Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">

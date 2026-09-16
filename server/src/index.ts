@@ -7,6 +7,7 @@ import coreRoutes from './modules/core/routes.js';
 import foodplannerRoutes from './modules/foodplanner/routes.js';
 import notesRoutes from './modules/notes/routes.js';
 import wasteRoutes from './modules/waste/routes.js';
+import choresRoutes from './modules/chores/routes.js';
 import { APP_NAME, APP_VERSION } from '../../shared/version.js';
 
 const app = express();
@@ -30,6 +31,7 @@ app.use('/api', coreRoutes);
 app.use('/api/food', foodplannerRoutes);
 app.use('/api/notes', notesRoutes);
 app.use('/api/waste', wasteRoutes);
+app.use('/api/chores', choresRoutes);
 
 // Health check
 app.get('/api/health', (_req, res) => {

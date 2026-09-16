@@ -28,6 +28,8 @@ import {
   Palette,
   Camera,
   LogOut,
+  BookOpen,
+  ListTodo,
 } from 'lucide-react';
 import { AvatarUploadModal } from '../../components/profile/AvatarUploadModal.js';
 import { formatGermanDate } from '../../utils/formatters.js';
@@ -59,9 +61,35 @@ export const formatCookingDays = (daysStr?: string | null): string => {
 export const AdminManagementView: React.FC = () => {
   const { user, locations, refreshLocations, logout } = useAuth();
   const { themeId, setThemeId, availableThemes } = useTheme();
-  const [activeSubTab, setActiveSubTab] = useState<'users' | 'locations' | 'prices' | 'smtp' | 'appearance' | 'system'>('users');
+  const [activeSubTab, setActiveSubTab] = useState<
+    'users' | 'locations' | 'chores' | 'categories' | 'prices' | 'smtp' | 'appearance' | 'system'
+  >('users');
   const [avatarModalUserId, setAvatarModalUserId] = useState<string | null>(null);
   const [avatarModalCurrentUrl, setAvatarModalCurrentUrl] = useState<string | null>(null);
+
+  // Categories State
+  const [recipeCategories, setRecipeCategories] = useState<any[]>([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
+  const [newCatName, setNewCatName] = useState('');
+  const [editingCatId, setEditingCatId] = useState<string | null>(null);
+  const [editCatName, setEditCatName] = useState('');
+  const [catSuccessMsg, setCatSuccessMsg] = useState<string | null>(null);
+  const [catErrorMsg, setCatErrorMsg] = useState<string | null>(null);
+
+  // Chores State
+  const [choreTemplates, setChoreTemplates] = useState<any[]>([]);
+  const [selectedChoreLocId, setSelectedChoreLocId] = useState<string>(locations[0]?.id || '');
+  const [isLoadingChores, setIsLoadingChores] = useState(false);
+  const [showAddChore, setShowAddChore] = useState(false);
+  const [newChoreTitle, setNewChoreTitle] = useState('');
+  const [newChoreDesc, setNewChoreDesc] = useState('');
+  const [newChoreIcon, setNewChoreIcon] = useState('🧹');
+  const [editingChoreId, setEditingChoreId] = useState<string | null>(null);
+  const [editChoreTitle, setEditChoreTitle] = useState('');
+  const [editChoreDesc, setEditChoreDesc] = useState('');
+  const [editChoreIcon, setEditChoreIcon] = useState('🧹');
+  const [choreSuccessMsg, setChoreSuccessMsg] = useState<string | null>(null);
+  const [choreErrorMsg, setChoreErrorMsg] = useState<string | null>(null);
 
   // Users State
   const [usersList, setUsersList] = useState<any[]>([]);
@@ -217,12 +245,145 @@ export const AdminManagementView: React.FC = () => {
     }
   };
 
+  const fetchRecipeCategories = async () => {
+    try {
+      setIsLoadingCategories(true);
+      const data = await api.food.categories();
+      setRecipeCategories(data);
+    } catch (err: any) {
+      console.error('Fehler beim Laden der Rezeptkategorien:', err);
+    } finally {
+      setIsLoadingCategories(false);
+    }
+  };
+
+  const handleCreateCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCatName.trim()) return;
+    try {
+      setCatErrorMsg(null);
+      await api.food.createCategory(newCatName.trim());
+      setNewCatName('');
+      setCatSuccessMsg('Kategorie erfolgreich angelegt!');
+      setTimeout(() => setCatSuccessMsg(null), 3000);
+      fetchRecipeCategories();
+    } catch (err: any) {
+      setCatErrorMsg(err.message || 'Fehler beim Anlegen der Kategorie');
+    }
+  };
+
+  const handleUpdateCategory = async (id: string) => {
+    if (!editCatName.trim()) return;
+    try {
+      setCatErrorMsg(null);
+      await api.food.updateCategory(id, editCatName.trim());
+      setEditingCatId(null);
+      setCatSuccessMsg('Kategorie erfolgreich umbenannt!');
+      setTimeout(() => setCatSuccessMsg(null), 3000);
+      fetchRecipeCategories();
+    } catch (err: any) {
+      setCatErrorMsg(err.message || 'Fehler beim Aktualisieren der Kategorie');
+    }
+  };
+
+  const handleDeleteCategory = async (id: string, name: string) => {
+    if (
+      !window.confirm(
+        `Möchtest du die Kategorie "${name}" wirklich löschen? Bestehende Rezepte mit dieser Kategorie werden auf "Alltagsküche" zurückgesetzt.`
+      )
+    )
+      return;
+    try {
+      setCatErrorMsg(null);
+      await api.food.deleteCategory(id);
+      setCatSuccessMsg('Kategorie gelöscht.');
+      setTimeout(() => setCatSuccessMsg(null), 3000);
+      fetchRecipeCategories();
+    } catch (err: any) {
+      setCatErrorMsg(err.message || 'Fehler beim Löschen der Kategorie');
+    }
+  };
+
+  const fetchChoreTemplates = async (locId?: string) => {
+    const targetLoc = locId || selectedChoreLocId || locations[0]?.id;
+    if (!targetLoc) return;
+    try {
+      setIsLoadingChores(true);
+      const data = await api.chores.templates(targetLoc);
+      setChoreTemplates(data);
+    } catch (err) {
+      console.error('Fehler beim Laden der Aufgaben-Vorlagen:', err);
+    } finally {
+      setIsLoadingChores(false);
+    }
+  };
+
+  const handleCreateChoreTemplate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newChoreTitle.trim()) return;
+    const locId = selectedChoreLocId || locations[0]?.id;
+    if (!locId) return;
+    try {
+      setChoreErrorMsg(null);
+      await api.chores.createTemplate({
+        locationId: locId,
+        title: newChoreTitle.trim(),
+        description: newChoreDesc.trim() || undefined,
+        icon: newChoreIcon.trim() || '🧹',
+      });
+      setShowAddChore(false);
+      setNewChoreTitle('');
+      setNewChoreDesc('');
+      setNewChoreIcon('🧹');
+      setChoreSuccessMsg('Aufgaben-Vorlage erfolgreich angelegt!');
+      setTimeout(() => setChoreSuccessMsg(null), 3000);
+      fetchChoreTemplates(locId);
+    } catch (err: any) {
+      setChoreErrorMsg(err.message || 'Fehler beim Anlegen der Vorlage');
+    }
+  };
+
+  const handleUpdateChoreTemplate = async (id: string) => {
+    if (!editChoreTitle.trim()) return;
+    const locId = selectedChoreLocId || locations[0]?.id;
+    try {
+      setChoreErrorMsg(null);
+      await api.chores.updateTemplate(id, {
+        title: editChoreTitle.trim(),
+        description: editChoreDesc.trim() || undefined,
+        icon: editChoreIcon.trim() || '🧹',
+      });
+      setEditingChoreId(null);
+      setChoreSuccessMsg('Aufgaben-Vorlage aktualisiert!');
+      setTimeout(() => setChoreSuccessMsg(null), 3000);
+      fetchChoreTemplates(locId);
+    } catch (err: any) {
+      setChoreErrorMsg(err.message || 'Fehler beim Aktualisieren der Vorlage');
+    }
+  };
+
+  const handleDeleteChoreTemplate = async (id: string, title: string) => {
+    if (!window.confirm(`Möchtest du die Aufgaben-Vorlage "${title}" wirklich deaktivieren?`)) return;
+    const locId = selectedChoreLocId || locations[0]?.id;
+    try {
+      setChoreErrorMsg(null);
+      await api.chores.deleteTemplate(id);
+      setChoreSuccessMsg('Aufgaben-Vorlage gelöscht.');
+      setTimeout(() => setChoreSuccessMsg(null), 3000);
+      fetchChoreTemplates(locId);
+    } catch (err: any) {
+      setChoreErrorMsg(err.message || 'Fehler beim Löschen der Vorlage');
+    }
+  };
+
   useEffect(() => {
     if (activeSubTab === 'users' || activeSubTab === 'locations') fetchUsers();
     if (activeSubTab === 'locations' || activeSubTab === 'prices') fetchIngredientsAndMarkets();
+    if (activeSubTab === 'categories') fetchRecipeCategories();
+    if (activeSubTab === 'chores') fetchChoreTemplates(selectedChoreLocId);
     if (activeSubTab === 'smtp') fetchSmtpSettings();
     if (activeSubTab === 'system') fetchSystemInfo();
-  }, [activeSubTab, selectedSupermarketId]);
+  }, [activeSubTab, selectedSupermarketId, selectedChoreLocId]);
 
   // Keep test recipient synced with user's email if available
   useEffect(() => {
@@ -629,6 +790,30 @@ export const AdminManagementView: React.FC = () => {
               }`}
             >
               Standorte
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveSubTab('chores')}
+              className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
+                activeSubTab === 'chores'
+                  ? 'btn-theme-gradient text-white font-semibold shadow-md'
+                  : 'text-surface-muted hover:text-surface-cream'
+              }`}
+            >
+              <ListTodo className="w-3.5 h-3.5" />
+              <span>Aufgaben-Vorlagen</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveSubTab('categories')}
+              className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
+                activeSubTab === 'categories'
+                  ? 'btn-theme-gradient text-white font-semibold shadow-md'
+                  : 'text-surface-muted hover:text-surface-cream'
+              }`}
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>Rezept-Kategorien</span>
             </button>
             <button
               type="button"
@@ -1636,6 +1821,417 @@ export const AdminManagementView: React.FC = () => {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* SUBTAB: CHORES (AUFGABEN-VORLAGEN) */}
+      {activeSubTab === 'chores' && (
+        <div className="space-y-6">
+          {/* Header & Location Selector */}
+          <div className="bento-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border shadow-xl space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-indigo-500/15 border border-indigo-500/30 rounded-2xl text-indigo-400">
+                  <ListTodo className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-display font-semibold text-surface-cream">
+                    Aufgaben-Vorlagen verwalten
+                  </h3>
+                  <p className="text-xs text-surface-muted mt-0.5 font-sans">
+                    Definiere wiederkehrende Haushalts- & Alltagsaufgaben, die den Bewohnern im Aufgabenplan zugewiesen werden können.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 flex-wrap">
+                {/* Location Switcher for templates */}
+                <div className="flex items-center gap-2 bg-surface-elevated px-3 py-1.5 rounded-xl border border-surface-border text-xs">
+                  <span className="text-slate-400 font-medium">Standort:</span>
+                  <select
+                    value={selectedChoreLocId}
+                    onChange={(e) => {
+                      setSelectedChoreLocId(e.target.value);
+                      fetchChoreTemplates(e.target.value);
+                    }}
+                    className="bg-transparent text-white font-semibold focus:outline-none cursor-pointer"
+                  >
+                    {locations.map((loc) => (
+                      <option key={loc.id} value={loc.id} className="bg-surface-card text-white">
+                        {loc.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowAddChore(true)}
+                  className="btn-theme-gradient px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 cursor-pointer shadow-md"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Neue Vorlage</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Status Messages */}
+            {choreSuccessMsg && (
+              <div className="p-3 bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs rounded-xl flex items-center gap-2">
+                <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>{choreSuccessMsg}</span>
+              </div>
+            )}
+            {choreErrorMsg && (
+              <div className="p-3 bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs rounded-xl flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                <span>{choreErrorMsg}</span>
+              </div>
+            )}
+
+            {/* Add Chore Template Form Modal/Card */}
+            {showAddChore && (
+              <form
+                onSubmit={handleCreateChoreTemplate}
+                className="bg-surface-elevated/60 border border-indigo-500/40 rounded-3xl p-5 space-y-4 shadow-lg animate-in fade-in duration-150"
+              >
+                <div className="flex items-center justify-between pb-2 border-b border-surface-border">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-300 font-mono">
+                    Neue Aufgaben-Vorlage anlegen
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddChore(false)}
+                    className="text-slate-400 hover:text-white p-1"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      Bezeichnung der Aufgabe *
+                    </label>
+                    <input
+                      type="text"
+                      value={newChoreTitle}
+                      onChange={(e) => setNewChoreTitle(e.target.value)}
+                      placeholder="z.B. Küche & Abwasch, Zimmer saugen, Müll rausbringen"
+                      required
+                      className="w-full px-3.5 py-2.5 bg-surface-card border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      Icon / Emoji
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={newChoreIcon}
+                        onChange={(e) => setNewChoreIcon(e.target.value)}
+                        maxLength={4}
+                        className="w-16 px-3 py-2 text-center text-lg bg-surface-card border border-surface-border rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                      />
+                      <div className="flex items-center gap-1 flex-wrap">
+                        {['🍽️', '🧹', '🗑️', '🧼', '🧺', '✨'].map((emoji) => (
+                          <button
+                            key={emoji}
+                            type="button"
+                            onClick={() => setNewChoreIcon(emoji)}
+                            className="p-1 hover:bg-white/10 rounded-lg text-sm cursor-pointer"
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Beschreibung / Richtlinien für Bewohner (optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={newChoreDesc}
+                    onChange={(e) => setNewChoreDesc(e.target.value)}
+                    placeholder="z.B. Spülmaschine ausräumen, Herd & Spüle sauber wischen"
+                    className="w-full px-3.5 py-2.5 bg-surface-card border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddChore(false)}
+                    className="px-4 py-2 rounded-xl bg-surface-card border border-surface-border text-slate-300 text-xs font-semibold hover:bg-surface-elevated cursor-pointer"
+                  >
+                    Abbrechen
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn-theme-gradient px-5 py-2 rounded-xl text-xs font-semibold cursor-pointer shadow-md"
+                  >
+                    Vorlage speichern
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Templates List */}
+            {isLoadingChores ? (
+              <div className="py-8 text-center text-xs text-slate-400">
+                Vorlagen werden geladen...
+              </div>
+            ) : choreTemplates.length === 0 ? (
+              <div className="py-8 text-center text-xs text-slate-400">
+                Noch keine Vorlagen für diesen Standort vorhanden.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 pt-2">
+                {choreTemplates.map((tmpl) => {
+                  const isEditing = editingChoreId === tmpl.id;
+
+                  return (
+                    <div
+                      key={tmpl.id}
+                      className="bg-surface-elevated/70 border border-surface-border rounded-2xl p-4 flex flex-col justify-between gap-3 shadow-md hover:border-surface-border/80 transition-all"
+                    >
+                      {isEditing ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={editChoreIcon}
+                              onChange={(e) => setEditChoreIcon(e.target.value)}
+                              maxLength={4}
+                              className="w-12 py-1 text-center bg-surface-card border border-surface-border rounded-lg text-sm text-white"
+                            />
+                            <input
+                              type="text"
+                              value={editChoreTitle}
+                              onChange={(e) => setEditChoreTitle(e.target.value)}
+                              className="flex-1 px-2.5 py-1 bg-surface-card border border-surface-border rounded-lg text-xs text-white"
+                            />
+                          </div>
+                          <input
+                            type="text"
+                            value={editChoreDesc}
+                            onChange={(e) => setEditChoreDesc(e.target.value)}
+                            placeholder="Beschreibung"
+                            className="w-full px-2.5 py-1 bg-surface-card border border-surface-border rounded-lg text-xs text-white placeholder-slate-500"
+                          />
+                          <div className="flex items-center justify-end gap-1.5 pt-1">
+                            <button
+                              type="button"
+                              onClick={() => setEditingChoreId(null)}
+                              className="px-2.5 py-1 rounded-lg text-[11px] text-slate-400 hover:text-white"
+                            >
+                              Abbrechen
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateChoreTemplate(tmpl.id)}
+                              className="btn-theme-gradient px-3 py-1 rounded-lg text-[11px] font-semibold text-white shadow-sm"
+                            >
+                              Speichern
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-start gap-2.5 min-w-0">
+                              <span className="text-2xl shrink-0 select-none">
+                                {tmpl.icon || '🧹'}
+                              </span>
+                              <div className="min-w-0">
+                                <h4 className="text-xs font-bold text-white leading-tight truncate">
+                                  {tmpl.title}
+                                </h4>
+                                {tmpl.description && (
+                                  <p className="text-[11px] text-slate-400 mt-0.5 leading-snug line-clamp-2">
+                                    {tmpl.description}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingChoreId(tmpl.id);
+                                  setEditChoreTitle(tmpl.title);
+                                  setEditChoreDesc(tmpl.description || '');
+                                  setEditChoreIcon(tmpl.icon || '🧹');
+                                }}
+                                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+                                title="Bearbeiten"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteChoreTemplate(tmpl.id, tmpl.title)}
+                                className="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition-colors"
+                                title="Deaktivieren"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* SUBTAB: CATEGORIES (REZEPT-KATEGORIEN) */}
+      {activeSubTab === 'categories' && (
+        <div className="space-y-6">
+          <div className="bento-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border shadow-xl space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-rose-500/15 border border-rose-500/30 rounded-2xl text-rose-400">
+                  <BookOpen className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-display font-semibold text-surface-cream">
+                    Rezept-Kategorien pflegen
+                  </h3>
+                  <p className="text-xs text-surface-muted mt-0.5 font-sans">
+                    Definiere Kategorien für die Rezeptdatenbank. Diese stehen beim Anlegen und Filtern von Gerichten zur Auswahl.
+                  </p>
+                </div>
+              </div>
+
+              {/* Add category inline form */}
+              <form onSubmit={handleCreateCategory} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={newCatName}
+                  onChange={(e) => setNewCatName(e.target.value)}
+                  placeholder="Neue Kategorie (z.B. Aufläufe)"
+                  required
+                  className="px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40 w-48 sm:w-60"
+                />
+                <button
+                  type="submit"
+                  className="btn-theme-gradient px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-md shrink-0"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Hinzufügen</span>
+                </button>
+              </form>
+            </div>
+
+            {/* Status Messages */}
+            {catSuccessMsg && (
+              <div className="p-3 bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs rounded-xl flex items-center gap-2">
+                <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>{catSuccessMsg}</span>
+              </div>
+            )}
+            {catErrorMsg && (
+              <div className="p-3 bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs rounded-xl flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                <span>{catErrorMsg}</span>
+              </div>
+            )}
+
+            {/* Categories Grid */}
+            {isLoadingCategories ? (
+              <div className="py-8 text-center text-xs text-slate-400">
+                Kategorien werden geladen...
+              </div>
+            ) : recipeCategories.length === 0 ? (
+              <div className="py-8 text-center text-xs text-slate-400">
+                Noch keine Kategorien vorhanden.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 pt-2">
+                {recipeCategories.map((cat) => {
+                  const isEditing = editingCatId === cat.id;
+
+                  return (
+                    <div
+                      key={cat.id}
+                      className="bg-surface-elevated/70 border border-surface-border rounded-2xl p-3.5 flex items-center justify-between gap-2 shadow-sm hover:border-surface-border/80 transition-all"
+                    >
+                      {isEditing ? (
+                        <div className="flex items-center gap-1.5 w-full">
+                          <input
+                            type="text"
+                            value={editCatName}
+                            onChange={(e) => setEditCatName(e.target.value)}
+                            autoFocus
+                            className="flex-1 px-2.5 py-1 bg-surface-card border border-surface-border rounded-lg text-xs text-white focus:outline-none focus:ring-1 focus:ring-rose-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateCategory(cat.id)}
+                            className="p-1 text-emerald-400 hover:text-emerald-300 rounded hover:bg-white/10"
+                            title="Speichern"
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingCatId(null)}
+                            className="p-1 text-slate-400 hover:text-white rounded hover:bg-white/10"
+                            title="Abbrechen"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />
+                            <span className="text-xs font-bold text-white truncate">
+                              {cat.name}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingCatId(cat.id);
+                                setEditCatName(cat.name);
+                              }}
+                              className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+                              title="Umbenennen"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteCategory(cat.id, cat.name)}
+                              className="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition-colors"
+                              title="Löschen"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       )}
 

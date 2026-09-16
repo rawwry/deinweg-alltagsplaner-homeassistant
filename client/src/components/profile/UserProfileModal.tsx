@@ -40,6 +40,29 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    if (isOpen && user) {
+      setName(user.name || '');
+      setEmail(user.email || '');
+      setBirthday(user.birthday || '');
+      setAvatarPreview(user.avatarUrl || null);
+      setActiveTheme(themeId);
+      setPassword('');
+      setConfirmPassword('');
+      setError(null);
+      setSuccess(null);
+    }
+  }, [isOpen, user, themeId]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen]);
+
   if (!isOpen || !user) return null;
 
   const isStaff = user.role === 'ADMIN' || user.role === 'BETREUER';
@@ -143,14 +166,6 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
       logout();
     }
   };
-
-  useEffect(() => {
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
-  }, []);
 
   return createPortal(
     <div
