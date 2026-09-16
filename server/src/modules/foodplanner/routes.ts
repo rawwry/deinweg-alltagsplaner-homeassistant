@@ -431,6 +431,85 @@ router.get('/supermarkets', requireAuth, async (_req: Request, res: Response) =>
   }
 });
 
+router.post('/supermarkets', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
+  try {
+    const { name } = req.body;
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ error: 'Name des Supermarkts ist erforderlich.' });
+    }
+
+    const created = await prisma.supermarket.create({
+      data: {
+        name: name.trim(),
+        isGlobal: true,
+      },
+    });
+
+    return res.json(created);
+  } catch (err) {
+    console.error('Fehler beim Anlegen des Supermarkts:', err);
+    return res.status(500).json({ error: 'Fehler beim Anlegen des Supermarkts.' });
+  }
+});
+
+router.put('/supermarkets/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { name } = req.body;
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ error: 'Name des Supermarkts ist erforderlich.' });
+    }
+
+    const market = await prisma.supermarket.findUnique({ where: { id } });
+    if (!market) {
+      return res.status(404).json({ error: 'Supermarkt nicht gefunden.' });
+    }
+
+    const updated = await prisma.supermarket.update({
+      where: { id },
+      data: { name: name.trim() },
+    });
+
+    return res.json(updated);
+  } catch (err) {
+    console.error('Fehler beim Umbenennen des Supermarkts:', err);
+    return res.status(500).json({ error: 'Fehler beim Aktualisieren des Supermarkts.' });
+  }
+});
+
+router.delete('/supermarkets/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const market = await prisma.supermarket.findUnique({
+      where: { id },
+      include: { locations: true },
+    });
+
+    if (!market) {
+      return res.status(404).json({ error: 'Supermarkt nicht gefunden.' });
+    }
+
+    if (market.locations.length > 0) {
+      return res.status(400).json({
+        error: `Supermarkt kann nicht gelöscht werden, da er ${market.locations.length} Standort(en) als Standard zugeordnet ist.`,
+      });
+    }
+
+    await prisma.ingredientPrice.deleteMany({
+      where: { supermarketId: id },
+    });
+
+    await prisma.supermarket.delete({
+      where: { id },
+    });
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('Fehler beim Löschen des Supermarkts:', err);
+    return res.status(500).json({ error: 'Fehler beim Löschen des Supermarkts.' });
+  }
+});
+
 // ==================== WOCHENPLANER (MEAL PLAN) ====================
 
 router.get('/mealplan', requireAuth, async (req: Request, res: Response) => {

@@ -3,6 +3,26 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.23] - 2026-09-16
+
+### Hinzugefügt & Verbessert
+- **Supermärkte verwalten & umbenennen in den Einstellungen**:
+  - Betreuer und Administratoren können Supermärkte nun direkt in den Einstellungen umbenennen, neue Märkte anlegen oder ungenutzte Supermärkte löschen.
+  - Direkter Schnellzugriff via Stift-Icon (`Pencil`) neben dem Markt-Auswahlfeld für den Standort sowie ein dediziertes Verwaltungsmodal mit Inline-Editierung (Enter/Escape).
+  - Backend-Endpunkte `POST /api/food/supermarkets`, `PUT /api/food/supermarkets/:id` und `DELETE /api/food/supermarkets/:id` mit Rollenprüfung und Schutz vor versehentlichem Löschen aktiv verknüpfter Märkte.
+- **Top-Notch Redesign der Einkaufsliste (`ShoppingListView`)**:
+  - **Aufgeräumte Seitenstruktur**: Die alte monolithische Hero-Box wurde aufgelöst zugunsten einer eleganten Kopfzeile (Titel, Standort, Kalenderwochen-Umschalter `< KW X >`, Schnellzugriff zum Wochenplan).
+  - **Drei perfekt ausbalancierte Bento-Metrik-Karten**:
+    - **Einkaufswagen**: Deutliche Anzeige („x von x Artikel abgehakt“), gradienter Fortschrittsbalken und Zähler für erledigte vs. noch offene Besorgungen.
+    - **Kassen-Schätzung**: Prominente Summenanzeige mit Markt-Badge und Erläuterung.
+    - **WG-Wochenbudget**: Restbudget in großer Schrift, Status-Pill („Verfügbar“ / „Abgerechnet“) und direkter Button zur WG-Kassenverwaltung.
+  - **Aktionsleiste & Zusatzartikel**: Saubere Statusleiste mit Kategorienanzahl und aufklappbarem, ergonomischem Formular für eigene Artikel (Kaffee, Hafermilch, Drogerie etc.).
+- **Radikale Vereinfachung des WG-Budget- & Sonderkassen-Fensters (`LocationBudgetModal`)**:
+  - Komplette Neugestaltung und Reduktion der Komplexität durch einen intuitiven Zwei-Reiter-Switcher:
+    - **Reiter 1: Wocheneinkauf (KW {week})**: Fokus auf das verbleibende Einkaufsbudget der Woche, Kassenbon-Status und klares Betreuer-Formular zur Belegabrechnung.
+    - **Reiter 2: WG-Sonderkasse (Spartopf)**: Transparente Übersicht des aktuellen Guthabens aus nicht verbrauchten Einkaufsbudgets, Historie der Anschaffungen/Aktivitäten und Buchungsformular für Betreuer.
+  - Befreit von überflüssigen Tabellen und doppelten Erklärungen – übersichtlich, leicht verständlich und barrierefrei für alle Bewohner und Betreuer.
+
 ## [0.1.0-beta.22] - 2026-09-16
 
 ### Hinzugefügt & Verbessert

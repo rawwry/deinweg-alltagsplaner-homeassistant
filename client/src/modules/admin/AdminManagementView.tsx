@@ -120,6 +120,13 @@ export const AdminManagementView: React.FC = () => {
   const [priceSuccessMsg, setPriceSuccessMsg] = useState<string | null>(null);
   const [ingredientSearchQuery, setIngredientSearchQuery] = useState('');
 
+  // Supermarket Management State
+  const [showSupermarketModal, setShowSupermarketModal] = useState(false);
+  const [editingSupermarketId, setEditingSupermarketId] = useState<string | null>(null);
+  const [editingSupermarketName, setEditingSupermarketName] = useState('');
+  const [newSupermarketName, setNewSupermarketName] = useState('');
+  const [isSavingSupermarket, setIsSavingSupermarket] = useState(false);
+
   // SMTP Settings State
   const [smtpHost, setSmtpHost] = useState('');
   const [smtpPort, setSmtpPort] = useState<number>(587);
@@ -422,6 +429,60 @@ export const AdminManagementView: React.FC = () => {
       setTimeout(() => setPriceSuccessMsg(null), 5000);
     } catch (err: any) {
       alert(`Fehler beim Leeren des Katalogs: ${err.message}`);
+    }
+  };
+
+  const handleRenameSupermarket = async (id: string, newName: string) => {
+    if (!newName.trim()) return;
+    try {
+      setIsSavingSupermarket(true);
+      const updated = await api.food.updateSupermarket(id, newName.trim());
+      setSupermarkets((prev) => prev.map((m) => (m.id === id ? updated : m)));
+      setEditingSupermarketId(null);
+      setPriceSuccessMsg(`Supermarkt erfolgreich in „${updated.name}“ umbenannt.`);
+      refreshLocations();
+      setTimeout(() => setPriceSuccessMsg(null), 5000);
+    } catch (err: any) {
+      alert(`Fehler beim Umbenennen: ${err.message || err}`);
+    } finally {
+      setIsSavingSupermarket(false);
+    }
+  };
+
+  const handleCreateSupermarket = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newSupermarketName.trim()) return;
+    try {
+      setIsSavingSupermarket(true);
+      const created = await api.food.createSupermarket(newSupermarketName.trim());
+      setSupermarkets((prev) => [...prev, created]);
+      setSelectedSupermarketId(created.id);
+      setNewSupermarketName('');
+      setPriceSuccessMsg(`Supermarkt „${created.name}“ erfolgreich angelegt.`);
+      refreshLocations();
+      setTimeout(() => setPriceSuccessMsg(null), 5000);
+    } catch (err: any) {
+      alert(`Fehler beim Anlegen des Supermarkts: ${err.message || err}`);
+    } finally {
+      setIsSavingSupermarket(false);
+    }
+  };
+
+  const handleDeleteSupermarket = async (id: string) => {
+    const market = supermarkets.find((m) => m.id === id);
+    if (!confirm(`Möchtest du den Supermarkt „${market?.name || ''}“ wirklich löschen?`)) return;
+    try {
+      await api.food.deleteSupermarket(id);
+      setSupermarkets((prev) => prev.filter((m) => m.id !== id));
+      if (selectedSupermarketId === id) {
+        const remaining = supermarkets.filter((m) => m.id !== id);
+        if (remaining.length > 0) setSelectedSupermarketId(remaining[0].id);
+      }
+      setPriceSuccessMsg(`Supermarkt gelöscht.`);
+      refreshLocations();
+      setTimeout(() => setPriceSuccessMsg(null), 5000);
+    } catch (err: any) {
+      alert(err.message || 'Fehler beim Löschen des Supermarkts.');
     }
   };
 
@@ -1593,12 +1654,12 @@ export const AdminManagementView: React.FC = () => {
             </div>
 
             <div className="flex flex-wrap items-center gap-2.5">
-              <div className="flex items-center gap-2 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700">
-                <span className="text-xs text-slate-400 font-semibold">Supermarkt:</span>
+              <div className="flex items-center gap-1.5 bg-slate-800/80 px-2.5 py-1.5 rounded-xl border border-slate-700">
+                <span className="text-xs text-slate-400 font-semibold">Markt:</span>
                 <select
                   value={selectedSupermarketId}
                   onChange={(e) => setSelectedSupermarketId(e.target.value)}
-                  className="bg-transparent text-xs font-semibold text-slate-200 focus:outline-none cursor-pointer"
+                  className="bg-transparent text-xs font-semibold text-slate-200 focus:outline-none cursor-pointer pr-1"
                 >
                   {supermarkets.map((m) => (
                     <option key={m.id} value={m.id} className="bg-slate-900 text-slate-200">
@@ -1606,7 +1667,31 @@ export const AdminManagementView: React.FC = () => {
                     </option>
                   ))}
                 </select>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const current = supermarkets.find((m) => m.id === selectedSupermarketId);
+                    if (current) {
+                      setEditingSupermarketId(current.id);
+                      setEditingSupermarketName(current.name);
+                    }
+                    setShowSupermarketModal(true);
+                  }}
+                  title="Supermarkt umbenennen"
+                  className="p-1 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors cursor-pointer"
+                >
+                  <Pencil className="w-3.5 h-3.5 text-sky-400" />
+                </button>
               </div>
+
+              <button
+                type="button"
+                onClick={() => setShowSupermarketModal(true)}
+                className="px-3 py-1.5 bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+              >
+                <Building2 className="w-3.5 h-3.5 text-sky-400" />
+                <span>Märkte verwalten</span>
+              </button>
 
               <button
                 type="button"
@@ -2361,6 +2446,167 @@ export const AdminManagementView: React.FC = () => {
           fetchUsers();
         }}
       />
+
+      {/* Supermarket Management Modal */}
+      {showSupermarketModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-150">
+          <div className="bg-surface-card border border-surface-border rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
+            <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-surface-elevated/40">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-sky-500/15 border border-sky-500/30 text-sky-400">
+                  <Building2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-display font-bold text-white">Supermärkte bearbeiten</h3>
+                  <p className="text-[11px] text-slate-400">Namen anpassen oder neue Märkte anlegen</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSupermarketModal(false);
+                  setEditingSupermarketId(null);
+                }}
+                className="p-1.5 text-slate-400 hover:text-white hover:bg-surface-elevated rounded-xl transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+              {/* Add New Supermarket Form */}
+              <form onSubmit={handleCreateSupermarket} className="flex gap-2">
+                <input
+                  type="text"
+                  value={newSupermarketName}
+                  onChange={(e) => setNewSupermarketName(e.target.value)}
+                  placeholder="Neuen Markt anlegen (z.B. REWE, Edeka, Aldi)..."
+                  className="flex-1 px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500/40 font-sans"
+                />
+                <button
+                  type="submit"
+                  disabled={!newSupermarketName.trim() || isSavingSupermarket}
+                  className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl text-xs transition-colors flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-xs"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Anlegen</span>
+                </button>
+              </form>
+
+              {/* List of Supermarkets */}
+              <div className="space-y-2">
+                {supermarkets.map((market) => {
+                  const isEditing = editingSupermarketId === market.id;
+                  const isSelected = selectedSupermarketId === market.id;
+
+                  return (
+                    <div
+                      key={market.id}
+                      className={`p-3 rounded-2xl border transition-all flex items-center justify-between gap-3 text-xs ${
+                        isSelected
+                          ? 'bg-sky-500/10 border-sky-500/30'
+                          : 'bg-surface-elevated/60 border-surface-border'
+                      }`}
+                    >
+                      {isEditing ? (
+                        <div className="flex items-center gap-2 flex-1">
+                          <input
+                            type="text"
+                            value={editingSupermarketName}
+                            onChange={(e) => setEditingSupermarketName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleRenameSupermarket(market.id, editingSupermarketName);
+                              } else if (e.key === 'Escape') {
+                                setEditingSupermarketId(null);
+                              }
+                            }}
+                            autoFocus
+                            className="flex-1 px-3 py-1.5 bg-surface-card border border-sky-500/50 rounded-xl text-xs text-white focus:outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRenameSupermarket(market.id, editingSupermarketName)}
+                            disabled={!editingSupermarketName.trim() || isSavingSupermarket}
+                            className="p-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-lg transition-colors cursor-pointer"
+                            title="Speichern"
+                          >
+                            <Check className="w-3.5 h-3.5 font-bold" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingSupermarketId(null)}
+                            className="p-1.5 text-slate-400 hover:text-white hover:bg-surface-card rounded-lg transition-colors cursor-pointer"
+                            title="Abbrechen"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-2 h-2 rounded-full bg-sky-400" />
+                            <div>
+                              <div className="font-semibold text-white flex items-center gap-2">
+                                <span>{market.name}</span>
+                                {isSelected && (
+                                  <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30 font-display">
+                                    Aktiv
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingSupermarketId(market.id);
+                                setEditingSupermarketName(market.name);
+                              }}
+                              className="px-2.5 py-1.5 text-slate-300 hover:text-sky-300 hover:bg-sky-500/15 rounded-xl transition-colors flex items-center gap-1 cursor-pointer"
+                              title="Supermarkt umbenennen"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                              <span>Umbenennen</span>
+                            </button>
+
+                            {supermarkets.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteSupermarket(market.id)}
+                                className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/15 rounded-lg transition-colors cursor-pointer"
+                                title="Supermarkt löschen"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="px-6 py-3.5 border-t border-white/5 bg-surface-elevated/40 flex justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSupermarketModal(false);
+                  setEditingSupermarketId(null);
+                }}
+                className="px-4 py-2 bg-surface-elevated hover:bg-surface-card text-slate-200 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+              >
+                Fertig
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

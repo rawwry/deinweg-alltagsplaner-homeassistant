@@ -133,6 +133,12 @@ export const api = {
     clearIngredients: () =>
       request<{ success: boolean; message: string }>('food/ingredients/clear-all', { method: 'POST' }),
     supermarkets: () => request<any[]>('food/supermarkets'),
+    createSupermarket: (name: string) =>
+      request<any>('food/supermarkets', { method: 'POST', body: JSON.stringify({ name }) }),
+    updateSupermarket: (id: string, name: string) =>
+      request<any>(`food/supermarkets/${id}`, { method: 'PUT', body: JSON.stringify({ name }) }),
+    deleteSupermarket: (id: string) =>
+      request<{ success: boolean }>(`food/supermarkets/${id}`, { method: 'DELETE' }),
     mealPlan: (locationId: string, year: number, weekNumber: number) =>
       request<any>(`food/mealplan?locationId=${locationId}&year=${year}&weekNumber=${weekNumber}`),
     mealplan: (locationId: string, year: number, weekNumber: number) =>
