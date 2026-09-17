@@ -7,11 +7,11 @@ const router = Router();
 
 // Helper to determine target location for a request
 function resolveLocationId(req: Request): string {
-  const queryLoc = (req.query.locationId as string) || (req.body.locationId as string);
-  if (req.user?.role === 'BEWOHNER') {
-    return req.user.locationId || 'location-emsdetten';
+  const queryLoc = (req.query.locationId as string) || (req.body?.locationId as string);
+  if (queryLoc && queryLoc.trim()) {
+    return queryLoc.trim();
   }
-  return queryLoc || req.user?.locationId || 'location-emsdetten';
+  return req.user?.locationId || 'location-emsdetten';
 }
 
 const DEFAULT_CHORE_TEMPLATES = [
@@ -333,8 +333,10 @@ router.get('/week', requireAuth, async (req: Request, res: Response) => {
       prisma.choreAssignment.findMany({
         where: {
           locationId,
-          year,
-          weekNumber,
+          OR: [
+            { year, weekNumber },
+            { date: { in: days.map((d) => d.date) } },
+          ],
         },
         include: {
           resident: {
@@ -566,16 +568,25 @@ router.post('/toggle-complete', requireAuth, async (req: Request, res: Response)
       targetAssignment = await prisma.choreAssignment.findUnique({
         where: { id: assignmentId },
       });
-    } else if (templateId && date) {
-      targetAssignment = await prisma.choreAssignment.findUnique({
+    }
+
+    if (!targetAssignment && templateId && date) {
+      targetAssignment = await prisma.choreAssignment.findFirst({
         where: {
-          locationId_templateId_date: {
-            locationId,
+          locationId,
+          templateId,
+          date,
+        },
+      });
+      // Fallback: match by templateId and date regardless of locationId discrepancy
+      if (!targetAssignment) {
+        targetAssignment = await prisma.choreAssignment.findFirst({
+          where: {
             templateId,
             date,
           },
-        },
-      });
+        });
+      }
     }
 
     if (!targetAssignment) {
@@ -587,19 +598,40 @@ router.post('/toggle-complete', requireAuth, async (req: Request, res: Response)
         where: { id: templateId },
       });
 
+      // Calculate year, weekNumber, dayOfWeek accurately from date string YYYY-MM-DD
+      let calcYear = new Date().getFullYear();
+      let calcWeek = 1;
+      let calcDayOfWeek = 1;
+      if (date && date.includes('-')) {
+        const [dYear, dMonth, dDay] = date.split('-').map(Number);
+        const parsedDate = new Date(Date.UTC(dYear, (dMonth || 1) - 1, dDay || 1));
+        calcDayOfWeek = parsedDate.getUTCDay() === 0 ? 7 : parsedDate.getUTCDay();
+        const calcDateCopy = new Date(Date.UTC(parsedDate.getUTCFullYear(), parsedDate.getUTCMonth(), parsedDate.getUTCDate()));
+        calcDateCopy.setUTCDate(calcDateCopy.getUTCDate() + 4 - calcDayOfWeek);
+        const calcYearStart = new Date(Date.UTC(calcDateCopy.getUTCFullYear(), 0, 1));
+        calcWeek = Math.ceil(((calcDateCopy.getTime() - calcYearStart.getTime()) / 86400000 + 1) / 7);
+        calcYear = calcDateCopy.getUTCFullYear();
+      }
+
+      const finalYear = Number(year) || calcYear;
+      const finalWeekNumber = Number(weekNumber) || calcWeek;
+      const finalDayOfWeek = Number(dayOfWeek) || calcDayOfWeek;
+
       const templateAssignedIds = template?.assignedResidentIds || null;
       const primaryResId = templateAssignedIds && !templateAssignedIds.includes('ALL')
         ? (parseResidentIds(templateAssignedIds)[0] || null)
         : (req.user?.role === 'BEWOHNER' ? req.user.id : null);
 
+      const targetLocId = template?.locationId || locationId;
+
       const assignment = await prisma.choreAssignment.create({
         data: {
-          locationId,
+          locationId: targetLocId,
           templateId,
           date,
-          year: Number(year) || new Date().getFullYear(),
-          weekNumber: Number(weekNumber) || 1,
-          dayOfWeek: Number(dayOfWeek) || 1,
+          year: finalYear,
+          weekNumber: finalWeekNumber,
+          dayOfWeek: finalDayOfWeek,
           residentId: primaryResId,
           assignedResidentIds: templateAssignedIds,
           isCompleted: true,

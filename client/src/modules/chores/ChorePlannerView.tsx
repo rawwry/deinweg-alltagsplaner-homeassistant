@@ -94,6 +94,7 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
           year,
           weekNumber,
           dayOfWeek: day.dayOfWeek,
+          locationId: activeLocationId,
         });
         const wData = await api.chores.week(activeLocationId, year, weekNumber);
         setWeekData(wData);
@@ -118,9 +119,9 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
     selectedResidentIds: string[];
   } | null>(null);
 
-  const fetchWeekData = async () => {
+  const fetchWeekData = async (silent: boolean = false) => {
     try {
-      setIsLoading(true);
+      if (!silent) setIsLoading(true);
       const [wData, usersList, mPlan] = await Promise.all([
         api.chores.week(activeLocationId, year, weekNumber),
         api.users.list(activeLocationId).catch(() => []),
@@ -132,12 +133,46 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
     } catch (err) {
       console.error('Fehler beim Laden des Aufgabenplans:', err);
     } finally {
-      setIsLoading(false);
+      if (!silent) setIsLoading(false);
     }
   };
 
   useEffect(() => {
     fetchWeekData();
+  }, [activeLocationId, year, weekNumber]);
+
+  // Real-time synchronization: Poll week data every 5s & immediately on tab focus
+  useEffect(() => {
+    if (!activeLocationId) return;
+
+    let isMounted = true;
+    const pollWeek = async () => {
+      try {
+        const wData = await api.chores.week(activeLocationId, year, weekNumber);
+        if (isMounted && wData) {
+          setWeekData(wData);
+        }
+      } catch {
+        // silent background poll
+      }
+    };
+
+    const interval = setInterval(pollWeek, 5000);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        pollWeek();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleVisibilityChange);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleVisibilityChange);
+    };
   }, [activeLocationId, year, weekNumber]);
 
   // Week navigation helpers
@@ -409,7 +444,7 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                       </div>
                     </div>
 
-                    {/* Personal check-off button for residents / Status badge for staff */}
+                    {/* Personal check-off button for residents / Status badge & toggle for staff */}
                     {user?.role === 'BEWOHNER' && isMyTask ? (
                       <button
                         type="button"
@@ -431,6 +466,28 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                           {isDone && <Check className="w-3 h-3 stroke-[3]" />}
                         </div>
                         <span>{isDone ? 'Erledigt' : 'Abhaken'}</span>
+                      </button>
+                    ) : isStaff ? (
+                      <button
+                        type="button"
+                        onClick={() => handleToggleChoreInPlan(tmpl, day, assignment)}
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl border text-xs font-bold transition-all cursor-pointer shrink-0 ${
+                          isDone
+                            ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30'
+                            : 'bg-surface-card hover:bg-surface-elevated border-surface-border text-slate-400 hover:text-white'
+                        }`}
+                        title={isDone ? 'Status: Erledigt (Klicken zum Umschalten)' : 'Status: Offen (Klicken zum Umschalten)'}
+                      >
+                        <div
+                          className={`w-3.5 h-3.5 rounded-md flex items-center justify-center border transition-colors ${
+                            isDone
+                              ? 'bg-emerald-500 border-emerald-500 text-slate-950'
+                              : 'border-slate-500 bg-transparent'
+                          }`}
+                        >
+                          {isDone && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                        </div>
+                        <span>{isDone ? 'Erledigt' : 'Offen'}</span>
                       </button>
                     ) : assignment?.isCompleted ? (
                       <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold shrink-0">

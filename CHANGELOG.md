@@ -3,6 +3,15 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.2] - 2026-09-18
+
+### Behoben & Verbessert
+- **Live-Synchronisation zwischen Bewohner und Betreuer (`ChorePlannerView.tsx`, `DashboardHub.tsx`, `routes.ts`)**:
+  - **Echtzeit-Synchronisierung im Aufgabenplan**: Bisher besaß die Aufgabenplan-Ansicht (`ChorePlannerView.tsx`) keine Hintergrund-Aktualisierung. Hatte ein Betreuer den Aufgabenplan in einem Browser geöffnet und ein Bewohner hakte in einem anderen Browser eine Aufgabe ab, blieb der Betreuer auf dem alten Stand. Ein stilles Hintergrund-Polling (alle 5 Sekunden) sowie sofortige Aktualisierung bei Tab-Fokus (`window.focus` / `visibilitychange`) sorgen nun für sofortigen Zustandsabgleich über alle Browser hinweg.
+  - **Interaktiver Status für Betreuer im Aufgabenplan**: Für Betreuer wird der Erledigt-Status im Wochenplan nun mit einer klaren Schaltfläche (`[✓ Erledigt]` in grün vs. `[  Offen]`) angezeigt. Betreuer sehen den Statuswechsel sofort live und können Aufgaben bei Bedarf auch direkt im Plan umschalten.
+  - **Schnellere Synchronisation auf dem Dashboard**: Das Hintergrund-Polling auf der Startseite wurde von 15s auf 5s beschleunigt, sodass Änderungen aus dem Aufgabenplan auch auf dem Betreuer-Dashboard innerhalb weniger Sekunden reflektiert werden.
+  - **Konsistente Standort-Auflösung & Zuweisungssuche**: `locationId` wird nun explizit in allen `toggleComplete`-Aufrufen übermittelt. Die Server-Abfrage in `/api/chores/week` findet Zuweisungen nun zuverlässig sowohl über `year/weekNumber` als auch über das exakte Tagesdatum (`date: { in: days }`), und `/api/chores/toggle-complete` berechnet Kalenderwochen-Parameter deterministisch.
+
 ## [0.1.1] - 2026-09-18
 
 ### Behoben & Verbessert

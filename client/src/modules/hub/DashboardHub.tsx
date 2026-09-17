@@ -412,6 +412,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           year: currentYear,
           weekNumber: currentWeek,
           dayOfWeek: currentDayOfWeek,
+          locationId: activeLocationId,
         });
         const refreshed = await api.chores.today(activeLocationId);
         setTodayChores(refreshed);
@@ -436,7 +437,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
       }
     };
 
-    const interval = setInterval(pollChores, 15000);
+    const interval = setInterval(pollChores, 5000);
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {

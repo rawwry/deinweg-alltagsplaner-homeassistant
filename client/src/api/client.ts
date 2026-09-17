@@ -299,6 +299,7 @@ export const api = {
       year?: number;
       weekNumber?: number;
       dayOfWeek?: number;
+      locationId?: string;
     }) => request<any>('chores/toggle-complete', { method: 'POST', body: JSON.stringify(body) }),
     today: (locationId?: string) =>
       request<any>(`chores/today${locationId ? `?locationId=${locationId}` : ''}`),
