@@ -554,7 +554,7 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
                         <div className="w-full bg-surface-elevated/90 border border-surface-border rounded-2xl px-3 py-2 flex items-center justify-between shadow-inner">
                           <span className="text-xs text-slate-400 font-medium flex items-center gap-1.5 font-sans">
                             <Users className="w-3.5 h-3.5 text-slate-400" />
-                            <span>Port.:</span>
+                            <span>Portionen</span>
                           </span>
                           <div className="flex items-center gap-1">
                             <button

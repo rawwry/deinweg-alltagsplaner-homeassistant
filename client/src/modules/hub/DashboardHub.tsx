@@ -1039,17 +1039,15 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
         <div className="bento-card rounded-[2.5rem] p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2.5">
-                <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-semibold uppercase tracking-wider font-sans whitespace-nowrap">
-                  <MessageSquare className="w-3.5 h-3.5 stroke-[2]" />
-                  <span>Flurfunk und Mitteilungen</span>
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-semibold uppercase tracking-wider font-sans whitespace-nowrap">
+                <MessageSquare className="w-3.5 h-3.5 stroke-[2]" />
+                <span>Flurfunk</span>
+              </span>
+              {openNotes.length > 0 && (
+                <span className="text-xs text-rose-300 font-semibold bg-rose-500/15 border border-rose-500/30 px-2.5 py-0.5 rounded-full font-mono">
+                  {openNotes.length} offen
                 </span>
-                {openNotes.length > 0 && (
-                  <span className="text-xs text-rose-300 font-semibold bg-rose-500/15 border border-rose-500/30 px-2.5 py-0.5 rounded-full font-mono">
-                    {openNotes.length} offen
-                  </span>
-                )}
-              </div>
+              )}
             </div>
 
             <h3 className="text-xl font-semibold text-white mb-1.5 font-sans tracking-tight">

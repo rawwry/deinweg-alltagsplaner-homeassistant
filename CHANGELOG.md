@@ -3,6 +3,20 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.38] - 2026-09-17
+
+### Hinzugefügt & Verbessert
+- **Unser Kochplan (`MealPlanView.tsx`)**:
+  - Im Portionszähler wurde die unschöne Abkürzung *„Port.:“* durch das vollständige Wort *„Portionen“* ersetzt.
+- **Flurfunk Rollenrechte & Detailansicht (`CaregiverNotesView.tsx`)**:
+  - **Löschen nur für Betreuer**: Bewohner können Mitteilungen und Notizen nicht mehr endgültig löschen (Mülleimer-Symbol für Bewohner komplett entfernt). Bewohner können ausschließlich eigene bzw. an sie gerichtete Einträge als erledigt abhaken.
+  - **Redundanten Button entfernt**: Der Button *„Vollständig anzeigen“* im eingeklappten Zustand wurde entfernt.
+  - **Prägnante Aufklapp-Schaltfläche**: Oben rechts befindet sich nun ein klarer, responsiver Button mit Chevron und der Beschriftung *„Details“* bzw. *„Einklappen“*.
+- **Startseite (`DashboardHub.tsx`)**:
+  - Bento-Box 4 Pille von *„Flurfunk und Mitteilungen“* auf *„Flurfunk“* verkürzt und die Zähler-Pille *„x offen“* sauber rechtsbündig in der Box ausgerichtet.
+- **Mobile Navigation (`BottomNav.tsx`)**:
+  - Der Menüpunkt *„Abfall“* wurde aus der mobilen Leiste entfernt, da der Abfallkalender an allen relevanten Stellen direkt erreichbar ist.
+
 ## [0.1.0-beta.37] - 2026-09-17
 
 ### Hinzugefügt & Verbessert
