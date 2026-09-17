@@ -23,6 +23,7 @@ import {
   Pencil,
   AlertCircle,
   Lightbulb,
+  X,
 } from 'lucide-react';
 
 const NOTE_CATEGORIES: {
@@ -195,7 +196,6 @@ export const CaregiverNotesView: React.FC = () => {
     setEditExpiresAt(note.expiresAt ? note.expiresAt.substring(0, 10) : '');
     setEditIsPrivate(Boolean(note.isPrivate));
     setEditResidentId(note.residentId);
-    setExpandedNoteIds((prev) => new Set(prev).add(note.id));
   };
 
   const handleCancelEdit = () => {
@@ -673,247 +673,236 @@ export const CaregiverNotesView: React.FC = () => {
                     : categoryConfig.cardClass
                 } ${note.isPinned && !note.isArchived ? 'ring-2 ring-rose-500/40' : ''}`}
               >
-                {/* Top Header Row: Badges & Controls */}
-                <div className="flex items-center justify-between gap-2 mb-3">
-                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                    {/* Pinned Badge */}
-                    {note.isPinned && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500 text-white shadow-xs font-display">
-                        <Pin className="w-3 h-3 fill-current" />
-                        <span>Angepinnt</span>
-                      </span>
-                    )}
-
-                    {/* Category Badge */}
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border font-display ${categoryConfig.badgeClass}`}>
-                      <categoryConfig.icon className="w-3 h-3 stroke-[2.5]" />
-                      <span>{categoryConfig.label}</span>
-                    </span>
-
-                    {/* Visibility Badge */}
-                    {note.isPrivate ? (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/30 font-display">
-                        <Lock className="w-3 h-3 text-purple-400" />
-                        <span>{isDirect ? `Direkt an ${note.residentName}` : 'Nur Betreuer'}</span>
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-surface-elevated text-slate-400 border border-surface-border font-display">
-                        <Globe className="w-3 h-3 text-slate-400" />
-                        <span className="hidden sm:inline">Öffentlich</span>
-                      </span>
-                    )}
-
-                    {/* Expiry Badge if present */}
-                    {note.expiresAt && (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-surface-elevated text-slate-400 border border-surface-border">
-                        <Calendar className="w-3 h-3 text-slate-400" />
-                        <span>Bis {formatGermanDate(note.expiresAt)}</span>
-                      </span>
-                    )}
-
-                    {/* Status Badge (Announcements are permanent, omit 'Offen') */}
-                    {(note.isArchived || note.category !== 'ANKUENDIGUNG') && (
-                      <span
-                        className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-display ${
-                          note.isArchived
-                            ? 'bg-surface-elevated text-slate-400 border border-surface-border'
-                            : note.status === 'IN_PROGRESS'
-                            ? 'bg-sky-500/15 text-sky-300 border border-sky-500/30'
-                            : 'bg-surface-elevated text-slate-300 border border-surface-border'
-                        }`}
-                      >
-                        {note.isArchived ? 'Archiviert' : note.status === 'IN_PROGRESS' ? 'In Bearbeitung' : 'Offen'}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Action icons: Pin toggle (staff), Edit (author/admin) & Expand/Collapse toggle */}
-                  <div className="flex items-center gap-1 shrink-0">
-                    {isStaff && !note.isArchived && (
-                      <button
-                        type="button"
-                        onClick={(e) => handleTogglePin(note.id, e)}
-                        title={note.isPinned ? 'Pin lösen' : 'Oben anpinnen'}
-                        className={`p-1.5 rounded-xl border transition-colors cursor-pointer ${
-                          note.isPinned
-                            ? 'bg-rose-500/20 border-rose-500/40 text-rose-300 hover:bg-rose-500/30'
-                            : 'bg-surface-elevated border-surface-border text-slate-400 hover:text-white hover:border-slate-500'
-                        }`}
-                      >
-                        <Pin className={`w-3.5 h-3.5 ${note.isPinned ? 'fill-current' : ''}`} />
-                      </button>
-                    )}
-
-                    {isAuthorOrAdmin && !note.isArchived && !isEditing && (
-                      <button
-                        type="button"
-                        onClick={(e) => handleStartEdit(note, e)}
-                        title="Beitrag bearbeiten"
-                        className="p-1.5 rounded-xl bg-surface-elevated hover:bg-surface-card border border-surface-border text-slate-400 hover:text-amber-300 transition-colors cursor-pointer"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={() => toggleExpand(note.id)}
-                      className="px-2.5 py-1 rounded-xl bg-surface-elevated hover:bg-surface-card border border-surface-border text-slate-200 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold shadow-xs"
-                      aria-label={isExpanded ? 'Einklappen' : 'Details anzeigen'}
-                    >
-                      <span className="text-[11px] font-medium">{isExpanded ? 'Einklappen' : 'Details'}</span>
-                      {isExpanded ? <ChevronUp className="w-3.5 h-3.5 text-slate-400" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Author & Timestamp row */}
-                <div className="flex items-center justify-between text-xs text-slate-400 mb-2 gap-2 flex-wrap">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white uppercase shrink-0"
-                      style={{
-                        backgroundColor: note.authorAvatarColor || (note.authorRole === 'BETREUER' || note.authorRole === 'ADMIN' ? '#f43f5e' : '#3b82f6'),
-                      }}
-                    >
-                      {(note.authorName || note.residentName).charAt(0)}
-                    </div>
-                    <span className="font-medium text-slate-300">
-                      Von: <strong className="text-white">{note.authorName || 'WG-Mitglied'}</strong>
-                      {isDirect && (
-                        <>
-                          {' '}→ An: <strong className="text-purple-300">{note.residentName}</strong>
-                        </>
-                      )}
-                    </span>
-                  </div>
-
-                  <span className="text-[11px] font-mono text-slate-400 flex items-center gap-1">
-                    <Clock className="w-3 h-3 text-slate-500" />
-                    {formatGermanDateTime(note.createdAt)}
-                  </span>
-                </div>
-
-                {/* EDIT FORM (when editing) */}
                 {isEditing ? (
-                  <form
-                    onSubmit={(e) => handleSaveEdit(e, note.id)}
-                    className="mt-3 p-4 sm:p-5 rounded-2xl bg-surface-elevated/90 border border-amber-500/30 space-y-3.5 animate-in fade-in duration-150"
-                  >
-                    <div className="flex items-center justify-between border-b border-white/5 pb-2">
-                      <span className="text-xs font-bold text-amber-300 flex items-center gap-1.5 font-display">
-                        <Pencil className="w-3.5 h-3.5 text-amber-400" />
-                        <span>Beitrag bearbeiten</span>
-                      </span>
-                    </div>
-
-                    {/* Category Selector */}
-                    <div className="space-y-1">
-                      <label className="block text-[11px] font-semibold text-slate-300">
-                        Kategorie
-                      </label>
-                      <div className="flex flex-wrap gap-2">
-                        {NOTE_CATEGORIES.map((cat) => {
-                          const CatIcon = cat.icon;
-                          return (
-                            <button
-                              key={cat.id}
-                              type="button"
-                              onClick={() => setEditCategory(cat.id)}
-                              className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                                editCategory === cat.id
-                                  ? `${cat.buttonClass} ring-2 ring-rose-500/40 font-bold scale-102`
-                                  : 'bg-surface-card border-surface-border text-slate-400 hover:text-slate-200'
-                              }`}
-                            >
-                              <CatIcon className="w-3.5 h-3.5 shrink-0" />
-                              <span>{cat.label}</span>
-                            </button>
-                          );
-                        })}
+                  <div className="space-y-4 animate-in fade-in duration-150">
+                    <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                      <div className="flex items-center gap-2">
+                        <span className="p-1.5 rounded-xl bg-amber-500/20 text-amber-300">
+                          <Pencil className="w-3.5 h-3.5" />
+                        </span>
+                        <span className="text-sm font-bold text-white font-display">
+                          Beitrag bearbeiten
+                        </span>
                       </div>
-                    </div>
-
-                    {/* Title */}
-                    <div className="space-y-1">
-                      <label className="block text-[11px] font-semibold text-slate-300">Titel</label>
-                      <input
-                        type="text"
-                        value={editTitle}
-                        onChange={(e) => setEditTitle(e.target.value)}
-                        className="w-full px-3.5 py-2 bg-surface-card border border-surface-border rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans"
-                        required
-                      />
-                    </div>
-
-                    {/* Content */}
-                    <div className="space-y-1">
-                      <label className="block text-[11px] font-semibold text-slate-300">Inhalt</label>
-                      <textarea
-                        value={editContent}
-                        onChange={(e) => setEditContent(e.target.value)}
-                        rows={4}
-                        className="w-full px-3.5 py-2 bg-surface-card border border-surface-border rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans resize-none"
-                        required
-                      />
-                    </div>
-
-                    {/* Pin & Expiry */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                      <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-surface-card border border-surface-border cursor-pointer hover:border-surface-hover">
-                        <input
-                          type="checkbox"
-                          checked={editIsPinned}
-                          onChange={(e) => setEditIsPinned(e.target.checked)}
-                          className="w-4 h-4 rounded text-rose-500 focus:ring-rose-500/40 cursor-pointer"
-                        />
-                        <div className="text-xs">
-                          <span className="font-bold text-slate-200 flex items-center gap-1">
-                            <Pin className="w-3.5 h-3.5 text-rose-400" />
-                            <span>Oben anpinnen</span>
-                          </span>
-                        </div>
-                      </label>
-
-                      <div className="p-2.5 rounded-xl bg-surface-card border border-surface-border space-y-1">
-                        <label className="block text-[11px] font-bold text-slate-300 flex items-center gap-1">
-                          <Calendar className="w-3 h-3 text-slate-400" />
-                          <span>Ablaufdatum (optional)</span>
-                        </label>
-                        <input
-                          type="date"
-                          value={editExpiresAt}
-                          onChange={(e) => setEditExpiresAt(e.target.value)}
-                          className="w-full px-2 py-1 bg-surface-elevated border border-surface-border rounded-lg text-xs text-white focus:outline-none focus:ring-1 focus:ring-rose-500"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/5">
                       <button
                         type="button"
                         onClick={handleCancelEdit}
                         disabled={isSavingEdit}
-                        className="px-3.5 py-2 rounded-xl bg-surface-card hover:bg-surface-elevated border border-surface-border text-slate-300 text-xs font-semibold cursor-pointer transition-colors"
+                        className="px-2.5 py-1 rounded-xl bg-surface-elevated hover:bg-surface-card border border-surface-border text-slate-300 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold shadow-xs"
                       >
-                        Abbrechen
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={isSavingEdit}
-                        className="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white text-xs font-bold shadow-md shadow-rose-500/20 cursor-pointer transition-all disabled:opacity-50"
-                      >
-                        {isSavingEdit ? 'Speichert...' : 'Änderungen speichern'}
+                        <X className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Abbrechen</span>
                       </button>
                     </div>
-                  </form>
+
+                    <form
+                      onSubmit={(e) => handleSaveEdit(e, note.id)}
+                      className="space-y-3.5"
+                    >
+                      {/* Category Selector */}
+                      <div className="space-y-1.5">
+                        <label className="block text-[11px] font-semibold text-slate-300">
+                          Kategorie
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                          {NOTE_CATEGORIES.map((cat) => {
+                            const CatIcon = cat.icon;
+                            return (
+                              <button
+                                key={cat.id}
+                                type="button"
+                                onClick={() => setEditCategory(cat.id)}
+                                className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                                  editCategory === cat.id
+                                    ? `${cat.buttonClass} ring-2 ring-rose-500/40 font-bold scale-102`
+                                    : 'bg-surface-card border-surface-border text-slate-400 hover:text-slate-200'
+                                }`}
+                              >
+                                <CatIcon className="w-3.5 h-3.5 shrink-0" />
+                                <span>{cat.label}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Title */}
+                      <div className="space-y-1">
+                        <label className="block text-[11px] font-semibold text-slate-300">Titel</label>
+                        <input
+                          type="text"
+                          value={editTitle}
+                          onChange={(e) => setEditTitle(e.target.value)}
+                          className="w-full px-3.5 py-2 bg-surface-card border border-surface-border rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans"
+                          required
+                        />
+                      </div>
+
+                      {/* Content */}
+                      <div className="space-y-1">
+                        <label className="block text-[11px] font-semibold text-slate-300">Inhalt</label>
+                        <textarea
+                          value={editContent}
+                          onChange={(e) => setEditContent(e.target.value)}
+                          rows={4}
+                          className="w-full px-3.5 py-2 bg-surface-card border border-surface-border rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans resize-none"
+                          required
+                        />
+                      </div>
+
+                      {/* Pin & Expiry */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                        {isStaff && (
+                          <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-surface-card border border-surface-border cursor-pointer hover:border-surface-hover">
+                            <input
+                              type="checkbox"
+                              checked={editIsPinned}
+                              onChange={(e) => setEditIsPinned(e.target.checked)}
+                              className="w-4 h-4 rounded text-rose-500 focus:ring-rose-500/40 cursor-pointer"
+                            />
+                            <div className="text-xs">
+                              <span className="font-bold text-slate-200 flex items-center gap-1">
+                                <Pin className="w-3.5 h-3.5 text-rose-400" />
+                                <span>Oben anpinnen</span>
+                              </span>
+                            </div>
+                          </label>
+                        )}
+
+                        <div className="p-2.5 rounded-xl bg-surface-card border border-surface-border space-y-1">
+                          <label className="block text-[11px] font-bold text-slate-300 flex items-center gap-1">
+                            <Calendar className="w-3 h-3 text-slate-400" />
+                            <span>Ablaufdatum (optional)</span>
+                          </label>
+                          <input
+                            type="date"
+                            value={editExpiresAt}
+                            onChange={(e) => setEditExpiresAt(e.target.value)}
+                            className="w-full px-2 py-1 bg-surface-elevated border border-surface-border rounded-lg text-xs text-white focus:outline-none focus:ring-1 focus:ring-rose-500"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/5">
+                        <button
+                          type="button"
+                          onClick={handleCancelEdit}
+                          disabled={isSavingEdit}
+                          className="px-3.5 py-2 rounded-xl bg-surface-card hover:bg-surface-elevated border border-surface-border text-slate-300 text-xs font-semibold cursor-pointer transition-colors"
+                        >
+                          Abbrechen
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={isSavingEdit}
+                          className="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white text-xs font-bold shadow-md shadow-rose-500/20 cursor-pointer transition-all disabled:opacity-50"
+                        >
+                          {isSavingEdit ? 'Speichert...' : 'Änderungen speichern'}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
                 ) : (
                   <>
+                    {/* Top Header Row: Badges on Left, Single Details Toggle on Right */}
+                    <div className="flex items-center justify-between gap-2 mb-2.5">
+                      <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-wrap">
+                        {/* Category Badge */}
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border font-display shrink-0 ${categoryConfig.badgeClass}`}>
+                          <categoryConfig.icon className="w-3 h-3 stroke-[2.5]" />
+                          <span>{categoryConfig.label}</span>
+                        </span>
+
+                        {/* Pinned Badge (interactive for staff) */}
+                        {note.isPinned && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              if (isStaff) handleTogglePin(note.id, e);
+                            }}
+                            disabled={!isStaff}
+                            title={isStaff ? 'Pin lösen' : 'Angepinnter Beitrag'}
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-colors font-display shrink-0 ${
+                              isStaff
+                                ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 hover:bg-rose-500/30 cursor-pointer'
+                                : 'bg-rose-500/20 text-rose-300 border border-rose-500/40 cursor-default'
+                            }`}
+                          >
+                            <Pin className="w-3 h-3 fill-current" />
+                            <span>Angepinnt</span>
+                          </button>
+                        )}
+
+                        {/* Visibility Badge (Direct or Caregivers Only) */}
+                        {note.isPrivate && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/30 font-display shrink-0">
+                            <Lock className="w-3 h-3 text-purple-400" />
+                            <span>{isDirect ? 'Direkt' : 'Nur Betreuer'}</span>
+                          </span>
+                        )}
+
+                        {/* Expiry Badge */}
+                        {note.expiresAt && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-surface-elevated text-slate-400 border border-surface-border shrink-0">
+                            <Calendar className="w-3 h-3 text-slate-400" />
+                            <span>Bis {formatGermanDate(note.expiresAt)}</span>
+                          </span>
+                        )}
+
+                        {/* Status Badge (no 'Offen' - only In Bearbeitung or Archiviert) */}
+                        {note.isArchived ? (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider font-display bg-surface-elevated text-slate-400 border border-surface-border shrink-0">
+                            Archiviert
+                          </span>
+                        ) : note.status === 'IN_PROGRESS' ? (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider font-display bg-sky-500/15 text-sky-300 border border-sky-500/30 shrink-0">
+                            In Bearbeitung
+                          </span>
+                        ) : null}
+                      </div>
+
+                      {/* Single Action on Right: Details / Einklappen Toggle */}
+                      <button
+                        type="button"
+                        onClick={() => toggleExpand(note.id)}
+                        className="px-2.5 py-1 rounded-xl bg-surface-elevated hover:bg-surface-card border border-surface-border text-slate-200 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold shadow-xs shrink-0"
+                        aria-label={isExpanded ? 'Einklappen' : 'Details anzeigen'}
+                      >
+                        <span className="text-[11px] font-medium">{isExpanded ? 'Einklappen' : 'Details'}</span>
+                        {isExpanded ? <ChevronUp className="w-3.5 h-3.5 text-slate-400" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
+                      </button>
+                    </div>
+
+                    {/* Author & Timestamp row */}
+                    <div className="flex items-center justify-between text-xs text-slate-400 mb-2 gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div
+                          className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white uppercase shrink-0"
+                          style={{
+                            backgroundColor: note.authorAvatarColor || (note.authorRole === 'BETREUER' || note.authorRole === 'ADMIN' ? '#f43f5e' : '#3b82f6'),
+                          }}
+                        >
+                          {(note.authorName || note.residentName || 'WG').charAt(0)}
+                        </div>
+                        <div className="truncate text-slate-300 font-medium text-xs">
+                          <span className="text-white font-semibold">{note.authorName || 'WG-Mitglied'}</span>
+                          {isDirect && note.residentName && (
+                            <span className="text-purple-300 font-medium"> → {note.residentName}</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <span className="text-[11px] font-mono text-slate-400 flex items-center gap-1 shrink-0">
+                        <Clock className="w-3 h-3 text-slate-500" />
+                        {formatGermanDateTime(note.createdAt)}
+                      </span>
+                    </div>
+
                     {/* Title */}
                     <h3
                       onClick={() => toggleExpand(note.id)}
-                      className="text-base sm:text-lg font-display font-semibold text-white cursor-pointer hover:text-rose-300 transition-colors"
+                      className="text-base sm:text-lg font-display font-semibold text-white cursor-pointer hover:text-rose-300 transition-colors leading-snug"
                     >
                       {note.title}
                     </h3>
@@ -921,23 +910,26 @@ export const CaregiverNotesView: React.FC = () => {
                     {/* Collapsed Snippet or Expanded Full Content */}
                     {!isExpanded ? (
                       <div className="mt-2">
-                        <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed font-normal">
+                        <p className="text-xs sm:text-sm text-slate-300 line-clamp-2 leading-relaxed font-normal">
                           {note.content}
                         </p>
-                        <div className="mt-3 flex items-center justify-between text-xs pt-2 border-t border-white/5">
+                        <div className="mt-3 flex items-center justify-between text-xs pt-2.5 border-t border-white/5">
                           <div className="flex items-center gap-2">
                             {hasMessages ? (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/25 px-2 py-0.5 rounded-full">
+                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/25 px-2.5 py-0.5 rounded-full">
                                 <MessageSquare className="w-3 h-3 text-rose-400" />
-                                {note.messages!.length} {note.messages!.length === 1 ? 'Antwort' : 'Antworten'}
+                                <span>{note.messages!.length} {note.messages!.length === 1 ? 'Antwort' : 'Antworten'}</span>
                               </span>
                             ) : note.caregiverResponse ? (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/25 px-2 py-0.5 rounded-full">
+                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/25 px-2.5 py-0.5 rounded-full">
                                 <MessageSquare className="w-3 h-3 text-rose-400" />
-                                1 Antwort
+                                <span>1 Antwort</span>
                               </span>
                             ) : (
-                              <span className="text-[11px] text-slate-500">Keine Antworten</span>
+                              <span className="text-[11px] text-slate-500 flex items-center gap-1 font-medium">
+                                <MessageSquare className="w-3 h-3 text-slate-600" />
+                                <span>Keine Antworten</span>
+                              </span>
                             )}
                           </div>
 
@@ -946,7 +938,7 @@ export const CaregiverNotesView: React.FC = () => {
                               <button
                                 type="button"
                                 onClick={(e) => handleStartEdit(note, e)}
-                                className="text-[11px] font-semibold text-amber-400 hover:text-amber-300 flex items-center gap-1 cursor-pointer"
+                                className="text-xs font-semibold text-amber-400 hover:text-amber-300 flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:bg-amber-400/10 transition-colors cursor-pointer"
                               >
                                 <Pencil className="w-3 h-3" />
                                 <span>Bearbeiten</span>
@@ -1091,6 +1083,22 @@ export const CaregiverNotesView: React.FC = () => {
                                   <span>Wiedereröffnen</span>
                                 </button>
                               )
+                            )}
+
+                            {/* Staff Pin Toggle */}
+                            {isStaff && !note.isArchived && (
+                              <button
+                                type="button"
+                                onClick={(e) => handleTogglePin(note.id, e)}
+                                className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+                                  note.isPinned
+                                    ? 'bg-rose-500/20 border-rose-500/40 text-rose-300 hover:bg-rose-500/30'
+                                    : 'bg-surface-elevated border-surface-border text-slate-400 hover:text-white'
+                                }`}
+                              >
+                                <Pin className={`w-3.5 h-3.5 ${note.isPinned ? 'fill-current' : ''}`} />
+                                <span>{note.isPinned ? 'Pin lösen' : 'Oben anpinnen'}</span>
+                              </button>
                             )}
 
                             {isAuthorOrAdmin && !note.isArchived && (

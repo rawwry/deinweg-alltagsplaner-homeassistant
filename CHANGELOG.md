@@ -3,6 +3,20 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.39] - 2026-09-17
+
+### Behoben & Verbessert
+- **Flurfunk-Karten Layout & Bearbeitungsmodus (`CaregiverNotesView.tsx`)**:
+  - **Doppelten Stift entfernt**: Der Stift-Icon-Button oben rechts wurde entfernt. Die Bearbeiten-Aktion ist nun ausschließlich an einer zentralen Stelle platziert (im Fußbereich der Kachel bzw. in der Aktionsleiste der ausgeklappten Details).
+  - **Bearbeitungsmodus & Einklappen-Fehler behoben**: Wenn ein Beitrag bearbeitet wird, schaltet die Kachel in einen sauberen, eigenständigen Bearbeitungsmodus um. Der fehlerhafte „Einklappen“-Button oben rechts wurde durch eine eindeutige „Abbrechen“-Schaltfläche (`X`) ersetzt. Es verschieben sich keine Elemente mehr und der Zustand bleibt absolut stabil.
+  - **Entrümpelung & mobile Bereinigung der Badges**:
+    - Die überflüssige `Öffentlich`-Pille (`Globe`) wurde restlos entfernt (WG-Beiträge sind per se öffentlich).
+    - Der verwirrende, permanente `OFFEN`-Badge auf aktiven Mitteilungen wurde entfernt.
+    - Bei Direktnachrichten wurde die lange Pille auf ein kompaktes `Direkt` gekürzt; der Empfänger steht harmonisch in der Absenderzeile (`Timo Vorwald → Susanne Werning`).
+    - Unangeheftete Kacheln werden nicht mehr mit einem permanenten grauen Pin-Button im Kopfbereich überfrachtet. Bei angepinnten Beiträgen dient der Pin-Badge direkt als Klick-Aktion für Betreuer (oder über die Detail-Aktionsleiste).
+    - Die Absender- und Zeitstempelzeile bricht auf Mobilgeräten nicht mehr unschön in mehrere Zeilen um.
+    - Oben rechts befindet sich pro Kachel nur noch eine einzige, ruhige Schaltfläche: `Details` / `Einklappen`.
+
 ## [0.1.0-beta.38] - 2026-09-17
 
 ### Hinzugefügt & Verbessert
