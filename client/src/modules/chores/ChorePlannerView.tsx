@@ -81,6 +81,28 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
     });
   };
 
+  const handleToggleChoreInPlan = async (tmpl: any, day: any, assignment: any) => {
+    const choreKey = `${day.date}_${tmpl.id}`;
+    togglePersonalChore(choreKey);
+
+    if (tmpl.id && !tmpl.id.startsWith('chefkoch_')) {
+      try {
+        await api.chores.toggleComplete({
+          assignmentId: assignment?.id || undefined,
+          templateId: tmpl.id,
+          date: day.date,
+          year,
+          weekNumber,
+          dayOfWeek: day.dayOfWeek,
+        });
+        const wData = await api.chores.week(activeLocationId, year, weekNumber);
+        setWeekData(wData);
+      } catch (err) {
+        console.error('Fehler beim Abhaken der Aufgabe im Plan:', err);
+      }
+    }
+  };
+
   // Mobile selected day (1=Mo ... 7=So)
   const todayDayOfWeek = now.getDay() === 0 ? 7 : now.getDay();
   const [selectedMobileDay, setSelectedMobileDay] = useState<number>(todayDayOfWeek);
@@ -353,6 +375,7 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                 isAllResidents ||
                 assignedResidents.some((r: any) => r.id === user?.id) ||
                 assignment?.residentId === user?.id;
+              const isDone = Boolean(assignment?.isCompleted) || isPersonalDone;
 
               const modalInitialIds = assignment
                 ? (assignment.isAllResidents ? ['ALL'] : (assignment.assignedResidentIdsList || (assignment.residentId ? [assignment.residentId] : [])))
@@ -362,8 +385,8 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                 <div
                   key={tmpl.id}
                   className={`rounded-2xl border p-4 sm:p-5 transition-all flex flex-col gap-3 ${
-                    isPersonalDone
-                      ? 'bg-emerald-950/20 border-emerald-500/30'
+                    isDone
+                      ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-100 shadow-xs'
                       : isAssigned
                       ? 'bg-surface-elevated/70 hover:bg-surface-elevated border-surface-border hover:border-indigo-500/40 shadow-xs'
                       : 'bg-surface-elevated/30 border-surface-border/60 border-dashed hover:border-surface-border'
@@ -378,7 +401,7 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                       <div className="min-w-0 flex-1">
                         <span
                           className={`text-sm font-bold tracking-tight block truncate ${
-                            isPersonalDone ? 'line-through text-slate-400' : 'text-white'
+                            isDone ? 'line-through text-slate-400' : 'text-white'
                           }`}
                         >
                           {tmpl.title}
@@ -386,30 +409,35 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                       </div>
                     </div>
 
-                    {/* Personal check-off button for residents */}
-                    {user?.role === 'BEWOHNER' && isMyTask && (
+                    {/* Personal check-off button for residents / Status badge for staff */}
+                    {user?.role === 'BEWOHNER' && isMyTask ? (
                       <button
                         type="button"
-                        onClick={() => togglePersonalChore(choreKey)}
+                        onClick={() => handleToggleChoreInPlan(tmpl, day, assignment)}
                         className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer shrink-0 ${
-                          isPersonalDone
+                          isDone
                             ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30'
                             : 'bg-surface-card hover:bg-surface-elevated border-surface-border text-slate-300 hover:text-white'
                         }`}
-                        title={isPersonalDone ? 'Als unerledigt markieren' : 'Als erledigt abhaken'}
+                        title={isDone ? 'Als unerledigt markieren' : 'Als erledigt abhaken'}
                       >
                         <div
                           className={`w-4 h-4 rounded-md flex items-center justify-center border transition-colors ${
-                            isPersonalDone
+                            isDone
                               ? 'bg-emerald-500 border-emerald-500 text-slate-950'
                               : 'border-slate-500 bg-transparent'
                           }`}
                         >
-                          {isPersonalDone && <Check className="w-3 h-3 stroke-[3]" />}
+                          {isDone && <Check className="w-3 h-3 stroke-[3]" />}
                         </div>
-                        <span>{isPersonalDone ? 'Erledigt' : 'Abhaken'}</span>
+                        <span>{isDone ? 'Erledigt' : 'Abhaken'}</span>
                       </button>
-                    )}
+                    ) : assignment?.isCompleted ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold shrink-0">
+                        <Check className="w-3.5 h-3.5 text-emerald-400 stroke-[3]" />
+                        <span>Erledigt</span>
+                      </span>
+                    ) : null}
                   </div>
 
                   {/* Middle Tier: 100% Full Width Description */}

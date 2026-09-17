@@ -3,6 +3,16 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.40] - 2026-09-17
+
+### Hinzugefügt & Verbessert
+- **Live-Synchronisierung von Aufgaben-Erledigungen (`DashboardHub.tsx`, `ChorePlannerView.tsx`, `routes.ts`)**:
+  - **Echtzeit-Synchronisierung zum Betreuer-Dashboard**: Wenn ein Bewohner eine ihm zugewiesene Aufgabe auf seiner Startseite („Deine Aufgaben“) oder im Aufgabenplan abhakt, springt die Statusanzeige auf dem Betreuer-Dashboard („Heutige Aufgaben der WG“) sofort von „Offen“ auf „Erledigt“ mit auffälligem grünem Haken-Badge (`[✓ Erledigt]`), und die gesamte Aufgabenkachel färbt sich in einem klaren, kontrastreichen Grünton (`bg-emerald-500/15 border-emerald-500/50 text-emerald-100`).
+  - **Rollenberechtigung korrigiert**: Die Serverroute `/api/chores/toggle-complete` erlaubt nun auch Bewohnern das Umschalten des Erledigt-Status ihrer Aufgaben (`requireAuth` statt blockierendem Betreuer-Zwang).
+  - **Dynamische Aufgaben-Zuweisung erhalten**: Beim ersten Abhaken einer periodischen Vorlage wird die `ChoreAssignment` serverseitig dynamisch erstellt und übernimmt die zugewiesenen Bewohner der Vorlage, sodass die Zuweisungsdaten intakt bleiben.
+  - **Automatischer Background-Poll & Fokus-Aktualisierung**: Das Betreuer-Dashboard synchronisiert die Aufgabenliste automatisch alle 15 Sekunden sowie sofort beim Reaktivieren des Browserfensters (`visibilitychange` / `window.focus`).
+  - **Konsistente Anzeige im Aufgabenplan**: Auch im wöchentlichen Aufgabenplan wird der Erledigt-Status sowohl für Bewohner als auch für Betreuer sofort mit grünem Rahmen und Erledigt-Badge dargestellt.
+
 ## [0.1.0-beta.39] - 2026-09-17
 
 ### Behoben & Verbessert

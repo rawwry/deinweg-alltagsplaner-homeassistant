@@ -554,8 +554,8 @@ router.post('/assign', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req
   }
 });
 
-// 7. Toggle completion status of an assignment (Staff Only)
-router.post('/toggle-complete', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
+// 7. Toggle completion status of an assignment (Staff & Residents)
+router.post('/toggle-complete', requireAuth, async (req: Request, res: Response) => {
   try {
     const locationId = resolveLocationId(req);
     const { assignmentId, templateId, date, year, weekNumber, dayOfWeek } = req.body;
@@ -583,6 +583,15 @@ router.post('/toggle-complete', requireAuth, requireRole('ADMIN', 'BETREUER'), a
         return res.status(404).json({ error: 'Aufgabe nicht gefunden.' });
       }
 
+      const template = await prisma.choreTemplate.findUnique({
+        where: { id: templateId },
+      });
+
+      const templateAssignedIds = template?.assignedResidentIds || null;
+      const primaryResId = templateAssignedIds && !templateAssignedIds.includes('ALL')
+        ? (parseResidentIds(templateAssignedIds)[0] || null)
+        : (req.user?.role === 'BEWOHNER' ? req.user.id : null);
+
       const assignment = await prisma.choreAssignment.create({
         data: {
           locationId,
@@ -591,7 +600,8 @@ router.post('/toggle-complete', requireAuth, requireRole('ADMIN', 'BETREUER'), a
           year: Number(year) || new Date().getFullYear(),
           weekNumber: Number(weekNumber) || 1,
           dayOfWeek: Number(dayOfWeek) || 1,
-          residentId: req.user?.role === 'BEWOHNER' ? req.user.id : null,
+          residentId: primaryResId,
+          assignedResidentIds: templateAssignedIds,
           isCompleted: true,
           completedAt: new Date(),
           completedById: req.user?.id,
