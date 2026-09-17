@@ -195,6 +195,9 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
     // If public note: residentId is req.user!.id
     const targetResidentId = (isStaff && isPrivate && residentId) ? residentId : req.user!.id;
 
+    const validCategories = ['ALLGEMEIN', 'ANKUENDIGUNG', 'HINWEIS', 'FRAGE'];
+    const noteCategory = validCategories.includes(category) ? category : (category === 'DRINGEND' ? 'ANKUENDIGUNG' : 'ALLGEMEIN');
+
     const note = await prisma.caregiverNote.create({
       data: {
         locationId: locId,
@@ -202,7 +205,7 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
         residentId: targetResidentId,
         title: title.trim(),
         content: content.trim(),
-        category: category || 'ALLGEMEIN',
+        category: noteCategory,
         isPinned: isStaff ? Boolean(isPinned) : false,
         expiresAt: expiresAt ? new Date(expiresAt) : null,
         isPrivate: Boolean(isPrivate),
@@ -286,6 +289,104 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
   } catch (err) {
     console.error('Fehler beim Erstellen der Notiz:', err);
     return res.status(500).json({ error: 'Fehler beim Erstellen der Notiz.' });
+  }
+});
+
+// PUT /api/notes/:id - Edit an authored note (staff only)
+router.put('/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { title, content, category, isPinned, expiresAt, isPrivate, residentId } = req.body;
+
+    const existing = await prisma.caregiverNote.findUnique({
+      where: { id },
+      include: {
+        resident: { select: { id: true, name: true, email: true } },
+        author: { select: { id: true, name: true, role: true, avatarColor: true, avatarUrl: true } },
+        location: { select: { name: true } },
+      },
+    });
+
+    if (!existing) {
+      return res.status(404).json({ error: 'Notiz nicht gefunden.' });
+    }
+
+    // Permission: Caregiver must be author or admin
+    if (req.user!.role !== 'ADMIN' && existing.authorId !== req.user!.id) {
+      return res.status(403).json({ error: 'Du kannst nur deine eigenen Beiträge bearbeiten.' });
+    }
+
+    const validCategories = ['ALLGEMEIN', 'ANKUENDIGUNG', 'HINWEIS', 'FRAGE'];
+    const safeCategory = validCategories.includes(category) ? category : existing.category;
+
+    const updated = await prisma.caregiverNote.update({
+      where: { id },
+      data: {
+        title: title !== undefined ? title.trim() : existing.title,
+        content: content !== undefined ? content.trim() : existing.content,
+        category: safeCategory,
+        isPinned: isPinned !== undefined ? Boolean(isPinned) : existing.isPinned,
+        expiresAt: expiresAt !== undefined ? (expiresAt ? new Date(expiresAt) : null) : existing.expiresAt,
+        isPrivate: isPrivate !== undefined ? Boolean(isPrivate) : existing.isPrivate,
+        residentId: (isPrivate && residentId) ? residentId : existing.residentId,
+      },
+      include: {
+        resident: { select: { id: true, name: true, email: true } },
+        author: { select: { id: true, name: true, role: true, avatarColor: true, avatarUrl: true } },
+        location: { select: { name: true } },
+        messages: {
+          include: {
+            author: { select: { id: true, name: true, role: true, avatarColor: true, avatarUrl: true } },
+          },
+          orderBy: { createdAt: 'asc' },
+        },
+      },
+    });
+
+    const isDirect = updated.isPrivate && updated.author?.role !== 'BEWOHNER';
+
+    return res.json({
+      id: updated.id,
+      locationId: updated.locationId,
+      locationName: updated.location.name,
+      authorId: updated.authorId,
+      authorName: updated.author?.name || null,
+      authorRole: updated.author?.role || null,
+      authorAvatarColor: updated.author?.avatarColor || null,
+      authorAvatarUrl: updated.author?.avatarUrl || null,
+      residentId: updated.residentId,
+      residentName: updated.resident.name,
+      title: updated.title,
+      content: updated.content,
+      category: updated.category,
+      isPinned: updated.isPinned,
+      expiresAt: updated.expiresAt?.toISOString() || null,
+      isExpired: updated.expiresAt ? new Date(updated.expiresAt).getTime() < Date.now() : false,
+      isDirectMessage: isDirect,
+      status: updated.status,
+      isArchived: updated.isArchived,
+      isPrivate: updated.isPrivate,
+      hasUnreadResponse: updated.hasUnreadResponse,
+      caregiverResponse: updated.caregiverResponse,
+      respondedAt: updated.respondedAt?.toISOString() || null,
+      respondedByName: null,
+      resolvedAt: updated.resolvedAt?.toISOString() || null,
+      createdAt: updated.createdAt.toISOString(),
+      messages: (updated.messages || []).map((m: any) => ({
+        id: m.id,
+        noteId: m.noteId,
+        authorId: m.authorId,
+        authorName: m.author.name,
+        authorRole: m.author.role,
+        authorAvatarColor: m.author.avatarColor || null,
+        authorAvatarUrl: m.author.avatarUrl || null,
+        content: m.content,
+        createdAt: m.createdAt.toISOString(),
+      })),
+    });
+  } catch (err) {
+    console.error('Fehler beim Bearbeiten der Notiz:', err);
+    return res.status(500).json({ error: 'Fehler beim Bearbeiten der Notiz.' });
   }
 });
 

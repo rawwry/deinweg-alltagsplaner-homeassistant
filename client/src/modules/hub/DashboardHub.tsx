@@ -37,6 +37,54 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
   const [todayChores, setTodayChores] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  const [dismissedTopicIds, setDismissedTopicIds] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem(`flurfunk_dismissed_${user?.id}`);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    if (!user?.id) return;
+    try {
+      const stored = localStorage.getItem(`flurfunk_dismissed_${user.id}`);
+      if (stored) {
+        setDismissedTopicIds(JSON.parse(stored));
+      }
+    } catch {
+      // ignore
+    }
+  }, [user?.id]);
+
+  const handleDismissTopic = async (note: any) => {
+    const updated = Array.from(new Set([...dismissedTopicIds, note.id]));
+    setDismissedTopicIds(updated);
+    if (user?.id) {
+      try {
+        localStorage.setItem(`flurfunk_dismissed_${user.id}`, JSON.stringify(updated));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    if (note.hasUnreadResponse) {
+      try {
+        await api.notes.markRead(note.id);
+        setNotesList((prev) =>
+          prev.map((n) => (n.id === note.id ? { ...n, hasUnreadResponse: false } : n))
+        );
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  };
+
+  const handleOpenTopic = async (note: any) => {
+    await handleDismissTopic(note);
+    setCurrentTab('notes');
+  };
+
   const now = new Date();
   const currentHour = now.getHours();
   const currentYear = now.getFullYear();
@@ -161,6 +209,143 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
     REST: 'Restmülltonne',
   };
 
+  // Filter new/active Flurfunk topics for both Caregivers and Residents
+  const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+  const newFlurfunkNotifications = notesList.filter((note: any) => {
+    if (note.isArchived || note.status === 'DONE' || note.isExpired) return false;
+    // Do not alert authors about their own postings
+    if (note.authorId && user?.id && note.authorId === user.id) return false;
+    // Dismissed by user in local storage
+    if (dismissedTopicIds.includes(note.id)) return false;
+
+    // For Residents:
+    if (user?.role === 'BEWOHNER') {
+      if (note.residentId === user.id && note.hasUnreadResponse) return true;
+      if (note.isPrivate && note.residentId !== user.id) return false;
+    }
+
+    // Unread caregiver response or direct message
+    if (note.hasUnreadResponse) return true;
+
+    // Time window: either pinned or created within last 7 days
+    const age = note.createdAt ? Date.now() - new Date(note.createdAt).getTime() : Infinity;
+    return note.isPinned || age < SEVEN_DAYS_MS;
+  });
+
+  const displayedNotifications = newFlurfunkNotifications.slice(0, 3);
+  const remainingNotificationsCount = newFlurfunkNotifications.length - displayedNotifications.length;
+
+  const getBannerConfig = (note: any) => {
+    const isDirect = Boolean(note.isDirectMessage);
+    const isReply = Boolean(user?.role === 'BEWOHNER' && note.residentId === user?.id && note.caregiverResponse && note.hasUnreadResponse);
+    const isResidentTicket = Boolean(
+      (user?.role === 'BETREUER' || user?.role === 'ADMIN') &&
+      note.isPrivate &&
+      (note.authorRole === 'BEWOHNER' || note.residentId)
+    );
+
+    if (isReply) {
+      return {
+        badge: 'Neue Antwort im Flurfunk',
+        badgeClass: 'bg-rose-500 text-white',
+        containerClass: 'bg-gradient-to-r from-rose-500/20 via-pink-500/15 to-surface-card border border-rose-500/50 shadow-rose-500/10',
+        iconBg: 'bg-gradient-to-br from-rose-500 to-pink-500 shadow-rose-500/30 text-white',
+        icon: '💬',
+        senderName: note.respondedByName || 'Betreuer',
+        headline: `Zu deinem Beitrag: „${note.title}“`,
+        snippet: note.caregiverResponse,
+        textClass: 'text-rose-200/90',
+        buttonClass: 'bg-rose-500 hover:bg-rose-600 text-white',
+      };
+    }
+
+    if (isResidentTicket) {
+      return {
+        badge: '✉️ Neues Bewohner-Anliegen',
+        badgeClass: 'bg-purple-500 text-white',
+        containerClass: 'bg-gradient-to-r from-purple-500/20 via-violet-500/15 to-surface-card border border-purple-500/50 shadow-purple-500/10',
+        iconBg: 'bg-gradient-to-br from-purple-500 to-indigo-600 shadow-purple-500/30 text-white',
+        icon: '✉️',
+        senderName: note.authorName || note.residentName || 'Bewohner',
+        headline: `Anliegen: „${note.title}“`,
+        snippet: note.content,
+        textClass: 'text-purple-200/90',
+        buttonClass: 'bg-purple-600 hover:bg-purple-700 text-white',
+      };
+    }
+
+    if (isDirect) {
+      return {
+        badge: 'Neue Direktnachricht',
+        badgeClass: 'bg-rose-500 text-white',
+        containerClass: 'bg-gradient-to-r from-rose-500/20 via-pink-500/15 to-surface-card border border-rose-500/50 shadow-rose-500/10',
+        iconBg: 'bg-gradient-to-br from-rose-500 to-pink-500 shadow-rose-500/30 text-white',
+        icon: '✉️',
+        senderName: note.authorName || 'Betreuer',
+        headline: `Nachricht: „${note.title}“`,
+        snippet: note.content,
+        textClass: 'text-rose-200/90',
+        buttonClass: 'bg-rose-500 hover:bg-rose-600 text-white',
+      };
+    }
+
+    switch (note.category) {
+      case 'ANKUENDIGUNG':
+        return {
+          badge: '📢 Wichtige Ankündigung',
+          badgeClass: 'bg-rose-500 text-white',
+          containerClass: 'bg-gradient-to-r from-rose-500/20 via-pink-500/15 to-surface-card border border-rose-500/50 shadow-rose-500/10',
+          iconBg: 'bg-gradient-to-br from-rose-500 to-pink-500 shadow-rose-500/30 text-white',
+          icon: '📢',
+          senderName: note.authorName || 'Betreuer',
+          headline: `„${note.title}“`,
+          snippet: note.content,
+          textClass: 'text-rose-200/90',
+          buttonClass: 'bg-rose-500 hover:bg-rose-600 text-white',
+        };
+      case 'HINWEIS':
+        return {
+          badge: '💡 Wichtiger Hinweis',
+          badgeClass: 'bg-amber-500 text-slate-950 font-bold',
+          containerClass: 'bg-gradient-to-r from-amber-500/20 via-yellow-500/15 to-surface-card border border-amber-500/50 shadow-amber-500/10',
+          iconBg: 'bg-gradient-to-br from-amber-500 to-yellow-600 shadow-amber-500/30 text-slate-950',
+          icon: '💡',
+          senderName: note.authorName || 'Flurfunk',
+          headline: `„${note.title}“`,
+          snippet: note.content,
+          textClass: 'text-amber-200/90',
+          buttonClass: 'bg-amber-500 hover:bg-amber-600 text-slate-950',
+        };
+      case 'FRAGE':
+        return {
+          badge: '❓ Frage an die Gruppe',
+          badgeClass: 'bg-purple-500 text-white',
+          containerClass: 'bg-gradient-to-r from-purple-500/20 via-violet-500/15 to-surface-card border border-purple-500/50 shadow-purple-500/10',
+          iconBg: 'bg-gradient-to-br from-purple-500 to-indigo-600 shadow-purple-500/30 text-white',
+          icon: '❓',
+          senderName: note.authorName || 'Flurfunk',
+          headline: `„${note.title}“`,
+          snippet: note.content,
+          textClass: 'text-purple-200/90',
+          buttonClass: 'bg-purple-600 hover:bg-purple-700 text-white',
+        };
+      case 'ALLGEMEIN':
+      default:
+        return {
+          badge: '💬 Neuer Flurfunk-Beitrag',
+          badgeClass: 'bg-sky-500 text-white',
+          containerClass: 'bg-gradient-to-r from-sky-500/20 via-blue-500/15 to-surface-card border border-sky-500/50 shadow-sky-500/10',
+          iconBg: 'bg-gradient-to-br from-sky-500 to-blue-600 shadow-sky-500/30 text-white',
+          icon: '💬',
+          senderName: note.authorName || 'Flurfunk',
+          headline: `„${note.title}“`,
+          snippet: note.content,
+          textClass: 'text-sky-200/90',
+          buttonClass: 'bg-sky-500 hover:bg-sky-600 text-white',
+        };
+    }
+  };
+
   return (
     <div className="space-y-7 max-w-6xl mx-auto pb-10">
       {/* Top Welcome Headline (Centered) */}
@@ -193,82 +378,74 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
         )}
       </div>
 
-      {/* Resident Notification Banner (Direct Message or Reply) */}
-      {user?.role === 'BEWOHNER' &&
-        notesList.filter((n: any) => n.residentId === user?.id && n.hasUnreadResponse && (n.isDirectMessage || n.caregiverResponse)).length > 0 && (
-          <div className="space-y-3">
-            {notesList
-              .filter((n: any) => n.residentId === user?.id && n.hasUnreadResponse && (n.isDirectMessage || n.caregiverResponse))
-              .map((note: any) => {
-                const isDirect = Boolean(note.isDirectMessage);
-                const senderName = isDirect ? (note.authorName || 'Betreuer') : (note.respondedByName || 'Betreuer');
-                const messageSnippet = isDirect ? note.content : note.caregiverResponse;
-
-                return (
-                  <div
-                    key={note.id}
-                    className="bg-gradient-to-r from-rose-500/20 via-pink-500/15 to-surface-card border border-rose-500/50 rounded-3xl p-4 sm:p-5 shadow-xl shadow-rose-500/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2 duration-200"
-                  >
-                    <div className="flex items-start gap-3.5">
-                      <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-rose-500/30 font-bold text-lg">
-                        {isDirect ? '✉️' : '💬'}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-500 text-white uppercase tracking-wider font-display animate-pulse">
-                            {isDirect ? 'Neue Direktnachricht' : 'Neue Antwort im Flurfunk'}
-                          </span>
-                          <span className="text-xs text-slate-300 font-medium">
-                            von {senderName}
-                          </span>
-                        </div>
-                        <h4 className="text-sm font-semibold text-white mt-1">
-                          {isDirect ? `Nachricht: „${note.title}“` : `Zu deinem Beitrag: „${note.title}“`}
-                        </h4>
-                        <p className="text-xs text-rose-200/90 mt-0.5 line-clamp-2 italic font-sans">
-                          „{messageSnippet}“
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 w-full sm:w-auto self-end sm:self-center shrink-0">
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          try {
-                            await api.notes.markRead(note.id);
-                            setNotesList((prev) =>
-                              prev.map((n) => (n.id === note.id ? { ...n, hasUnreadResponse: false } : n))
-                            );
-                          } catch (e) {
-                            console.error(e);
-                          }
-                        }}
-                        className="px-3.5 py-2 bg-surface-card/80 hover:bg-surface-elevated border border-surface-border text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer"
-                      >
-                        Als gelesen abhaken
-                      </button>
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          try {
-                            await api.notes.markRead(note.id);
-                          } catch (e) {
-                            console.error(e);
-                          }
-                          setCurrentTab('notes');
-                        }}
-                        className="px-3.5 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5"
-                      >
-                        <span>Öffnen</span>
-                        <ArrowRight className="w-3 h-3" />
-                      </button>
-                    </div>
+      {/* Flurfunk Notification Banner (For both Caregivers and Residents) */}
+      {displayedNotifications.length > 0 && (
+        <div className="space-y-3">
+          {displayedNotifications.map((note: any) => {
+            const config = getBannerConfig(note);
+            return (
+              <div
+                key={note.id}
+                className={`${config.containerClass} rounded-3xl p-4 sm:p-5 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2 duration-200`}
+              >
+                <div className="flex items-start gap-3.5">
+                  <div className={`w-10 h-10 rounded-2xl ${config.iconBg} flex items-center justify-center shrink-0 shadow-md font-bold text-lg`}>
+                    {config.icon}
                   </div>
-                );
-              })}
-          </div>
-        )}
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${config.badgeClass} uppercase tracking-wider font-display animate-pulse`}>
+                        {config.badge}
+                      </span>
+                      <span className="text-xs text-slate-300 font-medium">
+                        von {config.senderName}
+                      </span>
+                    </div>
+                    <h4 className="text-sm font-semibold text-white mt-1">
+                      {config.headline}
+                    </h4>
+                    <p className={`text-xs ${config.textClass} mt-0.5 line-clamp-2 italic font-sans`}>
+                      „{config.snippet}“
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 w-full sm:w-auto self-end sm:self-center shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => handleDismissTopic(note)}
+                    className="px-3.5 py-2 bg-surface-card/80 hover:bg-surface-elevated border border-surface-border text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+                  >
+                    Als gelesen abhaken
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenTopic(note)}
+                    className={`px-3.5 py-2 ${config.buttonClass} rounded-xl text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5`}
+                  >
+                    <span>Öffnen</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+
+          {remainingNotificationsCount > 0 && (
+            <div className="text-center pt-1">
+              <button
+                type="button"
+                onClick={() => setCurrentTab('notes')}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-surface-card border border-surface-border text-xs text-slate-300 hover:text-white hover:bg-surface-elevated transition-colors font-medium cursor-pointer shadow-sm"
+              >
+                <span>🔔</span>
+                <span>+ {remainingNotificationsCount} weitere {remainingNotificationsCount === 1 ? 'Mitteilung' : 'Mitteilungen'} im Flurfunk ansehen</span>
+                <ArrowRight className="w-3 h-3 text-slate-400" />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Today's Tasks Widget (Resident View) */}
       {user?.role === 'BEWOHNER' && todayChores && (
@@ -759,7 +936,14 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               {notesList && notesList.length > 0 ? (
                 notesList.slice(0, 2).map((note: any, idx: number) => {
-                  const isStaffNote = note.isStaffOnly || note.category === 'BETREUUNG';
+                  const categoryLabel =
+                    note.category === 'ANKUENDIGUNG'
+                      ? '📢 Ankündigung'
+                      : note.category === 'HINWEIS'
+                      ? '💡 Hinweis'
+                      : note.category === 'FRAGE'
+                      ? '❓ Frage'
+                      : '💬 Notiz';
                   return (
                     <div
                       key={note.id || idx}
@@ -767,7 +951,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                     >
                       <div className="flex items-center justify-between text-xs font-semibold mb-1.5">
                         <span className="text-theme font-medium">
-                          {isStaffNote ? 'Betreuer-Notiz' : 'WG-Notiz'} · {note.authorName || 'WG-Mitglied'}
+                          {categoryLabel} · {note.authorName || 'WG-Mitglied'}
                         </span>
                         <span className="text-[10px] font-mono text-slate-400">
                           {note.createdAt ? formatGermanDate(note.createdAt) : 'Aktuell'}

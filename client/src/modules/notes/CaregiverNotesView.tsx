@@ -20,14 +20,42 @@ import {
   ChevronDown,
   ChevronUp,
   Calendar,
+  Pencil,
 } from 'lucide-react';
 
-const NOTE_CATEGORIES: { id: NoteCategory; label: string; icon: string; badgeClass: string; buttonClass: string }[] = [
-  { id: 'ALLGEMEIN', label: 'Mitteilung', icon: '💬', badgeClass: 'bg-slate-500/15 text-slate-300 border-slate-500/30', buttonClass: 'border-slate-500/40 text-slate-200 bg-slate-500/15' },
-  { id: 'ANKUENDIGUNG', label: 'Ankündigung', icon: '📢', badgeClass: 'bg-sky-500/15 text-sky-300 border-sky-500/30', buttonClass: 'border-sky-500/40 text-sky-200 bg-sky-500/15' },
-  { id: 'HINWEIS', label: 'Hinweis', icon: '⚠️', badgeClass: 'bg-amber-500/15 text-amber-300 border-amber-500/30', buttonClass: 'border-amber-500/40 text-amber-200 bg-amber-500/15' },
-  { id: 'FRAGE', label: 'Frage', icon: '❓', badgeClass: 'bg-violet-500/15 text-violet-300 border-violet-500/30', buttonClass: 'border-violet-500/40 text-violet-200 bg-violet-500/15' },
-  { id: 'DRINGEND', label: 'Dringend', icon: '🚨', badgeClass: 'bg-rose-500/15 text-rose-300 border-rose-500/40', buttonClass: 'border-rose-500/50 text-rose-200 bg-rose-500/20' },
+const NOTE_CATEGORIES: { id: NoteCategory; label: string; icon: string; badgeClass: string; buttonClass: string; cardClass: string }[] = [
+  {
+    id: 'ANKUENDIGUNG',
+    label: 'Ankündigung',
+    icon: '📢',
+    badgeClass: 'bg-rose-500/20 text-rose-200 border-rose-500/40',
+    buttonClass: 'border-rose-500/50 text-rose-200 bg-rose-500/20',
+    cardClass: 'border-rose-500/50 bg-gradient-to-br from-rose-500/15 via-surface-card to-transparent shadow-md shadow-rose-500/10 hover:border-rose-400/70',
+  },
+  {
+    id: 'HINWEIS',
+    label: 'Hinweis',
+    icon: '⚠️',
+    badgeClass: 'bg-amber-500/20 text-amber-200 border-amber-500/40',
+    buttonClass: 'border-amber-500/50 text-amber-200 bg-amber-500/20',
+    cardClass: 'border-amber-500/50 bg-gradient-to-br from-amber-500/15 via-surface-card to-transparent shadow-md shadow-amber-500/10 hover:border-amber-400/70',
+  },
+  {
+    id: 'FRAGE',
+    label: 'Frage',
+    icon: '❓',
+    badgeClass: 'bg-violet-500/20 text-violet-200 border-violet-500/40',
+    buttonClass: 'border-violet-500/50 text-violet-200 bg-violet-500/20',
+    cardClass: 'border-violet-500/50 bg-gradient-to-br from-violet-500/15 via-surface-card to-transparent shadow-md shadow-violet-500/10 hover:border-violet-400/70',
+  },
+  {
+    id: 'ALLGEMEIN',
+    label: 'Mitteilung',
+    icon: '💬',
+    badgeClass: 'bg-sky-500/20 text-sky-200 border-sky-500/40',
+    buttonClass: 'border-sky-500/50 text-sky-200 bg-sky-500/20',
+    cardClass: 'border-sky-500/50 bg-gradient-to-br from-sky-500/15 via-surface-card to-transparent shadow-md shadow-sky-500/10 hover:border-sky-400/70',
+  },
 ];
 
 export const CaregiverNotesView: React.FC = () => {
@@ -47,6 +75,17 @@ export const CaregiverNotesView: React.FC = () => {
 
   // Set of expanded card IDs (collapsible messages)
   const [expandedNoteIds, setExpandedNoteIds] = useState<Set<string>>(new Set());
+
+  // Edit note state (staff only)
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editContent, setEditContent] = useState('');
+  const [editCategory, setEditCategory] = useState<NoteCategory>('ALLGEMEIN');
+  const [editIsPinned, setEditIsPinned] = useState(false);
+  const [editExpiresAt, setEditExpiresAt] = useState('');
+  const [editIsPrivate, setEditIsPrivate] = useState(false);
+  const [editResidentId, setEditResidentId] = useState('');
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
 
   // Response input state per ticket
   const [threadReplyInputs, setThreadReplyInputs] = useState<Record<string, string>>({});
@@ -118,6 +157,54 @@ export const CaregiverNotesView: React.FC = () => {
       });
     } catch (err: any) {
       alert(`Fehler beim Ändern des Pin-Status: ${err.message || err}`);
+    }
+  };
+
+  const handleStartEdit = (note: CaregiverNoteSummary, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setEditingNoteId(note.id);
+    setEditTitle(note.title);
+    setEditContent(note.content);
+    setEditCategory((note.category === 'DRINGEND' ? 'ANKUENDIGUNG' : note.category) as NoteCategory || 'ALLGEMEIN');
+    setEditIsPinned(note.isPinned);
+    setEditExpiresAt(note.expiresAt ? note.expiresAt.substring(0, 10) : '');
+    setEditIsPrivate(Boolean(note.isPrivate));
+    setEditResidentId(note.residentId);
+    setExpandedNoteIds((prev) => new Set(prev).add(note.id));
+  };
+
+  const handleCancelEdit = () => {
+    setEditingNoteId(null);
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent, noteId: string) => {
+    e.preventDefault();
+    if (!editTitle.trim() || !editContent.trim()) return;
+
+    try {
+      setIsSavingEdit(true);
+      const updated = await api.notes.update(noteId, {
+        title: editTitle.trim(),
+        content: editContent.trim(),
+        category: editCategory,
+        isPinned: editIsPinned,
+        expiresAt: editExpiresAt ? new Date(editExpiresAt).toISOString() : null,
+        isPrivate: editIsPrivate,
+        residentId: (editIsPrivate && editResidentId) ? editResidentId : undefined,
+      });
+
+      setNotes((prev) => {
+        const next = prev.map((n) => (n.id === noteId ? updated : n));
+        return next.sort((a, b) => {
+          if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
+      });
+      setEditingNoteId(null);
+    } catch (err: any) {
+      alert(`Fehler beim Speichern der Notiz: ${err.message || err}`);
+    } finally {
+      setIsSavingEdit(false);
     }
   };
 
@@ -541,23 +628,20 @@ export const CaregiverNotesView: React.FC = () => {
             const isExpanded = expandedNoteIds.has(note.id);
             const hasMessages = note.messages && note.messages.length > 0;
             const canReply = !note.isArchived;
-            const categoryConfig = NOTE_CATEGORIES.find((c) => c.id === note.category) || NOTE_CATEGORIES[0];
+            const categoryConfig = NOTE_CATEGORIES.find((c) => c.id === note.category) ||
+              (note.category === 'DRINGEND' ? NOTE_CATEGORIES[0] : NOTE_CATEGORIES[3]);
             const isDirect = note.isPrivate && (note.authorRole === 'BETREUER' || note.authorRole === 'ADMIN' || note.isDirectMessage);
+            const isAuthorOrAdmin = isStaff && (note.authorId === user?.id || user?.role === 'ADMIN');
+            const isEditing = editingNoteId === note.id;
 
             return (
               <div
                 key={note.id}
                 className={`bento-card rounded-[2.5rem] p-5 sm:p-6 border shadow-md transition-all ${
                   note.isArchived
-                    ? 'border-surface-border opacity-75'
-                    : note.isPinned
-                    ? 'border-rose-500/50 bg-gradient-to-br from-rose-500/10 via-surface-card to-transparent ring-1 ring-rose-500/30'
-                    : note.isPrivate
-                    ? 'border-purple-500/30 bg-gradient-to-br from-purple-500/5 to-transparent'
-                    : note.status === 'IN_PROGRESS'
-                    ? 'border-sky-500/30 bg-gradient-to-br from-sky-500/5 to-transparent'
-                    : 'border-surface-border hover:border-surface-hover bg-surface-card'
-                }`}
+                    ? 'border-surface-border opacity-70 bg-surface-card'
+                    : categoryConfig.cardClass
+                } ${note.isPinned && !note.isArchived ? 'ring-2 ring-rose-500/40' : ''}`}
               >
                 {/* Top Header Row: Badges & Controls */}
                 <div className="flex items-center justify-between gap-2 mb-3">
@@ -611,7 +695,7 @@ export const CaregiverNotesView: React.FC = () => {
                     </span>
                   </div>
 
-                  {/* Action icons: Pin toggle (staff) & Expand/Collapse toggle */}
+                  {/* Action icons: Pin toggle (staff), Edit (author/admin) & Expand/Collapse toggle */}
                   <div className="flex items-center gap-1 shrink-0">
                     {isStaff && !note.isArchived && (
                       <button
@@ -625,6 +709,17 @@ export const CaregiverNotesView: React.FC = () => {
                         }`}
                       >
                         <Pin className={`w-3.5 h-3.5 ${note.isPinned ? 'fill-current' : ''}`} />
+                      </button>
+                    )}
+
+                    {isAuthorOrAdmin && !note.isArchived && !isEditing && (
+                      <button
+                        type="button"
+                        onClick={(e) => handleStartEdit(note, e)}
+                        title="Beitrag bearbeiten"
+                        className="p-1.5 rounded-xl bg-surface-elevated hover:bg-surface-card border border-surface-border text-slate-400 hover:text-amber-300 transition-colors cursor-pointer"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
                       </button>
                     )}
 
@@ -667,204 +762,342 @@ export const CaregiverNotesView: React.FC = () => {
                   </span>
                 </div>
 
-                {/* Title */}
-                <h3
-                  onClick={() => toggleExpand(note.id)}
-                  className="text-base sm:text-lg font-display font-semibold text-white cursor-pointer hover:text-rose-300 transition-colors"
-                >
-                  {note.title}
-                </h3>
+                {/* EDIT FORM (when editing) */}
+                {isEditing ? (
+                  <form
+                    onSubmit={(e) => handleSaveEdit(e, note.id)}
+                    className="mt-3 p-4 sm:p-5 rounded-2xl bg-surface-elevated/90 border border-amber-500/30 space-y-3.5 animate-in fade-in duration-150"
+                  >
+                    <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                      <span className="text-xs font-bold text-amber-300 flex items-center gap-1.5 font-display">
+                        <Pencil className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Beitrag bearbeiten</span>
+                      </span>
+                    </div>
 
-                {/* Collapsed Snippet or Expanded Full Content */}
-                {!isExpanded ? (
-                  <div className="mt-2">
-                    <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed font-normal">
-                      {note.content}
-                    </p>
-                    <div className="mt-3 flex items-center justify-between text-xs pt-2 border-t border-white/5">
-                      <div className="flex items-center gap-2">
-                        {hasMessages ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/25 px-2 py-0.5 rounded-full">
-                            <MessageSquare className="w-3 h-3 text-rose-400" />
-                            {note.messages!.length} {note.messages!.length === 1 ? 'Antwort' : 'Antworten'}
-                          </span>
-                        ) : note.caregiverResponse ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/25 px-2 py-0.5 rounded-full">
-                            <MessageSquare className="w-3 h-3 text-rose-400" />
-                            1 Antwort
-                          </span>
-                        ) : (
-                          <span className="text-[11px] text-slate-500">Keine Antworten</span>
-                        )}
+                    {/* Category Selector */}
+                    <div className="space-y-1">
+                      <label className="block text-[11px] font-semibold text-slate-300">
+                        Kategorie
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {NOTE_CATEGORIES.map((cat) => (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => setEditCategory(cat.id)}
+                            className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                              editCategory === cat.id
+                                ? `${cat.buttonClass} ring-2 ring-rose-500/40 font-bold scale-102`
+                                : 'bg-surface-card border-surface-border text-slate-400 hover:text-slate-200'
+                            }`}
+                          >
+                            <span>{cat.icon}</span>
+                            <span>{cat.label}</span>
+                          </button>
+                        ))}
                       </div>
+                    </div>
 
+                    {/* Title */}
+                    <div className="space-y-1">
+                      <label className="block text-[11px] font-semibold text-slate-300">Titel</label>
+                      <input
+                        type="text"
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        className="w-full px-3.5 py-2 bg-surface-card border border-surface-border rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans"
+                        required
+                      />
+                    </div>
+
+                    {/* Content */}
+                    <div className="space-y-1">
+                      <label className="block text-[11px] font-semibold text-slate-300">Inhalt</label>
+                      <textarea
+                        value={editContent}
+                        onChange={(e) => setEditContent(e.target.value)}
+                        rows={4}
+                        className="w-full px-3.5 py-2 bg-surface-card border border-surface-border rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans resize-none"
+                        required
+                      />
+                    </div>
+
+                    {/* Pin & Expiry */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                      <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-surface-card border border-surface-border cursor-pointer hover:border-surface-hover">
+                        <input
+                          type="checkbox"
+                          checked={editIsPinned}
+                          onChange={(e) => setEditIsPinned(e.target.checked)}
+                          className="w-4 h-4 rounded text-rose-500 focus:ring-rose-500/40 cursor-pointer"
+                        />
+                        <div className="text-xs">
+                          <span className="font-bold text-slate-200 flex items-center gap-1">
+                            <Pin className="w-3.5 h-3.5 text-rose-400" />
+                            <span>Oben anpinnen</span>
+                          </span>
+                        </div>
+                      </label>
+
+                      <div className="p-2.5 rounded-xl bg-surface-card border border-surface-border space-y-1">
+                        <label className="block text-[11px] font-bold text-slate-300 flex items-center gap-1">
+                          <Calendar className="w-3 h-3 text-slate-400" />
+                          <span>Ablaufdatum (optional)</span>
+                        </label>
+                        <input
+                          type="date"
+                          value={editExpiresAt}
+                          onChange={(e) => setEditExpiresAt(e.target.value)}
+                          className="w-full px-2 py-1 bg-surface-elevated border border-surface-border rounded-lg text-xs text-white focus:outline-none focus:ring-1 focus:ring-rose-500"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/5">
                       <button
                         type="button"
-                        onClick={() => toggleExpand(note.id)}
-                        className="text-[11px] font-semibold text-rose-400 hover:text-rose-300 flex items-center gap-1 cursor-pointer"
+                        onClick={handleCancelEdit}
+                        disabled={isSavingEdit}
+                        className="px-3.5 py-2 rounded-xl bg-surface-card hover:bg-surface-elevated border border-surface-border text-slate-300 text-xs font-semibold cursor-pointer transition-colors"
                       >
-                        <span>Vollständig anzeigen</span>
-                        <ChevronDown className="w-3.5 h-3.5" />
+                        Abbrechen
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isSavingEdit}
+                        className="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white text-xs font-bold shadow-md shadow-rose-500/20 cursor-pointer transition-all disabled:opacity-50"
+                      >
+                        {isSavingEdit ? 'Speichert...' : 'Änderungen speichern'}
                       </button>
                     </div>
-                  </div>
+                  </form>
                 ) : (
-                  /* EXPANDED VIEW */
-                  <div className="mt-3 space-y-4 animate-in fade-in duration-150">
-                    <p className="text-xs text-slate-200 leading-relaxed whitespace-pre-line font-normal bg-surface-elevated/40 p-3.5 rounded-2xl border border-surface-border">
-                      {note.content}
-                    </p>
+                  <>
+                    {/* Title */}
+                    <h3
+                      onClick={() => toggleExpand(note.id)}
+                      className="text-base sm:text-lg font-display font-semibold text-white cursor-pointer hover:text-rose-300 transition-colors"
+                    >
+                      {note.title}
+                    </h3>
 
-                    {/* Conversation History */}
-                    {hasMessages ? (
-                      <div className="pt-2 border-t border-white/5 space-y-2.5">
-                        <div className="text-[11px] font-display font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-2">
-                          <MessageSquare className="w-3.5 h-3.5 text-rose-400" />
-                          <span>Gesprächsverlauf ({note.messages!.length})</span>
-                        </div>
-
-                        <div className="space-y-2">
-                          {note.messages!.map((msg) => {
-                            const isStaffMsg = msg.authorRole === 'BETREUER' || msg.authorRole === 'ADMIN';
-                            return (
-                              <div
-                                key={msg.id}
-                                className={`p-3.5 rounded-2xl border text-xs ${
-                                  isStaffMsg
-                                    ? 'bg-rose-500/10 border-rose-500/25 ml-2 sm:ml-5'
-                                    : 'bg-surface-elevated/70 border-surface-border mr-2 sm:mr-5'
-                                }`}
-                              >
-                                <div className="flex items-center justify-between gap-2 mb-1">
-                                  <div className="flex items-center gap-2">
-                                    <div
-                                      className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white uppercase shrink-0"
-                                      style={{ backgroundColor: msg.authorAvatarColor || (isStaffMsg ? '#f43f5e' : '#3b82f6') }}
-                                    >
-                                      {msg.authorName.charAt(0)}
-                                    </div>
-                                    <span className="font-semibold text-slate-200">
-                                      {msg.authorName}
-                                    </span>
-                                    <span
-                                      className={`text-[9px] px-1.5 py-0.5 font-bold rounded-md uppercase tracking-wider ${
-                                        isStaffMsg
-                                          ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                                          : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                                      }`}
-                                    >
-                                      {isStaffMsg ? 'Betreuer' : 'Bewohner'}
-                                    </span>
-                                  </div>
-                                  <span className="text-[10px] text-slate-400 font-mono">
-                                    {formatGermanDateTime(msg.createdAt)}
-                                  </span>
-                                </div>
-                                <p className="text-slate-200 whitespace-pre-line leading-relaxed pl-7 font-normal">
-                                  {msg.content}
-                                </p>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ) : note.caregiverResponse ? (
-                      /* Legacy fallback */
-                      <div className="p-4 bg-surface-elevated/70 border border-rose-500/30 rounded-2xl">
-                        <div className="flex items-center justify-between text-xs mb-1.5">
-                          <span className="font-display font-bold text-rose-300 flex items-center gap-1.5">
-                            <MessageSquare className="w-4 h-4 text-rose-400" />
-                            Rückmeldung von {note.respondedByName || 'Betreuer'}
-                          </span>
-                          {note.respondedAt && (
-                            <span className="text-[11px] text-slate-400 font-mono">
-                              {formatGermanDateTime(note.respondedAt)}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-slate-200 leading-relaxed whitespace-pre-line font-medium">
-                          {note.caregiverResponse}
+                    {/* Collapsed Snippet or Expanded Full Content */}
+                    {!isExpanded ? (
+                      <div className="mt-2">
+                        <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed font-normal">
+                          {note.content}
                         </p>
-                      </div>
-                    ) : null}
+                        <div className="mt-3 flex items-center justify-between text-xs pt-2 border-t border-white/5">
+                          <div className="flex items-center gap-2">
+                            {hasMessages ? (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/25 px-2 py-0.5 rounded-full">
+                                <MessageSquare className="w-3 h-3 text-rose-400" />
+                                {note.messages!.length} {note.messages!.length === 1 ? 'Antwort' : 'Antworten'}
+                              </span>
+                            ) : note.caregiverResponse ? (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/25 px-2 py-0.5 rounded-full">
+                                <MessageSquare className="w-3 h-3 text-rose-400" />
+                                1 Antwort
+                              </span>
+                            ) : (
+                              <span className="text-[11px] text-slate-500">Keine Antworten</span>
+                            )}
+                          </div>
 
-                    {/* Inline Thread Reply Input */}
-                    {canReply && (
-                      <div className="pt-2 border-t border-white/5 flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={threadReplyInputs[note.id] || ''}
-                          onChange={(e) =>
-                            setThreadReplyInputs((prev) => ({ ...prev, [note.id]: e.target.value }))
-                          }
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                              e.preventDefault();
-                              handleSendThreadMessage(note.id);
-                            }
-                          }}
-                          placeholder="Auf diesen Beitrag antworten..."
-                          className="flex-1 px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleSendThreadMessage(note.id)}
-                          disabled={!threadReplyInputs[note.id]?.trim() || isSubmittingMap[note.id]}
-                          className="px-4 py-2.5 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 disabled:opacity-40 transition-all cursor-pointer shrink-0 shadow-sm"
-                        >
-                          <Send className="w-3.5 h-3.5" />
-                          <span className="hidden sm:inline">Antworten</span>
-                        </button>
+                          <div className="flex items-center gap-2">
+                            {isAuthorOrAdmin && !note.isArchived && (
+                              <button
+                                type="button"
+                                onClick={(e) => handleStartEdit(note, e)}
+                                className="text-[11px] font-semibold text-amber-400 hover:text-amber-300 flex items-center gap-1 cursor-pointer mr-2"
+                              >
+                                <Pencil className="w-3 h-3" />
+                                <span>Bearbeiten</span>
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => toggleExpand(note.id)}
+                              className="text-[11px] font-semibold text-rose-400 hover:text-rose-300 flex items-center gap-1 cursor-pointer"
+                            >
+                              <span>Vollständig anzeigen</span>
+                              <ChevronDown className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      /* EXPANDED VIEW */
+                      <div className="mt-3 space-y-4 animate-in fade-in duration-150">
+                        <p className="text-xs text-slate-200 leading-relaxed whitespace-pre-line font-normal bg-surface-elevated/40 p-3.5 rounded-2xl border border-surface-border">
+                          {note.content}
+                        </p>
+
+                        {/* Conversation History */}
+                        {hasMessages ? (
+                          <div className="pt-2 border-t border-white/5 space-y-2.5">
+                            <div className="text-[11px] font-display font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-2">
+                              <MessageSquare className="w-3.5 h-3.5 text-rose-400" />
+                              <span>Gesprächsverlauf ({note.messages!.length})</span>
+                            </div>
+
+                            <div className="space-y-2">
+                              {note.messages!.map((msg) => {
+                                const isStaffMsg = msg.authorRole === 'BETREUER' || msg.authorRole === 'ADMIN';
+                                return (
+                                  <div
+                                    key={msg.id}
+                                    className={`p-3.5 rounded-2xl border text-xs ${
+                                      isStaffMsg
+                                        ? 'bg-rose-500/10 border-rose-500/25 ml-2 sm:ml-5'
+                                        : 'bg-surface-elevated/70 border-surface-border mr-2 sm:mr-5'
+                                    }`}
+                                  >
+                                    <div className="flex items-center justify-between gap-2 mb-1">
+                                      <div className="flex items-center gap-2">
+                                        <div
+                                          className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white uppercase shrink-0"
+                                          style={{ backgroundColor: msg.authorAvatarColor || (isStaffMsg ? '#f43f5e' : '#3b82f6') }}
+                                        >
+                                          {msg.authorName.charAt(0)}
+                                        </div>
+                                        <span className="font-semibold text-slate-200">
+                                          {msg.authorName}
+                                        </span>
+                                        <span
+                                          className={`text-[9px] px-1.5 py-0.5 font-bold rounded-md uppercase tracking-wider ${
+                                            isStaffMsg
+                                              ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                                              : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                                          }`}
+                                        >
+                                          {isStaffMsg ? 'Betreuer' : 'Bewohner'}
+                                        </span>
+                                      </div>
+                                      <span className="text-[10px] text-slate-400 font-mono">
+                                        {formatGermanDateTime(msg.createdAt)}
+                                      </span>
+                                    </div>
+                                    <p className="text-slate-200 whitespace-pre-line leading-relaxed pl-7 font-normal">
+                                      {msg.content}
+                                    </p>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ) : note.caregiverResponse ? (
+                          /* Legacy fallback */
+                          <div className="p-4 bg-surface-elevated/70 border border-rose-500/30 rounded-2xl">
+                            <div className="flex items-center justify-between text-xs mb-1.5">
+                              <span className="font-display font-bold text-rose-300 flex items-center gap-1.5">
+                                <MessageSquare className="w-4 h-4 text-rose-400" />
+                                Rückmeldung von {note.respondedByName || 'Betreuer'}
+                              </span>
+                              {note.respondedAt && (
+                                <span className="text-[11px] text-slate-400 font-mono">
+                                  {formatGermanDateTime(note.respondedAt)}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-slate-200 leading-relaxed whitespace-pre-line font-medium">
+                              {note.caregiverResponse}
+                            </p>
+                          </div>
+                        ) : null}
+
+                        {/* Inline Thread Reply Input */}
+                        {canReply && (
+                          <div className="pt-2 border-t border-white/5 flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={threadReplyInputs[note.id] || ''}
+                              onChange={(e) =>
+                                setThreadReplyInputs((prev) => ({ ...prev, [note.id]: e.target.value }))
+                              }
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                  e.preventDefault();
+                                  handleSendThreadMessage(note.id);
+                                }
+                              }}
+                              placeholder="Auf diesen Beitrag antworten..."
+                              className="flex-1 px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleSendThreadMessage(note.id)}
+                              disabled={!threadReplyInputs[note.id]?.trim() || isSubmittingMap[note.id]}
+                              className="px-4 py-2.5 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 disabled:opacity-40 transition-all cursor-pointer shrink-0 shadow-sm"
+                            >
+                              <Send className="w-3.5 h-3.5" />
+                              <span className="hidden sm:inline">Antworten</span>
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Action Bar */}
+                        <div className="pt-3 border-t border-white/5 flex items-center justify-between gap-3 flex-wrap">
+                          <div className="flex items-center gap-2.5">
+                            {!note.isArchived ? (
+                              <button
+                                type="button"
+                                onClick={() => handleResolveTicket(note.id)}
+                                className="px-3.5 py-2 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+                              >
+                                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                                <span>Als erledigt archivieren</span>
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleReopenTicket(note.id)}
+                                className="px-3.5 py-2 bg-surface-elevated hover:bg-surface-card text-slate-200 border border-surface-border rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                              >
+                                <RotateCcw className="w-3.5 h-3.5 text-rose-400" />
+                                <span>Wiedereröffnen</span>
+                              </button>
+                            )}
+
+                            {isAuthorOrAdmin && !note.isArchived && (
+                              <button
+                                type="button"
+                                onClick={(e) => handleStartEdit(note, e)}
+                                className="px-3 py-1.5 rounded-xl bg-surface-elevated hover:bg-surface-card text-amber-300 hover:text-amber-200 border border-amber-500/30 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors"
+                              >
+                                <Pencil className="w-3.5 h-3.5 text-amber-400" />
+                                <span>Bearbeiten</span>
+                              </button>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => toggleExpand(note.id)}
+                              className="px-3 py-1.5 rounded-xl bg-surface-elevated hover:bg-surface-card text-slate-400 hover:text-slate-200 text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors"
+                            >
+                              <span>Einklappen</span>
+                              <ChevronUp className="w-3.5 h-3.5" />
+                            </button>
+
+                            {(isStaff || note.authorId === user?.id || note.residentId === user?.id) && (
+                              <button
+                                type="button"
+                                onClick={() => handleDelete(note.id)}
+                                title="Notiz löschen"
+                                className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/15 rounded-xl transition-colors cursor-pointer"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     )}
-
-                    {/* Action Bar */}
-                    <div className="pt-3 border-t border-white/5 flex items-center justify-between gap-3 flex-wrap">
-                      <div className="flex items-center gap-2.5">
-                        {!note.isArchived ? (
-                          <button
-                            type="button"
-                            onClick={() => handleResolveTicket(note.id)}
-                            className="px-3.5 py-2 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
-                          >
-                            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                            <span>Als erledigt archivieren</span>
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleReopenTicket(note.id)}
-                            className="px-3.5 py-2 bg-surface-elevated hover:bg-surface-card text-slate-200 border border-surface-border rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-                          >
-                            <RotateCcw className="w-3.5 h-3.5 text-rose-400" />
-                            <span>Wiedereröffnen</span>
-                          </button>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => toggleExpand(note.id)}
-                          className="px-3 py-1.5 rounded-xl bg-surface-elevated hover:bg-surface-card text-slate-400 hover:text-slate-200 text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors"
-                        >
-                          <span>Einklappen</span>
-                          <ChevronUp className="w-3.5 h-3.5" />
-                        </button>
-
-                        {(isStaff || note.authorId === user?.id || note.residentId === user?.id) && (
-                          <button
-                            type="button"
-                            onClick={() => handleDelete(note.id)}
-                            title="Notiz löschen"
-                            className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/15 rounded-xl transition-colors cursor-pointer"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+                  </>
                 )}
               </div>
             );

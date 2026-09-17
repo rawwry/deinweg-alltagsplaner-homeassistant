@@ -217,6 +217,18 @@ export const api = {
       expiresAt?: string | null;
     }) => request<any>('notes', { method: 'POST', body: JSON.stringify(body) }),
     togglePin: (id: string) => request<{ id: string; isPinned: boolean }>(`notes/${id}/pin`, { method: 'PATCH' }),
+    update: (
+      id: string,
+      body: {
+        title: string;
+        content: string;
+        category?: string;
+        isPinned?: boolean;
+        expiresAt?: string | null;
+        isPrivate?: boolean;
+        residentId?: string;
+      }
+    ) => request<any>(`notes/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
     respond: (id: string, response: string) =>
       request<any>(`notes/${id}/respond`, { method: 'POST', body: JSON.stringify({ response }) }),
     addMessage: (id: string, content: string) =>

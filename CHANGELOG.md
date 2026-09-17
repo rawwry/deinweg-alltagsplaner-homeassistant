@@ -3,6 +3,26 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.32] - 2026-09-17
+
+### Hinzugefügt & Verbessert
+- **Dashboard: Multi-Rollen-Hinweisfenster für Betreuer und Bewohner (`DashboardHub`)**:
+  - Großes, modernes Benachrichtigungs-Hinweisfenster auf der Startseite für **Betreuer UND Bewohner**, sobald neue oder aktive Themen im Flurfunk vorhanden sind.
+  - Eigene Beiträge des aktuell angemeldeten Benutzers werden automatisch herausgefiltert, sodass man niemals über seine eigenen Notizen benachrichtigt wird.
+  - Farblich abgestimmt auf den jeweiligen Beitragstyp (Ankündigung, Hinweis, Frage, Mitteilung, Bewohner-Anliegen, Direktnachricht).
+  - Aktionen: *„Als gelesen abhaken“* (speichert den Gelesen-Status lokal pro Benutzer-ID und leert ggf. `hasUnreadResponse`) sowie *„Öffnen“* mit direktem Wechsel zum Flurfunk.
+  - Bei mehr als 3 aktiven Hinweisen sorgt ein dezenter Sammel-Button (*„+ X weitere Mitteilungen im Flurfunk ansehen“*) für eine aufgeräumte Home-Ansicht.
+- **Flurfunk: Farbkodierung der Beitragskarten (`CaregiverNotesView`)**:
+  - **📢 Ankündigung**: Rötlich / Rose / Pink gefärbt (`bg-rose-500/10 border-rose-500/35`) zur klaren Hervorhebung wichtiger WG-Neuigkeiten.
+  - **💡 Hinweis**: Gelblich / Amber gefärbt (`bg-amber-500/10 border-amber-500/35`) für praktische Ratschläge, Putzhinweise oder Termine.
+  - **❓ Frage**: Violett / Purple gefärbt (`bg-purple-500/10 border-purple-500/35`) für Abstimmungen oder Gruppenfragen.
+  - **💬 Mitteilung (Allgemein)**: Blau / Sky gefärbt (`bg-sky-500/10 border-sky-500/35`) für alltägliche Notizen und WG-Pinnwandeinträge.
+  - Vollständige Entfernung der überflüssigen Kategorie *„Dringend“* aus allen Auswahllisten, Filtern und Typen (mit nahtlosem Fallback für bestehende Einträge).
+- **Flurfunk: Beiträge durch Betreuer editierbar (`CaregiverNotesView` & Server API)**:
+  - Betreuer und Administratoren können ihre eigenen Flurfunk-Beiträge nachträglich editieren (Titel, Inhalt, Kategorie, Angepinnt, Ablaufdatum und Sichtbarkeit/Empfänger).
+  - Neuer API-Endpunkt `PUT /api/notes/:id` mit Berechtigungsprüfung (`ADMIN` oder Notiz-Verfasser).
+  - Komfortables Inline-Bearbeitungsformular direkt auf der jeweiligen Karte mit *Speichern*- und *Abbrechen*-Funktion.
+
 ## [0.1.0-beta.31] - 2026-09-17
 
 ### Hinzugefügt & Verbessert
