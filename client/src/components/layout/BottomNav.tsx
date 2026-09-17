@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Calendar, ShoppingCart, BookOpen, MessageSquareText, Trash2, ListTodo } from 'lucide-react';
+import { Home, ChefHat, ShoppingCart, BookOpen, MessageSquareText, Trash2, ListTodo } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.js';
 import { api } from '../../api/client.js';
 
@@ -33,16 +33,17 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, setCurrentTab 
   }, [isStaff, activeLocationId]);
 
   const navItems = [
+    { id: 'hub', label: 'Home', icon: Home },
     { id: 'chores', label: 'Aufgaben', icon: ListTodo },
-    { id: 'mealplan', label: 'Wochenplan', icon: Calendar },
+    { id: 'mealplan', label: 'Kochplan', icon: ChefHat },
     { id: 'shopping', label: 'Einkauf', icon: ShoppingCart },
-    { id: 'recipes', label: 'Rezepte', icon: BookOpen },
+    ...(isStaff ? [{ id: 'recipes', label: 'Rezepte', icon: BookOpen }] : []),
     { id: 'notes', label: 'Flurfunk', icon: MessageSquareText, badge: isStaff && openTicketCount > 0 ? openTicketCount : undefined },
     { id: 'waste', label: 'Abfall', icon: Trash2 },
   ];
 
   return (
-    <div className="md:hidden flex-shrink-0 z-30 bg-surface-card/95 backdrop-blur-xl border-t border-surface-border px-2 py-1 shadow-2xl shadow-black/60">
+    <div className="md:hidden flex-shrink-0 z-30 bg-surface-card/95 backdrop-blur-xl border-t border-surface-border px-2 pt-2 pb-5 sm:pb-3 shadow-2xl shadow-black/60">
       <nav className="flex items-center justify-around">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -52,7 +53,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, setCurrentTab 
               key={item.id}
               type="button"
               onClick={() => setCurrentTab(item.id)}
-              className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-2xl transition-all relative cursor-pointer ${
+              className={`flex flex-col items-center justify-center py-1 px-2 rounded-2xl transition-all relative cursor-pointer ${
                 isActive
                   ? 'text-rose-400 font-semibold'
                   : 'text-slate-400 hover:text-slate-200'

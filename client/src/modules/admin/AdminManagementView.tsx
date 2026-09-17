@@ -1485,7 +1485,7 @@ export const AdminManagementView: React.FC = () => {
                       })}
                     </div>
                     <p className="text-[11px] text-slate-500 mt-1">
-                      Tage ohne gemeinsames Kochen werden im Wochenplan als Selbstversorgung gekennzeichnet.
+                      Tage ohne gemeinsames Kochen werden im Kochplan als Selbstversorgung gekennzeichnet.
                     </p>
                   </div>
                 </div>
@@ -2271,7 +2271,7 @@ export const AdminManagementView: React.FC = () => {
                                   </div>
                                 ) : (
                                   <span className="text-slate-500 italic text-[10px]">
-                                    Freie Einteilung im Wochenplan
+                                    Freie Einteilung im Aufgabenplan
                                   </span>
                                 )}
                               </div>

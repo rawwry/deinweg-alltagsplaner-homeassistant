@@ -7,6 +7,7 @@ import {
   Trash2,
   Home,
   ListTodo,
+  ChefHat,
   PanelLeftClose,
   PanelLeftOpen,
 } from 'lucide-react';
@@ -64,7 +65,7 @@ export const DesktopNav: React.FC<DesktopNavProps> = ({ currentTab, setCurrentTa
   const navItems = [
     { id: 'hub', label: 'Übersicht', icon: Home },
     { id: 'chores', label: 'Aufgabenplan', icon: ListTodo },
-    { id: 'mealplan', label: 'Wochenplan', icon: Calendar },
+    { id: 'mealplan', label: 'Kochplan', icon: ChefHat },
     { id: 'shopping', label: 'Einkaufsliste', icon: ShoppingCart },
     { id: 'recipes', label: 'Rezepte', icon: BookOpen },
     { id: 'notes', label: 'Flurfunk', icon: MessageSquareText, badge: openTicketCount > 0 ? openTicketCount : undefined },

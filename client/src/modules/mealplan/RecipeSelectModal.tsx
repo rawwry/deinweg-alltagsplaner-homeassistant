@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { api } from '../../api/client.js';
 import { RecipeSummary } from '../../../../shared/types.js';
-import { X, Search, Clock, Users, ChefHat, Utensils } from 'lucide-react';
+import { X, Search, Clock, Users, ChefHat, Utensils, Trash2 } from 'lucide-react';
 
 interface RecipeSelectModalProps {
   isOpen: boolean;
@@ -223,9 +223,10 @@ export const RecipeSelectModal: React.FC<RecipeSelectModalProps> = ({
               onSelectRecipe(null);
               onClose();
             }}
-            className="text-slate-400 hover:text-rose-400 font-semibold cursor-pointer transition-colors"
+            className="px-3.5 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 hover:text-white font-semibold cursor-pointer transition-all flex items-center gap-2"
           >
-            Tag leeren (kein Gericht)
+            <Trash2 className="w-4 h-4 text-rose-400" />
+            <span>Gericht entfernen</span>
           </button>
           <button
             type="button"

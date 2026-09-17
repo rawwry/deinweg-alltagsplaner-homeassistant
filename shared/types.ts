@@ -143,7 +143,7 @@ export interface CaregiverNoteMessageSummary {
   createdAt: string;
 }
 
-export type NoteCategory = 'ALLGEMEIN' | 'ANKUENDIGUNG' | 'HINWEIS' | 'FRAGE';
+export type NoteCategory = 'ALLGEMEIN' | 'ANKUENDIGUNG' | 'HINWEIS';
 
 export interface CaregiverNoteSummary {
   id: string;

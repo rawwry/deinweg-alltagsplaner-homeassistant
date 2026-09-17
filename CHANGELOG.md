@@ -3,6 +3,36 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.34] - 2026-09-17
+
+### Hinzugefügt & Verbessert
+- **Umbenennung „Wochenplan“ zu „Kochplan“ (`DesktopNav`, `BottomNav`, `DashboardHub`, `MealPlanView`, `ShoppingListView`)**:
+  - Sämtliche Beschriftungen und Navigationselemente rund um die Essensplanung wurden von „Wochenplan“ in „Kochplan“ umbenannt.
+  - Neues Koch-Icon (`ChefHat`) in Desktop- und mobiler Navigation sowie in Schnellzugriffen und Kopfzeilen.
+- **Chefkoch-Aufgabe für Bewohner (`DashboardHub` & `ChorePlannerView`)**:
+  - Sobald ein Bewohner an einem Tag im Kochplan als Chefkoch eingeteilt ist (`cookUserId`), erscheint diese Kochaufgabe automatisch unter „Deine Aufgaben“ auf dem Home-Dashboard sowie im Aufgabenplan.
+  - Die Aufgabe ist für den Chefkoch mit Titel des Gerichts, Beschreibung und Koch-Icon versehen.
+- **Persönliches Abhaken für Bewohner im Aufgabenplan & Dashboard (`ChorePlannerView` & `DashboardHub`)**:
+  - Bewohner können ihre zugewiesenen Aufgaben zur eigenen Orientierung persönlich abhaken.
+  - Dieser Erledigt-Status wird rein lokal pro Bewohner (`localStorage`) gespeichert und ist für andere Bewohner und Betreuer unsichtbar; es werden keine störenden Statusmeldungen an Betreuer ausgelöst.
+  - Für Bewohner ist im Aufgabenplan standardmäßig der Filter *„Nur meine Aufgaben“* aktiv.
+- **Mobile Bottom-Navigation Optimierung (`BottomNav`)**:
+  - Neuer **Home-Button** ganz links mit direktem Zugriff auf das Dashboard (`hub`).
+  - Der Tab *„Rezepte“* wird für Bewohner ausgeblendet.
+  - Vergrößerter unterer Sicherheitsabstand (`pb-5 sm:pb-3`), damit die Leiste nicht direkt an den Gehäuserand stößt.
+- **Flurfunk-Banner auf dem Home-Dashboard (`DashboardHub`)**:
+  - Vollständig klickbare Hinweiskarte ohne überflüssige Buttons (*„Öffnen“* / *„Als erledigt markieren“* entfernt).
+  - Korrigierte Farbkodierung: Ankündigungen rot/rose, Hinweise gelb/amber, Mitteilungen/Direktnachrichten blau/sky.
+  - Korrekte Erkennung neuer Direktnachrichten statt irrtümlicher Kennzeichnung als Betreuer-Antwort.
+- **Flurfunk-Kategorien bereinigt (`shared/types.ts`, `CaregiverNotesView`, Server-Routen)**:
+  - Die Kategorie *„Fragen“* wurde restlos entfernt.
+  - Bewohner können ausschließlich Mitteilungen verfassen; die Kategorieauswahl ist für Bewohner ausgeblendet und serverseitig fixiert.
+- **Gericht entfernen Button im Rezept-Auswahlmodal (`RecipeSelectModal`)**:
+  - Der unscheinbare Textlink *„Tag leeren (kein Gericht)“* wurde durch einen auffälligen roten Button mit Mülleimer-Icon (`Trash2`) und der Aufschrift *„Gericht entfernen“* ersetzt.
+- **Dashboard Einkaufskorb Budget-Widget (`DashboardHub`)**:
+  - Beschriftung geändert in *„Aktuelles Wochenbudget“* und *„Noch xxx € übrig“*.
+  - Das alte Münz-Emoji wurde durch ein SVG-Geldnoten-Icon (`Banknote`) ersetzt.
+
 ## [0.1.0-beta.33] - 2026-09-17
 
 ### Hinzugefügt & Verbessert

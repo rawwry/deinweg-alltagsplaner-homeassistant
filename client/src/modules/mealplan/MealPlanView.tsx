@@ -269,8 +269,8 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
         <div>
           <div className="flex items-center gap-2.5 flex-wrap">
             <h1 className="text-xl sm:text-2xl font-semibold text-white flex items-center gap-2 font-sans tracking-tight">
-              <span className="text-2xl">🗓️</span>
-              <span>Unser Wochenplan</span>
+              <ChefHat className="w-6 h-6 text-rose-400" />
+              <span>Unser Kochplan</span>
             </h1>
             <span className="text-xs font-semibold px-3 py-1 bg-rose-500/15 text-rose-300 rounded-full border border-rose-500/30 font-mono">
               KW {weekNumber} • {year}
@@ -362,7 +362,7 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
       {isLoading ? (
         <div className="py-20 text-center text-slate-500">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-3 border-rose-500 border-t-transparent mb-2" />
-          <div>Wochenplan wird geladen...</div>
+          <div>Kochplan wird geladen...</div>
         </div>
       ) : (
         <div className="space-y-4">
@@ -706,7 +706,7 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
                   </button>
                 </div>
                 <p className="text-[10px] text-slate-400 mt-2">
-                  Nicht gewählte Tage werden im Wochenplan als <strong className="text-rose-300 font-semibold">Selbstversorgung</strong> markiert.
+                  Nicht gewählte Tage werden im Kochplan als <strong className="text-rose-300 font-semibold">Selbstversorgung</strong> markiert.
                 </p>
               </div>
 

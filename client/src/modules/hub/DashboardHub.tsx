@@ -21,6 +21,7 @@ import {
   Check,
   Circle,
   ListTodo,
+  Banknote,
 } from 'lucide-react';
 
 interface DashboardHubProps {
@@ -46,6 +47,15 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
     }
   });
 
+  const [personalDoneChores, setPersonalDoneChores] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem(`resident_chores_done_${user?.id}`);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
   useEffect(() => {
     if (!user?.id) return;
     try {
@@ -56,7 +66,29 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
     } catch {
       // ignore
     }
+    try {
+      const storedChores = localStorage.getItem(`resident_chores_done_${user.id}`);
+      if (storedChores) {
+        setPersonalDoneChores(JSON.parse(storedChores));
+      }
+    } catch {
+      // ignore
+    }
   }, [user?.id]);
+
+  const togglePersonalChore = (key: string) => {
+    setPersonalDoneChores((prev) => {
+      const next = prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key];
+      if (user?.id) {
+        try {
+          localStorage.setItem(`resident_chores_done_${user.id}`, JSON.stringify(next));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      return next;
+    });
+  };
 
   const handleDismissTopic = async (note: any) => {
     // If user is a resident: they resolve the note (mark as done/archived) and notify caregivers
@@ -268,114 +300,105 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
   const remainingNotificationsCount = newFlurfunkNotifications.length - displayedNotifications.length;
 
   const getBannerConfig = (note: any) => {
-    const isDirect = Boolean(note.isDirectMessage);
-    const isReply = Boolean(user?.role === 'BEWOHNER' && note.residentId === user?.id && note.caregiverResponse && note.hasUnreadResponse);
+    // 1. ANKUENDIGUNG is always RED/ROSE
+    if (note.category === 'ANKUENDIGUNG') {
+      return {
+        badge: '📢 Wichtige Ankündigung',
+        badgeClass: 'bg-rose-500 text-white',
+        containerClass: 'bg-gradient-to-r from-rose-500/20 via-pink-500/15 to-surface-card border border-rose-500/50 shadow-rose-500/10 hover:border-rose-400/80',
+        iconBg: 'bg-gradient-to-br from-rose-500 to-pink-500 shadow-rose-500/30 text-white',
+        icon: '📢',
+        senderName: note.authorName || 'Betreuer',
+        headline: `„${note.title}“`,
+        snippet: note.content,
+        textClass: 'text-rose-200/90',
+      };
+    }
+
+    // 2. HINWEIS is always YELLOW/AMBER
+    if (note.category === 'HINWEIS') {
+      return {
+        badge: '💡 Wichtiger Hinweis',
+        badgeClass: 'bg-amber-500 text-slate-950 font-bold',
+        containerClass: 'bg-gradient-to-r from-amber-500/20 via-yellow-500/15 to-surface-card border border-amber-500/50 shadow-amber-500/10 hover:border-amber-400/80',
+        iconBg: 'bg-gradient-to-br from-amber-500 to-yellow-600 shadow-amber-500/30 text-slate-950',
+        icon: '💡',
+        senderName: note.authorName || 'Flurfunk',
+        headline: `„${note.title}“`,
+        snippet: note.content,
+        textClass: 'text-amber-200/90',
+      };
+    }
+
+    // 3. Resident ticket viewed by staff (Betreuer / Admin)
     const isResidentTicket = Boolean(
       (user?.role === 'BETREUER' || user?.role === 'ADMIN') &&
       note.isPrivate &&
       (note.authorRole === 'BEWOHNER' || note.residentId)
     );
-
-    if (isReply) {
-      return {
-        badge: 'Neue Antwort im Flurfunk',
-        badgeClass: 'bg-rose-500 text-white',
-        containerClass: 'bg-gradient-to-r from-rose-500/20 via-pink-500/15 to-surface-card border border-rose-500/50 shadow-rose-500/10',
-        iconBg: 'bg-gradient-to-br from-rose-500 to-pink-500 shadow-rose-500/30 text-white',
-        icon: '💬',
-        senderName: note.respondedByName || 'Betreuer',
-        headline: `Zu deinem Beitrag: „${note.title}“`,
-        snippet: note.caregiverResponse,
-        textClass: 'text-rose-200/90',
-        buttonClass: 'bg-rose-500 hover:bg-rose-600 text-white',
-      };
-    }
-
     if (isResidentTicket) {
       return {
         badge: '✉️ Neues Bewohner-Anliegen',
         badgeClass: 'bg-purple-500 text-white',
-        containerClass: 'bg-gradient-to-r from-purple-500/20 via-violet-500/15 to-surface-card border border-purple-500/50 shadow-purple-500/10',
+        containerClass: 'bg-gradient-to-r from-purple-500/20 via-violet-500/15 to-surface-card border border-purple-500/50 shadow-purple-500/10 hover:border-purple-400/80',
         iconBg: 'bg-gradient-to-br from-purple-500 to-indigo-600 shadow-purple-500/30 text-white',
         icon: '✉️',
         senderName: note.authorName || note.residentName || 'Bewohner',
         headline: `Anliegen: „${note.title}“`,
         snippet: note.content,
         textClass: 'text-purple-200/90',
-        buttonClass: 'bg-purple-600 hover:bg-purple-700 text-white',
       };
     }
 
+    // 4. Resident receiving a response from caregiver to their own note
+    const isReply = Boolean(
+      user?.role === 'BEWOHNER' &&
+      note.authorId === user?.id &&
+      note.caregiverResponse &&
+      note.hasUnreadResponse
+    );
+    if (isReply) {
+      return {
+        badge: '💬 Neue Betreuer-Antwort',
+        badgeClass: 'bg-sky-500 text-white',
+        containerClass: 'bg-gradient-to-r from-sky-500/20 via-blue-500/15 to-surface-card border border-sky-500/50 shadow-sky-500/10 hover:border-sky-400/80',
+        iconBg: 'bg-gradient-to-br from-sky-500 to-blue-600 shadow-sky-500/30 text-white',
+        icon: '💬',
+        senderName: note.respondedByName || 'Betreuer',
+        headline: `Zu deinem Beitrag: „${note.title}“`,
+        snippet: note.caregiverResponse,
+        textClass: 'text-sky-200/90',
+      };
+    }
+
+    // 5. Direct message from caregiver to resident
+    const isDirect = Boolean(note.isDirectMessage || (note.isPrivate && note.residentId === user?.id));
     if (isDirect) {
       return {
-        badge: 'Neue Direktnachricht',
-        badgeClass: 'bg-rose-500 text-white',
-        containerClass: 'bg-gradient-to-r from-rose-500/20 via-pink-500/15 to-surface-card border border-rose-500/50 shadow-rose-500/10',
-        iconBg: 'bg-gradient-to-br from-rose-500 to-pink-500 shadow-rose-500/30 text-white',
+        badge: '✉️ Neue Direktnachricht',
+        badgeClass: 'bg-sky-500 text-white',
+        containerClass: 'bg-gradient-to-r from-sky-500/20 via-blue-500/15 to-surface-card border border-sky-500/50 shadow-sky-500/10 hover:border-sky-400/80',
+        iconBg: 'bg-gradient-to-br from-sky-500 to-blue-600 shadow-sky-500/30 text-white',
         icon: '✉️',
         senderName: note.authorName || 'Betreuer',
-        headline: `Nachricht: „${note.title}“`,
+        headline: `„${note.title}“`,
         snippet: note.content,
-        textClass: 'text-rose-200/90',
-        buttonClass: 'bg-rose-500 hover:bg-rose-600 text-white',
+        textClass: 'text-sky-200/90',
       };
     }
 
-    switch (note.category) {
-      case 'ANKUENDIGUNG':
-        return {
-          badge: '📢 Wichtige Ankündigung',
-          badgeClass: 'bg-rose-500 text-white',
-          containerClass: 'bg-gradient-to-r from-rose-500/20 via-pink-500/15 to-surface-card border border-rose-500/50 shadow-rose-500/10',
-          iconBg: 'bg-gradient-to-br from-rose-500 to-pink-500 shadow-rose-500/30 text-white',
-          icon: '📢',
-          senderName: note.authorName || 'Betreuer',
-          headline: `„${note.title}“`,
-          snippet: note.content,
-          textClass: 'text-rose-200/90',
-          buttonClass: 'bg-rose-500 hover:bg-rose-600 text-white',
-        };
-      case 'HINWEIS':
-        return {
-          badge: '💡 Wichtiger Hinweis',
-          badgeClass: 'bg-amber-500 text-slate-950 font-bold',
-          containerClass: 'bg-gradient-to-r from-amber-500/20 via-yellow-500/15 to-surface-card border border-amber-500/50 shadow-amber-500/10',
-          iconBg: 'bg-gradient-to-br from-amber-500 to-yellow-600 shadow-amber-500/30 text-slate-950',
-          icon: '💡',
-          senderName: note.authorName || 'Flurfunk',
-          headline: `„${note.title}“`,
-          snippet: note.content,
-          textClass: 'text-amber-200/90',
-          buttonClass: 'bg-amber-500 hover:bg-amber-600 text-slate-950',
-        };
-      case 'FRAGE':
-        return {
-          badge: '❓ Frage an die Gruppe',
-          badgeClass: 'bg-purple-500 text-white',
-          containerClass: 'bg-gradient-to-r from-purple-500/20 via-violet-500/15 to-surface-card border border-purple-500/50 shadow-purple-500/10',
-          iconBg: 'bg-gradient-to-br from-purple-500 to-indigo-600 shadow-purple-500/30 text-white',
-          icon: '❓',
-          senderName: note.authorName || 'Flurfunk',
-          headline: `„${note.title}“`,
-          snippet: note.content,
-          textClass: 'text-purple-200/90',
-          buttonClass: 'bg-purple-600 hover:bg-purple-700 text-white',
-        };
-      case 'ALLGEMEIN':
-      default:
-        return {
-          badge: '💬 Neuer Flurfunk-Beitrag',
-          badgeClass: 'bg-sky-500 text-white',
-          containerClass: 'bg-gradient-to-r from-sky-500/20 via-blue-500/15 to-surface-card border border-sky-500/50 shadow-sky-500/10',
-          iconBg: 'bg-gradient-to-br from-sky-500 to-blue-600 shadow-sky-500/30 text-white',
-          icon: '💬',
-          senderName: note.authorName || 'Flurfunk',
-          headline: `„${note.title}“`,
-          snippet: note.content,
-          textClass: 'text-sky-200/90',
-          buttonClass: 'bg-sky-500 hover:bg-sky-600 text-white',
-        };
-    }
+    // 6. Default general note (ALLGEMEIN) - BLUE / SKY
+    return {
+      badge: '💬 Neuer Flurfunk-Beitrag',
+      badgeClass: 'bg-sky-500 text-white',
+      containerClass: 'bg-gradient-to-r from-sky-500/20 via-blue-500/15 to-surface-card border border-sky-500/50 shadow-sky-500/10 hover:border-sky-400/80',
+      iconBg: 'bg-gradient-to-br from-sky-500 to-blue-600 shadow-sky-500/30 text-white',
+      icon: '💬',
+      senderName: note.authorName || 'Flurfunk',
+      headline: `„${note.title}“`,
+      snippet: note.content,
+      textClass: 'text-sky-200/90',
+    };
   };
 
   return (
@@ -418,22 +441,23 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             return (
               <div
                 key={note.id}
-                className={`${config.containerClass} rounded-3xl p-4 sm:p-5 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2 duration-200`}
+                onClick={() => handleOpenTopic(note)}
+                className={`${config.containerClass} rounded-3xl p-4 sm:p-5 shadow-xl flex items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2 duration-200 cursor-pointer group transition-all`}
               >
-                <div className="flex items-start gap-3.5">
+                <div className="flex items-start sm:items-center gap-3.5 min-w-0 flex-1">
                   <div className={`w-10 h-10 rounded-2xl ${config.iconBg} flex items-center justify-center shrink-0 shadow-md font-bold text-lg`}>
                     {config.icon}
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${config.badgeClass} uppercase tracking-wider font-display animate-pulse`}>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${config.badgeClass} uppercase tracking-wider font-display`}>
                         {config.badge}
                       </span>
-                      <span className="text-xs text-slate-300 font-medium">
+                      <span className="text-xs text-slate-300 font-medium truncate">
                         von {config.senderName}
                       </span>
                     </div>
-                    <h4 className="text-sm font-semibold text-white mt-1">
+                    <h4 className="text-sm font-semibold text-white mt-1 group-hover:text-white transition-colors truncate">
                       {config.headline}
                     </h4>
                     <p className={`text-xs ${config.textClass} mt-0.5 line-clamp-2 italic font-sans`}>
@@ -442,25 +466,8 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 w-full sm:w-auto self-end sm:self-center shrink-0">
-                  {/* Residents CANNOT dismiss/resolve ANKUENDIGUNG */}
-                  {!(user?.role === 'BEWOHNER' && note.category === 'ANKUENDIGUNG') && (
-                    <button
-                      type="button"
-                      onClick={() => handleDismissTopic(note)}
-                      className="px-3.5 py-2 bg-surface-card/80 hover:bg-surface-elevated border border-surface-border text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer"
-                    >
-                      {user?.role === 'BEWOHNER' ? 'Als erledigt markieren' : 'Als gelesen abhaken'}
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => handleOpenTopic(note)}
-                    className={`px-3.5 py-2 ${config.buttonClass} rounded-xl text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5`}
-                  >
-                    <span>Öffnen</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </button>
+                <div className="shrink-0 flex items-center pl-2">
+                  <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-white group-hover:translate-x-1 transition-all" />
                 </div>
               </div>
             );
@@ -483,89 +490,125 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
       )}
 
       {/* Today's Tasks Widget (Resident View) */}
-      {user?.role === 'BEWOHNER' && todayChores && (
-        <div className="bento-card rounded-[2.5rem] p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
-          <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+      {user?.role === 'BEWOHNER' && todayChores && (() => {
+        const isTodayCook = Boolean(user?.id && todayMeal?.cookUserId === user.id);
+        const chefkochChore = isTodayCook
+          ? {
+              templateId: `chefkoch_${todayChores?.date || formatGermanDate(now)}`,
+              date: todayChores?.date || formatGermanDate(now),
+              title: `Chefkoch: ${todayMeal?.recipe?.title || todayMeal?.customDishTitle || 'Abendessen kochen'}`,
+              description: 'Du bist heute als Chefkoch für die Zubereitung des gemeinsamen Essens eingeteilt!',
+              icon: '👨‍🍳',
+              isChefkoch: true,
+            }
+          : null;
 
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-semibold uppercase tracking-wider font-sans whitespace-nowrap">
-                <span>📋</span>
-                <span>Deine Aufgaben</span>
+        const residentTasksList = [
+          ...(chefkochChore ? [chefkochChore] : []),
+          ...(todayChores?.myTasks || []),
+        ];
+
+        return (
+          <div className="bento-card rounded-[2.5rem] p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
+            <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-semibold uppercase tracking-wider font-sans whitespace-nowrap">
+                  <span>📋</span>
+                  <span>Deine Aufgaben</span>
+                </div>
               </div>
+
+              <h3 className="text-xl font-semibold text-white mb-1.5 font-sans tracking-tight">
+                Was heute ansteht
+              </h3>
+              <p className="text-xs text-slate-300 mb-4 leading-relaxed font-sans">
+                {residentTasksList.length === 0
+                  ? 'Heute stehen keine anstehenden Aufgaben für dich an.'
+                  : 'Hier siehst du deine eingeteilten Haushalts- und Alltagsdienste für den heutigen Tag.'}
+              </p>
+
+              {residentTasksList.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                  {residentTasksList.map((task: any) => {
+                    const choreKey = `${task.date || 'today'}_${task.templateId}`;
+                    const isDone = personalDoneChores.includes(choreKey);
+
+                    return (
+                      <div
+                        key={task.templateId}
+                        onClick={() => togglePersonalChore(choreKey)}
+                        className={`p-4 rounded-2xl border transition-all flex items-start justify-between gap-3.5 select-none cursor-pointer group/task ${
+                          isDone
+                            ? 'bg-emerald-950/20 border-emerald-500/30 text-emerald-200'
+                            : 'bg-surface-elevated/70 hover:bg-surface-elevated border-surface-border hover:border-indigo-500/40 text-slate-100'
+                        }`}
+                      >
+                        <div className="flex items-start gap-3.5 min-w-0 flex-1">
+                          <div className="w-10 h-10 rounded-2xl bg-surface-card border border-surface-border flex items-center justify-center text-xl shrink-0 shadow-xs mt-0.5">
+                            {task.icon || '🧹'}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div
+                              className={`text-sm font-semibold leading-snug break-words ${
+                                isDone ? 'line-through text-slate-400' : 'text-white'
+                              }`}
+                            >
+                              {task.title}
+                            </div>
+                            {task.description && (
+                              <p className="text-xs text-slate-300 mt-1.5 leading-relaxed break-words whitespace-normal font-sans">
+                                {task.description}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="shrink-0 mt-0.5">
+                          <div
+                            className={`w-6 h-6 rounded-lg flex items-center justify-center border transition-all ${
+                              isDone
+                                ? 'bg-emerald-500 border-emerald-500 text-slate-950'
+                                : 'border-slate-500 bg-surface-card/60 group-hover/task:border-indigo-400'
+                            }`}
+                            title={isDone ? 'Als unerledigt markieren' : 'Als erledigt abhaken'}
+                          >
+                            {isDone ? (
+                              <Check className="w-4 h-4 stroke-[3]" />
+                            ) : (
+                              <span className="w-2 h-2 rounded-full bg-slate-500 group-hover/task:bg-indigo-400 transition-colors" />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="py-6 text-center text-xs text-slate-400 bg-surface-elevated/30 rounded-2xl border border-surface-border/50 flex items-center justify-center gap-2 font-sans">
+                  <span>☕ Keine anstehenden Aufgaben für dich heute eingeteilt. Genieße deinen Tag!</span>
+                </div>
+              )}
             </div>
 
-            <h3 className="text-xl font-semibold text-white mb-1.5 font-sans tracking-tight">
-              Was heute ansteht
-            </h3>
-            <p className="text-xs text-slate-300 mb-4 leading-relaxed font-sans">
-              {todayChores.myTasks.length === 0
-                ? 'Heute stehen keine anstehenden Aufgaben für dich an.'
-                : 'Hier siehst du deine eingeteilten Haushalts- und Alltagsdienste für den heutigen Tag.'}
-            </p>
-
-            {todayChores.myTasks.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-                {todayChores.myTasks.map((task: any) => (
-                  <div
-                    key={task.templateId}
-                    className={`p-4 rounded-2xl border transition-all flex items-start justify-between gap-3.5 select-none ${
-                      task.isCompleted
-                        ? 'bg-emerald-950/20 border-emerald-500/30 text-emerald-200'
-                        : 'bg-surface-elevated/70 border-surface-border text-slate-100'
-                    }`}
-                  >
-                    <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                      <div className="w-10 h-10 rounded-2xl bg-surface-card border border-surface-border flex items-center justify-center text-xl shrink-0 shadow-xs mt-0.5">
-                        {task.icon || '🧹'}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div
-                          className={`text-sm font-semibold leading-snug break-words ${
-                            task.isCompleted ? 'line-through text-slate-400' : 'text-white'
-                          }`}
-                        >
-                          {task.title}
-                        </div>
-                        {task.description && (
-                          <p className="text-xs text-slate-300 mt-1.5 leading-relaxed break-words whitespace-normal font-sans">
-                            {task.description}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    {task.isCompleted && (
-                      <span className="shrink-0 text-[10px] font-bold text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded-md border border-emerald-500/30 font-mono mt-0.5">
-                        Erledigt ✅
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="py-6 text-center text-xs text-slate-400 bg-surface-elevated/30 rounded-2xl border border-surface-border/50 flex items-center justify-center gap-2 font-sans">
-                <span>☕ Keine anstehenden Aufgaben für dich heute eingeteilt. Genieße deinen Tag!</span>
-              </div>
-            )}
+            {/* Clean modern footer action */}
+            <div className="mt-5 pt-4 border-t border-surface-border/50 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <span className="text-[11px] text-slate-400 font-sans hidden sm:inline">
+                Einteilung für die gesamte Woche im Aufgabenplan
+              </span>
+              <button
+                type="button"
+                onClick={() => setCurrentTab('chores')}
+                className="w-full sm:w-auto px-4 py-2.5 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border hover:border-indigo-500/40 text-slate-200 hover:text-white text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 font-sans shadow-xs group"
+              >
+                <ListTodo className="w-3.5 h-3.5 text-indigo-400 group-hover:text-indigo-300 transition-colors" />
+                <span>Aufgabenplan öffnen</span>
+              </button>
+            </div>
           </div>
-
-          {/* Clean modern footer action */}
-          <div className="mt-5 pt-4 border-t border-surface-border/50 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <span className="text-[11px] text-slate-400 font-sans hidden sm:inline">
-              Einteilung für die gesamte Woche im Aufgabenplan
-            </span>
-            <button
-              type="button"
-              onClick={() => setCurrentTab('chores')}
-              className="w-full sm:w-auto px-4 py-2.5 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border hover:border-indigo-500/40 text-slate-200 hover:text-white text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 font-sans shadow-xs group"
-            >
-              <Calendar className="w-3.5 h-3.5 text-indigo-400 group-hover:text-indigo-300 transition-colors" />
-              <span>Wochenplan öffnen</span>
-            </button>
-          </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Today's Tasks Widget (Caregiver / Staff View) */}
       {user?.role !== 'BEWOHNER' && todayChores && (
@@ -688,7 +731,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
               {todayMeal?.recipe?.description ||
                 (todayMeal?.customDishTitle
                   ? 'Frei gewähltes Gericht ohne festes Rezept.'
-                  : 'Heute kocht jeder nach eigenem Wunsch, oder ihr tragt im Wochenplan noch euer Lieblingsessen ein!')}
+                  : 'Heute kocht jeder nach eigenem Wunsch, oder ihr tragt im Kochplan noch euer Lieblingsessen ein!')}
             </p>
 
             {/* Culinary Tags */}
@@ -753,7 +796,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
               onClick={() => setCurrentTab('mealplan')}
               className="btn-theme-gradient w-full sm:w-auto px-5 py-2.5 rounded-2xl text-white font-semibold text-xs shadow-lg hover:scale-[1.02] active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2 font-sans"
             >
-              <span>Wochenplan & Rezepte</span>
+              <span>Kochplan & Rezepte</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -786,15 +829,15 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             {budgetSummary && (
               <div className="p-3.5 mb-4 rounded-2xl bg-surface-elevated/80 border border-emerald-500/30 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 shrink-0 text-base">
-                    🪙
+                  <div className="p-2.5 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 shrink-0 flex items-center justify-center">
+                    <Banknote className="w-5 h-5 text-emerald-400" />
                   </div>
                   <div>
                     <div className="text-[10px] uppercase font-bold text-slate-400 font-sans tracking-wide">
-                      Wochen-Budget KW {currentWeek}
+                      Aktuelles Wochenbudget
                     </div>
                     <div className="text-sm font-bold text-emerald-400 font-mono">
-                      Noch {budgetSummary.remainingBudget.toFixed(2)} € frei
+                      Noch {budgetSummary.remainingBudget.toFixed(2)} € übrig
                     </div>
                   </div>
                 </div>
@@ -1035,8 +1078,8 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             onClick={() => setCurrentTab('mealplan')}
             className="flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-surface-elevated/70 hover:bg-surface-elevated border border-surface-border hover:border-theme text-slate-200 hover:text-white text-xs font-medium transition-all group cursor-pointer"
           >
-            <Calendar className="w-3.5 h-3.5 text-theme-primary group-hover:scale-110 transition-transform" />
-            <span className="truncate">Wochenplan</span>
+            <ChefHat className="w-3.5 h-3.5 text-theme-primary group-hover:scale-110 transition-transform" />
+            <span className="truncate">Kochplan</span>
           </button>
 
           <button

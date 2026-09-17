@@ -196,8 +196,11 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
     // If public note: residentId is req.user!.id
     const targetResidentId = (isStaff && isPrivate && residentId) ? residentId : req.user!.id;
 
-    const validCategories = ['ALLGEMEIN', 'ANKUENDIGUNG', 'HINWEIS', 'FRAGE'];
-    const noteCategory = validCategories.includes(category) ? category : (category === 'DRINGEND' ? 'ANKUENDIGUNG' : 'ALLGEMEIN');
+    const validCategories = ['ALLGEMEIN', 'ANKUENDIGUNG', 'HINWEIS'];
+    // Residents can ONLY write Mitteilungen ('ALLGEMEIN')
+    const noteCategory = isStaff
+      ? (validCategories.includes(category) ? category : (category === 'DRINGEND' ? 'ANKUENDIGUNG' : 'ALLGEMEIN'))
+      : 'ALLGEMEIN';
 
     const note = await prisma.caregiverNote.create({
       data: {
@@ -317,7 +320,7 @@ router.put('/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Re
       return res.status(403).json({ error: 'Du kannst nur deine eigenen Beiträge bearbeiten.' });
     }
 
-    const validCategories = ['ALLGEMEIN', 'ANKUENDIGUNG', 'HINWEIS', 'FRAGE'];
+    const validCategories = ['ALLGEMEIN', 'ANKUENDIGUNG', 'HINWEIS'];
     const safeCategory = validCategories.includes(category) ? category : existing.category;
 
     const updated = await prisma.caregiverNote.update({

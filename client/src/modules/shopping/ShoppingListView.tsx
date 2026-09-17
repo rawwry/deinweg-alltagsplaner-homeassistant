@@ -252,7 +252,7 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
             onClick={() => setCurrentTab('mealplan')}
             className="px-3.5 py-2 bg-surface-card hover:bg-surface-elevated border border-surface-border text-slate-300 hover:text-white rounded-2xl text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 shadow-sm"
           >
-            <span>Wochenplan</span>
+            <span>Kochplan</span>
             <ArrowRight className="w-3.5 h-3.5 text-rose-400" />
           </button>
         </div>
@@ -487,14 +487,14 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
           <div className="text-4xl mb-3">🛒 🥗 🥐</div>
           <h3 className="text-base font-display font-bold text-slate-200">Noch keine Einkaufsliste für diese Woche</h3>
           <p className="text-xs text-slate-400 mt-1.5 max-w-sm mx-auto leading-relaxed">
-            Sobald Gerichte im Wochenplan eingetragen sind, stellt der Planer hier automatisch alle Zutaten übersichtlich zusammen!
+            Sobald Gerichte im Kochplan eingetragen sind, stellt der Planer hier automatisch alle Zutaten übersichtlich zusammen!
           </p>
           <button
             type="button"
             onClick={() => setCurrentTab('mealplan')}
             className="mt-5 px-5 py-2.5 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white rounded-2xl text-xs font-bold shadow-lg shadow-rose-500/20 transition-all inline-flex items-center gap-2 cursor-pointer"
           >
-            <span>Gerichte im Wochenplan wählen</span>
+            <span>Gerichte im Kochplan wählen</span>
           </button>
         </div>
       ) : (

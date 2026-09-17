@@ -1,7 +1,7 @@
 name: "Deine WG: Alltagsplaner"
 description: "Modulare Alltags- und Essensplanung für betreute Wohngruppen (Port 4731)"
 url: "https://github.com/rawwry/deinweg-alltagsplaner-homeassistant"
-version: "0.1.0-beta.33"
+version: "0.1.0-beta.34"
 slug: "dein_weg_alltagsplaner"
 init: false
 arch:
