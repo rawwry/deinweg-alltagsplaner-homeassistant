@@ -32,37 +32,209 @@ import {
   Bath,
   Shirt,
   Flower2,
+  Bed,
+  SprayCan,
 } from 'lucide-react';
 
+export const BroomIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5 text-indigo-400 stroke-[1.75]' }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M12 2v8" />
+    <path d="M8 10h8" />
+    <path d="M8.5 10 6.5 19.5Q6.5 21 8 21h8q1.5 0 1.5-1.5L15.5 10" />
+    <path d="M10.5 15v5" />
+    <path d="M13.5 15v5" />
+  </svg>
+);
+
 export const getChoreOutlineIcon = (task: any, className: string = 'w-5 h-5') => {
-  if (task.isChefkoch) {
+  if (task?.isChefkoch) {
     return <ChefHat className={`${className} text-rose-400 stroke-[1.75]`} />;
   }
-  const title = (task.title || '').toLowerCase();
-  const desc = (task.description || '').toLowerCase();
-  const full = `${title} ${desc}`;
 
-  if (full.includes('koch') || full.includes('küche') || full.includes('abwasch') || full.includes('spül') || full.includes('tisch')) {
+  const iconStr = (task?.icon || '').trim();
+  const title = (task?.title || '').toLowerCase();
+  const desc = (task?.description || '').toLowerCase();
+
+  // 1. Check explicit task.icon / emoji FIRST (User preference in settings)
+  if (iconStr) {
+    if (iconStr === '🧹' || /broom|besen|kehr|sweep/i.test(iconStr)) {
+      return <BroomIcon className={`${className} text-indigo-400 stroke-[1.75]`} />;
+    }
+    if (['👨‍🍳', '👩‍🍳', '🍳'].includes(iconStr) || /chef/i.test(iconStr)) {
+      return <ChefHat className={`${className} text-rose-400 stroke-[1.75]`} />;
+    }
+    if (['🍽️', '🍴'].includes(iconStr) || /utensil|teller|besteck|koch|essen/i.test(iconStr)) {
+      return <UtensilsCrossed className={`${className} text-amber-400 stroke-[1.75]`} />;
+    }
+    if (iconStr === '🗑️' || /trash|m[uü]ll|abfall/i.test(iconStr)) {
+      return <Trash2 className={`${className} text-emerald-400 stroke-[1.75]`} />;
+    }
+    if (iconStr === '🧼' || /seife|soap|spray|reinigung|putz/i.test(iconStr)) {
+      return <SprayCan className={`${className} text-sky-400 stroke-[1.75]`} />;
+    }
+    if (iconStr === '🧺' || /w[aä]sche|laundry|shirt/i.test(iconStr)) {
+      return <Shirt className={`${className} text-violet-400 stroke-[1.75]`} />;
+    }
+    if (iconStr === '✨' || iconStr === '⭐' || /sparkle|stern/i.test(iconStr)) {
+      return <Sparkles className={`${className} text-amber-300 stroke-[1.75]`} />;
+    }
+    if (['🛏️', '🛌'].includes(iconStr) || /bed|bett/i.test(iconStr)) {
+      return <Bed className={`${className} text-indigo-400 stroke-[1.75]`} />;
+    }
+    if (iconStr === '🛒' || /shopping|einkauf/i.test(iconStr)) {
+      return <ShoppingCart className={`${className} text-emerald-400 stroke-[1.75]`} />;
+    }
+    if (['🌱', '🪴', '🌸', '🌻'].includes(iconStr) || /garden|garten|pflanz|blume/i.test(iconStr)) {
+      return <Flower2 className={`${className} text-emerald-400 stroke-[1.75]`} />;
+    }
+    if (['🛁', '🚿'].includes(iconStr) || /bath|bad/i.test(iconStr)) {
+      return <Bath className={`${className} text-sky-400 stroke-[1.75]`} />;
+    }
+  }
+
+  // 2. Check TITLE heuristics (high priority - title defines the task)
+  if (
+    title.includes('zimmer') ||
+    title.includes('saugen') ||
+    title.includes('staub') ||
+    title.includes('wisch') ||
+    title.includes('putz') ||
+    title.includes('kehr') ||
+    title.includes('besen') ||
+    title.includes('fegen') ||
+    title.includes('reinigung') ||
+    title.includes('ordnung')
+  ) {
+    return <BroomIcon className={`${className} text-indigo-400 stroke-[1.75]`} />;
+  }
+  if (
+    title.includes('koch') ||
+    title.includes('küche') ||
+    title.includes('abwasch') ||
+    title.includes('spül') ||
+    title.includes('tisch') ||
+    title.includes('teller') ||
+    title.includes('essen')
+  ) {
     return <UtensilsCrossed className={`${className} text-amber-400 stroke-[1.75]`} />;
   }
-  if (full.includes('bad') || full.includes('sanitär') || full.includes('dusche') || full.includes('waschbecken') || full.includes('wc') || full.includes('toilette')) {
+  if (
+    title.includes('bad') ||
+    title.includes('sanitär') ||
+    title.includes('dusche') ||
+    title.includes('waschbecken') ||
+    title.includes('wc') ||
+    title.includes('toilette')
+  ) {
     return <Bath className={`${className} text-sky-400 stroke-[1.75]`} />;
   }
-  if (full.includes('müll') || full.includes('abfall') || full.includes('tonne') || full.includes('papier') || full.includes('gelber sack')) {
+  if (
+    title.includes('müll') ||
+    title.includes('abfall') ||
+    title.includes('tonne') ||
+    title.includes('gelber sack') ||
+    title.includes('altpapier')
+  ) {
     return <Trash2 className={`${className} text-emerald-400 stroke-[1.75]`} />;
   }
-  if (full.includes('wäsche') || full.includes('waschen') || full.includes('trockner')) {
+  if (
+    title.includes('wäsche') ||
+    title.includes('waschen') ||
+    title.includes('trockner') ||
+    title.includes('bügel')
+  ) {
     return <Shirt className={`${className} text-violet-400 stroke-[1.75]`} />;
   }
-  if (full.includes('einkauf') || full.includes('markt') || full.includes('besorgen')) {
+  if (
+    title.includes('einkauf') ||
+    title.includes('markt') ||
+    title.includes('besorgen')
+  ) {
     return <ShoppingCart className={`${className} text-emerald-400 stroke-[1.75]`} />;
   }
-  if (full.includes('garten') || full.includes('pflanz') || full.includes('blumen') || full.includes('beet')) {
+  if (
+    title.includes('garten') ||
+    title.includes('pflanz') ||
+    title.includes('blumen') ||
+    title.includes('beet')
+  ) {
     return <Flower2 className={`${className} text-emerald-400 stroke-[1.75]`} />;
   }
-  if (full.includes('saugen') || full.includes('staub') || full.includes('wisch') || full.includes('putz') || full.includes('zimmer') || full.includes('kehr')) {
-    return <Sparkles className={`${className} text-indigo-400 stroke-[1.75]`} />;
+
+  // 3. Check DESCRIPTION heuristics (secondary fallback)
+  if (
+    desc.includes('zimmer') ||
+    desc.includes('saugen') ||
+    desc.includes('staub') ||
+    desc.includes('wisch') ||
+    desc.includes('putz') ||
+    desc.includes('kehr') ||
+    desc.includes('fegen')
+  ) {
+    return <BroomIcon className={`${className} text-indigo-400 stroke-[1.75]`} />;
   }
+  if (
+    desc.includes('koch') ||
+    desc.includes('küche') ||
+    desc.includes('abwasch') ||
+    desc.includes('spül')
+  ) {
+    return <UtensilsCrossed className={`${className} text-amber-400 stroke-[1.75]`} />;
+  }
+  if (
+    desc.includes('bad') ||
+    desc.includes('sanitär') ||
+    desc.includes('dusche') ||
+    desc.includes('wc') ||
+    desc.includes('toilette')
+  ) {
+    return <Bath className={`${className} text-sky-400 stroke-[1.75]`} />;
+  }
+  if (
+    desc.includes('müll') ||
+    desc.includes('abfall') ||
+    desc.includes('tonne') ||
+    desc.includes('gelber sack') ||
+    desc.includes('mülleimer')
+  ) {
+    return <Trash2 className={`${className} text-emerald-400 stroke-[1.75]`} />;
+  }
+  if (
+    desc.includes('wäsche') ||
+    desc.includes('waschen') ||
+    desc.includes('trockner')
+  ) {
+    return <Shirt className={`${className} text-violet-400 stroke-[1.75]`} />;
+  }
+  if (
+    desc.includes('einkauf') ||
+    desc.includes('markt') ||
+    desc.includes('besorgen')
+  ) {
+    return <ShoppingCart className={`${className} text-emerald-400 stroke-[1.75]`} />;
+  }
+  if (
+    desc.includes('garten') ||
+    desc.includes('pflanz') ||
+    desc.includes('blumen')
+  ) {
+    return <Flower2 className={`${className} text-emerald-400 stroke-[1.75]`} />;
+  }
+
+  // 4. Custom emoji fallback if user entered non-standard emoji
+  if (iconStr && iconStr.length <= 4) {
+    return <span className="text-base select-none leading-none flex items-center justify-center">{iconStr}</span>;
+  }
+
   return <CheckCircle2 className={`${className} text-indigo-400 stroke-[1.75]`} />;
 };
 

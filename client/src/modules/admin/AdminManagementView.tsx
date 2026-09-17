@@ -2000,7 +2000,7 @@ export const AdminManagementView: React.FC = () => {
                         className="w-16 px-3 py-2 text-center text-lg bg-surface-card border border-surface-border rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
                       />
                       <div className="flex items-center gap-1 flex-wrap">
-                        {['🍽️', '🧹', '🗑️', '🧼', '🧺', '✨'].map((emoji) => (
+                        {['🧹', '🍽️', '🗑️', '🧼', '🧺', '✨', '🛏️', '🛒', '🌱'].map((emoji) => (
                           <button
                             key={emoji}
                             type="button"
@@ -2155,6 +2155,18 @@ export const AdminManagementView: React.FC = () => {
                               onChange={(e) => setEditChoreTitle(e.target.value)}
                               className="flex-1 px-2.5 py-1 bg-surface-card border border-surface-border rounded-lg text-xs text-white"
                             />
+                          </div>
+                          <div className="flex items-center gap-1 flex-wrap">
+                            {['🧹', '🍽️', '🗑️', '🧼', '🧺', '✨', '🛏️', '🛒', '🌱'].map((emoji) => (
+                              <button
+                                key={emoji}
+                                type="button"
+                                onClick={() => setEditChoreIcon(emoji)}
+                                className="p-0.5 hover:bg-white/10 rounded text-xs cursor-pointer"
+                              >
+                                {emoji}
+                              </button>
+                            ))}
                           </div>
                           <input
                             type="text"

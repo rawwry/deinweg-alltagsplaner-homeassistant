@@ -3,6 +3,16 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.1] - 2026-09-18
+
+### Behoben & Verbessert
+- **Aufgaben-Icons & Besen-Darstellung (`DashboardHub.tsx`, `ChorePlannerView.tsx`, `AdminManagementView.tsx`)**:
+  - **Neues Outline-SVG für Besen (`BroomIcon`)**: Ein maßgeschneidertes 24x24 Outline-SVG für einen Besen im einheitlichen Lucide-Designstil (`text-indigo-400 stroke-[1.75]`) wurde implementiert.
+  - **Priorisierung des konfigurierten Emojis/Icons**: Wenn beim Anlegen oder Bearbeiten einer Aufgabe in den Einstellungen ein Emoji (z. B. `🧹` Besen, `🍽️` Kochen, `🗑️` Müll, `🧼` Putzen, `🧺` Wäsche, `✨` Glitzer, `🛏️` Bett etc.) gewählt wird, wird dieses nun direkt und vorrangig in das passende Outline-SVG übersetzt. Zuvor wurde `task.icon` in der Dashboard-Auswertung komplett ignoriert.
+  - **Fehlzuordnung durch Textanalyse behoben**: Bisher wurde fälschlicherweise eine Mülltonne angezeigt, wenn in der Aufgabenbeschreibung Wörter wie *„Mülleimer leeren“* oder *„Papierkorb“* vorkamen, da Müll-Schlagworte vor Zimmer- und Reinigungsbegriffen geprüft wurden. Titel-Schlagworte haben nun strikten Vorrang vor der Beschreibung.
+  - **Erweiterte Preset-Auswahl im Admin-Bereich**: Bei der Vorlagenerstellung und -bearbeitung stehen nun 9 praktische Haushalts-Presets zur Verfügung (`['🧹', '🍽️', '🗑️', '🧼', '🧺', '✨', '🛏️', '🛒', '🌱']`). Auch im Bearbeitungsmodus können Presets nun direkt per Klick übernommen werden.
+  - **Unterstützung für benutzerdefinierte Emojis**: Selbst gewählte Emojis abseits der Standard-Outline-Icons werden nun sauber zentriert dargestellt, statt durch Standard-Icons überschrieben zu werden.
+
 ## [0.1.0] - 2026-09-18
 
 ### Offizieller Meilenstein: Release v0.1.0 (Ende der Beta-Phase)
