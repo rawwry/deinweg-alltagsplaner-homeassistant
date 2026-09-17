@@ -287,16 +287,13 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                         <div className="w-9 h-9 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center shrink-0 shadow-xs">
                           {getChoreOutlineIcon(tmpl, 'w-5 h-5')}
                         </div>
-                        <div className="min-w-0 flex-1 flex items-center gap-2 flex-wrap">
+                        <div className="min-w-0 flex-1">
                           <span
-                            className={`text-sm font-bold tracking-tight ${
+                            className={`text-sm font-bold tracking-tight block truncate ${
                               isPersonalDone ? 'line-through text-slate-400' : 'text-white'
                             }`}
                           >
                             {tmpl.title}
-                          </span>
-                          <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-rose-500/15 border border-rose-500/30 text-rose-300 shrink-0">
-                            Kochplan
                           </span>
                         </div>
                       </div>

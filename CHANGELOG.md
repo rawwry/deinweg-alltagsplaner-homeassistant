@@ -3,6 +3,18 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.37] - 2026-09-17
+
+### Hinzugefügt & Verbessert
+- **Aufgabenplan („Kochtraining“)**:
+  - Überflüssige Pille *„Kochplan“* im Aufgabeneintrag *„Kochtraining“* entfernt (`ChorePlannerView.tsx`).
+- **Flurfunk-Farbgebung vereinheitlicht (`CaregiverNotesView.tsx`)**:
+  - Sämtliche Mitteilungskarten im Flurfunk besitzen nun die identische, klare Kategoriestimmung wie auf der Startseite (`bg-rose-500/10 border-rose-500/40 text-rose-200`, `bg-amber-500/10...`, `bg-sky-500/10...`), ohne von dunklen Bento-Farbverläufen oder Standard-Hoverrahmen überdeckt zu werden.
+  - Der überflüssige Satz *„Offene Mitteilungen & Absprachen“* im Flurfunk-Kopfbereich wurde entfernt.
+- **Startseite (`DashboardHub.tsx`)**:
+  - **Mitteilungskarten Layout-Harmonisierung**: Die störende Einordnung der *„von [Name]“*-Zeile wurde behoben. Kategorie-Pille und Absender bilden nun eine harmonische Kopfzeile direkt über dem Titel.
+  - **Aufgaben-Kachel**: Der überflüssige Hilfetext *„Einteilung für die gesamte Woche im Aufgabenplan“* im Footer wurde entfernt; die Schaltfläche ist analog zur Betreueransicht sauber rechtsbündig platziert.
+
 ## [0.1.0-beta.36] - 2026-09-17
 
 ### Hinzugefügt & Verbessert

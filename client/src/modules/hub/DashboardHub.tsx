@@ -499,20 +499,18 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    {/* Line 1: Category Badge Pill */}
-                    <div>
-                      <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full ${config.badgeClass} uppercase tracking-wider font-display`}>
+                    {/* Header meta row: Category Badge Pill & Sender Name */}
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full ${config.badgeClass} uppercase tracking-wider font-display shrink-0`}>
                         {config.badge}
+                      </span>
+                      <span className="text-[11px] text-slate-300 font-medium">
+                        von <strong className="text-white font-semibold">{config.senderName}</strong>
                       </span>
                     </div>
 
-                    {/* Line 2: Sender name consistently on separate second line, no wrapping */}
-                    <div className="text-[11px] text-slate-400 font-medium whitespace-nowrap truncate mt-1">
-                      von {config.senderName}
-                    </div>
-
-                    {/* Title with increased spacing from author line and NO quotation marks */}
-                    <h4 className="text-sm font-semibold text-white mt-2 group-hover:text-white transition-colors truncate">
+                    {/* Title with NO quotation marks */}
+                    <h4 className="text-sm font-semibold text-white group-hover:text-white transition-colors truncate">
                       {config.headline}
                     </h4>
 
@@ -661,10 +659,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             </div>
 
             {/* Clean modern footer action */}
-            <div className="mt-5 pt-4 border-t border-surface-border/50 flex flex-col sm:flex-row items-center justify-between gap-3">
-              <span className="text-[11px] text-slate-400 font-sans hidden sm:inline">
-                Einteilung für die gesamte Woche im Aufgabenplan
-              </span>
+            <div className="mt-5 pt-4 border-t border-surface-border/50 flex items-center justify-end">
               <button
                 type="button"
                 onClick={() => setCurrentTab('chores')}

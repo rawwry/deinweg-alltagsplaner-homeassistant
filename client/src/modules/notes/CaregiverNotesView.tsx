@@ -39,7 +39,7 @@ const NOTE_CATEGORIES: {
     icon: AlertCircle,
     badgeClass: 'bg-rose-500/20 text-rose-200 border-rose-500/40',
     buttonClass: 'border-rose-500/50 text-rose-200 bg-rose-500/20',
-    cardClass: 'border-rose-500/50 bg-gradient-to-br from-rose-500/15 via-surface-card to-transparent shadow-md shadow-rose-500/10 hover:border-rose-400/70',
+    cardClass: 'bg-rose-500/10 hover:bg-rose-500/15 border-rose-500/40 hover:border-rose-400/80 text-rose-200 shadow-md shadow-rose-500/5',
   },
   {
     id: 'HINWEIS',
@@ -47,7 +47,7 @@ const NOTE_CATEGORIES: {
     icon: Lightbulb,
     badgeClass: 'bg-amber-500/20 text-amber-200 border-amber-500/40',
     buttonClass: 'border-amber-500/50 text-amber-200 bg-amber-500/20',
-    cardClass: 'border-amber-500/50 bg-gradient-to-br from-amber-500/15 via-surface-card to-transparent shadow-md shadow-amber-500/10 hover:border-amber-400/70',
+    cardClass: 'bg-amber-500/10 hover:bg-amber-500/15 border-amber-500/40 hover:border-amber-400/80 text-amber-200 shadow-md shadow-amber-500/5',
   },
   {
     id: 'ALLGEMEIN',
@@ -55,7 +55,7 @@ const NOTE_CATEGORIES: {
     icon: MessageSquare,
     badgeClass: 'bg-sky-500/20 text-sky-200 border-sky-500/40',
     buttonClass: 'border-sky-500/50 text-sky-200 bg-sky-500/20',
-    cardClass: 'border-sky-500/50 bg-gradient-to-br from-sky-500/15 via-surface-card to-transparent shadow-md shadow-sky-500/10 hover:border-sky-400/70',
+    cardClass: 'bg-sky-500/10 hover:bg-sky-500/15 border-sky-500/40 hover:border-sky-400/80 text-sky-200 shadow-md shadow-sky-500/5',
   },
 ];
 
@@ -396,10 +396,6 @@ export const CaregiverNotesView: React.FC = () => {
             <span>Erledigt & Archiv</span>
           </button>
         </div>
-
-        <span className="text-xs text-slate-400 hidden sm:inline-block font-medium">
-          {activeTab === 'ACTIVE' ? 'Offene Mitteilungen & Absprachen' : 'Erledigte Mitteilungen'}
-        </span>
       </div>
 
       {/* Add Note Form */}
@@ -671,7 +667,7 @@ export const CaregiverNotesView: React.FC = () => {
               <div
                 key={note.id}
                 id={`note-${note.id}`}
-                className={`bento-card rounded-[2.5rem] p-5 sm:p-6 border shadow-md transition-all ${
+                className={`rounded-[2.5rem] p-5 sm:p-6 border shadow-md backdrop-blur-md transition-all ${
                   note.isArchived
                     ? 'border-surface-border opacity-70 bg-surface-card'
                     : categoryConfig.cardClass
@@ -970,7 +966,7 @@ export const CaregiverNotesView: React.FC = () => {
                     ) : (
                       /* EXPANDED VIEW */
                       <div className="mt-3 space-y-4 animate-in fade-in duration-150">
-                        <p className="text-xs text-slate-200 leading-relaxed whitespace-pre-line font-normal bg-surface-elevated/40 p-3.5 rounded-2xl border border-surface-border">
+                        <p className="text-xs text-slate-200 leading-relaxed whitespace-pre-line font-normal bg-black/20 p-3.5 rounded-2xl border border-white/5">
                           {note.content}
                         </p>
 
