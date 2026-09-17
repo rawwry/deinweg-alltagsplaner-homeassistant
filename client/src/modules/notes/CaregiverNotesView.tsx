@@ -21,13 +21,22 @@ import {
   ChevronUp,
   Calendar,
   Pencil,
+  AlertCircle,
+  Lightbulb,
 } from 'lucide-react';
 
-const NOTE_CATEGORIES: { id: NoteCategory; label: string; icon: string; badgeClass: string; buttonClass: string; cardClass: string }[] = [
+const NOTE_CATEGORIES: {
+  id: NoteCategory;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  badgeClass: string;
+  buttonClass: string;
+  cardClass: string;
+}[] = [
   {
     id: 'ANKUENDIGUNG',
     label: 'Ankündigung',
-    icon: '📢',
+    icon: AlertCircle,
     badgeClass: 'bg-rose-500/20 text-rose-200 border-rose-500/40',
     buttonClass: 'border-rose-500/50 text-rose-200 bg-rose-500/20',
     cardClass: 'border-rose-500/50 bg-gradient-to-br from-rose-500/15 via-surface-card to-transparent shadow-md shadow-rose-500/10 hover:border-rose-400/70',
@@ -35,7 +44,7 @@ const NOTE_CATEGORIES: { id: NoteCategory; label: string; icon: string; badgeCla
   {
     id: 'HINWEIS',
     label: 'Hinweis',
-    icon: '💡',
+    icon: Lightbulb,
     badgeClass: 'bg-amber-500/20 text-amber-200 border-amber-500/40',
     buttonClass: 'border-amber-500/50 text-amber-200 bg-amber-500/20',
     cardClass: 'border-amber-500/50 bg-gradient-to-br from-amber-500/15 via-surface-card to-transparent shadow-md shadow-amber-500/10 hover:border-amber-400/70',
@@ -43,7 +52,7 @@ const NOTE_CATEGORIES: { id: NoteCategory; label: string; icon: string; badgeCla
   {
     id: 'ALLGEMEIN',
     label: 'Mitteilung',
-    icon: '💬',
+    icon: MessageSquare,
     badgeClass: 'bg-sky-500/20 text-sky-200 border-sky-500/40',
     buttonClass: 'border-sky-500/50 text-sky-200 bg-sky-500/20',
     cardClass: 'border-sky-500/50 bg-gradient-to-br from-sky-500/15 via-surface-card to-transparent shadow-md shadow-sky-500/10 hover:border-sky-400/70',
@@ -479,6 +488,7 @@ export const CaregiverNotesView: React.FC = () => {
               <div className="flex flex-wrap gap-2">
                 {NOTE_CATEGORIES.map((cat) => {
                   const isSelected = category === cat.id;
+                  const CatIcon = cat.icon;
                   return (
                     <button
                       key={cat.id}
@@ -490,7 +500,7 @@ export const CaregiverNotesView: React.FC = () => {
                           : 'bg-surface-elevated border-surface-border text-slate-400 hover:text-slate-200'
                       }`}
                     >
-                      <span>{cat.icon}</span>
+                      <CatIcon className="w-3.5 h-3.5 shrink-0" />
                       <span>{cat.label}</span>
                     </button>
                   );
@@ -500,7 +510,7 @@ export const CaregiverNotesView: React.FC = () => {
           ) : (
             <div className="flex items-center gap-2 text-xs text-slate-400 font-sans">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/30 font-semibold font-display">
-                <span>💬</span>
+                <MessageSquare className="w-3.5 h-3.5" />
                 <span>Mitteilung</span>
               </span>
               <span>Beitrag für die WG-Pinnwand</span>
@@ -657,8 +667,8 @@ export const CaregiverNotesView: React.FC = () => {
                     )}
 
                     {/* Category Badge */}
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border font-display ${categoryConfig.badgeClass}`}>
-                      <span>{categoryConfig.icon}</span>
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border font-display ${categoryConfig.badgeClass}`}>
+                      <categoryConfig.icon className="w-3 h-3 stroke-[2.5]" />
                       <span>{categoryConfig.label}</span>
                     </span>
 
@@ -783,21 +793,24 @@ export const CaregiverNotesView: React.FC = () => {
                         Kategorie
                       </label>
                       <div className="flex flex-wrap gap-2">
-                        {NOTE_CATEGORIES.map((cat) => (
-                          <button
-                            key={cat.id}
-                            type="button"
-                            onClick={() => setEditCategory(cat.id)}
-                            className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                              editCategory === cat.id
-                                ? `${cat.buttonClass} ring-2 ring-rose-500/40 font-bold scale-102`
-                                : 'bg-surface-card border-surface-border text-slate-400 hover:text-slate-200'
-                            }`}
-                          >
-                            <span>{cat.icon}</span>
-                            <span>{cat.label}</span>
-                          </button>
-                        ))}
+                        {NOTE_CATEGORIES.map((cat) => {
+                          const CatIcon = cat.icon;
+                          return (
+                            <button
+                              key={cat.id}
+                              type="button"
+                              onClick={() => setEditCategory(cat.id)}
+                              className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                                editCategory === cat.id
+                                  ? `${cat.buttonClass} ring-2 ring-rose-500/40 font-bold scale-102`
+                                  : 'bg-surface-card border-surface-border text-slate-400 hover:text-slate-200'
+                              }`}
+                            >
+                              <CatIcon className="w-3.5 h-3.5 shrink-0" />
+                              <span>{cat.label}</span>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
 

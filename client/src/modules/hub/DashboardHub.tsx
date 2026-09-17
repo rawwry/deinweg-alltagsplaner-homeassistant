@@ -22,6 +22,11 @@ import {
   Circle,
   ListTodo,
   Banknote,
+  AlertCircle,
+  Lightbulb,
+  Mail,
+  MessageSquare,
+  X,
 } from 'lucide-react';
 
 interface DashboardHubProps {
@@ -90,20 +95,9 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
     });
   };
 
-  const handleDismissTopic = async (note: any) => {
-    // If user is a resident: they resolve the note (mark as done/archived) and notify caregivers
-    if (user?.role === 'BEWOHNER') {
-      if (note.category === 'ANKUENDIGUNG') {
-        return; // Residents cannot resolve or dismiss announcements
-      }
-      try {
-        await api.notes.resolve(note.id);
-        // Immediately remove from local list
-        setNotesList((prev) => prev.filter((n) => n.id !== note.id));
-      } catch (e) {
-        console.error('Fehler beim Erledigen des Themas:', e);
-      }
-    }
+  const handleDismissNotification = async (note: any, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (note.category === 'ANKUENDIGUNG') return;
 
     const updated = Array.from(new Set([...dismissedTopicIds, note.id]));
     setDismissedTopicIds(updated);
@@ -127,17 +121,26 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
   };
 
   const handleOpenTopic = async (note: any) => {
-    // For announcements viewed by residents: do NOT dismiss/resolve when opening!
-    if (user?.role !== 'BEWOHNER' || note.category !== 'ANKUENDIGUNG') {
-      if (note.hasUnreadResponse) {
+    // Non-announcements disappear from Home once clicked/opened
+    if (note.category !== 'ANKUENDIGUNG') {
+      const updated = Array.from(new Set([...dismissedTopicIds, note.id]));
+      setDismissedTopicIds(updated);
+      if (user?.id) {
         try {
-          await api.notes.markRead(note.id);
-          setNotesList((prev) =>
-            prev.map((n) => (n.id === note.id ? { ...n, hasUnreadResponse: false } : n))
-          );
+          localStorage.setItem(`flurfunk_dismissed_${user.id}`, JSON.stringify(updated));
         } catch (e) {
           console.error(e);
         }
+      }
+    }
+    if (note.hasUnreadResponse) {
+      try {
+        await api.notes.markRead(note.id);
+        setNotesList((prev) =>
+          prev.map((n) => (n.id === note.id ? { ...n, hasUnreadResponse: false } : n))
+        );
+      } catch (e) {
+        console.error(e);
       }
     }
     setCurrentTab('notes');
@@ -277,8 +280,8 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
     const isResident = user?.role === 'BEWOHNER';
     const isAnnouncement = note.category === 'ANKUENDIGUNG';
 
-    // Residents cannot dismiss announcements - they must stay visible until caregiver removes them or deadline expires
-    if (!isResident || !isAnnouncement) {
+    // Announcements cannot be dismissed - they stay visible until caregiver removes them or deadline expires
+    if (!isAnnouncement) {
       if (dismissedTopicIds.includes(note.id)) return false;
     }
 
@@ -300,31 +303,31 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
   const remainingNotificationsCount = newFlurfunkNotifications.length - displayedNotifications.length;
 
   const getBannerConfig = (note: any) => {
-    // 1. ANKUENDIGUNG is always RED/ROSE
+    // 1. ANKUENDIGUNG is always RED/ROSE with AlertCircle
     if (note.category === 'ANKUENDIGUNG') {
       return {
-        badge: '📢 Wichtige Ankündigung',
-        badgeClass: 'bg-rose-500 text-white',
-        containerClass: 'bg-gradient-to-r from-rose-500/20 via-pink-500/15 to-surface-card border border-rose-500/50 shadow-rose-500/10 hover:border-rose-400/80',
-        iconBg: 'bg-gradient-to-br from-rose-500 to-pink-500 shadow-rose-500/30 text-white',
-        icon: '📢',
+        badge: 'Wichtige Ankündigung',
+        badgeClass: 'bg-rose-500/20 text-rose-200 border border-rose-500/40',
+        containerClass: 'bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/40 hover:border-rose-400/80 shadow-rose-500/5',
+        iconColor: 'text-rose-400',
+        Icon: AlertCircle,
         senderName: note.authorName || 'Betreuer',
-        headline: `„${note.title}“`,
+        headline: note.title,
         snippet: note.content,
         textClass: 'text-rose-200/90',
       };
     }
 
-    // 2. HINWEIS is always YELLOW/AMBER
+    // 2. HINWEIS is always YELLOW/AMBER with Lightbulb
     if (note.category === 'HINWEIS') {
       return {
-        badge: '💡 Wichtiger Hinweis',
-        badgeClass: 'bg-amber-500 text-slate-950 font-bold',
-        containerClass: 'bg-gradient-to-r from-amber-500/20 via-yellow-500/15 to-surface-card border border-amber-500/50 shadow-amber-500/10 hover:border-amber-400/80',
-        iconBg: 'bg-gradient-to-br from-amber-500 to-yellow-600 shadow-amber-500/30 text-slate-950',
-        icon: '💡',
+        badge: 'Wichtiger Hinweis',
+        badgeClass: 'bg-amber-500/20 text-amber-200 border border-amber-500/40',
+        containerClass: 'bg-amber-500/10 hover:bg-amber-500/15 border border-amber-500/40 hover:border-amber-400/80 shadow-amber-500/5',
+        iconColor: 'text-amber-400',
+        Icon: Lightbulb,
         senderName: note.authorName || 'Flurfunk',
-        headline: `„${note.title}“`,
+        headline: note.title,
         snippet: note.content,
         textClass: 'text-amber-200/90',
       };
@@ -338,13 +341,13 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
     );
     if (isResidentTicket) {
       return {
-        badge: '✉️ Neues Bewohner-Anliegen',
-        badgeClass: 'bg-purple-500 text-white',
-        containerClass: 'bg-gradient-to-r from-purple-500/20 via-violet-500/15 to-surface-card border border-purple-500/50 shadow-purple-500/10 hover:border-purple-400/80',
-        iconBg: 'bg-gradient-to-br from-purple-500 to-indigo-600 shadow-purple-500/30 text-white',
-        icon: '✉️',
+        badge: 'Neues Bewohner-Anliegen',
+        badgeClass: 'bg-purple-500/20 text-purple-200 border border-purple-500/40',
+        containerClass: 'bg-purple-500/10 hover:bg-purple-500/15 border border-purple-500/40 hover:border-purple-400/80 shadow-purple-500/5',
+        iconColor: 'text-purple-400',
+        Icon: Mail,
         senderName: note.authorName || note.residentName || 'Bewohner',
-        headline: `Anliegen: „${note.title}“`,
+        headline: note.title,
         snippet: note.content,
         textClass: 'text-purple-200/90',
       };
@@ -359,13 +362,13 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
     );
     if (isReply) {
       return {
-        badge: '💬 Neue Betreuer-Antwort',
-        badgeClass: 'bg-sky-500 text-white',
-        containerClass: 'bg-gradient-to-r from-sky-500/20 via-blue-500/15 to-surface-card border border-sky-500/50 shadow-sky-500/10 hover:border-sky-400/80',
-        iconBg: 'bg-gradient-to-br from-sky-500 to-blue-600 shadow-sky-500/30 text-white',
-        icon: '💬',
+        badge: 'Neue Betreuer-Antwort',
+        badgeClass: 'bg-sky-500/20 text-sky-200 border border-sky-500/40',
+        containerClass: 'bg-sky-500/10 hover:bg-sky-500/15 border border-sky-500/40 hover:border-sky-400/80 shadow-sky-500/5',
+        iconColor: 'text-sky-400',
+        Icon: MessageSquare,
         senderName: note.respondedByName || 'Betreuer',
-        headline: `Zu deinem Beitrag: „${note.title}“`,
+        headline: `Zu deinem Beitrag: ${note.title}`,
         snippet: note.caregiverResponse,
         textClass: 'text-sky-200/90',
       };
@@ -375,13 +378,13 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
     const isDirect = Boolean(note.isDirectMessage || (note.isPrivate && note.residentId === user?.id));
     if (isDirect) {
       return {
-        badge: '✉️ Neue Direktnachricht',
-        badgeClass: 'bg-sky-500 text-white',
-        containerClass: 'bg-gradient-to-r from-sky-500/20 via-blue-500/15 to-surface-card border border-sky-500/50 shadow-sky-500/10 hover:border-sky-400/80',
-        iconBg: 'bg-gradient-to-br from-sky-500 to-blue-600 shadow-sky-500/30 text-white',
-        icon: '✉️',
+        badge: 'Neue Direktnachricht',
+        badgeClass: 'bg-sky-500/20 text-sky-200 border border-sky-500/40',
+        containerClass: 'bg-sky-500/10 hover:bg-sky-500/15 border border-sky-500/40 hover:border-sky-400/80 shadow-sky-500/5',
+        iconColor: 'text-sky-400',
+        Icon: Mail,
         senderName: note.authorName || 'Betreuer',
-        headline: `„${note.title}“`,
+        headline: note.title,
         snippet: note.content,
         textClass: 'text-sky-200/90',
       };
@@ -389,13 +392,13 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
 
     // 6. Default general note (ALLGEMEIN) - BLUE / SKY
     return {
-      badge: '💬 Neuer Flurfunk-Beitrag',
-      badgeClass: 'bg-sky-500 text-white',
-      containerClass: 'bg-gradient-to-r from-sky-500/20 via-blue-500/15 to-surface-card border border-sky-500/50 shadow-sky-500/10 hover:border-sky-400/80',
-      iconBg: 'bg-gradient-to-br from-sky-500 to-blue-600 shadow-sky-500/30 text-white',
-      icon: '💬',
+      badge: 'Neuer Flurfunk-Beitrag',
+      badgeClass: 'bg-sky-500/20 text-sky-200 border border-sky-500/40',
+      containerClass: 'bg-sky-500/10 hover:bg-sky-500/15 border border-sky-500/40 hover:border-sky-400/80 shadow-sky-500/5',
+      iconColor: 'text-sky-400',
+      Icon: MessageSquare,
       senderName: note.authorName || 'Flurfunk',
-      headline: `„${note.title}“`,
+      headline: note.title,
       snippet: note.content,
       textClass: 'text-sky-200/90',
     };
@@ -438,36 +441,59 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
         <div className="space-y-3">
           {displayedNotifications.map((note: any) => {
             const config = getBannerConfig(note);
+            const IconComponent = config.Icon;
+            const isAnnouncement = note.category === 'ANKUENDIGUNG';
+
             return (
               <div
                 key={note.id}
                 onClick={() => handleOpenTopic(note)}
-                className={`${config.containerClass} rounded-3xl p-4 sm:p-5 shadow-xl flex items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2 duration-200 cursor-pointer group transition-all`}
+                className={`${config.containerClass} rounded-3xl p-4 sm:p-5 shadow-lg flex items-start justify-between gap-3 sm:gap-4 animate-in fade-in slide-in-from-top-2 duration-200 cursor-pointer group transition-all`}
               >
-                <div className="flex items-start sm:items-center gap-3.5 min-w-0 flex-1">
-                  <div className={`w-10 h-10 rounded-2xl ${config.iconBg} flex items-center justify-center shrink-0 shadow-md font-bold text-lg`}>
-                    {config.icon}
+                <div className="flex items-start gap-3.5 min-w-0 flex-1">
+                  {/* Clean SVG icon without bulky background box */}
+                  <div className="mt-0.5 shrink-0 flex items-center justify-center">
+                    <IconComponent className={`w-5 h-5 ${config.iconColor} stroke-[2]`} />
                   </div>
+
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${config.badgeClass} uppercase tracking-wider font-display`}>
+                    {/* Line 1: Category Badge Pill */}
+                    <div>
+                      <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full ${config.badgeClass} uppercase tracking-wider font-display`}>
                         {config.badge}
                       </span>
-                      <span className="text-xs text-slate-300 font-medium truncate">
-                        von {config.senderName}
-                      </span>
                     </div>
-                    <h4 className="text-sm font-semibold text-white mt-1 group-hover:text-white transition-colors truncate">
+
+                    {/* Line 2: Sender name consistently on separate second line, no wrapping */}
+                    <div className="text-[11px] text-slate-400 font-medium whitespace-nowrap truncate mt-1">
+                      von {config.senderName}
+                    </div>
+
+                    {/* Title with increased spacing from author line and NO quotation marks */}
+                    <h4 className="text-sm font-semibold text-white mt-2 group-hover:text-white transition-colors truncate">
                       {config.headline}
                     </h4>
-                    <p className={`text-xs ${config.textClass} mt-0.5 line-clamp-2 italic font-sans`}>
-                      „{config.snippet}“
+
+                    {/* Snippet with NO quotation marks */}
+                    <p className={`text-xs ${config.textClass} mt-1 line-clamp-2 italic font-sans`}>
+                      {config.snippet}
                     </p>
                   </div>
                 </div>
 
-                <div className="shrink-0 flex items-center pl-2">
-                  <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                {/* Right controls: Dismiss button (for non-announcements) + Arrow */}
+                <div className="shrink-0 flex items-center gap-1 sm:gap-2 self-center pl-1 sm:pl-2">
+                  {!isAnnouncement && (
+                    <button
+                      type="button"
+                      onClick={(e) => handleDismissNotification(note, e)}
+                      title="Mitteilung ausblenden"
+                      className="p-1.5 rounded-xl hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-white group-hover:translate-x-1 transition-all" />
                 </div>
               </div>
             );
@@ -521,7 +547,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
               </div>
 
               <h3 className="text-xl font-semibold text-white mb-1.5 font-sans tracking-tight">
-                Was heute ansteht
+                Deine heutigen Aufgaben
               </h3>
               <p className="text-xs text-slate-300 mb-4 leading-relaxed font-sans">
                 {residentTasksList.length === 0
@@ -829,9 +855,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             {budgetSummary && (
               <div className="p-3.5 mb-4 rounded-2xl bg-surface-elevated/80 border border-emerald-500/30 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 shrink-0 flex items-center justify-center">
-                    <Banknote className="w-5 h-5 text-emerald-400" />
-                  </div>
+                  <Banknote className="w-6 h-6 text-emerald-400 shrink-0 stroke-[1.75]" />
                   <div>
                     <div className="text-[10px] uppercase font-bold text-slate-400 font-sans tracking-wide">
                       Aktuelles Wochenbudget
@@ -1014,29 +1038,39 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               {notesList && notesList.length > 0 ? (
                 notesList.slice(0, 2).map((note: any, idx: number) => {
-                  const categoryLabel =
-                    note.category === 'ANKUENDIGUNG'
-                      ? '📢 Ankündigung'
-                      : note.category === 'HINWEIS'
-                      ? '💡 Hinweis'
-                      : note.category === 'FRAGE'
-                      ? '❓ Frage'
-                      : '💬 Notiz';
+                  let cardClass = 'bg-sky-500/10 border-sky-500/30 text-sky-200';
+                  let headerClass = 'text-sky-300 font-medium';
+                  let categoryLabel = 'Mitteilung';
+                  let CatIcon = MessageSquare;
+
+                  if (note.category === 'ANKUENDIGUNG') {
+                    cardClass = 'bg-rose-500/10 border-rose-500/30 text-rose-200';
+                    headerClass = 'text-rose-300 font-medium';
+                    categoryLabel = 'Ankündigung';
+                    CatIcon = AlertCircle;
+                  } else if (note.category === 'HINWEIS') {
+                    cardClass = 'bg-amber-500/10 border-amber-500/30 text-amber-200';
+                    headerClass = 'text-amber-300 font-medium';
+                    categoryLabel = 'Hinweis';
+                    CatIcon = Lightbulb;
+                  }
+
                   return (
                     <div
                       key={note.id || idx}
-                      className="p-4 rounded-2xl border shadow-inner bg-theme-subtle border-theme text-slate-100"
+                      className={`p-4 rounded-2xl border shadow-inner ${cardClass}`}
                     >
                       <div className="flex items-center justify-between text-xs font-semibold mb-1.5">
-                        <span className="text-theme font-medium">
-                          {categoryLabel} · {note.authorName || 'WG-Mitglied'}
+                        <span className={`flex items-center gap-1.5 truncate ${headerClass}`}>
+                          <CatIcon className="w-3.5 h-3.5 shrink-0 stroke-[2.25]" />
+                          <span className="truncate">{categoryLabel} · {note.authorName || 'WG-Mitglied'}</span>
                         </span>
-                        <span className="text-[10px] font-mono text-slate-400">
+                        <span className="text-[10px] font-mono opacity-60 shrink-0 ml-1">
                           {note.createdAt ? formatGermanDate(note.createdAt) : 'Aktuell'}
                         </span>
                       </div>
                       <p className="text-xs text-slate-200 leading-relaxed font-medium line-clamp-3">
-                        „{note.content || note.title}“
+                        {note.content || note.title}
                       </p>
                     </div>
                   );

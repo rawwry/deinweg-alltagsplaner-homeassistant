@@ -3,6 +3,28 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.35] - 2026-09-17
+
+### Hinzugefügt & Verbessert
+- **Optische Überarbeitung der Flurfunk-Mitteilungshinweise auf der Startseite (`DashboardHub`)**:
+  - **Reine SVG-Icons statt 3D-/Farb-Blobs**: Die massiven, bunten Hintergrundkreise und Emojis wurden entfernt. Stattdessen werden elegante, schlanke SVG-Icons (`AlertCircle`, `Lightbulb`, `Mail`, `MessageSquare`) passend zur Kategorie akzentuiert dargestellt.
+  - **Ausrufezeichen statt Megafon**: Bei Ankündigungen ersetzt das klare SVG-Ausrufezeichen (`AlertCircle`) das alte Lautsprecher-/Megafon-Symbol.
+  - **Einheitliche Zeilenaufteilung & Absender**: Der Absender (*„von [Name]“*) steht nun immer konsistent und umbruchsicher (`whitespace-nowrap`) in der zweiten Zeile unter der Kategorie-Pille mit vergrößertem vertikalem Abstand zum Titel.
+  - **Gänsefüßchen entfernt**: Alle überflüssigen Anführungszeichen (`„` und `“`) in Überschriften und Textauszügen wurden restlos entfernt.
+  - **Mitteilungen ausblenden**:
+    - Neue Schließen-Schaltfläche (`X`) an jeder Notiz-Karte (außer Ankündigungen) zum direkten Ausblenden vom Dashboard.
+    - Beim Anklicken/Öffnen einer Mitteilung wird diese automatisch vom Home-Dashboard ausgeblendet.
+    - **Ankündigungsschutz**: Wichtige Ankündigungen (`ANKUENDIGUNG`) können nicht ausgeblendet werden und bleiben bis zum Fristende bzw. zur Löschung durch Betreuer stets präsent.
+- **Flurfunk-Farbkodierung synchronisiert (`CaregiverNotesView` & `DashboardHub`)**:
+  - Kategorie-Farben und SVG-Icons wurden einheitlich im gesamten Flurfunk und in den Dashboard-Vorschaukacheln (Bento 4) angewendet:
+    - Ankündigung: Rose / Rot mit `AlertCircle`-Icon.
+    - Hinweis: Amber / Gelb mit `Lightbulb`-Icon.
+    - Mitteilung: Sky / Blau mit `MessageSquare`-Icon.
+- **Überschrift „Deine heutigen Aufgaben“ (`DashboardHub`)**:
+  - In der Aufgaben-Kachel auf der Startseite wurde *„Was heute ansteht“* in das präzisere *„Deine heutigen Aufgaben“* geändert.
+- **Einkaufskorb Budget-Widget Redesign (`DashboardHub`)**:
+  - Die störende Hintergrundbox hinter dem Geldschein-Icon im Wochenbudget-Widget wurde entfernt; das SVG-Icon (`Banknote`) fügt sich nun sauber und reduziert in das Gesamtlayout ein.
+
 ## [0.1.0-beta.34] - 2026-09-17
 
 ### Hinzugefügt & Verbessert
