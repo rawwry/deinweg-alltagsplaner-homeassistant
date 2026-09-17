@@ -143,17 +143,29 @@ export interface CaregiverNoteMessageSummary {
   createdAt: string;
 }
 
+export type NoteCategory = 'ALLGEMEIN' | 'ANKUENDIGUNG' | 'HINWEIS' | 'FRAGE' | 'DRINGEND';
+
 export interface CaregiverNoteSummary {
   id: string;
   locationId: string;
   locationName?: string;
+  authorId?: string | null;
+  authorName?: string | null;
+  authorRole?: string | null;
+  authorAvatarColor?: string | null;
+  authorAvatarUrl?: string | null;
   residentId: string;
   residentName: string;
   title: string;
   content: string;
+  category: NoteCategory | string;
+  isPinned: boolean;
+  expiresAt?: string | null;
+  isExpired?: boolean;
   status: 'OPEN' | 'IN_PROGRESS' | 'DONE';
   isArchived: boolean;
   isPrivate?: boolean;
+  isDirectMessage?: boolean;
   hasUnreadResponse?: boolean;
   caregiverResponse?: string | null;
   respondedByName?: string | null;

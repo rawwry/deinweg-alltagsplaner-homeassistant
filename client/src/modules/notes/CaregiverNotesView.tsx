@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.js';
 import { api } from '../../api/client.js';
-import { CaregiverNoteSummary } from '../../../../shared/types.js';
-import { formatGermanDateTime } from '../../utils/formatters.js';
+import { CaregiverNoteSummary, NoteCategory } from '../../../../shared/types.js';
+import { formatGermanDate, formatGermanDateTime } from '../../utils/formatters.js';
 import {
   MessageSquareText,
   Plus,
@@ -11,15 +11,24 @@ import {
   Trash2,
   Send,
   User,
-  Archive,
   RotateCcw,
-  Bell,
   MessageSquare,
-  Sparkles,
   Lock,
   Globe,
   Check,
+  Pin,
+  ChevronDown,
+  ChevronUp,
+  Calendar,
 } from 'lucide-react';
+
+const NOTE_CATEGORIES: { id: NoteCategory; label: string; icon: string; badgeClass: string; buttonClass: string }[] = [
+  { id: 'ALLGEMEIN', label: 'Mitteilung', icon: '💬', badgeClass: 'bg-slate-500/15 text-slate-300 border-slate-500/30', buttonClass: 'border-slate-500/40 text-slate-200 bg-slate-500/15' },
+  { id: 'ANKUENDIGUNG', label: 'Ankündigung', icon: '📢', badgeClass: 'bg-sky-500/15 text-sky-300 border-sky-500/30', buttonClass: 'border-sky-500/40 text-sky-200 bg-sky-500/15' },
+  { id: 'HINWEIS', label: 'Hinweis', icon: '⚠️', badgeClass: 'bg-amber-500/15 text-amber-300 border-amber-500/30', buttonClass: 'border-amber-500/40 text-amber-200 bg-amber-500/15' },
+  { id: 'FRAGE', label: 'Frage', icon: '❓', badgeClass: 'bg-violet-500/15 text-violet-300 border-violet-500/30', buttonClass: 'border-violet-500/40 text-violet-200 bg-violet-500/15' },
+  { id: 'DRINGEND', label: 'Dringend', icon: '🚨', badgeClass: 'bg-rose-500/15 text-rose-300 border-rose-500/40', buttonClass: 'border-rose-500/50 text-rose-200 bg-rose-500/20' },
+];
 
 export const CaregiverNotesView: React.FC = () => {
   const { user, activeLocationId, activeLocation } = useAuth();
@@ -30,8 +39,14 @@ export const CaregiverNotesView: React.FC = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [category, setCategory] = useState<NoteCategory>('ALLGEMEIN');
+  const [isPinned, setIsPinned] = useState(false);
+  const [expiresAt, setExpiresAt] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Set of expanded card IDs (collapsible messages)
+  const [expandedNoteIds, setExpandedNoteIds] = useState<Set<string>>(new Set());
 
   // Response input state per ticket
   const [threadReplyInputs, setThreadReplyInputs] = useState<Record<string, string>>({});
@@ -78,6 +93,34 @@ export const CaregiverNotesView: React.FC = () => {
     fetchNotes();
   }, [activeLocationId, activeTab]);
 
+  const toggleExpand = (id: string) => {
+    setExpandedNoteIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleTogglePin = async (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    try {
+      const res = await api.notes.togglePin(id);
+      setNotes((prev) => {
+        const updated = prev.map((n) => (n.id === id ? { ...n, isPinned: res.isPinned } : n));
+        return updated.sort((a, b) => {
+          if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
+      });
+    } catch (err: any) {
+      alert(`Fehler beim Ändern des Pin-Status: ${err.message || err}`);
+    }
+  };
+
   const handleCreateNote = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !content.trim()) return;
@@ -94,10 +137,16 @@ export const CaregiverNotesView: React.FC = () => {
         locationId: activeLocationId,
         residentId: isStaff && isPrivate ? targetResidentId : undefined,
         isPrivate,
+        category,
+        isPinned: isStaff ? isPinned : false,
+        expiresAt: isStaff && expiresAt ? new Date(expiresAt).toISOString() : undefined,
       });
 
       setTitle('');
       setContent('');
+      setCategory('ALLGEMEIN');
+      setIsPinned(false);
+      setExpiresAt('');
       setIsPrivate(false);
       setShowAddForm(false);
       if (activeTab !== 'ACTIVE') {
@@ -119,6 +168,7 @@ export const CaregiverNotesView: React.FC = () => {
       const updated = await api.notes.addMessage(noteId, text);
       setNotes((prev) => prev.map((n) => (n.id === noteId ? updated : n)));
       setThreadReplyInputs((prev) => ({ ...prev, [noteId]: '' }));
+      setExpandedNoteIds((prev) => new Set(prev).add(noteId));
     } catch (err: any) {
       alert(`Fehler beim Senden der Antwort: ${err.message || err}`);
     } finally {
@@ -341,6 +391,69 @@ export const CaregiverNotesView: React.FC = () => {
             )}
           </div>
 
+          {/* Category selection */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-300 font-display">
+              Art des Beitrags (Kategorie)
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {NOTE_CATEGORIES.map((cat) => {
+                const isSelected = category === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setCategory(cat.id)}
+                    className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                      isSelected
+                        ? `${cat.buttonClass} ring-2 ring-rose-500/40 scale-102 font-bold`
+                        : 'bg-surface-elevated border-surface-border text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    <span>{cat.icon}</span>
+                    <span>{cat.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Caregiver extra settings: Pin & Expiry */}
+          {isStaff && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <label className="flex items-center gap-3 p-3 rounded-2xl bg-surface-elevated border border-surface-border cursor-pointer hover:border-surface-hover transition-colors">
+                <input
+                  type="checkbox"
+                  checked={isPinned}
+                  onChange={(e) => setIsPinned(e.target.checked)}
+                  className="w-4 h-4 rounded text-rose-500 focus:ring-rose-500/40 cursor-pointer"
+                />
+                <div className="text-xs">
+                  <span className="font-bold text-slate-200 flex items-center gap-1.5">
+                    <Pin className="w-3.5 h-3.5 text-rose-400" />
+                    <span>Oben anpinnen</span>
+                  </span>
+                  <span className="text-[11px] text-slate-400 block mt-0.5">
+                    Bleibt immer oben an erster Stelle im Flurfunk
+                  </span>
+                </div>
+              </label>
+
+              <div className="p-3 rounded-2xl bg-surface-elevated border border-surface-border space-y-1.5">
+                <label className="block text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Ablaufdatum (optional)</span>
+                </label>
+                <input
+                  type="date"
+                  value={expiresAt}
+                  onChange={(e) => setExpiresAt(e.target.value)}
+                  className="w-full px-3 py-1.5 bg-surface-card border border-surface-border rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans"
+                />
+              </div>
+            </div>
+          )}
+
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1.5 font-display">Betreff / Kurztitel</label>
             <input
@@ -371,6 +484,9 @@ export const CaregiverNotesView: React.FC = () => {
               onClick={() => {
                 setShowAddForm(false);
                 setIsPrivate(false);
+                setCategory('ALLGEMEIN');
+                setIsPinned(false);
+                setExpiresAt('');
               }}
               className="px-4 py-2 bg-surface-elevated hover:bg-surface-card text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer"
             >
@@ -422,215 +538,334 @@ export const CaregiverNotesView: React.FC = () => {
       ) : (
         <div className="space-y-4">
           {notes.map((note) => {
+            const isExpanded = expandedNoteIds.has(note.id);
             const hasMessages = note.messages && note.messages.length > 0;
             const canReply = !note.isArchived;
+            const categoryConfig = NOTE_CATEGORIES.find((c) => c.id === note.category) || NOTE_CATEGORIES[0];
+            const isDirect = note.isPrivate && (note.authorRole === 'BETREUER' || note.authorRole === 'ADMIN' || note.isDirectMessage);
 
             return (
               <div
                 key={note.id}
-                className={`bento-card rounded-[2.5rem] p-6 sm:p-7 border shadow-md transition-all ${
+                className={`bento-card rounded-[2.5rem] p-5 sm:p-6 border shadow-md transition-all ${
                   note.isArchived
                     ? 'border-surface-border opacity-75'
+                    : note.isPinned
+                    ? 'border-rose-500/50 bg-gradient-to-br from-rose-500/10 via-surface-card to-transparent ring-1 ring-rose-500/30'
                     : note.isPrivate
                     ? 'border-purple-500/30 bg-gradient-to-br from-purple-500/5 to-transparent'
                     : note.status === 'IN_PROGRESS'
                     ? 'border-sky-500/30 bg-gradient-to-br from-sky-500/5 to-transparent'
-                    : 'border-rose-500/30 bg-gradient-to-br from-rose-500/5 to-transparent hover:border-rose-500/50'
+                    : 'border-surface-border hover:border-surface-hover bg-surface-card'
                 }`}
               >
-                {/* Meta Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span
-                      className={`text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider font-display ${
-                        note.isArchived
-                          ? 'bg-surface-elevated text-slate-400 border border-surface-border'
-                          : note.status === 'IN_PROGRESS'
-                          ? 'bg-sky-500/15 text-sky-300 border border-sky-500/30'
-                          : 'bg-rose-500/15 text-rose-300 border border-rose-500/30'
-                      }`}
-                    >
-                      {note.isArchived ? 'Gelöst & Archiviert' : note.status === 'IN_PROGRESS' ? 'In Bearbeitung' : 'Neu / Offen'}
+                {/* Top Header Row: Badges & Controls */}
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                    {/* Pinned Badge */}
+                    {note.isPinned && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500 text-white shadow-xs font-display">
+                        <Pin className="w-3 h-3 fill-current" />
+                        <span>Angepinnt</span>
+                      </span>
+                    )}
+
+                    {/* Category Badge */}
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border font-display ${categoryConfig.badgeClass}`}>
+                      <span>{categoryConfig.icon}</span>
+                      <span>{categoryConfig.label}</span>
                     </span>
 
                     {/* Visibility Badge */}
                     {note.isPrivate ? (
-                      <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/30 flex items-center gap-1 font-display">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/30 font-display">
                         <Lock className="w-3 h-3 text-purple-400" />
-                        <span>{isStaff ? `Direkt an ${note.residentName}` : 'Nur für Betreuer'}</span>
+                        <span>{isDirect ? `Direkt an ${note.residentName}` : 'Nur Betreuer'}</span>
                       </span>
                     ) : (
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-surface-elevated text-slate-400 border border-surface-border flex items-center gap-1 font-display">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-surface-elevated text-slate-400 border border-surface-border font-display">
                         <Globe className="w-3 h-3 text-slate-400" />
-                        <span>Öffentlich</span>
+                        <span className="hidden sm:inline">Öffentlich</span>
                       </span>
                     )}
 
-                    <span className="text-xs text-slate-400 flex items-center gap-1 font-mono">
-                      <Clock className="w-3.5 h-3.5 text-slate-500" />
-                      {formatGermanDateTime(note.createdAt)}
+                    {/* Expiry Badge if present */}
+                    {note.expiresAt && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-surface-elevated text-slate-400 border border-surface-border">
+                        <Calendar className="w-3 h-3 text-slate-400" />
+                        <span>Bis {formatGermanDate(note.expiresAt)}</span>
+                      </span>
+                    )}
+
+                    {/* Status Badge */}
+                    <span
+                      className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-display ${
+                        note.isArchived
+                          ? 'bg-surface-elevated text-slate-400 border border-surface-border'
+                          : note.status === 'IN_PROGRESS'
+                          ? 'bg-sky-500/15 text-sky-300 border border-sky-500/30'
+                          : 'bg-surface-elevated text-slate-300 border border-surface-border'
+                      }`}
+                    >
+                      {note.isArchived ? 'Archiviert' : note.status === 'IN_PROGRESS' ? 'In Bearbeitung' : 'Offen'}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
-                    <User className="w-3.5 h-3.5 text-rose-400" />
-                    <span>
-                      {note.isPrivate ? 'An: ' : 'Von: '}
-                      <span className="text-white font-bold">{note.residentName}</span>
-                    </span>
+                  {/* Action icons: Pin toggle (staff) & Expand/Collapse toggle */}
+                  <div className="flex items-center gap-1 shrink-0">
+                    {isStaff && !note.isArchived && (
+                      <button
+                        type="button"
+                        onClick={(e) => handleTogglePin(note.id, e)}
+                        title={note.isPinned ? 'Pin lösen' : 'Oben anpinnen'}
+                        className={`p-1.5 rounded-xl border transition-colors cursor-pointer ${
+                          note.isPinned
+                            ? 'bg-rose-500/20 border-rose-500/40 text-rose-300 hover:bg-rose-500/30'
+                            : 'bg-surface-elevated border-surface-border text-slate-400 hover:text-white hover:border-slate-500'
+                        }`}
+                      >
+                        <Pin className={`w-3.5 h-3.5 ${note.isPinned ? 'fill-current' : ''}`} />
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => toggleExpand(note.id)}
+                      className="p-1.5 rounded-xl bg-surface-elevated hover:bg-surface-card border border-surface-border text-slate-300 hover:text-white transition-colors cursor-pointer flex items-center gap-1 text-xs font-semibold"
+                      aria-label={isExpanded ? 'Einklappen' : 'Ausklappen'}
+                    >
+                      <span className="text-[11px] hidden sm:inline">{isExpanded ? 'Weniger' : 'Mehr'}</span>
+                      {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </button>
                   </div>
                 </div>
 
-                {/* Content */}
-                <h3 className="text-lg font-display font-semibold text-white">
+                {/* Author & Timestamp row */}
+                <div className="flex items-center justify-between text-xs text-slate-400 mb-2 gap-2 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white uppercase shrink-0"
+                      style={{
+                        backgroundColor: note.authorAvatarColor || (note.authorRole === 'BETREUER' || note.authorRole === 'ADMIN' ? '#f43f5e' : '#3b82f6'),
+                      }}
+                    >
+                      {(note.authorName || note.residentName).charAt(0)}
+                    </div>
+                    <span className="font-medium text-slate-300">
+                      Von: <strong className="text-white">{note.authorName || 'WG-Mitglied'}</strong>
+                      {isDirect && (
+                        <>
+                          {' '}→ An: <strong className="text-purple-300">{note.residentName}</strong>
+                        </>
+                      )}
+                    </span>
+                  </div>
+
+                  <span className="text-[11px] font-mono text-slate-400 flex items-center gap-1">
+                    <Clock className="w-3 h-3 text-slate-500" />
+                    {formatGermanDateTime(note.createdAt)}
+                  </span>
+                </div>
+
+                {/* Title */}
+                <h3
+                  onClick={() => toggleExpand(note.id)}
+                  className="text-base sm:text-lg font-display font-semibold text-white cursor-pointer hover:text-rose-300 transition-colors"
+                >
                   {note.title}
                 </h3>
 
-                <p className="text-xs text-slate-300 mt-2 leading-relaxed whitespace-pre-line font-normal">
-                  {note.content}
-                </p>
-
-                {/* Thread / Conversation History */}
-                {hasMessages ? (
-                  <div className="mt-4 pt-3.5 border-t border-white/5 space-y-2.5">
-                    <div className="text-[11px] font-display font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-2">
-                      <MessageSquare className="w-3.5 h-3.5 text-rose-400" />
-                      <span>Gesprächsverlauf ({note.messages!.length})</span>
-                    </div>
-
-                    <div className="space-y-2">
-                      {note.messages!.map((msg) => {
-                        const isStaffMsg = msg.authorRole === 'BETREUER' || msg.authorRole === 'ADMIN';
-                        return (
-                          <div
-                            key={msg.id}
-                            className={`p-3.5 rounded-2xl border text-xs ${
-                              isStaffMsg
-                                ? 'bg-rose-500/10 border-rose-500/25 ml-2 sm:ml-5'
-                                : 'bg-surface-elevated/70 border-surface-border mr-2 sm:mr-5'
-                            }`}
-                          >
-                            <div className="flex items-center justify-between gap-2 mb-1">
-                              <div className="flex items-center gap-2">
-                                <div
-                                  className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white uppercase shrink-0"
-                                  style={{ backgroundColor: msg.authorAvatarColor || (isStaffMsg ? '#f43f5e' : '#3b82f6') }}
-                                >
-                                  {msg.authorName.charAt(0)}
-                                </div>
-                                <span className="font-semibold text-slate-200">
-                                  {msg.authorName}
-                                </span>
-                                <span
-                                  className={`text-[9px] px-1.5 py-0.5 font-bold rounded-md uppercase tracking-wider ${
-                                    isStaffMsg
-                                      ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                                      : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                                  }`}
-                                >
-                                  {isStaffMsg ? 'Betreuer' : 'Bewohner'}
-                                </span>
-                              </div>
-                              <span className="text-[10px] text-slate-400 font-mono">
-                                {formatGermanDateTime(msg.createdAt)}
-                              </span>
-                            </div>
-                            <p className="text-slate-200 whitespace-pre-line leading-relaxed pl-7 font-normal">
-                              {msg.content}
-                            </p>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ) : note.caregiverResponse ? (
-                  /* Legacy response fallback if no messages array yet */
-                  <div className="mt-4 p-4 sm:p-5 bg-surface-elevated/70 border border-rose-500/30 rounded-2xl">
-                    <div className="flex items-center justify-between text-xs mb-1.5">
-                      <span className="font-display font-bold text-rose-300 flex items-center gap-1.5">
-                        <MessageSquare className="w-4 h-4 text-rose-400" />
-                        Rückmeldung von {note.respondedByName || 'Betreuer'}
-                      </span>
-                      {note.respondedAt && (
-                        <span className="text-[11px] text-slate-400 font-mono">
-                          {formatGermanDateTime(note.respondedAt)}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-slate-200 leading-relaxed whitespace-pre-line font-medium">
-                      {note.caregiverResponse}
+                {/* Collapsed Snippet or Expanded Full Content */}
+                {!isExpanded ? (
+                  <div className="mt-2">
+                    <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed font-normal">
+                      {note.content}
                     </p>
-                  </div>
-                ) : null}
+                    <div className="mt-3 flex items-center justify-between text-xs pt-2 border-t border-white/5">
+                      <div className="flex items-center gap-2">
+                        {hasMessages ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/25 px-2 py-0.5 rounded-full">
+                            <MessageSquare className="w-3 h-3 text-rose-400" />
+                            {note.messages!.length} {note.messages!.length === 1 ? 'Antwort' : 'Antworten'}
+                          </span>
+                        ) : note.caregiverResponse ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/25 px-2 py-0.5 rounded-full">
+                            <MessageSquare className="w-3 h-3 text-rose-400" />
+                            1 Antwort
+                          </span>
+                        ) : (
+                          <span className="text-[11px] text-slate-500">Keine Antworten</span>
+                        )}
+                      </div>
 
-                {/* Inline Thread Reply Input (for Active Notes) */}
-                {canReply && (
-                  <div className="mt-3.5 pt-3 border-t border-white/5 flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={threadReplyInputs[note.id] || ''}
-                      onChange={(e) =>
-                        setThreadReplyInputs((prev) => ({ ...prev, [note.id]: e.target.value }))
-                      }
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSendThreadMessage(note.id);
-                        }
-                      }}
-                      placeholder="Auf Mitteilung antworten..."
-                      className="flex-1 px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleSendThreadMessage(note.id)}
-                      disabled={!threadReplyInputs[note.id]?.trim() || isSubmittingMap[note.id]}
-                      className="px-3.5 py-2 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 disabled:opacity-40 transition-all cursor-pointer shrink-0 shadow-sm"
-                    >
-                      <Send className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">Antworten</span>
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => toggleExpand(note.id)}
+                        className="text-[11px] font-semibold text-rose-400 hover:text-rose-300 flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>Vollständig anzeigen</span>
+                        <ChevronDown className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  /* EXPANDED VIEW */
+                  <div className="mt-3 space-y-4 animate-in fade-in duration-150">
+                    <p className="text-xs text-slate-200 leading-relaxed whitespace-pre-line font-normal bg-surface-elevated/40 p-3.5 rounded-2xl border border-surface-border">
+                      {note.content}
+                    </p>
+
+                    {/* Conversation History */}
+                    {hasMessages ? (
+                      <div className="pt-2 border-t border-white/5 space-y-2.5">
+                        <div className="text-[11px] font-display font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-2">
+                          <MessageSquare className="w-3.5 h-3.5 text-rose-400" />
+                          <span>Gesprächsverlauf ({note.messages!.length})</span>
+                        </div>
+
+                        <div className="space-y-2">
+                          {note.messages!.map((msg) => {
+                            const isStaffMsg = msg.authorRole === 'BETREUER' || msg.authorRole === 'ADMIN';
+                            return (
+                              <div
+                                key={msg.id}
+                                className={`p-3.5 rounded-2xl border text-xs ${
+                                  isStaffMsg
+                                    ? 'bg-rose-500/10 border-rose-500/25 ml-2 sm:ml-5'
+                                    : 'bg-surface-elevated/70 border-surface-border mr-2 sm:mr-5'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between gap-2 mb-1">
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white uppercase shrink-0"
+                                      style={{ backgroundColor: msg.authorAvatarColor || (isStaffMsg ? '#f43f5e' : '#3b82f6') }}
+                                    >
+                                      {msg.authorName.charAt(0)}
+                                    </div>
+                                    <span className="font-semibold text-slate-200">
+                                      {msg.authorName}
+                                    </span>
+                                    <span
+                                      className={`text-[9px] px-1.5 py-0.5 font-bold rounded-md uppercase tracking-wider ${
+                                        isStaffMsg
+                                          ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                                          : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                                      }`}
+                                    >
+                                      {isStaffMsg ? 'Betreuer' : 'Bewohner'}
+                                    </span>
+                                  </div>
+                                  <span className="text-[10px] text-slate-400 font-mono">
+                                    {formatGermanDateTime(msg.createdAt)}
+                                  </span>
+                                </div>
+                                <p className="text-slate-200 whitespace-pre-line leading-relaxed pl-7 font-normal">
+                                  {msg.content}
+                                </p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : note.caregiverResponse ? (
+                      /* Legacy fallback */
+                      <div className="p-4 bg-surface-elevated/70 border border-rose-500/30 rounded-2xl">
+                        <div className="flex items-center justify-between text-xs mb-1.5">
+                          <span className="font-display font-bold text-rose-300 flex items-center gap-1.5">
+                            <MessageSquare className="w-4 h-4 text-rose-400" />
+                            Rückmeldung von {note.respondedByName || 'Betreuer'}
+                          </span>
+                          {note.respondedAt && (
+                            <span className="text-[11px] text-slate-400 font-mono">
+                              {formatGermanDateTime(note.respondedAt)}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-slate-200 leading-relaxed whitespace-pre-line font-medium">
+                          {note.caregiverResponse}
+                        </p>
+                      </div>
+                    ) : null}
+
+                    {/* Inline Thread Reply Input */}
+                    {canReply && (
+                      <div className="pt-2 border-t border-white/5 flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={threadReplyInputs[note.id] || ''}
+                          onChange={(e) =>
+                            setThreadReplyInputs((prev) => ({ ...prev, [note.id]: e.target.value }))
+                          }
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              handleSendThreadMessage(note.id);
+                            }
+                          }}
+                          placeholder="Auf diesen Beitrag antworten..."
+                          className="flex-1 px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleSendThreadMessage(note.id)}
+                          disabled={!threadReplyInputs[note.id]?.trim() || isSubmittingMap[note.id]}
+                          className="px-4 py-2.5 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 disabled:opacity-40 transition-all cursor-pointer shrink-0 shadow-sm"
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">Antworten</span>
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Action Bar */}
+                    <div className="pt-3 border-t border-white/5 flex items-center justify-between gap-3 flex-wrap">
+                      <div className="flex items-center gap-2.5">
+                        {!note.isArchived ? (
+                          <button
+                            type="button"
+                            onClick={() => handleResolveTicket(note.id)}
+                            className="px-3.5 py-2 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+                          >
+                            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                            <span>Als erledigt archivieren</span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleReopenTicket(note.id)}
+                            className="px-3.5 py-2 bg-surface-elevated hover:bg-surface-card text-slate-200 border border-surface-border rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5 text-rose-400" />
+                            <span>Wiedereröffnen</span>
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => toggleExpand(note.id)}
+                          className="px-3 py-1.5 rounded-xl bg-surface-elevated hover:bg-surface-card text-slate-400 hover:text-slate-200 text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors"
+                        >
+                          <span>Einklappen</span>
+                          <ChevronUp className="w-3.5 h-3.5" />
+                        </button>
+
+                        {(isStaff || note.authorId === user?.id || note.residentId === user?.id) && (
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(note.id)}
+                            title="Notiz löschen"
+                            className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/15 rounded-xl transition-colors cursor-pointer"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 )}
-
-                {/* Action Bar */}
-                <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between gap-3 flex-wrap">
-                  <div className="flex items-center gap-2.5">
-                    {/* Resolve Button (Active tab) */}
-                    {!note.isArchived ? (
-                      <button
-                        type="button"
-                        onClick={() => handleResolveTicket(note.id)}
-                        className="px-4 py-2 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
-                      >
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                        <span>Als erledigt markieren & archivieren</span>
-                      </button>
-                    ) : (
-                      /* Reopen Button (Archive tab) */
-                      <button
-                        type="button"
-                        onClick={() => handleReopenTicket(note.id)}
-                        className="px-4 py-2 bg-surface-elevated hover:bg-surface-card text-slate-200 border border-surface-border rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-                      >
-                        <RotateCcw className="w-3.5 h-3.5 text-rose-400" />
-                        <span>Wiedereröffnen</span>
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Delete Button */}
-                  {(isStaff || note.residentId === user?.id) && (
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(note.id)}
-                      title="Notiz löschen"
-                      className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/15 rounded-xl transition-colors cursor-pointer"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
               </div>
             );
           })}

@@ -2,7 +2,11 @@ import { Router, Request, Response } from 'express';
 import { prisma } from '../../db.js';
 import { requireAuth } from '../../middleware/auth.js';
 import { requireRole } from '../../middleware/rbac.js';
-import { sendResidentReplyEmail, sendCaregiverNewNoteEmail } from '../../utils/mailer.js';
+import {
+  sendResidentReplyEmail,
+  sendResidentDirectNoteEmail,
+  sendCaregiverNewNoteEmail,
+} from '../../utils/mailer.js';
 
 const router = Router();
 
@@ -12,6 +16,18 @@ router.get('/count-open', requireAuth, async (req: Request, res: Response) => {
     const isStaff = req.user!.role === 'ADMIN' || req.user!.role === 'BETREUER';
     const queryLoc = req.query.locationId as string | undefined;
     const locationId = isStaff ? queryLoc : req.user!.locationId;
+
+    // Auto-archive expired notes before counting
+    await prisma.caregiverNote.updateMany({
+      where: {
+        isArchived: false,
+        expiresAt: { lt: new Date() },
+      },
+      data: {
+        isArchived: true,
+        status: 'DONE',
+      },
+    });
 
     const whereClause: any = {
       isArchived: false,
@@ -25,6 +41,7 @@ router.get('/count-open', requireAuth, async (req: Request, res: Response) => {
       whereClause.OR = [
         { isPrivate: false },
         { residentId: req.user!.id },
+        { authorId: req.user!.id },
       ];
     }
 
@@ -45,6 +62,18 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
     }
     const locationId = isStaff ? queryLoc : req.user!.locationId;
 
+    // Auto-archive expired notes
+    await prisma.caregiverNote.updateMany({
+      where: {
+        isArchived: false,
+        expiresAt: { lt: new Date() },
+      },
+      data: {
+        isArchived: true,
+        status: 'DONE',
+      },
+    });
+
     const archivedParam = req.query.archived as string | undefined;
     const whereClause: any = {};
 
@@ -58,11 +87,12 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
       whereClause.isArchived = false;
     }
 
-    // Residents only see public notes or their own private notes
+    // Residents only see public notes, notes addressed to them, or notes written by them
     if (!isStaff) {
       whereClause.OR = [
         { isPrivate: false },
         { residentId: req.user!.id },
+        { authorId: req.user!.id },
       ];
     }
 
@@ -70,6 +100,7 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
       where: whereClause,
       include: {
         resident: { select: { id: true, name: true, username: true } },
+        author: { select: { id: true, name: true, role: true, avatarColor: true, avatarUrl: true } },
         location: { select: { id: true, name: true } },
         messages: {
           include: {
@@ -78,7 +109,10 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
           orderBy: { createdAt: 'asc' },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [
+        { isPinned: 'desc' },
+        { createdAt: 'desc' },
+      ],
     });
 
     // Resolve caregiver responder names
@@ -88,35 +122,50 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
       : [];
     const responderMap = new Map(responders.map((r) => [r.id, r.name]));
 
-    const formatted = notes.map((n) => ({
-      id: n.id,
-      locationId: n.locationId,
-      locationName: n.location.name,
-      residentId: n.residentId,
-      residentName: n.resident.name,
-      title: n.title,
-      content: n.content,
-      status: n.status,
-      isArchived: n.isArchived,
-      isPrivate: n.isPrivate,
-      hasUnreadResponse: n.hasUnreadResponse,
-      caregiverResponse: n.caregiverResponse,
-      respondedAt: n.respondedAt?.toISOString() || null,
-      respondedByName: n.respondedByUserId ? responderMap.get(n.respondedByUserId) || 'Betreuer' : null,
-      resolvedAt: n.resolvedAt?.toISOString() || null,
-      createdAt: n.createdAt.toISOString(),
-      messages: n.messages?.map((m) => ({
-        id: m.id,
-        noteId: m.noteId,
-        authorId: m.authorId,
-        authorName: m.author.name,
-        authorRole: m.author.role,
-        authorAvatarColor: m.author.avatarColor,
-        authorAvatarUrl: m.author.avatarUrl,
-        content: m.content,
-        createdAt: m.createdAt.toISOString(),
-      })) || [],
-    }));
+    const formatted = notes.map((n) => {
+      const isExpired = n.expiresAt ? n.expiresAt.getTime() <= Date.now() : false;
+      const isDirectMessage = n.isPrivate && n.author && n.author.role !== 'BEWOHNER';
+
+      return {
+        id: n.id,
+        locationId: n.locationId,
+        locationName: n.location.name,
+        authorId: n.authorId || (n.resident ? n.resident.id : null),
+        authorName: n.author ? n.author.name : (n.resident ? n.resident.name : 'Unbekannt'),
+        authorRole: n.author ? n.author.role : 'BEWOHNER',
+        authorAvatarColor: n.author?.avatarColor || null,
+        authorAvatarUrl: n.author?.avatarUrl || null,
+        residentId: n.residentId,
+        residentName: n.resident.name,
+        title: n.title,
+        content: n.content,
+        category: n.category || 'ALLGEMEIN',
+        isPinned: Boolean(n.isPinned),
+        expiresAt: n.expiresAt?.toISOString() || null,
+        isExpired,
+        isDirectMessage,
+        status: n.status,
+        isArchived: n.isArchived,
+        isPrivate: n.isPrivate,
+        hasUnreadResponse: n.hasUnreadResponse,
+        caregiverResponse: n.caregiverResponse,
+        respondedAt: n.respondedAt?.toISOString() || null,
+        respondedByName: n.respondedByUserId ? responderMap.get(n.respondedByUserId) || 'Betreuer' : null,
+        resolvedAt: n.resolvedAt?.toISOString() || null,
+        createdAt: n.createdAt.toISOString(),
+        messages: n.messages?.map((m) => ({
+          id: m.id,
+          noteId: m.noteId,
+          authorId: m.authorId,
+          authorName: m.author.name,
+          authorRole: m.author.role,
+          authorAvatarColor: m.author.avatarColor,
+          authorAvatarUrl: m.author.avatarUrl,
+          content: m.content,
+          createdAt: m.createdAt.toISOString(),
+        })) || [],
+      };
+    });
 
     return res.json(formatted);
   } catch (err) {
@@ -127,32 +176,44 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
 
 router.post('/', requireAuth, async (req: Request, res: Response) => {
   try {
-    const { title, content, locationId, residentId, isPrivate } = req.body;
+    const { title, content, locationId, residentId, isPrivate, category, isPinned, expiresAt } = req.body;
 
     if (!title || !content) {
       return res.status(400).json({ error: 'Titel und Inhalt sind erforderlich.' });
     }
 
     const locId = locationId || req.user!.locationId;
-    const resId = residentId || req.user!.id;
+    const isStaff = req.user!.role === 'ADMIN' || req.user!.role === 'BETREUER';
 
     if (req.user!.role === 'BEWOHNER' && locId !== req.user!.locationId) {
       return res.status(403).json({ error: 'Zugriff verweigert.' });
     }
 
+    // Target resident:
+    // If caregiver writes a private direct note to a resident: targetResidentId is the selected residentId
+    // If resident writes a private ticket: target is the resident (residentId: req.user!.id)
+    // If public note: residentId is req.user!.id
+    const targetResidentId = (isStaff && isPrivate && residentId) ? residentId : req.user!.id;
+
     const note = await prisma.caregiverNote.create({
       data: {
         locationId: locId,
-        residentId: resId,
-        title,
-        content,
+        authorId: req.user!.id,
+        residentId: targetResidentId,
+        title: title.trim(),
+        content: content.trim(),
+        category: category || 'ALLGEMEIN',
+        isPinned: isStaff ? Boolean(isPinned) : false,
+        expiresAt: expiresAt ? new Date(expiresAt) : null,
         isPrivate: Boolean(isPrivate),
         hasUnreadResponse: false,
+        caregiverResponse: null, // DO NOT DUPLICATE NOTE CONTENT AS RESPONSE
         status: 'OPEN',
         isArchived: false,
       },
       include: {
         resident: { select: { id: true, name: true, email: true } },
+        author: { select: { id: true, name: true, role: true, avatarColor: true, avatarUrl: true } },
         location: { select: { name: true } },
       },
     });
@@ -163,28 +224,30 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
         sendCaregiverNewNoteEmail({
           locationId: note.locationId,
           locationName: note.location.name,
-          authorName: note.resident.name,
+          authorName: note.author?.name || note.resident.name,
           noteTitle: note.title,
           noteContent: note.content,
           isPrivate: true,
         }).catch((err: any) => console.error('[Mailer] Fehler beim Senden an Betreuer:', err));
       } else {
         // Caregiver directly wrote to resident -> alert resident on dashboard & email
+        // Set hasUnreadResponse: true so resident sees unread alert, but caregiverResponse remains null!
         await prisma.caregiverNote.update({
           where: { id: note.id },
           data: {
             hasUnreadResponse: true,
             respondedByUserId: req.user!.id,
-            caregiverResponse: note.content,
+            caregiverResponse: null, // NEVER DUPLICATE NOTE CONTENT
           },
         });
+
         if (note.resident?.email) {
-          sendResidentReplyEmail({
+          sendResidentDirectNoteEmail({
             residentEmail: note.resident.email,
             residentName: note.resident.name,
             noteTitle: note.title,
-            responderName: req.user!.name,
-            replyText: note.content,
+            authorName: req.user!.name,
+            noteContent: note.content,
             locationName: note.location.name,
           }).catch((err: any) => console.error('[Mailer] Fehler beim Senden an Bewohner:', err));
         }
@@ -195,19 +258,30 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
       id: note.id,
       locationId: note.locationId,
       locationName: note.location.name,
+      authorId: note.authorId,
+      authorName: note.author?.name || req.user!.name,
+      authorRole: note.author?.role || req.user!.role,
+      authorAvatarColor: note.author?.avatarColor || null,
+      authorAvatarUrl: note.author?.avatarUrl || null,
       residentId: note.residentId,
       residentName: note.resident.name,
       title: note.title,
       content: note.content,
+      category: note.category,
+      isPinned: note.isPinned,
+      expiresAt: note.expiresAt?.toISOString() || null,
+      isExpired: false,
+      isDirectMessage: note.isPrivate && req.user!.role !== 'BEWOHNER',
       status: note.status,
       isArchived: note.isArchived,
       isPrivate: note.isPrivate,
-      hasUnreadResponse: note.hasUnreadResponse,
+      hasUnreadResponse: note.isPrivate && isStaff,
       caregiverResponse: null,
       respondedAt: null,
       respondedByName: null,
       resolvedAt: null,
       createdAt: note.createdAt.toISOString(),
+      messages: [],
     });
   } catch (err) {
     console.error('Fehler beim Erstellen der Notiz:', err);
@@ -533,6 +607,29 @@ router.delete('/:id', requireAuth, async (req: Request, res: Response) => {
   } catch (err) {
     console.error('Fehler beim Löschen der Notiz:', err);
     return res.status(500).json({ error: 'Fehler beim Löschen der Notiz.' });
+  }
+});
+
+// PATCH /api/notes/:id/pin - Toggle pin status (caregiver/admin only)
+router.patch('/:id/pin', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const note = await prisma.caregiverNote.findUnique({ where: { id } });
+    if (!note) {
+      return res.status(404).json({ error: 'Notiz nicht gefunden.' });
+    }
+
+    const updated = await prisma.caregiverNote.update({
+      where: { id },
+      data: {
+        isPinned: !note.isPinned,
+      },
+    });
+
+    return res.json({ id: updated.id, isPinned: updated.isPinned });
+  } catch (err) {
+    console.error('Fehler beim Ändern des Pin-Status:', err);
+    return res.status(500).json({ error: 'Fehler beim Ändern des Pin-Status.' });
   }
 });
 

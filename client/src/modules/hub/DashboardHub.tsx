@@ -193,74 +193,80 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
         )}
       </div>
 
-      {/* Resident Reply Notification Banner */}
+      {/* Resident Notification Banner (Direct Message or Reply) */}
       {user?.role === 'BEWOHNER' &&
-        notesList.filter((n: any) => n.residentId === user?.id && n.hasUnreadResponse && n.caregiverResponse).length > 0 && (
+        notesList.filter((n: any) => n.residentId === user?.id && n.hasUnreadResponse && (n.isDirectMessage || n.caregiverResponse)).length > 0 && (
           <div className="space-y-3">
             {notesList
-              .filter((n: any) => n.residentId === user?.id && n.hasUnreadResponse && n.caregiverResponse)
-              .map((note: any) => (
-                <div
-                  key={note.id}
-                  className="bg-gradient-to-r from-rose-500/20 via-pink-500/15 to-surface-card border border-rose-500/50 rounded-3xl p-4 sm:p-5 shadow-xl shadow-rose-500/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2 duration-200"
-                >
-                  <div className="flex items-start gap-3.5">
-                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-rose-500/30 font-bold text-lg">
-                      💬
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-500 text-white uppercase tracking-wider font-display animate-pulse">
-                          Neue Antwort im Flurfunk
-                        </span>
-                        <span className="text-xs text-slate-300 font-medium">
-                          von {note.respondedByName || 'Betreuer'}
-                        </span>
-                      </div>
-                      <h4 className="text-sm font-semibold text-white mt-1">
-                        Zu deinem Beitrag: „{note.title}“
-                      </h4>
-                      <p className="text-xs text-rose-200/90 mt-0.5 line-clamp-2 italic font-sans">
-                        „{note.caregiverResponse}“
-                      </p>
-                    </div>
-                  </div>
+              .filter((n: any) => n.residentId === user?.id && n.hasUnreadResponse && (n.isDirectMessage || n.caregiverResponse))
+              .map((note: any) => {
+                const isDirect = Boolean(note.isDirectMessage);
+                const senderName = isDirect ? (note.authorName || 'Betreuer') : (note.respondedByName || 'Betreuer');
+                const messageSnippet = isDirect ? note.content : note.caregiverResponse;
 
-                  <div className="flex items-center gap-2 w-full sm:w-auto self-end sm:self-center shrink-0">
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        try {
-                          await api.notes.markRead(note.id);
-                          setNotesList((prev) =>
-                            prev.map((n) => (n.id === note.id ? { ...n, hasUnreadResponse: false } : n))
-                          );
-                        } catch (e) {
-                          console.error(e);
-                        }
-                      }}
-                      className="px-3.5 py-2 bg-surface-card/80 hover:bg-surface-elevated border border-surface-border text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer"
-                    >
-                      Als gelesen abhaken
-                    </button>
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        try {
-                          await api.notes.markRead(note.id);
-                        } catch (e) {
-                          console.error(e);
-                        }
-                        setCurrentTab('notes');
-                      }}
-                      className="px-4 py-2 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md shadow-rose-500/25 transition-all cursor-pointer"
-                    >
-                      <span>Zum Flurfunk</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
+                return (
+                  <div
+                    key={note.id}
+                    className="bg-gradient-to-r from-rose-500/20 via-pink-500/15 to-surface-card border border-rose-500/50 rounded-3xl p-4 sm:p-5 shadow-xl shadow-rose-500/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2 duration-200"
+                  >
+                    <div className="flex items-start gap-3.5">
+                      <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-rose-500/30 font-bold text-lg">
+                        {isDirect ? '✉️' : '💬'}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-500 text-white uppercase tracking-wider font-display animate-pulse">
+                            {isDirect ? 'Neue Direktnachricht' : 'Neue Antwort im Flurfunk'}
+                          </span>
+                          <span className="text-xs text-slate-300 font-medium">
+                            von {senderName}
+                          </span>
+                        </div>
+                        <h4 className="text-sm font-semibold text-white mt-1">
+                          {isDirect ? `Nachricht: „${note.title}“` : `Zu deinem Beitrag: „${note.title}“`}
+                        </h4>
+                        <p className="text-xs text-rose-200/90 mt-0.5 line-clamp-2 italic font-sans">
+                          „{messageSnippet}“
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 w-full sm:w-auto self-end sm:self-center shrink-0">
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          try {
+                            await api.notes.markRead(note.id);
+                            setNotesList((prev) =>
+                              prev.map((n) => (n.id === note.id ? { ...n, hasUnreadResponse: false } : n))
+                            );
+                          } catch (e) {
+                            console.error(e);
+                          }
+                        }}
+                        className="px-3.5 py-2 bg-surface-card/80 hover:bg-surface-elevated border border-surface-border text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+                      >
+                        Als gelesen abhaken
+                      </button>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          try {
+                            await api.notes.markRead(note.id);
+                          } catch (e) {
+                            console.error(e);
+                          }
+                          setCurrentTab('notes');
+                        }}
+                        className="px-3.5 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5"
+                      >
+                        <span>Öffnen</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
           </div>
         )}
 
@@ -558,7 +564,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
 
             <h3 className="text-xl font-semibold text-white mb-1.5 font-sans tracking-tight">
               {shoppingSummary?.items?.length || 0}{' '}
-              {shoppingSummary?.items?.length === 1 ? 'Artikel auf der Liste' : 'Artikel auf der Liste'}
+              {shoppingSummary?.items?.length === 1 ? 'Artikel auf der Einkaufsliste' : 'Artikel auf der Einkaufsliste'}
             </h3>
             <p className="text-xs text-slate-300 mb-4 leading-relaxed font-sans">
               Geplant bei <strong className="text-white font-semibold">{shoppingSummary?.supermarketName || 'Supermarkt'}</strong> für diese Woche.
@@ -603,11 +609,15 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                         <span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />
                         <span className="truncate">
                           {itemName}
-                          {itemAmount !== undefined && itemAmount !== null && itemAmount !== ''
-                            ? ` (${itemAmount} ${item.unit || ''})`.trim()
-                            : item.unit
-                            ? ` (${item.unit})`
-                            : ''}
+                          {itemAmount !== undefined && itemAmount !== null && itemAmount !== '' ? (
+                            <span className="text-slate-400 font-normal ml-1.5">
+                              ({[itemAmount, item.unit].filter(Boolean).join(' ')})
+                            </span>
+                          ) : item.unit ? (
+                            <span className="text-slate-400 font-normal ml-1.5">
+                              ({item.unit})
+                            </span>
+                          ) : null}
                         </span>
                       </span>
                       <span className="text-slate-400 font-mono flex-shrink-0 ml-2">
@@ -647,7 +657,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             </div>
 
             <h3 className="text-xl font-semibold text-white mb-1.5 font-sans tracking-tight">
-              {nextWaste ? wasteTypeNames[nextWaste.wasteType] || 'Abfalltermin' : 'Keine Abfuhr'}
+              {nextWaste ? `Nächste Abholung: ${wasteTypeNames[nextWaste.wasteType] || 'Abfalltermin'}` : 'Keine anstehende Abfuhr'}
             </h3>
             <p className="text-xs text-slate-300 mb-4 leading-relaxed font-sans">
               {nextWaste
@@ -782,19 +792,14 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-white/5 text-xs gap-3 font-sans">
-            <span className="text-slate-400 font-medium">
-              Alle Bewohner und Betreuer können Zettel und Wünsche anheften.
-            </span>
-            <button
-              type="button"
-              onClick={() => setCurrentTab('notes')}
-              className="w-full sm:w-auto px-4 py-2.5 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 font-sans shadow-xs hover:border-theme"
-            >
-              <span>Zum Flurfunk</span>
-              <ArrowRight className="w-3.5 h-3.5 text-rose-400" />
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setCurrentTab('notes')}
+            className="w-full py-2.5 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer font-sans"
+          >
+            <span>Zum Flurfunk</span>
+            <ArrowRight className="w-3.5 h-3.5 text-rose-400" />
+          </button>
         </div>
       </div>
 

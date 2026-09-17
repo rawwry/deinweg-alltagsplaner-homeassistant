@@ -133,6 +133,68 @@ export async function sendResidentReplyEmail(params: ResidentReplyNotificationPa
   }
 }
 
+interface ResidentDirectNoteParams {
+  residentEmail: string;
+  residentName: string;
+  noteTitle: string;
+  authorName: string;
+  noteContent: string;
+  locationName: string;
+}
+
+export async function sendResidentDirectNoteEmail(params: ResidentDirectNoteParams): Promise<boolean> {
+  if (!params.residentEmail || !params.residentEmail.trim()) {
+    return false;
+  }
+
+  try {
+    const smtp = await getTransporter();
+    if (!smtp) {
+      console.log('[Mailer] SMTP nicht konfiguriert - überspringe Bewohner-Direktnachricht.');
+      return false;
+    }
+
+    const { transporter, setting } = smtp;
+
+    const fromAddress = `"${setting.fromName || 'Deine WG: Alltagsplaner'}" <${setting.fromEmail || setting.user}>`;
+    const subject = `Neue Mitteilung von ${params.authorName} (${params.locationName}): ${params.noteTitle}`;
+    const textBody = `Hallo ${params.residentName},\n\n${params.authorName} hat dir eine persönliche Mitteilung im Flurfunk hinterlassen:\n\n"${params.noteContent}"\n\nSchau gerne im Deine WG: Alltagsplaner vorbei, um mehr zu erfahren oder zu antworten.\n\nViele Grüße,\nDein WG-Team`;
+
+    await transporter.sendMail({
+      from: fromAddress,
+      to: params.residentEmail.trim(),
+      subject,
+      text: textBody,
+      html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 580px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden;">
+          <div style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); padding: 24px; color: #ffffff;">
+            <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 9999px;">Direkte Mitteilung</span>
+            <h2 style="margin: 12px 0 4px 0; font-size: 20px; font-weight: 700; color: #ffffff;">${escapeHtml(params.noteTitle)}</h2>
+            <p style="margin: 0; font-size: 14px; opacity: 0.9;">WG: ${escapeHtml(params.locationName)}</p>
+          </div>
+          <div style="padding: 24px; color: #334155; line-height: 1.6; font-size: 15px;">
+            <p style="margin-top: 0;">Hallo <strong>${escapeHtml(params.residentName)}</strong>,</p>
+            <p><strong>${escapeHtml(params.authorName)}</strong> hat dir eine neue persönliche Nachricht im Flurfunk hinterlassen:</p>
+            <div style="background: #f8fafc; border-left: 4px solid #7c3aed; padding: 14px 16px; border-radius: 0 8px 8px 0; margin: 18px 0; color: #1e293b;">
+              ${escapeHtml(params.noteContent).replace(/\n/g, '<br/>')}
+            </div>
+            <p style="margin-bottom: 0; font-size: 13px; color: #64748b;">Öffne den Deine WG: Alltagsplaner, um die Nachricht zu lesen oder direkt darauf zu antworten.</p>
+          </div>
+          <div style="background: #f1f5f9; padding: 16px 24px; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0; text-align: center;">
+            Automatische Benachrichtigung von Deine WG: Alltagsplaner
+          </div>
+        </div>
+      `,
+    });
+
+    console.log(`[Mailer] Direktnachricht-Benachrichtigung erfolgreich gesendet an ${params.residentEmail}`);
+    return true;
+  } catch (err) {
+    console.error('[Mailer] Fehler beim Versenden der Bewohner-Direktnachricht:', err);
+    return false;
+  }
+}
+
 export async function sendCaregiverNewNoteEmail(params: CaregiverNotificationParams): Promise<boolean> {
   try {
     const smtp = await getTransporter();

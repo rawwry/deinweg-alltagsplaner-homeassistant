@@ -206,8 +206,17 @@ export const api = {
       request<any[]>(`notes?${locationId ? `locationId=${locationId}&` : ''}archived=${archived}`),
     countOpen: (locationId?: string) =>
       request<{ count: number }>(`notes/count-open${locationId ? `?locationId=${locationId}` : ''}`),
-    create: (body: { title: string; content: string; locationId?: string; residentId?: string; isPrivate?: boolean }) =>
-      request<any>('notes', { method: 'POST', body: JSON.stringify(body) }),
+    create: (body: {
+      title: string;
+      content: string;
+      locationId?: string;
+      residentId?: string;
+      isPrivate?: boolean;
+      category?: string;
+      isPinned?: boolean;
+      expiresAt?: string | null;
+    }) => request<any>('notes', { method: 'POST', body: JSON.stringify(body) }),
+    togglePin: (id: string) => request<{ id: string; isPinned: boolean }>(`notes/${id}/pin`, { method: 'PATCH' }),
     respond: (id: string, response: string) =>
       request<any>(`notes/${id}/respond`, { method: 'POST', body: JSON.stringify({ response }) }),
     addMessage: (id: string, content: string) =>

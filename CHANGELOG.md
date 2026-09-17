@@ -3,6 +3,34 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.31] - 2026-09-17
+
+### Hinzugefügt & Verbessert
+- **Dashboard: Optimierungen Einkaufsliste, Abfall-Radar & Flurfunk (`DashboardHub`)**:
+  - **Einkaufsliste Beschriftung**: Umbenannt in präzises *„xx Artikel auf der Einkaufsliste“* (statt *„... auf der Liste“*).
+  - **Abstand Artikel & Einheit behoben**: Garantierter Zwischenraum zwischen Artikelbezeichnung und Mengenangabe in der Vorschau (z. B. `Zwiebeln (2 Stück)` statt `Zwiebeln(2 Stück)`).
+  - **Abfall-Radar Überschrift**: Headline lautet nun informativ *„Nächste Abholung: [Tonnenart]“* (z. B. *„Nächste Abholung: Biotonne“*) anstelle der isolierten Tonnenbezeichnung.
+  - **Flurfunk Fußzeile bereinigt**: Der überflüssige Satz *„Alle Bewohner und Betreuer können Zettel und Wünsche anheften.“* wurde entfernt. Der Button *„Zum Flurfunk“* schließt die Box nun harmonisch und vollwertig ab.
+  - **Bewohner-Benachrichtigungsbanner**: Betreuer-Direktnachrichten an Bewohner werden im Dashboard nun korrekt als *„Neue Direktnachricht von [Betreuer]“* mit Betreff *„Nachricht: „[Titel]““* dargestellt (nicht mehr fälschlicherweise als Antwort zu einem Beitrag).
+- **Flurfunk: Fehlerbehebung bei Betreuer-Direktnachrichten (`server/src/modules/notes/routes.ts`)**:
+  - Neuerstellung von Direktnachrichten durch Betreuer kopiert den Inhalt nicht mehr in `caregiverResponse`. Dadurch wurden die Textdoppelung und die fälschliche Anzeige als Antwort für Bewohner vollständig behoben.
+  - Exakte Modellierung von `authorId` (Verfasser) und `residentId` (Empfänger) in Prisma.
+  - E-Mail-Benachrichtigung an den Bewohner bei Eingang einer neuen Direktnachricht.
+- **Flurfunk: Beiträge anpinnen (`isPinned`)**:
+  - Betreuer und Admins können wichtige Beiträge dauerhaft oben anheften.
+  - Angepinnte Beiträge erhalten einen leuchtenden Pin-Badge `[📌 Angepinnt]` und werden stets an erster Stelle vor allen anderen Notizen einsortiert.
+  - Betreuer können den Pin-Status jederzeit direkt mit einem Klick auf das Pinnnadel-Icon auf der Karte umschalten (`PATCH /api/notes/:id/pin`).
+- **Flurfunk: Kategorien & Beitragsarten (`category`)**:
+  - Beim Erstellen kann aus 5 semantischen Kategorien gewählt werden: *Mitteilung* (💬), *Ankündigung* (📢), *Hinweis* (⚠️), *Frage* (❓) und *Dringend* (🚨).
+  - Farbige Header-Badges auf jeder Notiz-Karte sorgen für unmittelbare visuelle Orientierung.
+- **Flurfunk: Ablaufdatum für temporäre Mitteilungen (`expiresAt`)**:
+  - Betreuer können optional ein Ablaufdatum festlegen (z. B. für Aushänge über anstehende WG-Events oder Handwerkerbesuche).
+  - Nach Ablaufdatum werden Mitteilungen automatisch archiviert.
+- **Flurfunk: Einklappbare Beitrags-Karten (Collapsible UI)**:
+  - Karten im Flurfunk sind einklappbar und ausklappbar für maximale Übersicht auch bei vielen Beiträgen.
+  - Eingeklappter Zustand zeigt Badges, Autor, Titel, ein 2-zeiliges Text-Snippet sowie die Anzahl der Antworten.
+  - Ausgeklappter Zustand offenbart den vollständigen Text, den gesamten Gesprächsverlauf, das Antwort-Eingabefeld und die Aktionen (*Als erledigt archivieren*, *Wiedereröffnen*, *Löschen*).
+
 ## [0.1.0-beta.30] - 2026-09-17
 
 ### Hinzugefügt & Verbessert

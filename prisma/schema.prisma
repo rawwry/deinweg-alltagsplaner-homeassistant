@@ -46,7 +46,8 @@ model User {
   updatedAt    DateTime      @updatedAt
 
   location     Location?     @relation(fields: [locationId], references: [id], onDelete: SetNull)
-  notes        CaregiverNote[]
+  notes        CaregiverNote[] @relation("ResidentNotes")
+  authoredNotes CaregiverNote[] @relation("AuthoredNotes")
   noteMessages CaregiverNoteMessage[]
   choreAssignments ChoreAssignment[] @relation("ResidentChores")
 }
@@ -184,9 +185,13 @@ model CustomShoppingItem {
 model CaregiverNote {
   id                  String    @id @default(cuid())
   locationId          String
+  authorId            String?
   residentId          String
   title               String
   content             String
+  category            String    @default("ALLGEMEIN") // ALLGEMEIN, ANKUENDIGUNG, HINWEIS, FRAGE, DRINGEND
+  isPinned            Boolean   @default(false)
+  expiresAt           DateTime?
   status              String    @default("OPEN") // OPEN, IN_PROGRESS, DONE
   isArchived          Boolean   @default(false)
   isPrivate           Boolean   @default(false)
@@ -200,7 +205,8 @@ model CaregiverNote {
   updatedAt           DateTime  @updatedAt
 
   location            Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
-  resident            User      @relation(fields: [residentId], references: [id], onDelete: Cascade)
+  resident            User      @relation("ResidentNotes", fields: [residentId], references: [id], onDelete: Cascade)
+  author              User?     @relation("AuthoredNotes", fields: [authorId], references: [id], onDelete: SetNull)
   messages            CaregiverNoteMessage[]
 }
 
