@@ -764,118 +764,23 @@ export const AdminManagementView: React.FC = () => {
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-24 md:pb-8 animate-in fade-in duration-300">
       {/* Header */}
-      <div className="bento-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border flex flex-col sm:flex-row items-center justify-between gap-5">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-rose-500/10 border border-rose-500/25 rounded-full text-xs font-semibold text-rose-300 mb-2.5">
+      <div className="bento-card rounded-[2.5rem] p-6 sm:p-8 border border-surface-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 relative overflow-hidden">
+        <div className="space-y-1.5 min-w-0">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-theme-subtle border border-theme-border rounded-full text-xs font-semibold text-theme">
             <LayoutGrid className="w-3.5 h-3.5" />
             <span>Admin-Bereich</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-display font-semibold text-surface-cream tracking-tight flex items-center gap-2.5">
-            <Shield className="w-7 h-7 text-rose-400" />
+          <h1 className="text-2xl sm:text-3xl font-display font-bold text-surface-cream tracking-tight flex items-center gap-3">
+            <Shield className="w-7 h-7 text-theme" />
             <span>Verwaltung & Konfiguration</span>
           </h1>
-          <p className="text-xs sm:text-sm text-surface-muted mt-1.5 font-sans">
-            Zentrale Administration von Betreuern, Bewohnern, Standorten, Preisen und E-Mail / SMTP
+          <p className="text-xs sm:text-sm text-surface-muted font-sans max-w-2xl leading-relaxed">
+            Zentrale Administration von Betreuern, Bewohnern, Standorten, Preisen und E-Mail / SMTP.
           </p>
         </div>
 
-        {/* Subtab navigation & Logout */}
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex flex-wrap items-center gap-1.5 bg-surface-elevated/90 border border-surface-border p-1.5 rounded-2xl text-xs font-semibold">
-            <button
-              type="button"
-              onClick={() => setActiveSubTab('users')}
-              className={`px-3.5 py-2 rounded-xl transition-all ${
-                activeSubTab === 'users'
-                  ? 'btn-theme-gradient text-white font-semibold shadow-md'
-                  : 'text-surface-muted hover:text-surface-cream'
-              }`}
-            >
-              Benutzer
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveSubTab('locations')}
-              className={`px-3.5 py-2 rounded-xl transition-all ${
-                activeSubTab === 'locations'
-                  ? 'btn-theme-gradient text-white font-semibold shadow-md'
-                  : 'text-surface-muted hover:text-surface-cream'
-              }`}
-            >
-              Standorte
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveSubTab('chores')}
-              className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
-                activeSubTab === 'chores'
-                  ? 'btn-theme-gradient text-white font-semibold shadow-md'
-                  : 'text-surface-muted hover:text-surface-cream'
-              }`}
-            >
-              <ListTodo className="w-3.5 h-3.5" />
-              <span>Aufgaben-Vorlagen</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveSubTab('categories')}
-              className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
-                activeSubTab === 'categories'
-                  ? 'btn-theme-gradient text-white font-semibold shadow-md'
-                  : 'text-surface-muted hover:text-surface-cream'
-              }`}
-            >
-              <BookOpen className="w-3.5 h-3.5" />
-              <span>Rezept-Kategorien</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveSubTab('prices')}
-              className={`px-3.5 py-2 rounded-xl transition-all ${
-                activeSubTab === 'prices'
-                  ? 'btn-theme-gradient text-white font-semibold shadow-md'
-                  : 'text-surface-muted hover:text-surface-cream'
-              }`}
-            >
-              Preise
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveSubTab('smtp')}
-              className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
-                activeSubTab === 'smtp'
-                  ? 'btn-theme-gradient text-white font-semibold shadow-md'
-                  : 'text-surface-muted hover:text-surface-cream'
-              }`}
-            >
-              <Mail className="w-3.5 h-3.5" />
-              <span>E-Mail / SMTP</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveSubTab('appearance')}
-              className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
-                activeSubTab === 'appearance'
-                  ? 'btn-theme-gradient text-white font-semibold shadow-md'
-                  : 'text-surface-muted hover:text-surface-cream'
-              }`}
-            >
-              <Palette className="w-3.5 h-3.5" />
-              <span>Erscheinungsbild</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveSubTab('system')}
-              className={`px-3.5 py-2 rounded-xl transition-all ${
-                activeSubTab === 'system'
-                  ? 'btn-theme-gradient text-white font-semibold shadow-md'
-                  : 'text-surface-muted hover:text-surface-cream'
-              }`}
-            >
-              System
-            </button>
-          </div>
-
+        {/* Header Action: Abmelden */}
+        <div className="shrink-0 self-end sm:self-center">
           <button
             type="button"
             onClick={() => {
@@ -883,33 +788,142 @@ export const AdminManagementView: React.FC = () => {
                 logout();
               }
             }}
-            className="px-3.5 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer hover:border-rose-500/50"
+            className="px-4 py-2.5 rounded-2xl bg-surface-elevated/80 hover:bg-rose-500/15 border border-surface-border hover:border-rose-500/30 text-slate-300 hover:text-rose-300 text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shadow-xs"
             title="Abmelden"
           >
             <LogOut className="w-4 h-4" />
-            <span className="hidden sm:inline">Abmelden</span>
+            <span>Abmelden</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Subtab Navigation Bar */}
+      <div className="p-1.5 bg-surface-card/90 border border-surface-border rounded-2xl backdrop-blur-md shadow-lg shadow-black/20 overflow-x-auto no-scrollbar scroll-smooth">
+        <div className="flex items-center gap-1.5 min-w-max">
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('users')}
+            className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+              activeSubTab === 'users'
+                ? 'btn-theme-gradient text-white shadow-md'
+                : 'text-surface-muted hover:text-surface-cream hover:bg-surface-elevated/60'
+            }`}
+          >
+            <Users className="w-4 h-4" />
+            <span>Benutzer</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('locations')}
+            className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+              activeSubTab === 'locations'
+                ? 'btn-theme-gradient text-white shadow-md'
+                : 'text-surface-muted hover:text-surface-cream hover:bg-surface-elevated/60'
+            }`}
+          >
+            <Building2 className="w-4 h-4" />
+            <span>Standorte</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('chores')}
+            className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+              activeSubTab === 'chores'
+                ? 'btn-theme-gradient text-white shadow-md'
+                : 'text-surface-muted hover:text-surface-cream hover:bg-surface-elevated/60'
+            }`}
+          >
+            <ListTodo className="w-4 h-4" />
+            <span>Aufgaben-Vorlagen</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('categories')}
+            className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+              activeSubTab === 'categories'
+                ? 'btn-theme-gradient text-white shadow-md'
+                : 'text-surface-muted hover:text-surface-cream hover:bg-surface-elevated/60'
+            }`}
+          >
+            <BookOpen className="w-4 h-4" />
+            <span>Rezept-Kategorien</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('prices')}
+            className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+              activeSubTab === 'prices'
+                ? 'btn-theme-gradient text-white shadow-md'
+                : 'text-surface-muted hover:text-surface-cream hover:bg-surface-elevated/60'
+            }`}
+          >
+            <Tag className="w-4 h-4" />
+            <span>Preise</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('smtp')}
+            className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+              activeSubTab === 'smtp'
+                ? 'btn-theme-gradient text-white shadow-md'
+                : 'text-surface-muted hover:text-surface-cream hover:bg-surface-elevated/60'
+            }`}
+          >
+            <Mail className="w-4 h-4" />
+            <span>E-Mail / SMTP</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('appearance')}
+            className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+              activeSubTab === 'appearance'
+                ? 'btn-theme-gradient text-white shadow-md'
+                : 'text-surface-muted hover:text-surface-cream hover:bg-surface-elevated/60'
+            }`}
+          >
+            <Palette className="w-4 h-4" />
+            <span>Erscheinungsbild</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('system')}
+            className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+              activeSubTab === 'system'
+                ? 'btn-theme-gradient text-white shadow-md'
+                : 'text-surface-muted hover:text-surface-cream hover:bg-surface-elevated/60'
+            }`}
+          >
+            <Server className="w-4 h-4" />
+            <span>System</span>
           </button>
         </div>
       </div>
 
       {userSuccessMsg && (
-        <div className="p-4 bg-emerald-950/50 border border-emerald-500/30 text-emerald-300 rounded-2xl text-xs font-semibold flex items-center gap-2.5">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+        <div className="p-4 bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 rounded-2xl text-xs font-semibold flex items-center gap-2.5 shadow-sm">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
           <span>{userSuccessMsg}</span>
         </div>
       )}
 
       {locationSuccessMsg && (
-        <div className="p-4 bg-emerald-950/50 border border-emerald-500/30 text-emerald-300 rounded-2xl text-xs font-semibold flex items-center gap-2.5">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+        <div className="p-4 bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 rounded-2xl text-xs font-semibold flex items-center gap-2.5 shadow-sm">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
           <span>{locationSuccessMsg}</span>
         </div>
       )}
 
       {/* SUBTAB: USERS */}
       {activeSubTab === 'users' && (
-        <div className="space-y-5">
-          <div className="flex justify-between items-center">
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h3 className="text-base font-display font-semibold text-surface-cream">
                 Registrierte Benutzer ({usersList.length})
@@ -921,44 +935,60 @@ export const AdminManagementView: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowAddUser(!showAddUser)}
-              className="px-4 py-2.5 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-rose-500/20 transition-all cursor-pointer"
+              className="btn-theme-gradient px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-md cursor-pointer transition-all self-start sm:self-auto"
             >
               <Plus className="w-4 h-4" />
-              <span>Neuen Benutzer / Bewohner anlegen</span>
+              <span>{showAddUser ? 'Formular schließen' : 'Neuen Benutzer / Bewohner anlegen'}</span>
             </button>
           </div>
 
           {showAddUser && (
             <form
               onSubmit={handleCreateUser}
-              className="bento-card rounded-[2rem] p-6 border border-surface-border shadow-xl space-y-4 animate-in fade-in duration-150"
+              className="bento-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border shadow-xl space-y-5 animate-in fade-in duration-200 overflow-hidden"
             >
-              <h4 className="text-sm font-bold text-slate-100">Neuen Zugang anlegen</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Benutzername (Login) *</label>
+              <div className="flex items-center justify-between pb-3 border-b border-surface-border/60">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-theme-subtle border border-theme-border text-theme">
+                    <Users className="w-4 h-4" />
+                  </div>
+                  <h4 className="text-sm font-bold text-surface-cream font-display">Neuen Zugang anlegen</h4>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowAddUser(false)}
+                  className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-surface-elevated transition-colors cursor-pointer"
+                  title="Schließen"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="min-w-0 space-y-1.5">
+                  <label className="block text-xs font-semibold text-slate-300">Benutzername (Login) *</label>
                   <input
                     type="text"
                     value={newUsername}
                     onChange={(e) => setNewUsername(e.target.value)}
                     placeholder="z.B. maria"
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30"
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Voller Name *</label>
+                <div className="min-w-0 space-y-1.5">
+                  <label className="block text-xs font-semibold text-slate-300">Voller Name *</label>
                   <input
                     type="text"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
                     placeholder="z.B. Maria Musterfrau"
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30"
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <div className="min-w-0 space-y-1.5">
+                  <label className="block text-xs font-semibold text-slate-300">
                     E-Mail <span className="text-slate-500 font-normal">(optional)</span>
                   </label>
                   <input
@@ -966,49 +996,49 @@ export const AdminManagementView: React.FC = () => {
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
                     placeholder={newRole === 'BEWOHNER' ? 'optional' : 'z.B. name@deinweg.de'}
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <div className="min-w-0 space-y-1.5">
+                  <label className="block text-xs font-semibold text-slate-300">
                     Geburtstag <span className="text-slate-500 font-normal">(optional)</span>
                   </label>
                   <input
                     type="date"
                     value={newBirthday}
                     onChange={(e) => setNewBirthday(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono"
+                    className="w-full min-w-0 max-w-full block px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30 font-sans"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Initial-Passwort *</label>
+                <div className="min-w-0 space-y-1.5">
+                  <label className="block text-xs font-semibold text-slate-300">Initial-Passwort *</label>
                   <input
                     type="text"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30"
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Rolle</label>
+                <div className="min-w-0 space-y-1.5">
+                  <label className="block text-xs font-semibold text-slate-300">Rolle</label>
                   <select
                     value={newRole}
                     onChange={(e) => setNewRole(e.target.value as 'BEWOHNER' | 'BETREUER')}
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30 cursor-pointer"
                   >
                     <option value="BEWOHNER">Bewohner</option>
                     <option value="BETREUER">Betreuer</option>
                   </select>
                 </div>
                 {newRole === 'BEWOHNER' && (
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">Standort zuweisen</label>
+                  <div className="min-w-0 space-y-1.5">
+                    <label className="block text-xs font-semibold text-slate-300">Standort zuweisen</label>
                     <select
                       value={newLocationId}
                       onChange={(e) => setNewLocationId(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30 cursor-pointer"
                     >
                       {locations.map((l) => (
                         <option key={l.id} value={l.id}>
@@ -1020,255 +1050,274 @@ export const AdminManagementView: React.FC = () => {
                 )}
               </div>
 
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-surface-border/60">
                 <button
                   type="button"
                   onClick={() => setShowAddUser(false)}
-                  className="px-4 py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700/60 rounded-xl text-xs font-semibold transition-colors"
+                  className="px-4 py-2 bg-surface-elevated hover:bg-white/10 text-slate-300 border border-surface-border rounded-xl text-xs font-semibold transition-colors cursor-pointer"
                 >
                   Abbrechen
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-semibold shadow-xs transition-colors"
+                  className="btn-theme-gradient px-5 py-2 rounded-xl text-xs font-semibold shadow-md transition-all cursor-pointer flex items-center gap-1.5"
                 >
-                  Benutzer anlegen
+                  <Check className="w-4 h-4" />
+                  <span>Benutzer anlegen</span>
                 </button>
               </div>
             </form>
           )}
 
-          <div className="bg-slate-900 rounded-3xl border border-slate-800 shadow-sm overflow-hidden">
-            <table className="min-w-full divide-y divide-slate-800 text-left text-xs">
-              <thead className="bg-slate-950 text-slate-400 font-semibold">
-                <tr>
-                  <th className="px-5 py-3">Benutzer</th>
-                  <th className="px-5 py-3">E-Mail</th>
-                  <th className="px-5 py-3">Rolle</th>
-                  <th className="px-5 py-3">Standort</th>
-                  <th className="px-5 py-3 text-right">Aktionen</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/80">
-                {usersList.map((u) => (
-                  <tr key={u.id} className="hover:bg-slate-800/40 transition-colors">
-                    <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-2.5">
-                        <div className="relative group/avatar">
-                          {u.avatarUrl ? (
-                            <img
-                              src={u.avatarUrl}
-                              alt={u.name}
-                              className="w-8 h-8 rounded-full object-cover ring-2 ring-slate-700 shadow-xs"
-                            />
-                          ) : (
-                            <div
-                              className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-[11px] shadow-xs"
-                              style={{ backgroundColor: u.avatarColor || '#3b82f6' }}
+          <div className="bento-card rounded-[2rem] border border-surface-border shadow-md overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-surface-border text-left text-xs">
+                <thead className="bg-surface-elevated/80 text-surface-muted font-semibold">
+                  <tr>
+                    <th className="px-5 py-3.5">Benutzer</th>
+                    <th className="px-5 py-3.5">E-Mail</th>
+                    <th className="px-5 py-3.5">Rolle</th>
+                    <th className="px-5 py-3.5">Standort</th>
+                    <th className="px-5 py-3.5 text-right">Aktionen</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-surface-border/50">
+                  {usersList.map((u) => (
+                    <tr key={u.id} className="hover:bg-surface-elevated/40 transition-colors">
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-2.5">
+                          <div className="relative group/avatar">
+                            {u.avatarUrl ? (
+                              <img
+                                src={u.avatarUrl}
+                                alt={u.name}
+                                className="w-8 h-8 rounded-full object-cover ring-2 ring-slate-700 shadow-xs"
+                              />
+                            ) : (
+                              <div
+                                className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-[11px] shadow-xs"
+                                style={{ backgroundColor: u.avatarColor || '#3b82f6' }}
+                              >
+                                {u.name.charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setAvatarModalUserId(u.id);
+                                setAvatarModalCurrentUrl(u.avatarUrl || null);
+                              }}
+                              title="Profilbild anpassen"
+                              className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity cursor-pointer text-white"
                             >
-                              {u.name.charAt(0).toUpperCase()}
+                              <Camera className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                          <div>
+                            <div className="font-bold text-slate-100">{u.name}</div>
+                            <div className="text-slate-400 font-mono text-[10px]">
+                              @{u.username}
+                              {u.birthday ? ` · 🎂 ${formatGermanDate(u.birthday)}` : ''}
                             </div>
-                          )}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setAvatarModalUserId(u.id);
-                              setAvatarModalCurrentUrl(u.avatarUrl || null);
-                            }}
-                            title="Profilbild anpassen"
-                            className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity cursor-pointer text-white"
-                          >
-                            <Camera className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                        <div>
-                          <div className="font-bold text-slate-100">{u.name}</div>
-                          <div className="text-slate-500 font-mono text-[10px]">
-                            @{u.username}
-                            {u.birthday ? ` · 🎂 ${formatGermanDate(u.birthday)}` : ''}
                           </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-5 py-3.5 text-slate-400 font-mono text-[11px]">
-                      {u.email || '-'}
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <span
-                        className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] border ${
-                          u.role === 'ADMIN' || u.role === 'BETREUER'
-                            ? 'bg-sky-950/70 text-sky-300 border-sky-800/40'
-                            : 'bg-emerald-950/70 text-emerald-300 border-emerald-800/40'
-                        }`}
-                      >
-                        {u.role === 'ADMIN' || u.role === 'BETREUER' ? 'Betreuer' : 'Bewohner'}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5 text-slate-400">
-                      {u.role === 'BEWOHNER' ? (
-                        <select
-                          value={u.locationId || ''}
-                          onChange={async (e) => {
-                            const newLocId = e.target.value || null;
-                            try {
-                              await api.users.update(u.id, { locationId: newLocId });
-                              await fetchUsers();
-                              await refreshLocations();
-                            } catch (err: any) {
-                              alert(`Fehler beim Ändern des Standorts: ${err.message}`);
-                            }
-                          }}
-                          className="px-2.5 py-1 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      </td>
+                      <td className="px-5 py-3.5 text-slate-400 font-mono text-[11px]">
+                        {u.email || '-'}
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full font-bold text-[10px] border ${
+                            u.role === 'ADMIN' || u.role === 'BETREUER'
+                              ? 'bg-sky-500/15 text-sky-300 border-sky-500/30'
+                              : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                          }`}
                         >
-                          <option value="">-- Kein Standort --</option>
-                          {locations.map((loc) => (
-                            <option key={loc.id} value={loc.id}>
-                              {loc.name}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <span>{u.locationName || 'Alle Standorte (Global)'}</span>
-                      )}
-                    </td>
-                    <td className="px-5 py-3.5 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {resettingUserId === u.id ? (
-                          <div className="inline-flex items-center gap-1.5">
-                            <input
-                              type="text"
-                              value={resetPasswordVal}
-                              onChange={(e) => setResetPasswordVal(e.target.value)}
-                              placeholder="Neues PW..."
-                              className="px-2 py-1 bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-100 w-28 focus:outline-none"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => handleResetPassword(u.id)}
-                              className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold"
-                            >
-                              OK
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setResettingUserId(null)}
-                              className="px-2 py-1 bg-slate-800 text-slate-400 hover:text-slate-200 rounded-lg text-xs"
-                            >
-                              X
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setResettingUserId(u.id);
-                              setResetPasswordVal('start1234!');
-                            }}
-                            className="px-2.5 py-1 bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700/60 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
-                          >
-                            <Key className="w-3 h-3 text-slate-400" />
-                            <span>Passwort</span>
-                          </button>
-                        )}
-
-                        {user?.id !== u.id && (
-                          <button
-                            type="button"
-                            onClick={async () => {
-                              if (!confirm(`Möchtest Du den Benutzer "${u.name}" (@${u.username}) wirklich löschen?`)) return;
+                          {u.role === 'ADMIN' || u.role === 'BETREUER' ? 'Betreuer' : 'Bewohner'}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5 text-slate-300">
+                        {u.role === 'BEWOHNER' ? (
+                          <select
+                            value={u.locationId || ''}
+                            onChange={async (e) => {
+                              const newLocId = e.target.value || null;
                               try {
-                                await api.users.delete(u.id);
-                                setUserSuccessMsg(`Benutzer "${u.name}" gelöscht.`);
+                                await api.users.update(u.id, { locationId: newLocId });
                                 await fetchUsers();
                                 await refreshLocations();
-                                setTimeout(() => setUserSuccessMsg(null), 4000);
                               } catch (err: any) {
-                                alert(`Fehler beim Löschen: ${err.message}`);
+                                alert(`Fehler beim Ändern des Standorts: ${err.message}`);
                               }
                             }}
-                            className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition-colors"
-                            title="Benutzer löschen"
+                            className="px-2.5 py-1.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-200 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30 cursor-pointer"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                            <option value="">-- Kein Standort --</option>
+                            {locations.map((loc) => (
+                              <option key={loc.id} value={loc.id}>
+                                {loc.name}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span className="text-slate-400">{u.locationName || 'Alle Standorte (Global)'}</span>
                         )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      </td>
+                      <td className="px-5 py-3.5 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          {resettingUserId === u.id ? (
+                            <div className="inline-flex items-center gap-1.5">
+                              <input
+                                type="text"
+                                value={resetPasswordVal}
+                                onChange={(e) => setResetPasswordVal(e.target.value)}
+                                placeholder="Neues PW..."
+                                className="px-2 py-1 bg-surface-elevated border border-surface-border rounded-lg text-xs text-slate-100 w-28 focus:outline-none focus:border-theme"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleResetPassword(u.id)}
+                                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold cursor-pointer"
+                              >
+                                OK
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setResettingUserId(null)}
+                                className="px-2 py-1 bg-surface-elevated text-slate-400 hover:text-slate-200 rounded-lg text-xs cursor-pointer"
+                              >
+                                X
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setResettingUserId(u.id);
+                                setResetPasswordVal('start1234!');
+                              }}
+                              className="px-2.5 py-1 bg-surface-elevated hover:bg-white/10 text-slate-300 border border-surface-border rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                            >
+                              <Key className="w-3 h-3 text-slate-400" />
+                              <span>Passwort</span>
+                            </button>
+                          )}
+
+                          {user?.id !== u.id && (
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                if (!confirm(`Möchtest Du den Benutzer "${u.name}" (@${u.username}) wirklich löschen?`)) return;
+                                try {
+                                  await api.users.delete(u.id);
+                                  setUserSuccessMsg(`Benutzer "${u.name}" gelöscht.`);
+                                  await fetchUsers();
+                                  await refreshLocations();
+                                  setTimeout(() => setUserSuccessMsg(null), 4000);
+                                } catch (err: any) {
+                                  alert(`Fehler beim Löschen: ${err.message}`);
+                                }
+                              }}
+                              className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/15 rounded-lg transition-colors cursor-pointer"
+                              title="Benutzer löschen"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
 
       {/* SUBTAB: LOCATIONS */}
       {activeSubTab === 'locations' && (
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h3 className="text-sm font-bold text-slate-100">
+              <h3 className="text-base font-display font-semibold text-surface-cream">
                 Konfigurierte Standorte ({locations.length})
               </h3>
-              <p className="text-xs text-slate-400">
-                Standorte / Wohngruppen mit Bewohneranzahl und Standard-Supermarkt
+              <p className="text-xs text-surface-muted mt-0.5 font-sans">
+                Standorte / Wohngruppen mit Bewohneranzahl und Standard-Supermarkt.
               </p>
             </div>
             <button
               type="button"
               onClick={() => setShowAddLocation(!showAddLocation)}
-              className="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors"
+              className="btn-theme-gradient px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-md cursor-pointer transition-all self-start sm:self-auto"
             >
               <Plus className="w-4 h-4" />
-              <span>Neuen Standort anlegen</span>
+              <span>{showAddLocation ? 'Formular schließen' : 'Neuen Standort anlegen'}</span>
             </button>
           </div>
 
           {showAddLocation && (
             <form
               onSubmit={handleCreateLocation}
-              className="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-sm space-y-3 animate-in fade-in duration-150"
+              className="bento-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border shadow-xl space-y-5 animate-in fade-in duration-200 overflow-hidden"
             >
-              <h4 className="text-sm font-bold text-slate-100">Neuen Standort anlegen</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Standort-Name *</label>
+              <div className="flex items-center justify-between pb-3 border-b border-surface-border/60">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-theme-subtle border border-theme-border text-theme">
+                    <Building2 className="w-4 h-4" />
+                  </div>
+                  <h4 className="text-sm font-bold text-surface-cream font-display">Neuen Standort anlegen</h4>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowAddLocation(false)}
+                  className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-surface-elevated transition-colors cursor-pointer"
+                  title="Schließen"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="min-w-0 space-y-1.5">
+                  <label className="block text-xs font-semibold text-slate-300">Standort-Name *</label>
                   <input
                     type="text"
                     value={newLocName}
                     onChange={(e) => setNewLocName(e.target.value)}
                     placeholder="z.B. Haus Rheine"
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30"
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Adresse (optional)</label>
+                <div className="min-w-0 space-y-1.5">
+                  <label className="block text-xs font-semibold text-slate-300">Adresse (optional)</label>
                   <input
                     type="text"
                     value={newLocAddress}
                     onChange={(e) => setNewLocAddress(e.target.value)}
                     placeholder="z.B. Musterstraße 12, 48429 Rheine"
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Standard-Portionen</label>
+                <div className="min-w-0 space-y-1.5">
+                  <label className="block text-xs font-semibold text-slate-300">Standard-Portionen</label>
                   <input
                     type="number"
                     min="1"
                     max="50"
                     value={newLocServings}
                     onChange={(e) => setNewLocServings(Number(e.target.value))}
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Standard-Supermarkt</label>
+                <div className="min-w-0 space-y-1.5">
+                  <label className="block text-xs font-semibold text-slate-300">Standard-Supermarkt</label>
                   <select
                     value={newLocSupermarketId}
                     onChange={(e) => setNewLocSupermarketId(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30 cursor-pointer"
                   >
                     {supermarkets.map((m) => (
                       <option key={m.id} value={m.id}>
@@ -1277,30 +1326,30 @@ export const AdminManagementView: React.FC = () => {
                     ))}
                   </select>
                 </div>
-                <div className="sm:col-span-2 md:col-span-4 pt-1">
-                  <div className="flex items-center justify-between mb-1.5">
+                <div className="sm:col-span-2 lg:col-span-4 pt-1 space-y-2">
+                  <div className="flex items-center justify-between">
                     <label className="block text-xs font-semibold text-slate-300">
                       Geplante Kochtage ({newLocCookingDays.length} Tage)
                     </label>
-                    <div className="flex items-center gap-1 text-[10px]">
+                    <div className="flex items-center gap-1.5 text-[10px]">
                       <button
                         type="button"
                         onClick={() => setNewLocCookingDays([1, 2, 3, 4, 5, 6, 7])}
-                        className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700"
+                        className="px-2.5 py-1 bg-surface-elevated hover:bg-white/10 text-slate-300 rounded-lg border border-surface-border transition-colors cursor-pointer"
                       >
                         Mo - So (7)
                       </button>
                       <button
                         type="button"
                         onClick={() => setNewLocCookingDays([1, 2, 3, 4, 5])}
-                        className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700"
+                        className="px-2.5 py-1 bg-surface-elevated hover:bg-white/10 text-slate-300 rounded-lg border border-surface-border transition-colors cursor-pointer"
                       >
                         Mo - Fr (5)
                       </button>
                       <button
                         type="button"
                         onClick={() => setNewLocCookingDays([1, 2, 3, 4])}
-                        className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700"
+                        className="px-2.5 py-1 bg-surface-elevated hover:bg-white/10 text-slate-300 rounded-lg border border-surface-border transition-colors cursor-pointer"
                       >
                         Mo - Do (4)
                       </button>
@@ -1320,10 +1369,10 @@ export const AdminManagementView: React.FC = () => {
                                 : [...prev, d.id]
                             );
                           }}
-                          className={`py-2 text-center rounded-xl text-xs font-bold border transition-colors ${
+                          className={`py-2 text-center rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
                             isChecked
-                              ? 'bg-sky-600 border-sky-500 text-white'
-                              : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-750'
+                              ? 'btn-theme-gradient text-white shadow-xs'
+                              : 'bg-surface-elevated border-surface-border text-slate-400 hover:text-white'
                           }`}
                         >
                           {d.label}
@@ -1331,25 +1380,26 @@ export const AdminManagementView: React.FC = () => {
                       );
                     })}
                   </div>
-                  <p className="text-[11px] text-slate-500 mt-1">
+                  <p className="text-[11px] text-slate-400">
                     An nicht ausgewählten Tagen findet Selbstversorgung statt (kein gemeinsames Kochen).
                   </p>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-surface-border/60">
                 <button
                   type="button"
                   onClick={() => setShowAddLocation(false)}
-                  className="px-4 py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700/60 rounded-xl text-xs font-semibold transition-colors"
+                  className="px-4 py-2 bg-surface-elevated hover:bg-white/10 text-slate-300 border border-surface-border rounded-xl text-xs font-semibold transition-colors cursor-pointer"
                 >
                   Abbrechen
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-semibold shadow-xs transition-colors"
+                  className="btn-theme-gradient px-5 py-2 rounded-xl text-xs font-semibold shadow-md transition-all cursor-pointer flex items-center gap-1.5"
                 >
-                  Standort speichern
+                  <Check className="w-4 h-4" />
+                  <span>Standort speichern</span>
                 </button>
               </div>
             </form>
@@ -1360,65 +1410,65 @@ export const AdminManagementView: React.FC = () => {
             <div className="fixed inset-0 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
               <form
                 onSubmit={handleUpdateLocation}
-                className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4"
+                className="bento-card border border-surface-border rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5"
               >
-                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div className="flex items-center justify-between pb-3 border-b border-surface-border/60">
                   <div className="flex items-center gap-2.5">
-                    <div className="p-2 rounded-2xl bg-sky-950/80 border border-sky-800/80 text-sky-400">
-                      <Pencil className="w-5 h-5" />
+                    <div className="p-2 rounded-xl bg-theme-subtle border border-theme-border text-theme">
+                      <Pencil className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="text-base font-bold text-slate-100">Standort bearbeiten</h3>
-                      <p className="text-xs text-slate-400">{editingLocation.name}</p>
+                      <h3 className="text-base font-bold text-surface-cream font-display">Standort bearbeiten</h3>
+                      <p className="text-xs text-surface-muted">{editingLocation.name}</p>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => setEditingLocation(null)}
-                    className="p-1.5 text-slate-400 hover:text-slate-200 rounded-xl hover:bg-slate-800 transition-colors"
+                    className="p-1.5 text-slate-400 hover:text-slate-200 rounded-xl hover:bg-surface-elevated transition-colors cursor-pointer"
                   >
                     <X className="w-5 h-5" />
                   </button>
                 </div>
 
-                <div className="space-y-3 text-xs">
+                <div className="space-y-3.5 text-xs">
                   <div>
-                    <label className="block font-semibold text-slate-300 mb-1">Standort-Name *</label>
+                    <label className="block font-semibold text-slate-300 mb-1.5">Standort-Name *</label>
                     <input
                       type="text"
                       value={editLocName}
                       onChange={(e) => setEditLocName(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block font-semibold text-slate-300 mb-1">Adresse (optional)</label>
+                    <label className="block font-semibold text-slate-300 mb-1.5">Adresse (optional)</label>
                     <input
                       type="text"
                       value={editLocAddress}
                       onChange={(e) => setEditLocAddress(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block font-semibold text-slate-300 mb-1">Standard-Portionen</label>
+                      <label className="block font-semibold text-slate-300 mb-1.5">Standard-Portionen</label>
                       <input
                         type="number"
                         min="1"
                         max="50"
                         value={editLocServings}
                         onChange={(e) => setEditLocServings(Number(e.target.value))}
-                        className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30"
                       />
                     </div>
                     <div>
-                      <label className="block font-semibold text-slate-300 mb-1">Standard-Supermarkt</label>
+                      <label className="block font-semibold text-slate-300 mb-1.5">Standard-Supermarkt</label>
                       <select
                         value={editLocSupermarketId}
                         onChange={(e) => setEditLocSupermarketId(e.target.value)}
-                        className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30 cursor-pointer"
                       >
                         {supermarkets.map((m) => (
                           <option key={m.id} value={m.id}>
@@ -1430,30 +1480,30 @@ export const AdminManagementView: React.FC = () => {
                   </div>
 
                   {/* Active Cooking Days */}
-                  <div className="pt-2">
-                    <div className="flex items-center justify-between mb-1.5">
+                  <div className="pt-2 space-y-2">
+                    <div className="flex items-center justify-between">
                       <label className="block font-semibold text-slate-300">
                         Geplante Kochtage ({editLocCookingDays.length} Tage)
                       </label>
-                      <div className="flex items-center gap-1 text-[10px]">
+                      <div className="flex items-center gap-1.5 text-[10px]">
                         <button
                           type="button"
                           onClick={() => setEditLocCookingDays([1, 2, 3, 4, 5, 6, 7])}
-                          className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700"
+                          className="px-2.5 py-1 bg-surface-elevated hover:bg-white/10 text-slate-300 rounded-lg border border-surface-border transition-colors cursor-pointer"
                         >
                           Mo-So (7)
                         </button>
                         <button
                           type="button"
                           onClick={() => setEditLocCookingDays([1, 2, 3, 4, 5])}
-                          className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700"
+                          className="px-2.5 py-1 bg-surface-elevated hover:bg-white/10 text-slate-300 rounded-lg border border-surface-border transition-colors cursor-pointer"
                         >
                           Mo-Fr (5)
                         </button>
                         <button
                           type="button"
                           onClick={() => setEditLocCookingDays([1, 2, 3, 4])}
-                          className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700"
+                          className="px-2.5 py-1 bg-surface-elevated hover:bg-white/10 text-slate-300 rounded-lg border border-surface-border transition-colors cursor-pointer"
                         >
                           Mo-Do (4)
                         </button>
@@ -1473,10 +1523,10 @@ export const AdminManagementView: React.FC = () => {
                                   : [...prev, d.id]
                               );
                             }}
-                            className={`py-2 text-center rounded-xl text-xs font-bold border transition-colors ${
+                            className={`py-2 text-center rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
                               isChecked
-                                ? 'bg-sky-600 border-sky-500 text-white'
-                                : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-750'
+                                ? 'btn-theme-gradient text-white shadow-xs'
+                                : 'bg-surface-elevated border-surface-border text-slate-400 hover:text-white'
                             }`}
                           >
                             {d.label}
@@ -1484,25 +1534,26 @@ export const AdminManagementView: React.FC = () => {
                         );
                       })}
                     </div>
-                    <p className="text-[11px] text-slate-500 mt-1">
+                    <p className="text-[11px] text-slate-400">
                       Tage ohne gemeinsames Kochen werden im Kochplan als Selbstversorgung gekennzeichnet.
                     </p>
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-slate-800 flex justify-end gap-2">
+                <div className="pt-3 border-t border-surface-border/60 flex justify-end gap-2.5">
                   <button
                     type="button"
                     onClick={() => setEditingLocation(null)}
-                    className="px-4 py-2 bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700/60 rounded-xl text-xs font-semibold transition-colors"
+                    className="px-4 py-2 bg-surface-elevated hover:bg-white/10 text-slate-300 border border-surface-border rounded-xl text-xs font-semibold transition-colors cursor-pointer"
                   >
                     Abbrechen
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-semibold shadow-xs transition-colors"
+                    className="btn-theme-gradient px-5 py-2 rounded-xl text-xs font-semibold shadow-md transition-all cursor-pointer flex items-center gap-1.5"
                   >
-                    Änderungen speichern
+                    <Check className="w-4 h-4" />
+                    <span>Änderungen speichern</span>
                   </button>
                 </div>
               </form>
@@ -1510,14 +1561,14 @@ export const AdminManagementView: React.FC = () => {
           )}
 
           {locations.length > 0 && (
-            <div className="bg-slate-900/60 rounded-2xl p-3.5 border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="bg-surface-card/80 rounded-2xl p-4 border border-surface-border flex flex-wrap items-center justify-between gap-3 text-xs shadow-xs">
               <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-sky-400 shrink-0" />
-                <span className="font-semibold text-slate-200">
+                <MapPin className="w-4 h-4 text-theme shrink-0" />
+                <span className="font-semibold text-surface-cream">
                   Standort auswählen & Bewohner zuweisen:
                 </span>
               </div>
-              <div className="flex flex-wrap items-center gap-1.5">
+              <div className="flex flex-wrap items-center gap-2">
                 {locations.map((loc) => {
                   const count = usersList.filter((u) => u.role === 'BEWOHNER' && u.locationId === loc.id).length;
                   return (
@@ -1525,11 +1576,11 @@ export const AdminManagementView: React.FC = () => {
                       key={loc.id}
                       type="button"
                       onClick={() => openAssignModal(loc)}
-                      className="px-3 py-1.5 bg-slate-800 hover:bg-sky-600/30 hover:border-sky-500/50 border border-slate-700 text-slate-200 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors"
+                      className="px-3 py-1.5 bg-surface-elevated hover:bg-white/10 border border-surface-border hover:border-theme-border text-slate-200 rounded-xl text-xs font-medium flex items-center gap-2 transition-all cursor-pointer shadow-xs"
                     >
-                      <Users className="w-3.5 h-3.5 text-sky-400" />
+                      <Users className="w-3.5 h-3.5 text-theme" />
                       <span>{loc.name}</span>
-                      <span className="px-1.5 py-0.5 rounded-full bg-slate-900 text-[10px] text-sky-300 font-bold border border-slate-700">
+                      <span className="px-1.5 py-0.5 rounded-full bg-surface-card text-[10px] text-theme font-bold border border-surface-border">
                         {count}
                       </span>
                     </button>
@@ -1546,36 +1597,36 @@ export const AdminManagementView: React.FC = () => {
               return (
                 <div
                   key={loc.id}
-                  className="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-sm space-y-3 flex flex-col justify-between"
+                  className="bento-card rounded-3xl p-5 sm:p-6 border border-surface-border shadow-md space-y-4 flex flex-col justify-between hover:border-theme-border transition-all"
                 >
                   <div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Building2 className="w-5 h-5 text-sky-400" />
-                        <h4 className="text-base font-bold text-slate-100">{loc.name}</h4>
+                        <Building2 className="w-5 h-5 text-theme" />
+                        <h4 className="text-base font-bold text-surface-cream font-display">{loc.name}</h4>
                       </div>
-                      <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700/50">
+                      <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-surface-elevated text-slate-300 border border-surface-border font-mono">
                         {locResidents.length} Bewohner
                       </span>
                     </div>
 
                     {loc.address && (
-                      <p className="text-xs text-slate-400 mt-2">{loc.address}</p>
+                      <p className="text-xs text-surface-muted mt-2 font-sans">{loc.address}</p>
                     )}
 
-                    <div className="pt-3 mt-3 border-t border-slate-800 text-xs space-y-1.5">
+                    <div className="pt-3 mt-3 border-t border-surface-border/60 text-xs space-y-1.5 font-sans">
                       <div className="flex justify-between">
-                        <span className="text-slate-500">Standard-Portionen:</span>
+                        <span className="text-surface-muted">Standard-Portionen:</span>
                         <span className="font-bold text-slate-200">{loc.defaultServings} Personen</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-500">Standard-Supermarkt:</span>
-                        <span className="font-bold text-sky-400">
+                        <span className="text-surface-muted">Standard-Supermarkt:</span>
+                        <span className="font-bold text-theme">
                           {supermarkets.find((s) => s.id === loc.defaultSupermarketId)?.name || 'Netto Marken-Discount'}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-500">Kochtage:</span>
+                        <span className="text-surface-muted">Kochtage:</span>
                         <span className="font-bold text-emerald-400">
                           {formatCookingDays(loc.cookingDays)}
                         </span>
@@ -1583,13 +1634,13 @@ export const AdminManagementView: React.FC = () => {
                     </div>
 
                     {/* Residents Living Here */}
-                    <div className="pt-3 mt-3 border-t border-slate-800">
+                    <div className="pt-3 mt-3 border-t border-surface-border/60">
                       <div className="text-[11px] font-semibold text-slate-400 mb-2 flex items-center justify-between">
                         <span className="flex items-center gap-1.5">
-                          <Users className="w-3.5 h-3.5 text-sky-400" />
+                          <Users className="w-3.5 h-3.5 text-theme" />
                           <span>Bewohner vor Ort:</span>
                         </span>
-                        <span className="text-[10px] text-slate-500">
+                        <span className="text-[10px] text-surface-muted font-mono">
                           {locResidents.length} Person(en)
                         </span>
                       </div>
@@ -1598,7 +1649,7 @@ export const AdminManagementView: React.FC = () => {
                           locResidents.map((res) => (
                             <span
                               key={res.id}
-                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700/60 text-slate-200 text-[11px]"
+                              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-elevated border border-surface-border text-slate-200 text-[11px]"
                             >
                               <span
                                 className="w-2 h-2 rounded-full inline-block shrink-0"
@@ -1614,12 +1665,12 @@ export const AdminManagementView: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="pt-3 border-t border-slate-800 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5">
+                  <div className="pt-3 border-t border-surface-border/60 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => openAssignModal(loc)}
-                        className="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
+                        className="btn-theme-gradient px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
                       >
                         <Users className="w-3.5 h-3.5" />
                         <span>Bewohner zuweisen</span>
@@ -1627,7 +1678,7 @@ export const AdminManagementView: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => handleEditLocation(loc)}
-                        className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/60 rounded-xl transition-colors"
+                        className="p-1.5 bg-surface-elevated hover:bg-white/10 text-slate-300 border border-surface-border rounded-xl transition-colors cursor-pointer"
                         title="Standort bearbeiten"
                       >
                         <Pencil className="w-3.5 h-3.5" />
@@ -1638,7 +1689,7 @@ export const AdminManagementView: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => handleDeleteLocation(loc.id, loc.name)}
-                        className="px-2 py-1 text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 rounded-lg text-xs flex items-center gap-1 transition-colors ml-auto"
+                        className="px-2 py-1 text-rose-400 hover:text-rose-300 hover:bg-rose-500/15 rounded-lg text-xs flex items-center gap-1 transition-colors ml-auto cursor-pointer"
                         title="Standort löschen"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -1654,24 +1705,24 @@ export const AdminManagementView: React.FC = () => {
           {/* MODAL: ASSIGN RESIDENTS TO LOCATION */}
           {assigningLocation && (
             <div className="fixed inset-0 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
-              <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl space-y-4">
+              <div className="bento-card border border-surface-border rounded-3xl p-6 sm:p-7 max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl space-y-4">
                 {/* Header */}
-                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-2xl bg-sky-950/70 border border-sky-800/50 text-sky-400">
+                <div className="flex items-center justify-between pb-3 border-b border-surface-border/60">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-2xl bg-theme-subtle border border-theme-border text-theme">
                       <Users className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="text-base font-bold text-slate-100">Bewohner zuweisen</h3>
-                      <p className="text-xs text-slate-400">
-                        Standort: <span className="text-sky-300 font-semibold">{assigningLocation.name}</span>
+                      <h3 className="text-base font-bold text-surface-cream font-display">Bewohner zuweisen</h3>
+                      <p className="text-xs text-surface-muted">
+                        Standort: <span className="text-theme font-semibold">{assigningLocation.name}</span>
                       </p>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => setAssigningLocation(null)}
-                    className="p-1.5 text-slate-400 hover:text-slate-200 rounded-xl hover:bg-slate-800 transition-colors"
+                    className="p-1.5 text-slate-400 hover:text-slate-200 rounded-xl hover:bg-surface-elevated transition-colors cursor-pointer"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -1679,7 +1730,7 @@ export const AdminManagementView: React.FC = () => {
 
                 {/* Location Switcher */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
                     Standort wechseln:
                   </label>
                   <select
@@ -1690,7 +1741,7 @@ export const AdminManagementView: React.FC = () => {
                         openAssignModal(found);
                       }
                     }}
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 font-medium focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 font-medium focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30 cursor-pointer"
                   >
                     {locations.map((loc) => (
                       <option key={loc.id} value={loc.id}>
@@ -1702,20 +1753,20 @@ export const AdminManagementView: React.FC = () => {
 
                 {/* Resident Search */}
                 <div className="relative">
-                  <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                   <input
                     type="text"
                     value={residentSearchQuery}
                     onChange={(e) => setResidentSearchQuery(e.target.value)}
                     placeholder="Bewohner nach Name oder @username filtern..."
-                    className="w-full pl-9 pr-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    className="w-full pl-10 pr-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30"
                   />
                 </div>
 
                 {/* Residents List */}
                 <div className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-[160px] max-h-[320px]">
                   {usersList.filter((u) => u.role === 'BEWOHNER').length === 0 ? (
-                    <div className="p-6 text-center text-slate-400 space-y-3 bg-slate-800/30 rounded-2xl border border-slate-800">
+                    <div className="p-6 text-center text-surface-muted space-y-3 bg-surface-elevated/40 rounded-2xl border border-surface-border">
                       <Users className="w-8 h-8 text-slate-500 mx-auto" />
                       <p className="text-xs">
                         Es sind aktuell noch keine Bewohner im System angelegt.
@@ -1727,7 +1778,7 @@ export const AdminManagementView: React.FC = () => {
                           setActiveSubTab('users');
                           setShowAddUser(true);
                         }}
-                        className="px-3.5 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 transition-colors"
+                        className="btn-theme-gradient px-4 py-2 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         <span>Jetzt Bewohner anlegen</span>
@@ -1756,16 +1807,16 @@ export const AdminManagementView: React.FC = () => {
                             onClick={() => toggleResidentSelection(res.id)}
                             className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
                               isSelected
-                                ? 'bg-sky-950/40 border-sky-600/60 shadow-xs'
-                                : 'bg-slate-800/30 border-slate-800 hover:bg-slate-800/60'
+                                ? 'bg-theme-subtle border-theme-border shadow-xs'
+                                : 'bg-surface-elevated/50 border-surface-border hover:bg-surface-elevated'
                             }`}
                           >
                             <div className="flex items-center gap-3">
                               <div
                                 className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${
                                   isSelected
-                                    ? 'bg-sky-600 border-sky-500 text-white'
-                                    : 'border-slate-600 bg-slate-800'
+                                    ? 'btn-theme-gradient text-white'
+                                    : 'border-slate-600 bg-surface-elevated'
                                 }`}
                               >
                                 {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
@@ -1777,22 +1828,22 @@ export const AdminManagementView: React.FC = () => {
                                 {res.name.charAt(0).toUpperCase()}
                               </div>
                               <div>
-                                <div className="text-xs font-bold text-slate-100">{res.name}</div>
-                                <div className="text-[10px] text-slate-400 font-mono">@{res.username}</div>
+                                <div className="text-xs font-bold text-surface-cream">{res.name}</div>
+                                <div className="text-[10px] text-surface-muted font-mono">@{res.username}</div>
                               </div>
                             </div>
 
                             <div>
                               {isSelected ? (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sky-950 text-sky-300 border border-sky-700/60">
+                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-theme-subtle text-theme border border-theme-border">
                                   Ausgewählt
                                 </span>
                               ) : otherLocName ? (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-950/70 text-amber-300 border border-amber-800/40">
+                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30">
                                   In: {otherLocName}
                                 </span>
                               ) : (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-800 text-slate-400 border border-slate-700/40">
+                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-surface-elevated text-slate-400 border border-surface-border">
                                   Ohne Standort
                                 </span>
                               )}
@@ -1804,15 +1855,15 @@ export const AdminManagementView: React.FC = () => {
                 </div>
 
                 {/* Footer */}
-                <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
-                  <span className="text-xs text-slate-400">
-                    <strong className="text-slate-200">{selectedResidentIds.length}</strong> Bewohner für diesen Standort ausgewählt
+                <div className="pt-3 border-t border-surface-border/60 flex items-center justify-between">
+                  <span className="text-xs text-surface-muted">
+                    <strong className="text-surface-cream">{selectedResidentIds.length}</strong> Bewohner ausgewählt
                   </span>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() => setAssigningLocation(null)}
-                      className="px-3.5 py-2 bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700/60 rounded-xl text-xs font-semibold transition-colors"
+                      className="px-4 py-2 bg-surface-elevated hover:bg-white/10 text-slate-300 border border-surface-border rounded-xl text-xs font-semibold transition-colors cursor-pointer"
                     >
                       Abbrechen
                     </button>
@@ -1820,7 +1871,7 @@ export const AdminManagementView: React.FC = () => {
                       type="button"
                       disabled={isSavingAssignment}
                       onClick={handleSaveResidentsAssignment}
-                      className="px-4 py-2 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-colors"
+                      className="btn-theme-gradient px-4 py-2 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-md flex items-center gap-1.5 transition-all cursor-pointer"
                     >
                       {isSavingAssignment ? (
                         <RefreshCw className="w-3.5 h-3.5 animate-spin" />
@@ -2429,28 +2480,28 @@ export const AdminManagementView: React.FC = () => {
 
       {/* SUBTAB: PRICES */}
       {activeSubTab === 'prices' && (
-        <div className="space-y-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-                <Tag className="w-4 h-4 text-sky-400" />
+              <h3 className="text-base font-display font-semibold text-surface-cream flex items-center gap-2">
+                <Tag className="w-4 h-4 text-theme" />
                 <span>Zutaten & Richtpreise nach Supermarkt</span>
               </h3>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-surface-muted mt-0.5 font-sans">
                 Verwalte Deine eigenen Lebensmittel und Richtpreise für automatische Budget-Berechnungen.
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2.5">
-              <div className="flex items-center gap-1.5 bg-slate-800/80 px-2.5 py-1.5 rounded-xl border border-slate-700">
-                <span className="text-xs text-slate-400 font-semibold">Markt:</span>
+              <div className="flex items-center gap-2 bg-surface-elevated px-3 py-1.5 rounded-xl border border-surface-border">
+                <span className="text-xs text-surface-muted font-semibold">Markt:</span>
                 <select
                   value={selectedSupermarketId}
                   onChange={(e) => setSelectedSupermarketId(e.target.value)}
-                  className="bg-transparent text-xs font-semibold text-slate-200 focus:outline-none cursor-pointer pr-1"
+                  className="bg-transparent text-xs font-semibold text-surface-cream focus:outline-none cursor-pointer pr-1"
                 >
                   {supermarkets.map((m) => (
-                    <option key={m.id} value={m.id} className="bg-slate-900 text-slate-200">
+                    <option key={m.id} value={m.id} className="bg-surface-card text-surface-cream">
                       {m.name}
                     </option>
                   ))}
@@ -2466,27 +2517,27 @@ export const AdminManagementView: React.FC = () => {
                     setShowSupermarketModal(true);
                   }}
                   title="Supermarkt umbenennen"
-                  className="p-1 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors cursor-pointer"
+                  className="p-1 text-slate-400 hover:text-white hover:bg-surface-card rounded-lg transition-colors cursor-pointer"
                 >
-                  <Pencil className="w-3.5 h-3.5 text-sky-400" />
+                  <Pencil className="w-3.5 h-3.5 text-theme" />
                 </button>
               </div>
 
               <button
                 type="button"
                 onClick={() => setShowSupermarketModal(true)}
-                className="px-3 py-1.5 bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+                className="px-3.5 py-2 bg-surface-elevated hover:bg-white/10 text-slate-200 border border-surface-border rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
               >
-                <Building2 className="w-3.5 h-3.5 text-sky-400" />
+                <Building2 className="w-3.5 h-3.5 text-theme" />
                 <span>Märkte verwalten</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleOpenAddIngredient}
-                className="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-xs"
+                className="btn-theme-gradient px-4 py-2 text-white rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 shadow-md cursor-pointer"
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="w-4 h-4" />
                 <span>Neues Lebensmittel</span>
               </button>
 
@@ -2494,7 +2545,7 @@ export const AdminManagementView: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleClearAllIngredients}
-                  className="px-3 py-1.5 bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-800/50 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5"
+                  className="px-3 py-2 bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
                   title="Alle hinterlegten Lebensmittel und Preise löschen"
                 >
                   <Trash2 className="w-3.5 h-3.5 text-rose-400" />
@@ -2505,7 +2556,7 @@ export const AdminManagementView: React.FC = () => {
           </div>
 
           {priceSuccessMsg && (
-            <div className="p-3 bg-emerald-950/70 border border-emerald-800 text-emerald-300 rounded-2xl text-xs font-semibold flex items-center gap-2">
+            <div className="p-4 bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 rounded-2xl text-xs font-semibold flex items-center gap-2.5 shadow-xs">
               <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>{priceSuccessMsg}</span>
             </div>
@@ -2789,15 +2840,15 @@ export const AdminManagementView: React.FC = () => {
       {/* SUBTAB: SMTP / EMAIL */}
       {activeSubTab === 'smtp' && (
         <div className="space-y-6">
-          <div className="bg-slate-900 rounded-3xl p-6 border border-slate-800 shadow-sm">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+          <div className="bento-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border shadow-xl">
+            <div className="flex items-center justify-between pb-4 border-b border-surface-border/60">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-2xl bg-sky-950/80 border border-sky-800/80 text-sky-400">
+                <div className="p-2.5 rounded-2xl bg-theme-subtle border border-theme-border text-theme">
                   <Mail className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-100">Eigener Mailserver (SMTP)</h3>
-                  <p className="text-xs text-slate-400">
+                  <h3 className="text-base font-bold text-surface-cream font-display">Eigener Mailserver (SMTP)</h3>
+                  <p className="text-xs text-surface-muted font-sans">
                     Konfiguriere den SMTP-Ausgangsserver Deiner Einrichtung für Benachrichtigungen & Meldungen.
                   </p>
                 </div>
@@ -2806,8 +2857,8 @@ export const AdminManagementView: React.FC = () => {
                 <span
                   className={`px-3 py-1 rounded-full text-xs font-bold border ${
                     smtpConfigured
-                      ? 'bg-emerald-950/80 text-emerald-300 border-emerald-800/60'
-                      : 'bg-amber-950/80 text-amber-300 border-amber-800/60'
+                      ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                      : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
                   }`}
                 >
                   {smtpConfigured ? 'Aktiv konfiguriert' : 'Nicht eingerichtet'}
@@ -2816,7 +2867,7 @@ export const AdminManagementView: React.FC = () => {
             </div>
 
             {smtpSaveSuccess && (
-              <div className="mt-4 p-3.5 bg-emerald-950/70 border border-emerald-800 text-emerald-300 rounded-2xl text-xs font-semibold flex items-center gap-2">
+              <div className="mt-4 p-4 bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 rounded-2xl text-xs font-semibold flex items-center gap-2.5 shadow-xs">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                 <span>{smtpSaveSuccess}</span>
               </div>
@@ -2824,8 +2875,8 @@ export const AdminManagementView: React.FC = () => {
 
             <form onSubmit={handleSaveSmtp} className="mt-6 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                <div className="md:col-span-2 min-w-0 space-y-1.5">
+                  <label className="block text-xs font-semibold text-slate-300">
                     SMTP Server / Host *
                   </label>
                   <input
@@ -2833,25 +2884,25 @@ export const AdminManagementView: React.FC = () => {
                     value={smtpHost}
                     onChange={(e) => setSmtpHost(e.target.value)}
                     placeholder="z. B. smtp.office365.com oder mail.deinweg.de"
-                    className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono"
+                    className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30 font-mono"
                     required
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">Port *</label>
+                <div className="min-w-0 space-y-1.5">
+                  <label className="block text-xs font-semibold text-slate-300">Port *</label>
                   <input
                     type="number"
                     value={smtpPort}
                     onChange={(e) => setSmtpPort(Number(e.target.value))}
                     placeholder="587"
-                    className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono"
+                    className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30 font-mono"
                     required
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                <div className="min-w-0 space-y-1.5">
+                  <label className="block text-xs font-semibold text-slate-300">
                     Authentifizierungs-Benutzer
                   </label>
                   <input
@@ -2859,24 +2910,24 @@ export const AdminManagementView: React.FC = () => {
                     value={smtpUser}
                     onChange={(e) => setSmtpUser(e.target.value)}
                     placeholder="benachrichtigung@deinweg.de"
-                    className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">Passwort</label>
+                <div className="min-w-0 space-y-1.5">
+                  <label className="block text-xs font-semibold text-slate-300">Passwort</label>
                   <div className="relative">
                     <input
                       type={showSmtpPassword ? 'text' : 'password'}
                       value={smtpPassword}
                       onChange={(e) => setSmtpPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full px-3.5 pr-10 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      className="w-full px-3.5 pr-10 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30"
                     />
                     <button
                       type="button"
                       onClick={() => setShowSmtpPassword(!showSmtpPassword)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-200"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-200 cursor-pointer"
                     >
                       {showSmtpPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                     </button>
@@ -2889,7 +2940,7 @@ export const AdminManagementView: React.FC = () => {
                       type="checkbox"
                       checked={smtpSecure}
                       onChange={(e) => setSmtpSecure(e.target.checked)}
-                      className="h-4 w-4 text-sky-500 bg-slate-800 border-slate-700 rounded focus:ring-sky-500"
+                      className="h-4 w-4 text-theme bg-surface-elevated border-surface-border rounded focus:ring-theme cursor-pointer"
                     />
                     <span className="text-xs text-slate-300 font-medium">
                       Direktes SSL/TLS (Standard für Port 465)
@@ -2897,8 +2948,8 @@ export const AdminManagementView: React.FC = () => {
                   </label>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                <div className="min-w-0 space-y-1.5">
+                  <label className="block text-xs font-semibold text-slate-300">
                     Absender E-Mail (From) *
                   </label>
                   <input
@@ -2906,49 +2957,49 @@ export const AdminManagementView: React.FC = () => {
                     value={smtpFromEmail}
                     onChange={(e) => setSmtpFromEmail(e.target.value)}
                     placeholder="alltagsplaner@deinweg.de"
-                    className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30"
                     required
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">Absender Name</label>
+                <div className="min-w-0 space-y-1.5">
+                  <label className="block text-xs font-semibold text-slate-300">Absender Name</label>
                   <input
                     type="text"
                     value={smtpFromName}
                     onChange={(e) => setSmtpFromName(e.target.value)}
                     placeholder="Deine WG: Alltagsplaner"
-                    className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30"
                   />
                 </div>
               </div>
 
               {/* Email Templates Section */}
-              <div className="pt-6 border-t border-slate-800 space-y-5">
+              <div className="pt-6 border-t border-surface-border/60 space-y-5">
                 <div>
-                  <h4 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-                    <span>✉️</span>
+                  <h4 className="text-sm font-bold text-surface-cream flex items-center gap-2 font-display">
+                    <Mail className="w-4 h-4 text-theme" />
                     <span>Flurfunk E-Mail-Benachrichtigungsvorlagen</span>
                   </h4>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Passe Betreff und Nachrichtentexte der automatischen Benachrichtigungs-Mails an. Du kannst dynamische Platzhalter wie <code className="text-rose-300 bg-slate-800 px-1 py-0.5 rounded font-mono">{"{residentName}"}</code> nutzen.
+                  <p className="text-xs text-surface-muted mt-0.5 font-sans">
+                    Passe Betreff und Nachrichtentexte der automatischen Benachrichtigungs-Mails an. Du kannst dynamische Platzhalter wie <code className="text-theme bg-surface-elevated px-1.5 py-0.5 rounded font-mono">{"{residentName}"}</code> nutzen.
                   </p>
                 </div>
 
                 {/* Template 1: Caregiver Reply to Resident */}
-                <div className="bg-slate-950/60 p-4 sm:p-5 rounded-2xl border border-slate-800 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-rose-300 flex items-center gap-1.5">
-                      <span>💬</span>
+                <div className="bg-surface-elevated/40 p-4 sm:p-5 rounded-2xl border border-surface-border space-y-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <span className="text-xs font-bold text-theme flex items-center gap-1.5">
+                      <Mail className="w-3.5 h-3.5" />
                       <span>Vorlage 1: Betreuer-Antwort an Bewohner</span>
                     </span>
-                    <span className="text-[11px] text-slate-400 font-mono">
+                    <span className="text-[11px] text-surface-muted font-mono">
                       Platzhalter: {"{residentName}"}, {"{noteTitle}"}, {"{responderName}"}, {"{replyText}"}, {"{locationName}"}
                     </span>
                   </div>
 
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                  <div className="space-y-1.5">
+                    <label className="block text-[11px] font-semibold text-slate-300">
                       E-Mail-Betreff
                     </label>
                     <input
@@ -2956,57 +3007,57 @@ export const AdminManagementView: React.FC = () => {
                       value={residentReplyTemplateSubject}
                       onChange={(e) => setResidentReplyTemplateSubject(e.target.value)}
                       placeholder="Neue Antwort im Flurfunk: {noteTitle}"
-                      className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500"
+                      className="w-full px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30"
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                  <div className="space-y-1.5">
+                    <label className="block text-[11px] font-semibold text-slate-300">
                       Nachrichtentext
                     </label>
                     <textarea
                       rows={4}
                       value={residentReplyTemplateBody}
                       onChange={(e) => setResidentReplyTemplateBody(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500 font-sans leading-relaxed"
+                      className="w-full px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30 font-sans leading-relaxed"
                     />
                   </div>
                 </div>
 
-                {/* Template 2: Notification to Caregiver on Note */}
-                <div className="bg-slate-950/60 p-4 sm:p-5 rounded-2xl border border-slate-800 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-purple-300 flex items-center gap-1.5">
-                      <span>🔒</span>
-                      <span>Vorlage 2: Benachrichtigung an Betreuer bei Direktnachricht</span>
+                {/* Template 2: Resident posted topic -> Notify Caregivers */}
+                <div className="bg-surface-elevated/40 p-4 sm:p-5 rounded-2xl border border-surface-border space-y-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <span className="text-xs font-bold text-theme flex items-center gap-1.5">
+                      <Mail className="w-3.5 h-3.5" />
+                      <span>Vorlage 2: Neue Bewohner-Meldung an Betreuer</span>
                     </span>
-                    <span className="text-[11px] text-slate-400 font-mono">
-                      Platzhalter: {"{authorName}"}, {"{noteTitle}"}, {"{noteContent}"}, {"{locationName}"}
+                    <span className="text-[11px] text-surface-muted font-mono">
+                      Platzhalter: {"{residentName}"}, {"{noteTitle}"}, {"{noteContent}"}, {"{category}"}, {"{locationName}"}
                     </span>
                   </div>
 
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                  <div className="space-y-1.5">
+                    <label className="block text-[11px] font-semibold text-slate-300">
                       E-Mail-Betreff
                     </label>
                     <input
                       type="text"
                       value={caregiverNotificationTemplateSubject}
                       onChange={(e) => setCaregiverNotificationTemplateSubject(e.target.value)}
-                      placeholder="Neue Flurfunk-Nachricht an Betreuer ({locationName}): {noteTitle}"
-                      className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      placeholder="Flurfunk: Neue Meldung von {residentName}"
+                      className="w-full px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30"
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                  <div className="space-y-1.5">
+                    <label className="block text-[11px] font-semibold text-slate-300">
                       Nachrichtentext
                     </label>
                     <textarea
                       rows={4}
                       value={caregiverNotificationTemplateBody}
                       onChange={(e) => setCaregiverNotificationTemplateBody(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 font-sans leading-relaxed"
+                      className="w-full px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30 font-sans leading-relaxed"
                     />
                   </div>
                 </div>
@@ -3016,7 +3067,7 @@ export const AdminManagementView: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isSavingSmtp}
-                  className="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-semibold shadow-xs transition-colors disabled:opacity-50 flex items-center gap-2"
+                  className="btn-theme-gradient px-5 py-2.5 rounded-xl text-xs font-semibold shadow-md transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer"
                 >
                   {isSavingSmtp ? (
                     <span className="inline-block animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent"></span>
@@ -3030,12 +3081,12 @@ export const AdminManagementView: React.FC = () => {
           </div>
 
           {/* Test connection & test email card */}
-          <div className="bg-slate-900 rounded-3xl p-6 border border-slate-800 shadow-sm space-y-4">
-            <h4 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-              <Send className="w-4 h-4 text-sky-400" />
+          <div className="bento-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border shadow-md space-y-4">
+            <h4 className="text-sm font-bold text-surface-cream flex items-center gap-2 font-display">
+              <Send className="w-4 h-4 text-theme" />
               <span>Verbindung & Test-E-Mail prüfen</span>
             </h4>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-surface-muted font-sans">
               Prüfe die Verbindung zum Mailserver und sende eine formatierte Test-Nachricht an Deine Adresse.
             </p>
 
@@ -3046,17 +3097,17 @@ export const AdminManagementView: React.FC = () => {
                   value={testRecipient}
                   onChange={(e) => setTestRecipient(e.target.value)}
                   placeholder="Empfänger z. B. vorname@deinweg.de"
-                  className="w-full px-3.5 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30"
                 />
               </div>
               <button
                 type="button"
                 onClick={handleTestSmtp}
                 disabled={isTestingSmtp}
-                className="w-full sm:w-auto px-4 py-2 bg-slate-800 hover:bg-slate-700 text-sky-300 border border-sky-800/60 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                className="w-full sm:w-auto px-4 py-2.5 bg-surface-elevated hover:bg-white/10 text-theme border border-surface-border hover:border-theme-border rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 shadow-xs"
               >
                 {isTestingSmtp ? (
-                  <span className="inline-block animate-spin rounded-full h-3.5 w-3.5 border-2 border-sky-300 border-t-transparent"></span>
+                  <span className="inline-block animate-spin rounded-full h-3.5 w-3.5 border-2 border-theme border-t-transparent"></span>
                 ) : (
                   <Send className="w-3.5 h-3.5" />
                 )}
@@ -3066,10 +3117,10 @@ export const AdminManagementView: React.FC = () => {
 
             {smtpTestResult && (
               <div
-                className={`p-3.5 rounded-2xl text-xs font-medium border flex items-start gap-2.5 ${
+                className={`p-4 rounded-2xl text-xs font-medium border flex items-start gap-2.5 shadow-sm ${
                   smtpTestResult.success
-                    ? 'bg-emerald-950/70 border-emerald-800 text-emerald-300'
-                    : 'bg-rose-950/70 border-rose-800 text-rose-300'
+                    ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
+                    : 'bg-rose-500/15 border-rose-500/30 text-rose-300'
                 }`}
               >
                 {smtpTestResult.success ? (

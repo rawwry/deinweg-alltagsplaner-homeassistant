@@ -3,6 +3,18 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0] - 2026-09-18
+
+### Offizieller Meilenstein: Release v0.1.0 (Ende der Beta-Phase)
+- **Verlassen des Beta-Status**: Übergang zur ersten stabilen Version `v0.1.0`.
+
+### Behoben & Verbessert
+- **Betreuer- und Einstellungsbereich komplett modernisiert (`AdminManagementView.tsx`)**:
+  - **Swipebare Subnavigation (Ribbon-Bar)**: Die 8 Unterkategorien (*Benutzer, Standorte, Aufgaben-Vorlagen, Rezept-Kategorien, Preise, E-Mail / SMTP, Erscheinungsbild, System*) wurden aus der unübersichtlichen Kopfkarte in ein modernes, horizontal scrollbares Ribbon mit einheitlichen Outline-SVG-Icons und Theme-Aktivstatus ausgelagert.
+  - **Kopfzeile aufgeräumt**: Kompakte Bento-Kopfkarte mit klarem Titel, Subtitle und aufgeräumtem Abmelde-Button.
+  - **Grid-Layoutfehler bei Geburtsdatum behoben (`index.css` & `AdminManagementView.tsx`)**: In WebKit / iOS Safari sprengte das `<input type="date">` im Dialog „Neuen Zugang anlegen“ das CSS-Raster. Dies wurde durch globale Normalisierung (`min-width: 0; max-width: 100%; box-sizing: border-box; -webkit-appearance: none;`) und strikte `min-w-0`-Container behoben.
+  - **Bento-Karten-Design & Design-Tokens**: Sämtliche Unterbereiche (Benutzertabelle, Standortverwaltung, Zuweisungs-Modals, Preise und SMTP) wurden auf das moderne Bento-Design mit einheitlichen Design-Tokens (`bg-surface-elevated`, `border-surface-border`, `btn-theme-gradient`) umgestellt.
+
 ## [0.1.0-beta.40] - 2026-09-17
 
 ### Hinzugefügt & Verbessert
