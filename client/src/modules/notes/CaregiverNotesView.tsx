@@ -59,6 +59,15 @@ const NOTE_CATEGORIES: {
   },
 ];
 
+const sortNotes = (items: CaregiverNoteSummary[]): CaregiverNoteSummary[] => {
+  return [...items].sort((a, b) => {
+    const pA = a.category === 'ANKUENDIGUNG' ? 2 : a.isPinned ? 1 : 0;
+    const pB = b.category === 'ANKUENDIGUNG' ? 2 : b.isPinned ? 1 : 0;
+    if (pA !== pB) return pB - pA;
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+};
+
 export const CaregiverNotesView: React.FC = () => {
   const { user, activeLocationId, activeLocation } = useAuth();
   const isStaff = user?.role === 'ADMIN' || user?.role === 'BETREUER';
@@ -114,13 +123,31 @@ export const CaregiverNotesView: React.FC = () => {
       setIsLoading(true);
       const isArchived = activeTab === 'ARCHIVE';
       const data = await api.notes.list(activeLocationId, isArchived);
-      setNotes(data);
+      const sorted = sortNotes(data);
+      setNotes(sorted);
 
       // Auto-mark unread notes as read for resident
       if (!isStaff) {
         data.filter(n => n.hasUnreadResponse && n.residentId === user?.id).forEach(n => {
           api.notes.markRead(n.id).catch(() => {});
         });
+      }
+
+      // Check if arriving from DashboardHub with a focused note ID
+      try {
+        const focusId = sessionStorage.getItem('flurfunk_focus_note_id');
+        if (focusId) {
+          setExpandedNoteIds((prev) => new Set(prev).add(focusId));
+          sessionStorage.removeItem('flurfunk_focus_note_id');
+          setTimeout(() => {
+            const el = document.getElementById(`note-${focusId}`);
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }, 250);
+        }
+      } catch {
+        // ignore
       }
     } catch (err) {
       console.error('Fehler beim Laden der Tickets:', err);
@@ -151,10 +178,7 @@ export const CaregiverNotesView: React.FC = () => {
       const res = await api.notes.togglePin(id);
       setNotes((prev) => {
         const updated = prev.map((n) => (n.id === id ? { ...n, isPinned: res.isPinned } : n));
-        return updated.sort((a, b) => {
-          if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        });
+        return sortNotes(updated);
       });
     } catch (err: any) {
       alert(`Fehler beim Ändern des Pin-Status: ${err.message || err}`);
@@ -196,10 +220,7 @@ export const CaregiverNotesView: React.FC = () => {
 
       setNotes((prev) => {
         const next = prev.map((n) => (n.id === noteId ? updated : n));
-        return next.sort((a, b) => {
-          if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        });
+        return sortNotes(next);
       });
       setEditingNoteId(null);
     } catch (err: any) {
@@ -649,6 +670,7 @@ export const CaregiverNotesView: React.FC = () => {
             return (
               <div
                 key={note.id}
+                id={`note-${note.id}`}
                 className={`bento-card rounded-[2.5rem] p-5 sm:p-6 border shadow-md transition-all ${
                   note.isArchived
                     ? 'border-surface-border opacity-70 bg-surface-card'
@@ -693,18 +715,20 @@ export const CaregiverNotesView: React.FC = () => {
                       </span>
                     )}
 
-                    {/* Status Badge */}
-                    <span
-                      className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-display ${
-                        note.isArchived
-                          ? 'bg-surface-elevated text-slate-400 border border-surface-border'
-                          : note.status === 'IN_PROGRESS'
-                          ? 'bg-sky-500/15 text-sky-300 border border-sky-500/30'
-                          : 'bg-surface-elevated text-slate-300 border border-surface-border'
-                      }`}
-                    >
-                      {note.isArchived ? 'Archiviert' : note.status === 'IN_PROGRESS' ? 'In Bearbeitung' : 'Offen'}
-                    </span>
+                    {/* Status Badge (Announcements are permanent, omit 'Offen') */}
+                    {(note.isArchived || note.category !== 'ANKUENDIGUNG') && (
+                      <span
+                        className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-display ${
+                          note.isArchived
+                            ? 'bg-surface-elevated text-slate-400 border border-surface-border'
+                            : note.status === 'IN_PROGRESS'
+                            ? 'bg-sky-500/15 text-sky-300 border border-sky-500/30'
+                            : 'bg-surface-elevated text-slate-300 border border-surface-border'
+                        }`}
+                      >
+                        {note.isArchived ? 'Archiviert' : note.status === 'IN_PROGRESS' ? 'In Bearbeitung' : 'Offen'}
+                      </span>
+                    )}
                   </div>
 
                   {/* Action icons: Pin toggle (staff), Edit (author/admin) & Expand/Collapse toggle */}

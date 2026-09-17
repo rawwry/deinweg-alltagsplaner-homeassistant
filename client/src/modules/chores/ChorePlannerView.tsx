@@ -12,7 +12,9 @@ import {
   Settings,
   X,
   Plus,
+  ChefHat,
 } from 'lucide-react';
+import { getChoreOutlineIcon } from '../hub/DashboardHub.js';
 
 interface ChorePlannerViewProps {
   setCurrentTab?: (tab: string) => void;
@@ -178,8 +180,8 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
     const chefTask = dayMeal?.cookUserId
       ? {
           id: `chefkoch_${day.date}`,
-          title: `Chefkoch: ${chefDishTitle}`,
-          description: 'Zubereitung des gemeinsamen Essens für die WG laut Kochplan.',
+          title: `Kochtraining: ${chefDishTitle}`,
+          description: 'Du bist heute für die Zubereitung des Gemeinschaftsessens zuständig.',
           icon: '👨‍🍳',
           isChefkoch: true,
           cookUserId: dayMeal.cookUserId,
@@ -273,19 +275,19 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                 return (
                   <div
                     key={tmpl.id}
-                    className={`rounded-2xl border p-4 sm:p-4.5 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 ${
+                    className={`rounded-2xl border p-4 sm:p-5 transition-all flex flex-col gap-3 ${
                       isPersonalDone
                         ? 'bg-emerald-950/20 border-emerald-500/30'
                         : 'bg-surface-elevated/70 hover:bg-surface-elevated border-rose-500/30 shadow-xs'
                     }`}
                   >
-                    {/* Left: Icon + Title + Description */}
-                    <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                      <div className="w-11 h-11 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-xl shrink-0 shadow-xs text-rose-300">
-                        👨‍🍳
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
+                    {/* Top Tier: Icon + Title & Kochplan badge + Personal Check-off Top-Right */}
+                    <div className="flex items-center justify-between gap-3 min-w-0">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div className="w-9 h-9 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center shrink-0 shadow-xs">
+                          {getChoreOutlineIcon(tmpl, 'w-5 h-5')}
+                        </div>
+                        <div className="min-w-0 flex-1 flex items-center gap-2 flex-wrap">
                           <span
                             className={`text-sm font-bold tracking-tight ${
                               isPersonalDone ? 'line-through text-slate-400' : 'text-white'
@@ -293,29 +295,17 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                           >
                             {tmpl.title}
                           </span>
-                          <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-rose-500/15 border border-rose-500/30 text-rose-300">
+                          <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-rose-500/15 border border-rose-500/30 text-rose-300 shrink-0">
                             Kochplan
                           </span>
                         </div>
-                        {tmpl.description && (
-                          <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                            {tmpl.description}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Right: Resident Assignment & Personal Check-off */}
-                    <div className="flex items-center gap-3 shrink-0 justify-between md:justify-end pt-2 md:pt-0 border-t md:border-t-0 border-surface-border/50 flex-wrap sm:flex-nowrap">
-                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border bg-rose-500/10 border-rose-500/25 text-rose-300 text-xs font-semibold">
-                        <span>👨‍🍳 {tmpl.cookName}</span>
                       </div>
 
                       {user?.role === 'BEWOHNER' && isCookMe && (
                         <button
                           type="button"
                           onClick={() => togglePersonalChore(choreKey)}
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer shrink-0 ${
                             isPersonalDone
                               ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30'
                               : 'bg-surface-card hover:bg-surface-elevated border-surface-border text-slate-300 hover:text-white'
@@ -334,6 +324,21 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                           <span>{isPersonalDone ? 'Erledigt' : 'Abhaken'}</span>
                         </button>
                       )}
+                    </div>
+
+                    {/* Middle Tier: 100% Full Width Description */}
+                    {tmpl.description && (
+                      <p className="text-xs text-slate-300 leading-relaxed font-normal">
+                        {tmpl.description}
+                      </p>
+                    )}
+
+                    {/* Bottom Tier: Resident Assignment Footer */}
+                    <div className="pt-2.5 border-t border-surface-border/50 flex items-center justify-between">
+                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl border bg-rose-500/10 border-rose-500/25 text-rose-300 text-xs font-semibold">
+                        <ChefHat className="w-3.5 h-3.5 text-rose-400 stroke-[2]" />
+                        <span>{tmpl.cookName}</span>
+                      </div>
                     </div>
                   </div>
                 );
@@ -359,7 +364,7 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
               return (
                 <div
                   key={tmpl.id}
-                  className={`rounded-2xl border p-4 sm:p-4.5 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 ${
+                  className={`rounded-2xl border p-4 sm:p-5 transition-all flex flex-col gap-3 ${
                     isPersonalDone
                       ? 'bg-emerald-950/20 border-emerald-500/30'
                       : isAssigned
@@ -367,31 +372,58 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                       : 'bg-surface-elevated/30 border-surface-border/60 border-dashed hover:border-surface-border'
                   }`}
                 >
-                  {/* Left: Icon + Title + Full Description */}
-                  <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                    <div className="w-11 h-11 rounded-2xl bg-surface-card border border-surface-border flex items-center justify-center text-xl shrink-0 shadow-xs">
-                      {tmpl.icon || '🧹'}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
+                  {/* Top Tier: Icon + Title + Personal Check-off Top-Right */}
+                  <div className="flex items-center justify-between gap-3 min-w-0">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="w-9 h-9 rounded-xl bg-surface-card border border-surface-border flex items-center justify-center shrink-0 shadow-xs">
+                        {getChoreOutlineIcon(tmpl, 'w-5 h-5')}
+                      </div>
+                      <div className="min-w-0 flex-1">
                         <span
-                          className={`text-sm font-bold tracking-tight ${
+                          className={`text-sm font-bold tracking-tight block truncate ${
                             isPersonalDone ? 'line-through text-slate-400' : 'text-white'
                           }`}
                         >
                           {tmpl.title}
                         </span>
                       </div>
-                      {tmpl.description && (
-                        <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                          {tmpl.description}
-                        </p>
-                      )}
                     </div>
+
+                    {/* Personal check-off button for residents */}
+                    {user?.role === 'BEWOHNER' && isMyTask && (
+                      <button
+                        type="button"
+                        onClick={() => togglePersonalChore(choreKey)}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer shrink-0 ${
+                          isPersonalDone
+                            ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30'
+                            : 'bg-surface-card hover:bg-surface-elevated border-surface-border text-slate-300 hover:text-white'
+                        }`}
+                        title={isPersonalDone ? 'Als unerledigt markieren' : 'Als erledigt abhaken'}
+                      >
+                        <div
+                          className={`w-4 h-4 rounded-md flex items-center justify-center border transition-colors ${
+                            isPersonalDone
+                              ? 'bg-emerald-500 border-emerald-500 text-slate-950'
+                              : 'border-slate-500 bg-transparent'
+                          }`}
+                        >
+                          {isPersonalDone && <Check className="w-3 h-3 stroke-[3]" />}
+                        </div>
+                        <span>{isPersonalDone ? 'Erledigt' : 'Abhaken'}</span>
+                      </button>
+                    )}
                   </div>
 
-                  {/* Right: Resident Assignment & Personal Check-off */}
-                  <div className="flex items-center gap-3 shrink-0 justify-between md:justify-end pt-2 md:pt-0 border-t md:border-t-0 border-surface-border/50 flex-wrap sm:flex-nowrap">
+                  {/* Middle Tier: 100% Full Width Description */}
+                  {tmpl.description && (
+                    <p className="text-xs text-slate-300 leading-relaxed font-normal">
+                      {tmpl.description}
+                    </p>
+                  )}
+
+                  {/* Bottom Tier: Resident Assignment Footer */}
+                  <div className="pt-2.5 border-t border-surface-border/50 flex items-center justify-between">
                     {/* Resident Pill */}
                     {isAllResidents ? (
                       <button
@@ -463,7 +495,7 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                             )
                           )}
                         </div>
-                        <span className="truncate max-w-[130px]">
+                        <span className="truncate max-w-[160px]">
                           {assignedResidents.map((r: any) => r.name).join(', ')}
                         </span>
                         {isStaff && (
@@ -512,7 +544,7 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                                 {res.name.charAt(0).toUpperCase()}
                               </div>
                             )}
-                            <span className="truncate max-w-[130px]">
+                            <span className="truncate max-w-[160px]">
                               {res.name}
                             </span>
                             {isStaff && (
@@ -543,31 +575,6 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                       <span className="text-xs text-slate-500 italic px-2">
                         Nicht eingeteilt
                       </span>
-                    )}
-
-                    {/* Personal check-off button for residents */}
-                    {user?.role === 'BEWOHNER' && isMyTask && (
-                      <button
-                        type="button"
-                        onClick={() => togglePersonalChore(choreKey)}
-                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
-                          isPersonalDone
-                            ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30'
-                            : 'bg-surface-card hover:bg-surface-elevated border-surface-border text-slate-300 hover:text-white'
-                        }`}
-                        title={isPersonalDone ? 'Als unerledigt markieren' : 'Als erledigt abhaken'}
-                      >
-                        <div
-                          className={`w-4 h-4 rounded-md flex items-center justify-center border transition-colors ${
-                            isPersonalDone
-                              ? 'bg-emerald-500 border-emerald-500 text-slate-950'
-                              : 'border-slate-500 bg-transparent'
-                          }`}
-                        >
-                          {isPersonalDone && <Check className="w-3 h-3 stroke-[3]" />}
-                        </div>
-                        <span>{isPersonalDone ? 'Erledigt' : 'Abhaken'}</span>
-                      </button>
                     )}
                   </div>
                 </div>

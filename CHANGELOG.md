@@ -3,6 +3,26 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.36] - 2026-09-17
+
+### Hinzugefügt & Verbessert
+- **UI & Bento-Karten Überarbeitung (`DashboardHub`)**:
+  - **Reine Outline-SVG Icons statt Emojis**: Alle Bento-Pills und Aufgaben-Karten nutzen nun konsistent moderne Outline-SVGs (`UtensilsCrossed`, `Wallet`, `Trash2`, `MessageSquare`, `ClipboardList` etc.). Bisherige Emojis (`🍳`, `🗑️`, `💬`) wurden vollständig abgelöst.
+  - **Neues Wallet-Icon**: Die unschöne Geldnote im Wochenbudget-Widget wurde durch ein elegantes Outline-`Wallet`-Icon ersetzt.
+  - **Mitteilungskarten & Ausblenden**: Der Pfeil nach rechts (`ArrowRight`) wurde entfernt. Die Ausblend-Schaltfläche nutzt nun das intuitive Auge-durchgestrichen-Icon (`EyeOff`).
+  - **Bento 1 („Heute frisch auf den Tisch“)**: Zusätze *„Gemeinsames Abendessen“* und *„⭐ WG-Favorit“* sowie das Hintergrund-Emoji entfernt. Chefkoch- und Portionsanzeige wurden sauber in den Kartenkörper integriert; Aktionsbutton auf volle Breite gesetzt.
+  - **Bento 4 („Flurfunk und Mitteilungen“)**: Pille umbenannt in *„Flurfunk und Mitteilungen“*, *„WG-Pinnwand“* entfernt, Notiz-Vorschaukarten sind direkt anklickbar und springen mit Fokus in den Flurfunk.
+  - **Betreuer-Aufgabenansicht**: Der überflüssige Hilfetext *„Wöchentliche Einteilung und Zuweisungen für alle Wochentage“* wurde entfernt.
+  - **Umbenennung Kochtraining**: Chefkoch-Aufgaben heißen nun einheitlich *„Kochtraining: [Gericht]“* mit der Beschreibung *„Du bist heute für die Zubereitung des Gemeinschaftsessens zuständig.“*
+- **Aufgabenplan Desktop-Layout & Zeilenumbruch behoben (`ChorePlannerView`)**:
+  - **Behebung der gequetschten Aufgabenbeschreibungen**: Die horizontale Kollision in den Aufgabenkarten wurde behoben. Aufgabenkarten sind nun in 3 saubere Ebenen strukturiert (Oben: Icon + Titel + Abhaken oben rechts; Mitte: 100% vollbreite Beschreibung ohne Umbruchprobleme; Unten: Bewohner-Zuweisung).
+  - **Outline-SVGs im Aufgabenplan**: Sämtliche Aufgabenkarten nutzen modulare Outline-SVGs (`getChoreOutlineIcon`) anstelle von Emojis.
+  - **Kochtraining**: Einheitliche Bezeichnung *„Kochtraining: [Gericht]“* und Beschreibung.
+- **Flurfunk & Ankündigungen (`CaregiverNotesView` & Server-Routen)**:
+  - **Permanente Ankündigungen immer oben**: Wichtige Ankündigungen (`ANKUENDIGUNG`) werden serverseitig und clientseitig immer an oberster Stelle priorisiert.
+  - **Status-Badge bereinigt**: Der irreführende *„Offen“*-Badge wird bei permanenten Ankündigungen nicht mehr angezeigt.
+  - **Deep-Linking vom Dashboard**: Beim Anklicken einer Mitteilung oder Ankündigung auf der Startseite springt der Flurfunk automatisch zu dem Eintrag, klappt ihn aus und scrollt ihn sanft ins Sichtfeld.
+
 ## [0.1.0-beta.35] - 2026-09-17
 
 ### Hinzugefügt & Verbessert

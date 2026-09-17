@@ -21,13 +21,50 @@ import {
   Check,
   Circle,
   ListTodo,
-  Banknote,
   AlertCircle,
   Lightbulb,
   Mail,
   MessageSquare,
-  X,
+  EyeOff,
+  Wallet,
+  UtensilsCrossed,
+  ClipboardList,
+  Bath,
+  Shirt,
+  Flower2,
 } from 'lucide-react';
+
+export const getChoreOutlineIcon = (task: any, className: string = 'w-5 h-5') => {
+  if (task.isChefkoch) {
+    return <ChefHat className={`${className} text-rose-400 stroke-[1.75]`} />;
+  }
+  const title = (task.title || '').toLowerCase();
+  const desc = (task.description || '').toLowerCase();
+  const full = `${title} ${desc}`;
+
+  if (full.includes('koch') || full.includes('küche') || full.includes('abwasch') || full.includes('spül') || full.includes('tisch')) {
+    return <UtensilsCrossed className={`${className} text-amber-400 stroke-[1.75]`} />;
+  }
+  if (full.includes('bad') || full.includes('sanitär') || full.includes('dusche') || full.includes('waschbecken') || full.includes('wc') || full.includes('toilette')) {
+    return <Bath className={`${className} text-sky-400 stroke-[1.75]`} />;
+  }
+  if (full.includes('müll') || full.includes('abfall') || full.includes('tonne') || full.includes('papier') || full.includes('gelber sack')) {
+    return <Trash2 className={`${className} text-emerald-400 stroke-[1.75]`} />;
+  }
+  if (full.includes('wäsche') || full.includes('waschen') || full.includes('trockner')) {
+    return <Shirt className={`${className} text-violet-400 stroke-[1.75]`} />;
+  }
+  if (full.includes('einkauf') || full.includes('markt') || full.includes('besorgen')) {
+    return <ShoppingCart className={`${className} text-emerald-400 stroke-[1.75]`} />;
+  }
+  if (full.includes('garten') || full.includes('pflanz') || full.includes('blumen') || full.includes('beet')) {
+    return <Flower2 className={`${className} text-emerald-400 stroke-[1.75]`} />;
+  }
+  if (full.includes('saugen') || full.includes('staub') || full.includes('wisch') || full.includes('putz') || full.includes('zimmer') || full.includes('kehr')) {
+    return <Sparkles className={`${className} text-indigo-400 stroke-[1.75]`} />;
+  }
+  return <CheckCircle2 className={`${className} text-indigo-400 stroke-[1.75]`} />;
+};
 
 interface DashboardHubProps {
   setCurrentTab: (tab: string) => void;
@@ -142,6 +179,11 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
       } catch (e) {
         console.error(e);
       }
+    }
+    try {
+      sessionStorage.setItem('flurfunk_focus_note_id', note.id);
+    } catch {
+      // ignore
     }
     setCurrentTab('notes');
   };
@@ -427,9 +469,9 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             <button
               type="button"
               onClick={() => setCurrentTab('notes')}
-              className="px-3.5 py-1.5 rounded-2xl bg-surface-card border border-rose-500/30 text-xs text-rose-300 font-medium hover:bg-surface-elevated transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+              className="px-3.5 py-1.5 rounded-2xl bg-surface-card border border-rose-500/30 text-xs text-rose-300 font-medium hover:bg-surface-elevated transition-colors flex items-center gap-2 cursor-pointer shadow-sm"
             >
-              <span>🔔</span>
+              <MessageSquare className="w-4 h-4 stroke-[2]" />
               <span>{openNotes.length} {openNotes.length === 1 ? 'Eintrag' : 'Einträge'} im Flurfunk</span>
             </button>
           </div>
@@ -451,9 +493,9 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                 className={`${config.containerClass} rounded-3xl p-4 sm:p-5 shadow-lg flex items-start justify-between gap-3 sm:gap-4 animate-in fade-in slide-in-from-top-2 duration-200 cursor-pointer group transition-all`}
               >
                 <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                  {/* Clean SVG icon without bulky background box */}
+                  {/* Clean outline SVG icon */}
                   <div className="mt-0.5 shrink-0 flex items-center justify-center">
-                    <IconComponent className={`w-5 h-5 ${config.iconColor} stroke-[2]`} />
+                    <IconComponent className={`w-6 h-6 ${config.iconColor} stroke-[1.75]`} />
                   </div>
 
                   <div className="min-w-0 flex-1">
@@ -481,20 +523,19 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                   </div>
                 </div>
 
-                {/* Right controls: Dismiss button (for non-announcements) + Arrow */}
-                <div className="shrink-0 flex items-center gap-1 sm:gap-2 self-center pl-1 sm:pl-2">
-                  {!isAnnouncement && (
+                {/* Right controls: Dismiss button with EyeOff (for non-announcements) */}
+                {!isAnnouncement && (
+                  <div className="shrink-0 flex items-center self-start sm:self-center pl-1 sm:pl-2">
                     <button
                       type="button"
                       onClick={(e) => handleDismissNotification(note, e)}
                       title="Mitteilung ausblenden"
-                      className="p-1.5 rounded-xl hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                      className="p-2 rounded-xl hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
                     >
-                      <X className="w-4 h-4" />
+                      <EyeOff className="w-4 h-4 stroke-[2]" />
                     </button>
-                  )}
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-white group-hover:translate-x-1 transition-all" />
-                </div>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -506,7 +547,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                 onClick={() => setCurrentTab('notes')}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-surface-card border border-surface-border text-xs text-slate-300 hover:text-white hover:bg-surface-elevated transition-colors font-medium cursor-pointer shadow-sm"
               >
-                <span>🔔</span>
+                <MessageSquare className="w-3.5 h-3.5 text-rose-400 stroke-[2]" />
                 <span>+ {remainingNotificationsCount} weitere {remainingNotificationsCount === 1 ? 'Mitteilung' : 'Mitteilungen'} im Flurfunk ansehen</span>
                 <ArrowRight className="w-3 h-3 text-slate-400" />
               </button>
@@ -518,12 +559,13 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
       {/* Today's Tasks Widget (Resident View) */}
       {user?.role === 'BEWOHNER' && todayChores && (() => {
         const isTodayCook = Boolean(user?.id && todayMeal?.cookUserId === user.id);
+        const chefDishTitle = todayMeal?.recipe?.title || todayMeal?.customDishTitle || 'Gemeinschaftsessen';
         const chefkochChore = isTodayCook
           ? {
               templateId: `chefkoch_${todayChores?.date || formatGermanDate(now)}`,
               date: todayChores?.date || formatGermanDate(now),
-              title: `Chefkoch: ${todayMeal?.recipe?.title || todayMeal?.customDishTitle || 'Abendessen kochen'}`,
-              description: 'Du bist heute als Chefkoch für die Zubereitung des gemeinsamen Essens eingeteilt!',
+              title: `Kochtraining: ${chefDishTitle}`,
+              description: 'Du bist heute für die Zubereitung des Gemeinschaftsessens zuständig.',
               icon: '👨‍🍳',
               isChefkoch: true,
             }
@@ -541,7 +583,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             <div>
               <div className="flex items-center justify-between mb-4">
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-semibold uppercase tracking-wider font-sans whitespace-nowrap">
-                  <span>📋</span>
+                  <ClipboardList className="w-3.5 h-3.5 stroke-[2]" />
                   <span>Deine Aufgaben</span>
                 </div>
               </div>
@@ -572,8 +614,8 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                         }`}
                       >
                         <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                          <div className="w-10 h-10 rounded-2xl bg-surface-card border border-surface-border flex items-center justify-center text-xl shrink-0 shadow-xs mt-0.5">
-                            {task.icon || '🧹'}
+                          <div className="w-10 h-10 rounded-2xl bg-surface-card border border-surface-border flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+                            {getChoreOutlineIcon(task, 'w-5 h-5')}
                           </div>
                           <div className="min-w-0 flex-1">
                             <div
@@ -613,7 +655,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                 </div>
               ) : (
                 <div className="py-6 text-center text-xs text-slate-400 bg-surface-elevated/30 rounded-2xl border border-surface-border/50 flex items-center justify-center gap-2 font-sans">
-                  <span>☕ Keine anstehenden Aufgaben für dich heute eingeteilt. Genieße deinen Tag!</span>
+                  <span>Keine anstehenden Aufgaben für dich heute eingeteilt. Genieße deinen Tag!</span>
                 </div>
               )}
             </div>
@@ -644,7 +686,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           <div>
             <div className="flex items-center justify-between mb-4">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-semibold uppercase tracking-wider font-sans whitespace-nowrap">
-                <span>📋</span>
+                <ClipboardList className="w-3.5 h-3.5 stroke-[2]" />
                 <span>Heutige Aufgaben</span>
               </div>
 
@@ -674,7 +716,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-xl shrink-0">{task.icon || '🧹'}</span>
+                    <div className="shrink-0">{getChoreOutlineIcon(task, 'w-5 h-5')}</div>
                     <div className="min-w-0">
                       <div className={`text-xs font-semibold truncate ${task.isCompleted ? 'line-through text-slate-400' : 'text-white'}`}>
                         {task.title}
@@ -712,10 +754,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           </div>
 
           {/* Staff Footer Action */}
-          <div className="mt-5 pt-4 border-t border-surface-border/50 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <span className="text-[11px] text-slate-400 font-sans hidden sm:inline">
-              Wöchentliche Einteilung und Zuweisungen für alle Wochentage
-            </span>
+          <div className="mt-5 pt-4 border-t border-surface-border/50 flex items-center justify-end">
             <button
               type="button"
               onClick={() => setCurrentTab('chores')}
@@ -734,19 +773,13 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
         <div className="bento-card rounded-[2.5rem] p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
           {/* Ambient warm glow */}
           <div className="absolute -right-16 -top-16 w-72 h-72 bg-rose-500/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute right-6 top-6 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none text-9xl select-none">
-            🍳
-          </div>
 
           <div className="relative z-10">
             <div className="flex items-center justify-between gap-3 mb-4">
               <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-semibold uppercase tracking-wider font-sans whitespace-nowrap">
-                <span>🍽️</span>
+                <UtensilsCrossed className="w-3.5 h-3.5 stroke-[2]" />
                 <span>Heute frisch auf den Tisch</span>
               </div>
-              <span className="text-xs font-medium text-slate-400 hidden sm:inline font-sans">
-                {todayMeal?.customDishTitle ? 'Individuelles Gericht' : 'Gemeinsames Abendessen'}
-              </span>
             </div>
 
             <h3 className="text-xl font-semibold text-white group-hover:text-rose-300 transition-colors leading-snug mb-1.5 font-sans tracking-tight">
@@ -780,20 +813,12 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                   🌱 Vegan
                 </span>
               ) : null}
-
-              <span className="px-3 py-1 rounded-xl bg-surface-elevated/80 border border-surface-border text-xs text-slate-300 font-medium">
-                ⭐ WG-Favorit
-              </span>
             </div>
-          </div>
 
-          {/* Meal Footer Bar */}
-          <div className="relative z-10 pt-4 border-t border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
+            {/* Chefkoch & Servings Info moved into the card body */}
+            <div className="p-3.5 mb-4 rounded-2xl bg-surface-elevated/70 border border-surface-border flex items-center justify-between gap-4">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-2xl bg-rose-500/15 text-rose-300 border border-rose-500/30 flex items-center justify-center font-bold text-sm shadow-inner">
-                  👨‍🍳
-                </div>
+                <ChefHat className="w-5 h-5 text-rose-400 stroke-[1.75]" />
                 <div>
                   <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold font-sans">
                     Chefkoch heute
@@ -804,23 +829,28 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                 </div>
               </div>
 
-              <div className="w-px h-7 bg-white/10 hidden sm:block" />
+              <div className="w-px h-7 bg-white/10" />
 
-              <div>
-                <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold font-sans">
-                  Portionen
-                </div>
-                <div className="text-xs font-semibold text-white flex items-center gap-1">
-                  <Users className="w-3.5 h-3.5 text-slate-400" />
-                  <span>{todayMeal?.servings || 6} Portionen</span>
+              <div className="flex items-center gap-2.5">
+                <Users className="w-5 h-5 text-slate-400 stroke-[1.75]" />
+                <div>
+                  <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold font-sans">
+                    Portionen
+                  </div>
+                  <div className="text-xs font-semibold text-white">
+                    {todayMeal?.servings || 6} Portionen
+                  </div>
                 </div>
               </div>
             </div>
+          </div>
 
+          {/* Meal Footer Bar */}
+          <div className="relative z-10 pt-4 border-t border-white/10">
             <button
               type="button"
               onClick={() => setCurrentTab('mealplan')}
-              className="btn-theme-gradient w-full sm:w-auto px-5 py-2.5 rounded-2xl text-white font-semibold text-xs shadow-lg hover:scale-[1.02] active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2 font-sans"
+              className="btn-theme-gradient w-full py-2.5 rounded-2xl text-white font-semibold text-xs shadow-lg hover:scale-[1.01] active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2 font-sans"
             >
               <span>Kochplan & Rezepte</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -835,7 +865,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           <div>
             <div className="flex items-center justify-between mb-4">
               <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold uppercase tracking-wider font-sans whitespace-nowrap">
-                <span>🛒</span>
+                <ShoppingCart className="w-3.5 h-3.5 stroke-[2]" />
                 <span>Einkaufskorb</span>
               </span>
               <span className="text-xs font-semibold text-emerald-400 font-mono">
@@ -854,8 +884,8 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             {/* Weekly Budget Status Widget (Clean horizontal layout with ample space) */}
             {budgetSummary && (
               <div className="p-3.5 mb-4 rounded-2xl bg-surface-elevated/80 border border-emerald-500/30 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <Banknote className="w-6 h-6 text-emerald-400 shrink-0 stroke-[1.75]" />
+                <div className="flex items-center gap-3.5">
+                  <Wallet className="w-7 h-7 text-emerald-400 shrink-0 stroke-[1.75]" />
                   <div>
                     <div className="text-[10px] uppercase font-bold text-slate-400 font-sans tracking-wide">
                       Aktuelles Wochenbudget
@@ -930,7 +960,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           <div>
             <div className="flex items-center justify-between mb-4">
               <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-yellow-500/15 border border-yellow-500/30 text-yellow-300 text-xs font-semibold uppercase tracking-wider font-sans whitespace-nowrap">
-                <span>🗑️</span>
+                <Trash2 className="w-3.5 h-3.5 stroke-[2]" />
                 <span>Abfall-Radar</span>
               </span>
             </div>
@@ -1016,8 +1046,8 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2.5">
                 <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-semibold uppercase tracking-wider font-sans whitespace-nowrap">
-                  <span>💬</span>
-                  <span>Flurfunk & Notizen</span>
+                  <MessageSquare className="w-3.5 h-3.5 stroke-[2]" />
+                  <span>Flurfunk und Mitteilungen</span>
                 </span>
                 {openNotes.length > 0 && (
                   <span className="text-xs text-rose-300 font-semibold bg-rose-500/15 border border-rose-500/30 px-2.5 py-0.5 rounded-full font-mono">
@@ -1025,7 +1055,6 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                   </span>
                 )}
               </div>
-              <span className="text-xs text-slate-400 hidden sm:inline font-medium font-sans">WG-Pinnwand</span>
             </div>
 
             <h3 className="text-xl font-semibold text-white mb-1.5 font-sans tracking-tight">
@@ -1038,18 +1067,18 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               {notesList && notesList.length > 0 ? (
                 notesList.slice(0, 2).map((note: any, idx: number) => {
-                  let cardClass = 'bg-sky-500/10 border-sky-500/30 text-sky-200';
+                  let cardClass = 'bg-sky-500/10 border-sky-500/30 text-sky-200 hover:border-sky-400/60';
                   let headerClass = 'text-sky-300 font-medium';
                   let categoryLabel = 'Mitteilung';
                   let CatIcon = MessageSquare;
 
                   if (note.category === 'ANKUENDIGUNG') {
-                    cardClass = 'bg-rose-500/10 border-rose-500/30 text-rose-200';
+                    cardClass = 'bg-rose-500/10 border-rose-500/30 text-rose-200 hover:border-rose-400/60';
                     headerClass = 'text-rose-300 font-medium';
                     categoryLabel = 'Ankündigung';
                     CatIcon = AlertCircle;
                   } else if (note.category === 'HINWEIS') {
-                    cardClass = 'bg-amber-500/10 border-amber-500/30 text-amber-200';
+                    cardClass = 'bg-amber-500/10 border-amber-500/30 text-amber-200 hover:border-amber-400/60';
                     headerClass = 'text-amber-300 font-medium';
                     categoryLabel = 'Hinweis';
                     CatIcon = Lightbulb;
@@ -1058,7 +1087,8 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                   return (
                     <div
                       key={note.id || idx}
-                      className={`p-4 rounded-2xl border shadow-inner ${cardClass}`}
+                      onClick={() => handleOpenTopic(note)}
+                      className={`p-4 rounded-2xl border shadow-inner transition-all hover:scale-[1.01] cursor-pointer ${cardClass}`}
                     >
                       <div className="flex items-center justify-between text-xs font-semibold mb-1.5">
                         <span className={`flex items-center gap-1.5 truncate ${headerClass}`}>

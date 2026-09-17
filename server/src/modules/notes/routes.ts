@@ -168,6 +168,13 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
       };
     });
 
+    formatted.sort((a, b) => {
+      const pA = a.category === 'ANKUENDIGUNG' ? 2 : a.isPinned ? 1 : 0;
+      const pB = b.category === 'ANKUENDIGUNG' ? 2 : b.isPinned ? 1 : 0;
+      if (pA !== pB) return pB - pA;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
     return res.json(formatted);
   } catch (err) {
     console.error('Fehler beim Laden der Notizen:', err);
