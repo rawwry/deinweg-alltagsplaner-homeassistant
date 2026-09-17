@@ -6,6 +6,7 @@ import {
   sendResidentReplyEmail,
   sendResidentDirectNoteEmail,
   sendCaregiverNewNoteEmail,
+  sendCaregiverNoteResolvedEmail,
 } from '../../utils/mailer.js';
 
 const router = Router();
@@ -601,13 +602,24 @@ router.patch('/:id/read', requireAuth, async (req: Request, res: Response) => {
 router.patch('/:id/resolve', requireAuth, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const note = await prisma.caregiverNote.findUnique({ where: { id } });
+    const note = await prisma.caregiverNote.findUnique({
+      where: { id },
+      include: {
+        location: { select: { id: true, name: true } },
+      },
+    });
     if (!note) {
       return res.status(404).json({ error: 'Ticket nicht gefunden.' });
     }
 
-    if (req.user!.role === 'BEWOHNER' && note.locationId !== req.user!.locationId) {
-      return res.status(403).json({ error: 'Zugriff verweigert.' });
+    if (req.user!.role === 'BEWOHNER') {
+      if (note.locationId !== req.user!.locationId) {
+        return res.status(403).json({ error: 'Zugriff verweigert.' });
+      }
+      // Important: Residents cannot dismiss or resolve announcements
+      if (note.category === 'ANKUENDIGUNG') {
+        return res.status(403).json({ error: 'Ankündigungen können nur von Betreuern archiviert oder entfernt werden.' });
+      }
     }
 
     const updated = await prisma.caregiverNote.update({
@@ -619,6 +631,27 @@ router.patch('/:id/resolve', requireAuth, async (req: Request, res: Response) =>
         resolvedByUserId: req.user!.id,
       },
     });
+
+    // When marked as resolved by a resident:
+    // 1. Add audit system message in note thread
+    // 2. Notify caregivers of the WG via email
+    if (req.user!.role === 'BEWOHNER') {
+      await prisma.caregiverNoteMessage.create({
+        data: {
+          noteId: id,
+          authorId: req.user!.id,
+          content: `✅ Hat dieses Thema als gelesen bzw. erledigt markiert.`,
+        },
+      });
+
+      sendCaregiverNoteResolvedEmail({
+        locationId: note.locationId,
+        locationName: note.location.name,
+        residentName: req.user!.name,
+        noteTitle: note.title,
+        category: note.category,
+      }).catch((err) => console.error('[Mailer] Fehler beim Versenden der Betreuer-Erledigt-Benachrichtigung:', err));
+    }
 
     return res.json(updated);
   } catch (err) {
@@ -671,8 +704,13 @@ router.patch('/:id/status', requireAuth, async (req: Request, res: Response) => 
       return res.status(404).json({ error: 'Notiz nicht gefunden.' });
     }
 
-    if (req.user!.role === 'BEWOHNER' && note.locationId !== req.user!.locationId) {
-      return res.status(403).json({ error: 'Zugriff verweigert.' });
+    if (req.user!.role === 'BEWOHNER') {
+      if (note.category === 'ANKUENDIGUNG') {
+        return res.status(403).json({ error: 'Ankündigungen können nur von Betreuern geändert werden.' });
+      }
+      if (note.locationId !== req.user!.locationId) {
+        return res.status(403).json({ error: 'Zugriff verweigert.' });
+      }
     }
 
     const updated = await prisma.caregiverNote.update({
@@ -699,8 +737,13 @@ router.delete('/:id', requireAuth, async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Notiz nicht gefunden.' });
     }
 
-    if (req.user!.role === 'BEWOHNER' && (note.locationId !== req.user!.locationId || note.residentId !== req.user!.id)) {
-      return res.status(403).json({ error: 'Zugriff verweigert.' });
+    if (req.user!.role === 'BEWOHNER') {
+      if (note.category === 'ANKUENDIGUNG') {
+        return res.status(403).json({ error: 'Ankündigungen können nur von Betreuern gelöscht werden.' });
+      }
+      if (note.locationId !== req.user!.locationId || note.authorId !== req.user!.id) {
+        return res.status(403).json({ error: 'Zugriff verweigert.' });
+      }
     }
 
     await prisma.caregiverNote.delete({ where: { id } });

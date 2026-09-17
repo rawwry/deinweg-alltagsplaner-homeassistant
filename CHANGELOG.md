@@ -3,6 +3,21 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.0-beta.33] - 2026-09-17
+
+### Hinzugefügt & Verbessert
+- **Flurfunk: Ankündigungsschutz für Bewohner (`DashboardHub`, `CaregiverNotesView` & Server API)**:
+  - Bewohner (`BEWOHNER`) können wichtige Ankündigungen (`ANKUENDIGUNG`) weder eigenständig ausblenden, noch als erledigt markieren oder löschen.
+  - Auf dem Dashboard entfällt bei Ankündigungen für Bewohner der Ausblenden-/Erledigen-Button vollständig (nur *„Öffnen“* bleibt verfügbar).
+  - Lokales Ausblenden ist für Bewohner bei Ankündigungen deaktiviert; Ankündigungen bleiben dauerhaft sichtbar, bis sie ein Betreuer archiviert/entfernt oder ihr Ablaufdatum (`expiresAt`) überschritten ist.
+  - Serverseitig sind `PATCH /api/notes/:id/resolve`, `PATCH /api/notes/:id/status` und `DELETE /api/notes/:id` für Bewohner bei Ankündigungen mit HTTP 403 geschützt.
+- **Flurfunk: Mitteilungen & Hinweise als erledigt markieren mit Betreuer-Benachrichtigung**:
+  - Bewohner können Mitteilungen (`ALLGEMEIN`) und Hinweise (`HINWEIS`) mit dem Button *„Als erledigt markieren“* abschließen.
+  - Das Thema wird serverseitig archiviert (`status: 'DONE'`, `isArchived: true`) und verschwindet sofort vom Dashboard und aus den aktiven Flurfunk-Mitteilungen.
+  - **Automatische Betreuer-Benachrichtigung**:
+    - Alle Betreuer des Standorts erhalten eine Benachrichtigungs-E-Mail (`sendCaregiverNoteResolvedEmail`), dass der Bewohner das Thema als erledigt markiert hat.
+    - Im Gesprächsverlauf der Notiz wird automatisch ein Audit-Systemeintrag hinterlegt (*„✅ Hat dieses Thema als gelesen bzw. erledigt markiert.“*).
+
 ## [0.1.0-beta.32] - 2026-09-17
 
 ### Hinzugefügt & Verbessert

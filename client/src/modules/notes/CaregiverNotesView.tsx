@@ -1042,23 +1042,28 @@ export const CaregiverNotesView: React.FC = () => {
                         <div className="pt-3 border-t border-white/5 flex items-center justify-between gap-3 flex-wrap">
                           <div className="flex items-center gap-2.5">
                             {!note.isArchived ? (
-                              <button
-                                type="button"
-                                onClick={() => handleResolveTicket(note.id)}
-                                className="px-3.5 py-2 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
-                              >
-                                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                                <span>Als erledigt archivieren</span>
-                              </button>
+                              // Residents cannot resolve or archive ANKUENDIGUNG
+                              (!isStaff && note.category === 'ANKUENDIGUNG') ? null : (
+                                <button
+                                  type="button"
+                                  onClick={() => handleResolveTicket(note.id)}
+                                  className="px-3.5 py-2 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+                                >
+                                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                                  <span>{isStaff ? 'Als erledigt archivieren' : 'Als erledigt markieren'}</span>
+                                </button>
+                              )
                             ) : (
-                              <button
-                                type="button"
-                                onClick={() => handleReopenTicket(note.id)}
-                                className="px-3.5 py-2 bg-surface-elevated hover:bg-surface-card text-slate-200 border border-surface-border rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-                              >
-                                <RotateCcw className="w-3.5 h-3.5 text-rose-400" />
-                                <span>Wiedereröffnen</span>
-                              </button>
+                              (isStaff || note.authorId === user?.id) && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleReopenTicket(note.id)}
+                                  className="px-3.5 py-2 bg-surface-elevated hover:bg-surface-card text-slate-200 border border-surface-border rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                                >
+                                  <RotateCcw className="w-3.5 h-3.5 text-rose-400" />
+                                  <span>Wiedereröffnen</span>
+                                </button>
+                              )
                             )}
 
                             {isAuthorOrAdmin && !note.isArchived && (
@@ -1083,7 +1088,7 @@ export const CaregiverNotesView: React.FC = () => {
                               <ChevronUp className="w-3.5 h-3.5" />
                             </button>
 
-                            {(isStaff || note.authorId === user?.id || note.residentId === user?.id) && (
+                            {(isStaff || ((note.authorId === user?.id || note.residentId === user?.id) && note.category !== 'ANKUENDIGUNG')) && (
                               <button
                                 type="button"
                                 onClick={() => handleDelete(note.id)}

@@ -59,6 +59,20 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
   }, [user?.id]);
 
   const handleDismissTopic = async (note: any) => {
+    // If user is a resident: they resolve the note (mark as done/archived) and notify caregivers
+    if (user?.role === 'BEWOHNER') {
+      if (note.category === 'ANKUENDIGUNG') {
+        return; // Residents cannot resolve or dismiss announcements
+      }
+      try {
+        await api.notes.resolve(note.id);
+        // Immediately remove from local list
+        setNotesList((prev) => prev.filter((n) => n.id !== note.id));
+      } catch (e) {
+        console.error('Fehler beim Erledigen des Themas:', e);
+      }
+    }
+
     const updated = Array.from(new Set([...dismissedTopicIds, note.id]));
     setDismissedTopicIds(updated);
     if (user?.id) {
@@ -81,7 +95,19 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
   };
 
   const handleOpenTopic = async (note: any) => {
-    await handleDismissTopic(note);
+    // For announcements viewed by residents: do NOT dismiss/resolve when opening!
+    if (user?.role !== 'BEWOHNER' || note.category !== 'ANKUENDIGUNG') {
+      if (note.hasUnreadResponse) {
+        try {
+          await api.notes.markRead(note.id);
+          setNotesList((prev) =>
+            prev.map((n) => (n.id === note.id ? { ...n, hasUnreadResponse: false } : n))
+          );
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
     setCurrentTab('notes');
   };
 
@@ -215,13 +241,19 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
     if (note.isArchived || note.status === 'DONE' || note.isExpired) return false;
     // Do not alert authors about their own postings
     if (note.authorId && user?.id && note.authorId === user.id) return false;
-    // Dismissed by user in local storage
-    if (dismissedTopicIds.includes(note.id)) return false;
+
+    const isResident = user?.role === 'BEWOHNER';
+    const isAnnouncement = note.category === 'ANKUENDIGUNG';
+
+    // Residents cannot dismiss announcements - they must stay visible until caregiver removes them or deadline expires
+    if (!isResident || !isAnnouncement) {
+      if (dismissedTopicIds.includes(note.id)) return false;
+    }
 
     // For Residents:
-    if (user?.role === 'BEWOHNER') {
-      if (note.residentId === user.id && note.hasUnreadResponse) return true;
-      if (note.isPrivate && note.residentId !== user.id) return false;
+    if (isResident) {
+      if (note.residentId === user?.id && note.hasUnreadResponse) return true;
+      if (note.isPrivate && note.residentId !== user?.id) return false;
     }
 
     // Unread caregiver response or direct message
@@ -411,13 +443,16 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                 </div>
 
                 <div className="flex items-center gap-2 w-full sm:w-auto self-end sm:self-center shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => handleDismissTopic(note)}
-                    className="px-3.5 py-2 bg-surface-card/80 hover:bg-surface-elevated border border-surface-border text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer"
-                  >
-                    Als gelesen abhaken
-                  </button>
+                  {/* Residents CANNOT dismiss/resolve ANKUENDIGUNG */}
+                  {!(user?.role === 'BEWOHNER' && note.category === 'ANKUENDIGUNG') && (
+                    <button
+                      type="button"
+                      onClick={() => handleDismissTopic(note)}
+                      className="px-3.5 py-2 bg-surface-card/80 hover:bg-surface-elevated border border-surface-border text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+                    >
+                      {user?.role === 'BEWOHNER' ? 'Als erledigt markieren' : 'Als gelesen abhaken'}
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => handleOpenTopic(note)}

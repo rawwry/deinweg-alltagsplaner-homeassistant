@@ -280,6 +280,88 @@ export async function sendCaregiverNewNoteEmail(params: CaregiverNotificationPar
   }
 }
 
+interface CaregiverNoteResolvedParams {
+  locationId: string;
+  locationName: string;
+  residentName: string;
+  noteTitle: string;
+  category?: string;
+}
+
+export async function sendCaregiverNoteResolvedEmail(params: CaregiverNoteResolvedParams): Promise<boolean> {
+  try {
+    const smtp = await getTransporter();
+    if (!smtp) {
+      console.log('[Mailer] SMTP nicht konfiguriert - überspringe Betreuer-Erledigt-Benachrichtigung.');
+      return false;
+    }
+
+    const { transporter, setting } = smtp;
+
+    const caregivers = await prisma.user.findMany({
+      where: {
+        role: { in: ['BETREUER', 'ADMIN'] },
+        isActive: true,
+        email: { not: null },
+        OR: [
+          { locationId: params.locationId },
+          { locationId: null },
+        ],
+      },
+      select: {
+        email: true,
+        name: true,
+      },
+    });
+
+    const recipientEmails = caregivers
+      .map((u: { email: string | null; name: string }) => u.email?.trim())
+      .filter((email: string | undefined): email is string => Boolean(email && email.includes('@')));
+
+    if (recipientEmails.length === 0) {
+      console.log('[Mailer] Keine Betreuer mit hinterlegter E-Mail-Adresse für Standort gefunden.');
+      return false;
+    }
+
+    const fromAddress = `"${setting.fromName || 'Deine WG: Alltagsplaner'}" <${setting.fromEmail || setting.user}>`;
+    const subject = `Thema im Flurfunk erledigt (${params.locationName}): ${params.noteTitle}`;
+    const textBody = `Hallo Betreuer-Team,\n\n${params.residentName} hat folgendes Thema im Flurfunk (${params.locationName}) als gelesen bzw. erledigt markiert:\n\n"${params.noteTitle}"\n\nDas Thema wurde automatisch archiviert und wird nicht mehr auf dem Dashboard angezeigt.\n\nViele Grüße,\nDein WG-System`;
+
+    await transporter.sendMail({
+      from: fromAddress,
+      to: recipientEmails.join(', '),
+      subject,
+      text: textBody,
+      html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 580px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden;">
+          <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 24px; color: #ffffff;">
+            <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 9999px;">✅ Thema erledigt</span>
+            <h2 style="margin: 12px 0 4px 0; font-size: 20px; font-weight: 700; color: #ffffff;">${escapeHtml(params.noteTitle)}</h2>
+            <p style="margin: 0; font-size: 14px; opacity: 0.9;">Standort: ${escapeHtml(params.locationName)}</p>
+          </div>
+          <div style="padding: 24px; color: #334155; line-height: 1.6; font-size: 15px;">
+            <p style="margin-top: 0;">Hallo Betreuer-Team,</p>
+            <p><strong>${escapeHtml(params.residentName)}</strong> hat dieses Flurfunk-Thema als gelesen bzw. erledigt markiert.</p>
+            <div style="background: #f0fdf4; border-left: 4px solid #059669; padding: 14px 16px; border-radius: 0 8px 8px 0; margin: 18px 0; color: #166534; font-weight: 500;">
+              „${escapeHtml(params.noteTitle)}“
+            </div>
+            <p style="margin-bottom: 0; font-size: 13px; color: #64748b;">Das Thema wurde archiviert und wird auf der Startseite nicht mehr angezeigt.</p>
+          </div>
+          <div style="background: #f1f5f9; padding: 16px 24px; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0; text-align: center;">
+            Automatische Benachrichtigung von Deine WG: Alltagsplaner
+          </div>
+        </div>
+      `,
+    });
+
+    console.log(`[Mailer] Betreuer-Erledigt-Benachrichtigung erfolgreich gesendet an ${recipientEmails.length} Empfänger.`);
+    return true;
+  } catch (err) {
+    console.error('[Mailer] Fehler beim Versenden der Betreuer-Erledigt-Benachrichtigung:', err);
+    return false;
+  }
+}
+
 function escapeHtml(str: string): string {
   if (!str) return '';
   return str
