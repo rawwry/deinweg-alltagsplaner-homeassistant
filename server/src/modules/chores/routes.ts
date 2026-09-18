@@ -91,6 +91,44 @@ function resolveResidents(
   };
 }
 
+// Helper to resolve resident completion breakdown for an assignment
+function resolveResidentCompletion(
+  assignedResidents: any[],
+  isAllResidents: boolean,
+  completedResidentIdsRaw: string | null | undefined,
+  legacyIsCompleted: boolean,
+  currentUserId?: string
+) {
+  let completedIds = parseResidentIds(completedResidentIdsRaw);
+
+  // If assignment has isCompleted=true but completedResidentIds is empty:
+  // legacy fallback: all assigned residents are considered completed
+  if (legacyIsCompleted && completedIds.length === 0 && assignedResidents.length > 0) {
+    completedIds = assignedResidents.map((r) => r.id);
+  }
+
+  const completedResidents = assignedResidents.filter((r) => completedIds.includes(r.id));
+  const pendingResidents = assignedResidents.filter((r) => !completedIds.includes(r.id));
+  const totalAssignedCount = assignedResidents.length;
+  const completedCount = completedResidents.length;
+
+  const isFullyCompleted = totalAssignedCount > 0
+    ? completedCount >= totalAssignedCount
+    : Boolean(legacyIsCompleted);
+
+  const isCompletedForMe = currentUserId ? completedIds.includes(currentUserId) : false;
+
+  return {
+    completedResidentIds: completedIds,
+    completedResidents,
+    pendingResidents,
+    totalAssignedCount,
+    completedCount,
+    isCompleted: isFullyCompleted,
+    isCompletedForMe,
+  };
+}
+
 // Ensure default templates exist for a given location
 async function ensureDefaultTemplates(locationId: string) {
   const count = await prisma.choreTemplate.count({
@@ -389,11 +427,26 @@ router.get('/week', requireAuth, async (req: Request, res: Response) => {
         );
       }
 
+      const completion = resolveResidentCompletion(
+        resolved.assignedResidents,
+        resolved.isAllResidents,
+        assign.completedResidentIds,
+        assign.isCompleted,
+        req.user?.id
+      );
+
       return {
         ...assign,
         isAllResidents: resolved.isAllResidents,
         assignedResidents: resolved.assignedResidents,
         assignedResidentIdsList: resolved.residentIds,
+        completedResidentIds: completion.completedResidentIds,
+        completedResidents: completion.completedResidents,
+        pendingResidents: completion.pendingResidents,
+        totalAssignedCount: completion.totalAssignedCount,
+        completedCount: completion.completedCount,
+        isCompleted: completion.isCompleted,
+        isCompletedForMe: completion.isCompletedForMe,
       };
     });
 
@@ -560,7 +613,10 @@ router.post('/assign', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req
 router.post('/toggle-complete', requireAuth, async (req: Request, res: Response) => {
   try {
     const locationId = resolveLocationId(req);
-    const { assignmentId, templateId, date, year, weekNumber, dayOfWeek } = req.body;
+    const { assignmentId, templateId, date, year, weekNumber, dayOfWeek, residentId } = req.body;
+
+    // Determine who is toggling: resident toggles their own ID; staff can toggle a specific resident or entire chore
+    const togglingResidentId = req.user?.role === 'BEWOHNER' ? req.user.id : (residentId || null);
 
     let targetAssignment = null;
 
@@ -589,14 +645,34 @@ router.post('/toggle-complete', requireAuth, async (req: Request, res: Response)
       }
     }
 
+    const targetLocId = targetAssignment?.locationId || locationId;
+    const effectiveTemplateId = targetAssignment?.templateId || templateId;
+
+    const [template, locationResidents] = await Promise.all([
+      effectiveTemplateId
+        ? prisma.choreTemplate.findUnique({ where: { id: effectiveTemplateId } })
+        : null,
+      prisma.user.findMany({
+        where: { locationId: targetLocId, role: 'BEWOHNER', isActive: true },
+        select: { id: true, name: true, username: true, avatarColor: true, avatarUrl: true },
+      }),
+    ]);
+
+    const effectiveAssignedRaw = targetAssignment?.assignedResidentIds !== undefined
+      ? targetAssignment.assignedResidentIds
+      : template?.assignedResidentIds;
+
+    const resolved = resolveResidents(
+      effectiveAssignedRaw,
+      targetAssignment?.residentId,
+      locationResidents
+    );
+    const allAssignedIds = resolved.assignedResidents.map((r: any) => r.id);
+
     if (!targetAssignment) {
       if (!templateId || !date) {
         return res.status(404).json({ error: 'Aufgabe nicht gefunden.' });
       }
-
-      const template = await prisma.choreTemplate.findUnique({
-        where: { id: templateId },
-      });
 
       // Calculate year, weekNumber, dayOfWeek accurately from date string YYYY-MM-DD
       let calcYear = new Date().getFullYear();
@@ -617,25 +693,36 @@ router.post('/toggle-complete', requireAuth, async (req: Request, res: Response)
       const finalWeekNumber = Number(weekNumber) || calcWeek;
       const finalDayOfWeek = Number(dayOfWeek) || calcDayOfWeek;
 
-      const templateAssignedIds = template?.assignedResidentIds || null;
-      const primaryResId = templateAssignedIds && !templateAssignedIds.includes('ALL')
-        ? (parseResidentIds(templateAssignedIds)[0] || null)
-        : (req.user?.role === 'BEWOHNER' ? req.user.id : null);
+      let completedIds: string[] = [];
+      let newIsCompleted = false;
 
-      const targetLocId = template?.locationId || locationId;
+      if (togglingResidentId) {
+        completedIds = [togglingResidentId];
+        newIsCompleted = allAssignedIds.length > 0
+          ? allAssignedIds.every((id) => completedIds.includes(id))
+          : true;
+      } else {
+        completedIds = allAssignedIds.length > 0 ? [...allAssignedIds] : [];
+        newIsCompleted = true;
+      }
+
+      const primaryResId = effectiveAssignedRaw && !effectiveAssignedRaw.includes('ALL')
+        ? (parseResidentIds(effectiveAssignedRaw)[0] || null)
+        : (req.user?.role === 'BEWOHNER' ? req.user.id : null);
 
       const assignment = await prisma.choreAssignment.create({
         data: {
-          locationId: targetLocId,
+          locationId: template?.locationId || targetLocId,
           templateId,
           date,
           year: finalYear,
           weekNumber: finalWeekNumber,
           dayOfWeek: finalDayOfWeek,
           residentId: primaryResId,
-          assignedResidentIds: templateAssignedIds,
-          isCompleted: true,
-          completedAt: new Date(),
+          assignedResidentIds: effectiveAssignedRaw,
+          completedResidentIds: JSON.stringify(completedIds),
+          isCompleted: newIsCompleted,
+          completedAt: newIsCompleted ? new Date() : (completedIds.length > 0 ? new Date() : null),
           completedById: req.user?.id,
         },
         include: {
@@ -659,17 +746,57 @@ router.post('/toggle-complete', requireAuth, async (req: Request, res: Response)
         },
       });
 
-      return res.json({ success: true, assignment });
+      const completion = resolveResidentCompletion(
+        resolved.assignedResidents,
+        resolved.isAllResidents,
+        assignment.completedResidentIds,
+        assignment.isCompleted,
+        req.user?.id
+      );
+
+      return res.json({
+        success: true,
+        assignment: {
+          ...assignment,
+          ...completion,
+        },
+      });
     }
 
-    // Toggle status
-    const newIsCompleted = !targetAssignment.isCompleted;
+    // Existing assignment: Toggle resident or all
+    let completedIds = parseResidentIds(targetAssignment.completedResidentIds);
+    if (targetAssignment.isCompleted && completedIds.length === 0 && allAssignedIds.length > 0) {
+      completedIds = [...allAssignedIds];
+    }
+
+    let newIsCompleted = false;
+
+    if (togglingResidentId) {
+      if (completedIds.includes(togglingResidentId)) {
+        completedIds = completedIds.filter((id) => id !== togglingResidentId);
+      } else {
+        completedIds.push(togglingResidentId);
+      }
+      newIsCompleted = allAssignedIds.length > 0
+        ? allAssignedIds.every((id) => completedIds.includes(id))
+        : completedIds.length > 0;
+    } else {
+      if (targetAssignment.isCompleted) {
+        completedIds = [];
+        newIsCompleted = false;
+      } else {
+        completedIds = allAssignedIds.length > 0 ? [...allAssignedIds] : [];
+        newIsCompleted = true;
+      }
+    }
+
     const updated = await prisma.choreAssignment.update({
       where: { id: targetAssignment.id },
       data: {
+        completedResidentIds: JSON.stringify(completedIds),
         isCompleted: newIsCompleted,
-        completedAt: newIsCompleted ? new Date() : null,
-        completedById: newIsCompleted ? req.user?.id : null,
+        completedAt: newIsCompleted ? new Date() : (completedIds.length > 0 ? new Date() : null),
+        completedById: req.user?.id,
       },
       include: {
         resident: {
@@ -692,7 +819,21 @@ router.post('/toggle-complete', requireAuth, async (req: Request, res: Response)
       },
     });
 
-    return res.json({ success: true, assignment: updated });
+    const completion = resolveResidentCompletion(
+      resolved.assignedResidents,
+      resolved.isAllResidents,
+      updated.completedResidentIds,
+      updated.isCompleted,
+      req.user?.id
+    );
+
+    return res.json({
+      success: true,
+      assignment: {
+        ...updated,
+        ...completion,
+      },
+    });
   } catch (err) {
     console.error('Fehler beim Ändern des Erledigt-Status:', err);
     return res.status(500).json({ error: 'Fehler beim Ändern des Erledigt-Status.' });
@@ -767,6 +908,14 @@ router.get('/today', requireAuth, async (req: Request, res: Response) => {
         resolved = resolveResidents(tmpl.assignedResidentIds, null, locationResidents);
       }
 
+      const completion = resolveResidentCompletion(
+        resolved.assignedResidents,
+        resolved.isAllResidents,
+        match?.completedResidentIds,
+        match ? match.isCompleted : false,
+        req.user?.id
+      );
+
       return {
         templateId: tmpl.id,
         title: tmpl.title,
@@ -777,7 +926,13 @@ router.get('/today', requireAuth, async (req: Request, res: Response) => {
         residentId: match?.residentId || resolved.residentIds[0] || null,
         assignedResidents: resolved.assignedResidents,
         isAllResidents: resolved.isAllResidents,
-        isCompleted: match ? match.isCompleted : false,
+        completedResidentIds: completion.completedResidentIds,
+        completedResidents: completion.completedResidents,
+        pendingResidents: completion.pendingResidents,
+        totalAssignedCount: completion.totalAssignedCount,
+        completedCount: completion.completedCount,
+        isCompleted: completion.isCompleted,
+        isCompletedForMe: completion.isCompletedForMe,
         completedAt: match?.completedAt || null,
         date: todayDate,
       };
@@ -794,7 +949,7 @@ router.get('/today', requireAuth, async (req: Request, res: Response) => {
     const totalCount = todayItems.length;
     const completedCount = todayItems.filter((t) => t.isCompleted).length;
     const myTotalCount = myTasks.length;
-    const myCompletedCount = myTasks.filter((t) => t.isCompleted).length;
+    const myCompletedCount = myTasks.filter((t) => t.isCompletedForMe).length;
 
     return res.json({
       date: todayDate,

@@ -19,6 +19,8 @@ import {
   Settings,
   X,
   Check,
+  Building2,
+  CalendarDays,
 } from 'lucide-react';
 
 interface MealPlanViewProps {
@@ -264,26 +266,49 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-24 md:pb-8">
-      {/* Top Controls Bar */}
-      <div className="bg-surface-card rounded-[2.5rem] p-6 border border-surface-border shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-xl sm:text-2xl font-semibold text-white flex items-center gap-2 font-sans tracking-tight">
-              <ChefHat className="w-6 h-6 text-rose-400" />
-              <span>Unser Kochplan</span>
+      {/* Top Bento Header & Controls Bar */}
+      <div className="bg-surface-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border shadow-xl flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 relative overflow-hidden">
+        <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-rose-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="space-y-3 z-10">
+          <div>
+            <div className="inline-flex items-center gap-2 text-rose-400 text-xs font-semibold tracking-wider uppercase mb-1 font-sans">
+              <ChefHat className="w-4 h-4" />
+              <span>Speiseplan & Kochtraining</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white font-sans">
+              Unser Kochplan
             </h1>
-            <span className="text-xs font-semibold px-3 py-1 bg-rose-500/15 text-rose-300 rounded-full border border-rose-500/30 font-mono">
-              KW {weekNumber} • {year}
-            </span>
+            <p className="text-xs text-slate-400 mt-1 font-medium font-sans">
+              Wöchentliche Menüauswahl, Mengenkalkulation und Einteilung der Chefköche.
+            </p>
           </div>
-          <p className="text-xs text-slate-400 mt-1.5 font-medium font-sans">
-            Gemeinsam kochen & genießen in {activeLocation?.name || user?.locationName || 'der WG'} • {configuredCookingDays.length} Kochtage ({formatCookingDays(activeLocation?.cookingDays)}) • {activeLocation?.defaultServings || 6} Portionen
-          </p>
+
+          {/* Structured Bento Metadata Chips */}
+          <div className="flex flex-wrap items-center gap-2 pt-0.5">
+            {/* Location Chip */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-elevated border border-surface-border text-slate-300 text-xs font-medium">
+              <Building2 className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+              <span>WG {activeLocation?.name || user?.locationName || 'Emsdetten'}</span>
+            </div>
+
+            {/* Cooking Days Chip */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-elevated border border-surface-border text-slate-300 text-xs font-medium">
+              <CalendarDays className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+              <span>{configuredCookingDays.length} Kochtage ({formatCookingDays(activeLocation?.cookingDays)})</span>
+            </div>
+
+            {/* Portions Chip */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-elevated border border-surface-border text-slate-300 text-xs font-medium">
+              <Users className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+              <span>{activeLocation?.defaultServings || 6} Portionen</span>
+            </div>
+          </div>
         </div>
 
         {/* Week Navigator & Actions */}
-        <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
-          <div className="inline-flex items-center bg-surface-elevated/80 border border-surface-border rounded-2xl p-1 shadow-inner">
+        <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto justify-between lg:justify-end z-10">
+          <div className="inline-flex items-center bg-surface-elevated border border-surface-border rounded-2xl p-1 shadow-inner">
             <button
               type="button"
               onClick={handlePrevWeek}
@@ -302,7 +327,7 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
               }`}
               title={isCurrentWeek ? 'Aktuelle Woche wird angezeigt' : 'Zur aktuellen Woche springen'}
             >
-              KW {weekNumber}
+              KW {weekNumber} · {year}
             </button>
             <button
               type="button"
@@ -322,7 +347,7 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
               title="Kochtage & Portionen für diesen Standort anpassen"
             >
               <Settings className="w-4 h-4 text-rose-400" />
-              <span className="hidden md:inline">Plan-Tage</span>
+              <span className="hidden sm:inline">Plan-Tage</span>
             </button>
           )}
 

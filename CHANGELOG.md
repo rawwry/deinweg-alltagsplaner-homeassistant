@@ -3,6 +3,24 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.3] - 2026-09-18
+
+### Neu & Verbessert
+- **Mehrfach- und WG-weite Aufgabenerledigung (`ChoreAssignment`, `routes.ts`, `DashboardHub.tsx`, `ChorePlannerView.tsx`)**:
+  - **Individuelles Abhaken bei Gemeinschaftsaufgaben**: Werden Aufgaben an mehrere Bewohner oder an die gesamte WG verteilt (z. B. „Zimmer aufräumen“), führt das Abhaken durch einen einzelnen Bewohner nicht mehr dazu, dass die gesamte Aufgabe vorzeitig als erledigt markiert wird.
+  - **Strikte Vollständigkeitslogik**: Eine Aufgabe gilt serverseitig und visuell erst dann als vollständig erledigt (`isCompleted = true`), wenn **alle** zugewiesenen Bewohner ihren Teil abgehakt haben.
+  - **Bewohner-Statusübersicht für Betreuer**: Betreuer sehen sowohl auf dem Dashboard als auch im Aufgabenplan auf einen Blick den Fortschritt (`z. B. 1/4 erledigt`) sowie interaktive Bewohner-Chips mit Namenskennzeichnung und grünem Haken für erledigte Bewohner bzw. grauem Status für noch ausstehende Bewohner.
+  - **Gezieltes Umschalten einzelner Bewohner**: Betreuer können bei Bedarf einzelne Bewohner gezielt per Klick auf deren Chip als erledigt/offen markieren oder über die Hauptschaltfläche die gesamte Aufgabe umschalten.
+  - **Bewohner-Perspektive**: Bewohner haken weiterhin ihren persönlichen Dienst ab (`isCompletedForMe`), erhalten sofort visuelles Feedback und sehen ihren eigenen Status.
+
+- **Aufgabenübersicht Mobile Switch & Text (`ChorePlannerView.tsx`)**:
+  - **Segmented Control Switch auf Mobilgeräten**: Die beiden Filter-Buttons („Alle Aufgaben“ / „Nur meine Aufgaben“) wurden von der rechtsbündigen Position in einen modernen, responsiven Segmented-Control-Switch über die volle Breite auf Smartphones umgebaut.
+  - **Bereinigter Subtitle**: Der Text im Kopfbereich wurde präzisiert zu: *„Alle Haushalts- und WG-Dienste der Woche im transparenten Überblick.“*
+
+- **Kochplan Header-Redesign (`MealPlanView.tsx`)**:
+  - **Attraktive Bento-Kopfkarte**: Die Kopfzeile des Kochplans wurde in eine moderne Bento-Karte mit sanftem Glow und aufgeräumter Typografie überführt.
+  - **Strukturierte Bento-Chips**: Der vorherige Fließtext mit Aufzählungspunkten („Gemeinsam kochen & genießen in... • ...“) wurde durch strukturierte Bento-Chips für Standort (`Building2`), Kochtage (`CalendarDays`) und Standard-Portionen (`Users`) ersetzt.
+
 ## [0.1.2] - 2026-09-18
 
 ### Behoben & Verbessert

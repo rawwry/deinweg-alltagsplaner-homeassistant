@@ -81,7 +81,7 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
     });
   };
 
-  const handleToggleChoreInPlan = async (tmpl: any, day: any, assignment: any) => {
+  const handleToggleChoreInPlan = async (tmpl: any, day: any, assignment: any, residentIdToToggle?: string) => {
     const choreKey = `${day.date}_${tmpl.id}`;
     togglePersonalChore(choreKey);
 
@@ -95,6 +95,7 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
           weekNumber,
           dayOfWeek: day.dayOfWeek,
           locationId: activeLocationId,
+          residentId: residentIdToToggle ?? (user?.role === 'BEWOHNER' ? user?.id : undefined),
         });
         const wData = await api.chores.week(activeLocationId, year, weekNumber);
         setWeekData(wData);
@@ -410,7 +411,20 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                 isAllResidents ||
                 assignedResidents.some((r: any) => r.id === user?.id) ||
                 assignment?.residentId === user?.id;
-              const isDone = Boolean(assignment?.isCompleted) || isPersonalDone;
+
+              const completedResidentIds: string[] = assignment?.completedResidentIds || [];
+              const completedCount = assignment?.completedCount !== undefined
+                ? assignment.completedCount
+                : (assignment?.isCompleted ? assignedResidents.length : 0);
+              const totalAssignedCount = assignment?.totalAssignedCount !== undefined
+                ? assignment.totalAssignedCount
+                : (assignedResidents.length || 1);
+
+              const isAllDone = Boolean(assignment?.isCompleted);
+              const isMyDone = assignment?.isCompletedForMe !== undefined
+                ? Boolean(assignment.isCompletedForMe)
+                : (isAllDone || isPersonalDone);
+              const isPartiallyDone = !isAllDone && completedCount > 0;
 
               const modalInitialIds = assignment
                 ? (assignment.isAllResidents ? ['ALL'] : (assignment.assignedResidentIdsList || (assignment.residentId ? [assignment.residentId] : [])))
@@ -420,8 +434,10 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                 <div
                   key={tmpl.id}
                   className={`rounded-2xl border p-4 sm:p-5 transition-all flex flex-col gap-3 ${
-                    isDone
+                    isAllDone
                       ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-100 shadow-xs'
+                      : isPartiallyDone
+                      ? 'bg-indigo-500/10 border-indigo-500/30 text-slate-200 shadow-xs'
                       : isAssigned
                       ? 'bg-surface-elevated/70 hover:bg-surface-elevated border-surface-border hover:border-indigo-500/40 shadow-xs'
                       : 'bg-surface-elevated/30 border-surface-border/60 border-dashed hover:border-surface-border'
@@ -436,7 +452,9 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                       <div className="min-w-0 flex-1">
                         <span
                           className={`text-sm font-bold tracking-tight block truncate ${
-                            isDone ? 'line-through text-slate-400' : 'text-white'
+                            (user?.role === 'BEWOHNER' ? isMyDone : isAllDone)
+                              ? 'line-through text-slate-400'
+                              : 'text-white'
                           }`}
                         >
                           {tmpl.title}
@@ -448,51 +466,72 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                     {user?.role === 'BEWOHNER' && isMyTask ? (
                       <button
                         type="button"
-                        onClick={() => handleToggleChoreInPlan(tmpl, day, assignment)}
+                        onClick={() => handleToggleChoreInPlan(tmpl, day, assignment, user?.id)}
                         className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer shrink-0 ${
-                          isDone
+                          isMyDone
                             ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30'
                             : 'bg-surface-card hover:bg-surface-elevated border-surface-border text-slate-300 hover:text-white'
                         }`}
-                        title={isDone ? 'Als unerledigt markieren' : 'Als erledigt abhaken'}
+                        title={isMyDone ? 'Als unerledigt markieren' : 'Als erledigt abhaken'}
                       >
                         <div
                           className={`w-4 h-4 rounded-md flex items-center justify-center border transition-colors ${
-                            isDone
+                            isMyDone
                               ? 'bg-emerald-500 border-emerald-500 text-slate-950'
                               : 'border-slate-500 bg-transparent'
                           }`}
                         >
-                          {isDone && <Check className="w-3 h-3 stroke-[3]" />}
+                          {isMyDone && <Check className="w-3 h-3 stroke-[3]" />}
                         </div>
-                        <span>{isDone ? 'Erledigt' : 'Abhaken'}</span>
+                        <span>{isMyDone ? 'Erledigt' : 'Abhaken'}</span>
                       </button>
                     ) : isStaff ? (
                       <button
                         type="button"
                         onClick={() => handleToggleChoreInPlan(tmpl, day, assignment)}
                         className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl border text-xs font-bold transition-all cursor-pointer shrink-0 ${
-                          isDone
+                          isAllDone
                             ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30'
+                            : isPartiallyDone
+                            ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300 hover:bg-indigo-500/30'
                             : 'bg-surface-card hover:bg-surface-elevated border-surface-border text-slate-400 hover:text-white'
                         }`}
-                        title={isDone ? 'Status: Erledigt (Klicken zum Umschalten)' : 'Status: Offen (Klicken zum Umschalten)'}
+                        title={
+                          isAllDone
+                            ? 'Status: Vollständig erledigt (Klicken zum Umschalten)'
+                            : isPartiallyDone
+                            ? `${completedCount} von ${totalAssignedCount} erledigt (Klicken zum Umschalten)`
+                            : 'Status: Offen (Klicken zum Umschalten)'
+                        }
                       >
                         <div
                           className={`w-3.5 h-3.5 rounded-md flex items-center justify-center border transition-colors ${
-                            isDone
+                            isAllDone
                               ? 'bg-emerald-500 border-emerald-500 text-slate-950'
+                              : isPartiallyDone
+                              ? 'bg-indigo-500 border-indigo-500 text-white'
                               : 'border-slate-500 bg-transparent'
                           }`}
                         >
-                          {isDone && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                          {isAllDone && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                          {isPartiallyDone && <span className="text-[9px] font-mono leading-none">{completedCount}</span>}
                         </div>
-                        <span>{isDone ? 'Erledigt' : 'Offen'}</span>
+                        <span>
+                          {isAllDone
+                            ? 'Erledigt'
+                            : isPartiallyDone
+                            ? `${completedCount}/${totalAssignedCount} erledigt`
+                            : 'Offen'}
+                        </span>
                       </button>
-                    ) : assignment?.isCompleted ? (
+                    ) : isAllDone ? (
                       <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold shrink-0">
                         <Check className="w-3.5 h-3.5 text-emerald-400 stroke-[3]" />
                         <span>Erledigt</span>
+                      </span>
+                    ) : isPartiallyDone ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-bold shrink-0">
+                        <span>{completedCount}/${totalAssignedCount} erledigt</span>
                       </span>
                     ) : null}
                   </div>
@@ -504,159 +543,219 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                     </p>
                   )}
 
-                  {/* Bottom Tier: Resident Assignment Footer */}
-                  <div className="pt-2.5 border-t border-surface-border/50 flex items-center justify-between">
-                    {/* Resident Pill */}
-                    {isAllResidents ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (isStaff) {
-                            setAssignModal({
-                              isOpen: true,
-                              template: tmpl,
-                              day,
-                              selectedResidentIds: ['ALL'],
-                            });
-                          }
-                        }}
-                        disabled={!isStaff}
-                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
-                          isStaff
-                            ? 'bg-indigo-500/15 hover:bg-indigo-500/25 border-indigo-500/35 text-indigo-300 hover:text-white cursor-pointer shadow-xs group'
-                            : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-300 cursor-default'
-                        }`}
-                        title={isStaff ? 'Einteilung bearbeiten' : undefined}
-                      >
-                        <Users className="w-3.5 h-3.5 text-indigo-400" />
-                        <span>Alle Bewohner</span>
-                        {isStaff && (
-                          <span className="text-[10px] text-indigo-400/70 group-hover:text-white ml-0.5">
-                            ✎
-                          </span>
-                        )}
-                      </button>
-                    ) : assignedResidents.length > 1 ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (isStaff) {
-                            setAssignModal({
-                              isOpen: true,
-                              template: tmpl,
-                              day,
-                              selectedResidentIds: assignedResidents.map((r: any) => r.id),
-                            });
-                          }
-                        }}
-                        disabled={!isStaff}
-                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
-                          isStaff
-                            ? 'bg-surface-card hover:bg-indigo-600/10 border-surface-border hover:border-indigo-500/40 text-slate-200 hover:text-white cursor-pointer shadow-xs group'
-                            : 'bg-surface-card border-surface-border text-slate-300 cursor-default'
-                        }`}
-                        title={isStaff ? 'Einteilung ändern oder aufheben' : undefined}
-                      >
-                        <div className="flex -space-x-1.5 overflow-hidden shrink-0">
-                          {assignedResidents.slice(0, 3).map((r: any) =>
-                            r.avatarUrl ? (
-                              <img
-                                key={r.id}
-                                src={r.avatarUrl}
-                                alt={r.name}
-                                className="inline-block h-5 w-5 rounded-full ring-1 ring-surface-card object-cover"
-                              />
-                            ) : (
-                              <div
-                                key={r.id}
-                                className="inline-flex h-5 w-5 rounded-full ring-1 ring-surface-card items-center justify-center text-[9px] text-white font-bold"
-                                style={{ backgroundColor: r.avatarColor || '#6366f1' }}
-                              >
-                                {r.name.charAt(0).toUpperCase()}
-                              </div>
-                            )
-                          )}
-                        </div>
-                        <span className="truncate max-w-[160px]">
-                          {assignedResidents.map((r: any) => r.name).join(', ')}
-                        </span>
-                        {isStaff && (
-                          <span className="text-[10px] text-slate-500 group-hover:text-indigo-300 ml-0.5">
-                            ✎
-                          </span>
-                        )}
-                      </button>
-                    ) : assignedResidents.length === 1 ? (
-                      (() => {
-                        const res = assignedResidents[0];
-                        return (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (isStaff) {
-                                setAssignModal({
-                                  isOpen: true,
-                                  template: tmpl,
-                                  day,
-                                  selectedResidentIds: [res.id],
-                                });
-                              }
-                            }}
-                            disabled={!isStaff}
-                            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
-                              isStaff
-                                ? 'bg-surface-card hover:bg-indigo-600/10 border-surface-border hover:border-indigo-500/40 text-slate-200 hover:text-white cursor-pointer shadow-xs group'
-                                : 'bg-surface-card border-surface-border text-slate-300 cursor-default'
-                            }`}
-                            title={isStaff ? 'Einteilung ändern oder aufheben' : undefined}
-                          >
-                            {res.avatarUrl ? (
-                              <img
-                                src={res.avatarUrl}
-                                alt={res.name}
-                                className="w-5 h-5 rounded-full object-cover shrink-0 ring-1 ring-white/10"
-                              />
-                            ) : (
-                              <div
-                                className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] text-white font-bold shrink-0"
-                                style={{
-                                  backgroundColor: res.avatarColor || '#6366f1',
-                                }}
-                              >
-                                {res.name.charAt(0).toUpperCase()}
-                              </div>
-                            )}
-                            <span className="truncate max-w-[160px]">
-                              {res.name}
+                  {/* Bottom Tier: Resident Assignment & Completion Breakdown Footer */}
+                  <div className="pt-2.5 border-t border-surface-border/50 flex flex-col gap-2">
+                    <div className="flex items-center justify-between gap-2">
+                      {/* Left: Resident Assignment button/pill */}
+                      {isAllResidents ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (isStaff) {
+                              setAssignModal({
+                                isOpen: true,
+                                template: tmpl,
+                                day,
+                                selectedResidentIds: ['ALL'],
+                              });
+                            }
+                          }}
+                          disabled={!isStaff}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+                            isStaff
+                              ? 'bg-indigo-500/15 hover:bg-indigo-500/25 border-indigo-500/35 text-indigo-300 hover:text-white cursor-pointer shadow-xs group'
+                              : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-300 cursor-default'
+                          }`}
+                          title={isStaff ? 'Einteilung bearbeiten' : undefined}
+                        >
+                          <Users className="w-3.5 h-3.5 text-indigo-400" />
+                          <span>Alle Bewohner</span>
+                          {isStaff && (
+                            <span className="text-[10px] text-indigo-400/70 group-hover:text-white ml-0.5">
+                              ✎
                             </span>
-                            {isStaff && (
-                              <span className="text-[10px] text-slate-500 group-hover:text-indigo-300 ml-0.5">
-                                ✎
-                              </span>
+                          )}
+                        </button>
+                      ) : assignedResidents.length > 1 ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (isStaff) {
+                              setAssignModal({
+                                isOpen: true,
+                                template: tmpl,
+                                day,
+                                selectedResidentIds: assignedResidents.map((r: any) => r.id),
+                              });
+                            }
+                          }}
+                          disabled={!isStaff}
+                          className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+                            isStaff
+                              ? 'bg-surface-card hover:bg-indigo-600/10 border-surface-border hover:border-indigo-500/40 text-slate-200 hover:text-white cursor-pointer shadow-xs group'
+                              : 'bg-surface-card border-surface-border text-slate-300 cursor-default'
+                          }`}
+                          title={isStaff ? 'Einteilung ändern oder aufheben' : undefined}
+                        >
+                          <div className="flex -space-x-1.5 overflow-hidden shrink-0">
+                            {assignedResidents.slice(0, 3).map((r: any) =>
+                              r.avatarUrl ? (
+                                <img
+                                  key={r.id}
+                                  src={r.avatarUrl}
+                                  alt={r.name}
+                                  className="inline-block h-5 w-5 rounded-full ring-1 ring-surface-card object-cover"
+                                />
+                              ) : (
+                                <div
+                                  key={r.id}
+                                  className="inline-flex h-5 w-5 rounded-full ring-1 ring-surface-card items-center justify-center text-[9px] text-white font-bold"
+                                  style={{ backgroundColor: r.avatarColor || '#6366f1' }}
+                                >
+                                  {r.name.charAt(0).toUpperCase()}
+                                </div>
+                              )
                             )}
-                          </button>
-                        );
-                      })()
-                    ) : isStaff ? (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setAssignModal({
-                            isOpen: true,
-                            template: tmpl,
-                            day,
-                            selectedResidentIds: modalInitialIds,
-                          })
-                        }
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-dashed border-indigo-500/40 text-indigo-300 hover:text-white hover:bg-indigo-500/15 hover:border-indigo-500/60 text-xs font-semibold transition-all cursor-pointer"
-                      >
-                        <User className="w-3.5 h-3.5 text-indigo-400" />
-                        <span>Bewohner zuweisen</span>
-                      </button>
-                    ) : (
-                      <span className="text-xs text-slate-500 italic px-2">
-                        Nicht eingeteilt
-                      </span>
+                          </div>
+                          <span className="truncate max-w-[160px]">
+                            {assignedResidents.map((r: any) => r.name).join(', ')}
+                          </span>
+                          {isStaff && (
+                            <span className="text-[10px] text-slate-500 group-hover:text-indigo-300 ml-0.5">
+                              ✎
+                            </span>
+                          )}
+                        </button>
+                      ) : assignedResidents.length === 1 ? (
+                        (() => {
+                          const res = assignedResidents[0];
+                          return (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (isStaff) {
+                                  setAssignModal({
+                                    isOpen: true,
+                                    template: tmpl,
+                                    day,
+                                    selectedResidentIds: [res.id],
+                                  });
+                                }
+                              }}
+                              disabled={!isStaff}
+                              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+                                isStaff
+                                  ? 'bg-surface-card hover:bg-indigo-600/10 border-surface-border hover:border-indigo-500/40 text-slate-200 hover:text-white cursor-pointer shadow-xs group'
+                                  : 'bg-surface-card border-surface-border text-slate-300 cursor-default'
+                              }`}
+                              title={isStaff ? 'Einteilung ändern oder aufheben' : undefined}
+                            >
+                              {res.avatarUrl ? (
+                                <img
+                                  src={res.avatarUrl}
+                                  alt={res.name}
+                                  className="w-5 h-5 rounded-full object-cover shrink-0 ring-1 ring-white/10"
+                                />
+                              ) : (
+                                <div
+                                  className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] text-white font-bold shrink-0"
+                                  style={{
+                                    backgroundColor: res.avatarColor || '#6366f1',
+                                  }}
+                                >
+                                  {res.name.charAt(0).toUpperCase()}
+                                </div>
+                              )}
+                              <span className="truncate max-w-[160px]">
+                                {res.name}
+                              </span>
+                              {isStaff && (
+                                <span className="text-[10px] text-slate-500 group-hover:text-indigo-300 ml-0.5">
+                                  ✎
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })()
+                      ) : isStaff ? (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setAssignModal({
+                              isOpen: true,
+                              template: tmpl,
+                              day,
+                              selectedResidentIds: modalInitialIds,
+                            })
+                          }
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-dashed border-indigo-500/40 text-indigo-300 hover:text-white hover:bg-indigo-500/15 hover:border-indigo-500/60 text-xs font-semibold transition-all cursor-pointer"
+                        >
+                          <User className="w-3.5 h-3.5 text-indigo-400" />
+                          <span>Bewohner zuweisen</span>
+                        </button>
+                      ) : (
+                        <span className="text-xs text-slate-500 italic px-2">
+                          Nicht eingeteilt
+                        </span>
+                      )}
+
+                      {/* Right: Progress summary for multi-resident */}
+                      {totalAssignedCount > 1 && (
+                        <span
+                          className={`text-[11px] font-bold px-2 py-0.5 rounded-lg shrink-0 ${
+                            isAllDone
+                              ? 'bg-emerald-500/20 text-emerald-300'
+                              : isPartiallyDone
+                              ? 'bg-indigo-500/20 text-indigo-300'
+                              : 'text-slate-400'
+                          }`}
+                        >
+                          {completedCount}/{totalAssignedCount} erledigt
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Resident completion breakdown chips when multiple residents */}
+                    {assignedResidents.length > 0 && (totalAssignedCount > 1 || isAllResidents) && (
+                      <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-surface-border/30">
+                        {assignedResidents.map((r: any) => {
+                          const rDone = completedResidentIds.includes(r.id);
+                          return (
+                            <button
+                              key={r.id}
+                              type="button"
+                              disabled={!isStaff && user?.id !== r.id}
+                              onClick={() => {
+                                if (isStaff || user?.id === r.id) {
+                                  handleToggleChoreInPlan(tmpl, day, assignment, r.id);
+                                }
+                              }}
+                              title={
+                                rDone
+                                  ? `${r.name}: Erledigt${isStaff ? ' (Klicken zum Umschalten)' : ''}`
+                                  : `${r.name}: Offen${isStaff ? ' (Klicken zum Umschalten)' : ''}`
+                              }
+                              className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-medium border transition-all ${
+                                rDone
+                                  ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-200'
+                                  : 'bg-surface-card/80 border-surface-border text-slate-400'
+                              } ${
+                                isStaff || user?.id === r.id
+                                  ? 'cursor-pointer hover:border-indigo-400/60'
+                                  : 'cursor-default'
+                              }`}
+                            >
+                              <span
+                                className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                                  rDone ? 'bg-emerald-400 shadow-xs shadow-emerald-400/50' : 'bg-slate-500'
+                                }`}
+                              />
+                              <span className="truncate max-w-[100px]">{r.name}</span>
+                              {rDone && <Check className="w-3 h-3 text-emerald-300 stroke-[3] shrink-0" />}
+                            </button>
+                          );
+                        })}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -682,7 +781,7 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
             Aufgabenübersicht
           </h1>
           <p className="text-xs text-slate-400 mt-1 font-medium">
-            Wöchentliche Einteilung und Zuweisungen der Haushalts- & Alltagsaufgaben für die gesamte WG.
+            Alle Haushalts- und WG-Dienste der Woche im transparenten Überblick.
           </p>
         </div>
 
@@ -744,15 +843,15 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
           )}
         </div>
 
-        {/* Filter Toggle (All vs Mine) */}
-        <div className="flex items-center gap-1.5 bg-surface-elevated p-1 rounded-2xl border border-surface-border self-end sm:self-auto">
+        {/* Filter Switch (All vs Mine) */}
+        <div className="w-full sm:w-auto grid grid-cols-2 gap-1 p-1 bg-surface-elevated rounded-2xl border border-surface-border">
           <button
             type="button"
             onClick={() => setFilterMode('ALL')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center justify-center py-2 px-3.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               filterMode === 'ALL'
-                ? 'bg-indigo-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
             }`}
           >
             Alle Aufgaben
@@ -760,10 +859,10 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
           <button
             type="button"
             onClick={() => setFilterMode('MINE')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`flex items-center justify-center gap-1.5 py-2 px-3.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               filterMode === 'MINE'
-                ? 'bg-indigo-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
             }`}
           >
             <User className="w-3.5 h-3.5" />

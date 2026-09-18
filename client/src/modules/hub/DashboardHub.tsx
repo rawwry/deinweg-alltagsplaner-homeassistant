@@ -399,7 +399,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
   // Formatted date string in strict German format
   const formattedToday = formatGermanDate(now, { withWeekday: true });
 
-  const handleToggleChore = async (chore: any) => {
+  const handleToggleChore = async (chore: any, residentIdToToggle?: string) => {
     const choreKey = `${chore.date || todayChores?.date || 'today'}_${chore.templateId}`;
     togglePersonalChore(choreKey);
 
@@ -413,6 +413,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           weekNumber: currentWeek,
           dayOfWeek: currentDayOfWeek,
           locationId: activeLocationId,
+          residentId: residentIdToToggle ?? (user?.role === 'BEWOHNER' ? user?.id : undefined),
         });
         const refreshed = await api.chores.today(activeLocationId);
         setTodayChores(refreshed);
@@ -810,12 +811,14 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
                   {residentTasksList.map((task: any) => {
                     const choreKey = `${task.date || todayChores?.date || 'today'}_${task.templateId}`;
-                    const isDone = Boolean(task.isCompleted) || personalDoneChores.includes(choreKey);
+                    const isDone = task.isCompletedForMe !== undefined
+                      ? Boolean(task.isCompletedForMe)
+                      : (Boolean(task.isCompleted) || personalDoneChores.includes(choreKey));
 
                     return (
                       <div
                         key={task.templateId}
-                        onClick={() => handleToggleChore(task)}
+                        onClick={() => handleToggleChore(task, user?.id)}
                         className={`p-4 rounded-2xl border transition-all flex items-start justify-between gap-3.5 select-none cursor-pointer group/task ${
                           isDone
                             ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-100 shadow-xs'
@@ -911,52 +914,99 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-              {todayChores.todayItems.map((task: any) => (
-                <div
-                  key={task.templateId}
-                  onClick={() => handleToggleChore(task)}
-                  className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 select-none ${
-                    task.isCompleted
-                      ? 'bg-emerald-500/15 border-emerald-500/50 text-emerald-100 shadow-sm shadow-emerald-500/10'
-                      : 'bg-surface-elevated/60 border-surface-border hover:border-indigo-500/50 text-slate-100'
-                  }`}
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="shrink-0">{getChoreOutlineIcon(task, 'w-5 h-5')}</div>
-                    <div className="min-w-0">
-                      <div className={`text-xs font-semibold truncate ${task.isCompleted ? 'text-emerald-200 font-bold' : 'text-white'}`}>
-                        {task.title}
+              {todayChores.todayItems.map((task: any) => {
+                const isAllDone = Boolean(task.isCompleted);
+                const completedCount = task.completedCount || 0;
+                const totalAssignedCount = task.totalAssignedCount || (task.assignedResidents?.length || 1);
+                const isPartiallyDone = !isAllDone && completedCount > 0;
+
+                return (
+                  <div
+                    key={task.templateId}
+                    onClick={() => handleToggleChore(task)}
+                    className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between gap-2.5 select-none ${
+                      isAllDone
+                        ? 'bg-emerald-500/15 border-emerald-500/50 text-emerald-100 shadow-sm shadow-emerald-500/10'
+                        : isPartiallyDone
+                        ? 'bg-indigo-500/10 border-indigo-500/35 text-slate-100'
+                        : 'bg-surface-elevated/60 border-surface-border hover:border-indigo-500/50 text-slate-100'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3 min-w-0">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="shrink-0">{getChoreOutlineIcon(task, 'w-5 h-5')}</div>
+                        <div className="min-w-0">
+                          <div className={`text-xs font-semibold truncate ${isAllDone ? 'text-emerald-200 font-bold' : 'text-white'}`}>
+                            {task.title}
+                          </div>
+                          <div className="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
+                            {task.isAllResidents ? (
+                              <span className={isAllDone ? 'text-emerald-300/80 font-medium' : 'text-indigo-300 font-medium'}>👥 Alle Bewohner</span>
+                            ) : task.assignedResidents && task.assignedResidents.length > 0 ? (
+                              <span className={`truncate max-w-[150px] font-medium ${isAllDone ? 'text-emerald-300/80' : 'text-indigo-300'}`}>
+                                👤 {task.assignedResidents.map((r: any) => r.name).join(', ')}
+                              </span>
+                            ) : task.resident ? (
+                              <span className={isAllDone ? 'text-emerald-300/80 font-medium' : 'text-indigo-300 font-medium'}>👤 {task.resident.name}</span>
+                            ) : (
+                              <span className="text-slate-500 italic">Niemand eingeteilt</span>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
-                        {task.isAllResidents ? (
-                          <span className={task.isCompleted ? 'text-emerald-300/80 font-medium' : 'text-indigo-300 font-medium'}>👥 Alle Bewohner</span>
-                        ) : task.assignedResidents && task.assignedResidents.length > 0 ? (
-                          <span className={`truncate max-w-[150px] font-medium ${task.isCompleted ? 'text-emerald-300/80' : 'text-indigo-300'}`}>
-                            👤 {task.assignedResidents.map((r: any) => r.name).join(', ')}
+
+                      <div className="shrink-0">
+                        {isAllDone ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/25 text-emerald-200 border border-emerald-500/40 text-[10px] font-bold font-sans shadow-xs">
+                            <Check className="w-3 h-3 text-emerald-300 stroke-[3]" />
+                            <span>Erledigt</span>
                           </span>
-                        ) : task.resident ? (
-                          <span className={task.isCompleted ? 'text-emerald-300/80 font-medium' : 'text-indigo-300 font-medium'}>👤 {task.resident.name}</span>
+                        ) : isPartiallyDone ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 text-[10px] font-bold font-sans shadow-xs">
+                            <span>{completedCount}/{totalAssignedCount} erledigt</span>
+                          </span>
                         ) : (
-                          <span className="text-slate-500 italic">Niemand eingeteilt</span>
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 text-[10px] font-medium font-sans">
+                            Offen
+                          </span>
                         )}
                       </div>
                     </div>
-                  </div>
 
-                  <div className="shrink-0">
-                    {task.isCompleted ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/25 text-emerald-200 border border-emerald-500/40 text-[10px] font-bold font-sans shadow-xs">
-                        <Check className="w-3 h-3 text-emerald-300 stroke-[3]" />
-                        <span>Erledigt</span>
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 text-[10px] font-medium font-sans">
-                        Offen
-                      </span>
+                    {/* Breakdown of residents when multiple or all residents are assigned */}
+                    {task.assignedResidents && task.assignedResidents.length > 1 && (
+                      <div className="flex flex-wrap items-center gap-1 pt-2 border-t border-surface-border/30">
+                        {task.assignedResidents.map((r: any) => {
+                          const rDone = (task.completedResidentIds || []).includes(r.id);
+                          return (
+                            <span
+                              key={r.id}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleToggleChore(task, r.id);
+                              }}
+                              title={
+                                rDone
+                                  ? `${r.name}: Erledigt (Klicken zum Umschalten)`
+                                  : `${r.name}: Offen (Klicken zum Umschalten)`
+                              }
+                              className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium border transition-all cursor-pointer ${
+                                rDone
+                                  ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-200'
+                                  : 'bg-surface-card border-surface-border text-slate-400 hover:border-indigo-400/60'
+                              }`}
+                            >
+                              <span className={`w-1.5 h-1.5 rounded-full ${rDone ? 'bg-emerald-400' : 'bg-slate-500'}`} />
+                              <span className="truncate max-w-[80px]">{r.name}</span>
+                              {rDone && <Check className="w-2.5 h-2.5 text-emerald-300 stroke-[3]" />}
+                            </span>
+                          );
+                        })}
+                      </div>
                     )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

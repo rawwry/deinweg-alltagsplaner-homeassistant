@@ -314,6 +314,7 @@ model ChoreAssignment {
   dayOfWeek           Int            // 1 (Mo) - 7 (So)
   residentId          String?        // Legacy single resident
   assignedResidentIds String?        // JSON array string e.g. '["ALL"]' or '["user1","user2"]'
+  completedResidentIds String?       // JSON array string e.g. '["user1","user2"]'
   isCompleted         Boolean        @default(false)
   completedAt         DateTime?
   completedById       String?
