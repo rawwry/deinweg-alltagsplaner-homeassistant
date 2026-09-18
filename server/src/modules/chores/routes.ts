@@ -51,8 +51,17 @@ const DEFAULT_CHORE_TEMPLATES = [
 function parseResidentIds(raw: string | null | undefined): string[] {
   if (!raw) return [];
   try {
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) return parsed.map(String);
+    let parsed = JSON.parse(raw);
+    if (typeof parsed === 'string') {
+      try {
+        const inner = JSON.parse(parsed);
+        if (Array.isArray(inner)) parsed = inner;
+        else if (typeof inner === 'string') parsed = [inner];
+      } catch {
+        parsed = [parsed];
+      }
+    }
+    if (Array.isArray(parsed)) return parsed.map(String).filter(Boolean);
     if (typeof parsed === 'string') return [parsed];
   } catch {
     if (raw.includes(',')) {
@@ -101,9 +110,10 @@ function resolveResidentCompletion(
 ) {
   let completedIds = parseResidentIds(completedResidentIdsRaw);
 
-  // If assignment has isCompleted=true but completedResidentIds is empty:
-  // legacy fallback: all assigned residents are considered completed
-  if (legacyIsCompleted && completedIds.length === 0 && assignedResidents.length > 0) {
+  // Only apply legacy fallback if completedResidentIds was never stored (null or undefined)
+  // If completedResidentIdsRaw was explicitly set to "[]" or empty, do NOT resurrect completion!
+  const hasExplicitCompletedField = completedResidentIdsRaw !== null && completedResidentIdsRaw !== undefined;
+  if (!hasExplicitCompletedField && legacyIsCompleted && assignedResidents.length > 0) {
     completedIds = assignedResidents.map((r) => r.id);
   }
 
@@ -114,7 +124,7 @@ function resolveResidentCompletion(
 
   const isFullyCompleted = totalAssignedCount > 0
     ? completedCount >= totalAssignedCount
-    : Boolean(legacyIsCompleted);
+    : (hasExplicitCompletedField ? completedIds.length > 0 : Boolean(legacyIsCompleted));
 
   const isCompletedForMe = currentUserId ? completedIds.includes(currentUserId) : false;
 
@@ -410,7 +420,7 @@ router.get('/week', requireAuth, async (req: Request, res: Response) => {
       };
     });
 
-    // Enrich assignments with resolved residents (inheriting template default if assignment has none set)
+    // Enrich assignments with resolved residents (inheriting template default if assignment has none set or resolved to empty)
     const enrichedAssignments = assignments.map((assign) => {
       let resolved = resolveResidents(
         assign.assignedResidentIds,
@@ -418,11 +428,11 @@ router.get('/week', requireAuth, async (req: Request, res: Response) => {
         locationResidents
       );
 
-      // If assignment has no explicit setting (assignedResidentIds === null) and no resident assigned, inherit template default
-      if (assign.assignedResidentIds === null && !assign.residentId && assign.template?.assignedResidentIds) {
+      // If assignment has no explicit setting (assignedResidentIds === null) or resolved to empty, inherit template default
+      if ((assign.assignedResidentIds === null || resolved.residentIds.length === 0) && assign.template?.assignedResidentIds) {
         resolved = resolveResidents(
           assign.template.assignedResidentIds,
-          null,
+          assign.residentId,
           locationResidents
         );
       }
@@ -658,15 +668,23 @@ router.post('/toggle-complete', requireAuth, async (req: Request, res: Response)
       }),
     ]);
 
-    const effectiveAssignedRaw = targetAssignment?.assignedResidentIds !== undefined
+    const effectiveAssignedRaw = (targetAssignment?.assignedResidentIds !== null && targetAssignment?.assignedResidentIds !== undefined)
       ? targetAssignment.assignedResidentIds
-      : template?.assignedResidentIds;
+      : (template?.assignedResidentIds || null);
 
-    const resolved = resolveResidents(
+    let resolved = resolveResidents(
       effectiveAssignedRaw,
       targetAssignment?.residentId,
       locationResidents
     );
+
+    if (resolved.residentIds.length === 0 && template?.assignedResidentIds) {
+      resolved = resolveResidents(
+        template.assignedResidentIds,
+        targetAssignment?.residentId,
+        locationResidents
+      );
+    }
     const allAssignedIds = resolved.assignedResidents.map((r: any) => r.id);
 
     if (!targetAssignment) {
@@ -700,15 +718,15 @@ router.post('/toggle-complete', requireAuth, async (req: Request, res: Response)
         completedIds = [togglingResidentId];
         newIsCompleted = allAssignedIds.length > 0
           ? allAssignedIds.every((id) => completedIds.includes(id))
-          : true;
+          : false;
       } else {
         completedIds = allAssignedIds.length > 0 ? [...allAssignedIds] : [];
-        newIsCompleted = true;
+        newIsCompleted = allAssignedIds.length > 0;
       }
 
-      const primaryResId = effectiveAssignedRaw && !effectiveAssignedRaw.includes('ALL')
-        ? (parseResidentIds(effectiveAssignedRaw)[0] || null)
-        : (req.user?.role === 'BEWOHNER' ? req.user.id : null);
+      const parsedAssigned = parseResidentIds(effectiveAssignedRaw);
+      const isAll = parsedAssigned.includes('ALL');
+      const primaryResId = !isAll && parsedAssigned.length === 1 ? parsedAssigned[0] : null;
 
       const assignment = await prisma.choreAssignment.create({
         data: {
@@ -765,7 +783,7 @@ router.post('/toggle-complete', requireAuth, async (req: Request, res: Response)
 
     // Existing assignment: Toggle resident or all
     let completedIds = parseResidentIds(targetAssignment.completedResidentIds);
-    if (targetAssignment.isCompleted && completedIds.length === 0 && allAssignedIds.length > 0) {
+    if (targetAssignment.isCompleted && (targetAssignment.completedResidentIds === null || targetAssignment.completedResidentIds === undefined) && allAssignedIds.length > 0) {
       completedIds = [...allAssignedIds];
     }
 
@@ -779,15 +797,20 @@ router.post('/toggle-complete', requireAuth, async (req: Request, res: Response)
       }
       newIsCompleted = allAssignedIds.length > 0
         ? allAssignedIds.every((id) => completedIds.includes(id))
-        : completedIds.length > 0;
+        : false;
     } else {
       if (targetAssignment.isCompleted) {
         completedIds = [];
         newIsCompleted = false;
       } else {
         completedIds = allAssignedIds.length > 0 ? [...allAssignedIds] : [];
-        newIsCompleted = true;
+        newIsCompleted = allAssignedIds.length > 0;
       }
+    }
+
+    // Ensure that if no residents have completed, newIsCompleted is strictly false
+    if (completedIds.length === 0) {
+      newIsCompleted = false;
     }
 
     const updated = await prisma.choreAssignment.update({
@@ -797,6 +820,7 @@ router.post('/toggle-complete', requireAuth, async (req: Request, res: Response)
         isCompleted: newIsCompleted,
         completedAt: newIsCompleted ? new Date() : (completedIds.length > 0 ? new Date() : null),
         completedById: req.user?.id,
+        assignedResidentIds: targetAssignment.assignedResidentIds || effectiveAssignedRaw,
       },
       include: {
         resident: {
@@ -903,9 +927,9 @@ router.get('/today', requireAuth, async (req: Request, res: Response) => {
         locationResidents
       );
 
-      // Inherit template's assignedResidentIds if assignment has no explicit setting
-      if ((!match || (match.assignedResidentIds === null && !match.residentId)) && resolved.residentIds.length === 0 && tmpl.assignedResidentIds) {
-        resolved = resolveResidents(tmpl.assignedResidentIds, null, locationResidents);
+      // Inherit template's assignedResidentIds if assignment has no explicit setting or resolved to empty
+      if ((!match || match.assignedResidentIds === null || resolved.residentIds.length === 0) && tmpl.assignedResidentIds) {
+        resolved = resolveResidents(tmpl.assignedResidentIds, match?.residentId, locationResidents);
       }
 
       const completion = resolveResidentCompletion(

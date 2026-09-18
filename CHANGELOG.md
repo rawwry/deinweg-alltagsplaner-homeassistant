@@ -3,6 +3,17 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.4] - 2026-09-18
+
+### Behoben & Verbessert
+- **Fehlerfreies Abwählen & Rückgängig-Machen von Aufgaben (`routes.ts`, `ChorePlannerView.tsx`, `DashboardHub.tsx`)**:
+  - **Kein Zurückspringen auf „Erledigt“**: Wurde eine Aufgabe (insb. Mehrfach- oder WG-weite Aufgaben wie „Zimmer aufräumen“) versehentlich abgehakt und soll wieder als offen markiert werden, bleibt sie nun zuverlässig und dauerhaft unerledigt.
+  - **Legacy-Fallback Absicherung**: Die automatische Rückfall-Markierung bei Vorhandensein von `isCompleted: true` greift nur noch, wenn das Feld `completedResidentIds` in der Datenbank gar nicht existierte (`null`/`undefined`). Bei expliziter Leerung (`"[]"`) wird die Aufgabe niemals wieder automatisch mit allen Bewohnern befüllt.
+  - **Erhalt der Mehrempfänger-Zuweisung**: Beim ersten Abhaken einer `ALL`-Aufgabe durch einen Bewohner wird die Aufgabe nicht mehr in eine Einzel-Zuweisung mit `residentId = <user.id>` umgewandelt. `primaryResId` bleibt strikt `null`, sodass die Aufgabe für alle Bewohner eingeteilt bleibt.
+  - **Sichere Vererbung in `/week` und `/today`**: Zuweisungen ohne explizite abweichende Bewohnerliste erben die `assignedResidentIds` der Vorlage jetzt auch dann zuverlässig, wenn `residentId` historisch gesetzt war.
+  - **Nested/Escaped JSON-Parsing**: `parseResidentIds` parst JSON-Strings nun rekursiv und fängt zweifach maskierte Strings ab, wodurch der ID-Vergleich beim Abwählen stets exakt matcht.
+  - **Client-Cache & Sofort-Feedback**: `ChorePlannerView` und `DashboardHub` aktualisieren ihren lokalen Zustand sofort nach der Serverantwort von `toggleComplete` und synchronisieren `personalDoneChores` in `localStorage` mit dem tatsächlichen Serverstand, um veraltete Phantom-Markierungen restlos zu eliminieren.
+
 ## [0.1.3] - 2026-09-18
 
 ### Neu & Verbessert

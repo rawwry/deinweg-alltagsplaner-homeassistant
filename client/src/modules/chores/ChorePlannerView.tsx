@@ -81,13 +81,41 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
     });
   };
 
+  // Synchronize localStorage with backend state to eliminate phantom completions
+  useEffect(() => {
+    if (!weekData?.assignments || !user?.id) return;
+    setPersonalDoneChores((prev) => {
+      let changed = false;
+      const next = [...prev];
+      weekData.assignments.forEach((a: any) => {
+        const key = `${a.date}_${a.templateId}`;
+        if (a.isCompletedForMe === false && next.includes(key)) {
+          const idx = next.indexOf(key);
+          if (idx !== -1) {
+            next.splice(idx, 1);
+            changed = true;
+          }
+        } else if (a.isCompletedForMe === true && !next.includes(key)) {
+          next.push(key);
+          changed = true;
+        }
+      });
+      if (changed) {
+        try {
+          localStorage.setItem(`resident_chores_done_${user.id}`, JSON.stringify(next));
+        } catch {}
+        return next;
+      }
+      return prev;
+    });
+  }, [weekData, user?.id]);
+
   const handleToggleChoreInPlan = async (tmpl: any, day: any, assignment: any, residentIdToToggle?: string) => {
     const choreKey = `${day.date}_${tmpl.id}`;
-    togglePersonalChore(choreKey);
 
     if (tmpl.id && !tmpl.id.startsWith('chefkoch_')) {
       try {
-        await api.chores.toggleComplete({
+        const res = await api.chores.toggleComplete({
           assignmentId: assignment?.id || undefined,
           templateId: tmpl.id,
           date: day.date,
@@ -97,11 +125,50 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
           locationId: activeLocationId,
           residentId: residentIdToToggle ?? (user?.role === 'BEWOHNER' ? user?.id : undefined),
         });
+
+        if (res?.assignment) {
+          const isDoneForMe = Boolean(res.assignment.isCompletedForMe);
+          setPersonalDoneChores((prev) => {
+            const next = isDoneForMe
+              ? (prev.includes(choreKey) ? prev : [...prev, choreKey])
+              : prev.filter((k) => k !== choreKey);
+            if (user?.id) {
+              try {
+                localStorage.setItem(`resident_chores_done_${user.id}`, JSON.stringify(next));
+              } catch {}
+            }
+            return next;
+          });
+
+          // Optimistically update assignment in weekData immediately
+          setWeekData((prev: any) => {
+            if (!prev?.assignments) return prev;
+            const exists = prev.assignments.some(
+              (a: any) => a.id === res.assignment.id || (a.templateId === tmpl.id && a.date === day.date)
+            );
+            const updatedAssignments = exists
+              ? prev.assignments.map((a: any) =>
+                  a.id === res.assignment.id || (a.templateId === tmpl.id && a.date === day.date)
+                    ? { ...a, ...res.assignment }
+                    : a
+                )
+              : [...prev.assignments, res.assignment];
+            return {
+              ...prev,
+              assignments: updatedAssignments,
+            };
+          });
+        }
+
         const wData = await api.chores.week(activeLocationId, year, weekNumber);
-        setWeekData(wData);
+        if (wData) {
+          setWeekData(wData);
+        }
       } catch (err) {
         console.error('Fehler beim Abhaken der Aufgabe im Plan:', err);
       }
+    } else {
+      togglePersonalChore(choreKey);
     }
   };
 

@@ -399,13 +399,41 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
   // Formatted date string in strict German format
   const formattedToday = formatGermanDate(now, { withWeekday: true });
 
+  // Synchronize localStorage with backend state to eliminate phantom completions
+  useEffect(() => {
+    if (!todayChores?.myTasks || !user?.id) return;
+    setPersonalDoneChores((prev) => {
+      let changed = false;
+      const next = [...prev];
+      todayChores.myTasks.forEach((t: any) => {
+        const key = `${t.date || todayChores?.date || 'today'}_${t.templateId}`;
+        if (t.isCompletedForMe === false && next.includes(key)) {
+          const idx = next.indexOf(key);
+          if (idx !== -1) {
+            next.splice(idx, 1);
+            changed = true;
+          }
+        } else if (t.isCompletedForMe === true && !next.includes(key)) {
+          next.push(key);
+          changed = true;
+        }
+      });
+      if (changed) {
+        try {
+          localStorage.setItem(`resident_chores_done_${user.id}`, JSON.stringify(next));
+        } catch {}
+        return next;
+      }
+      return prev;
+    });
+  }, [todayChores, user?.id]);
+
   const handleToggleChore = async (chore: any, residentIdToToggle?: string) => {
     const choreKey = `${chore.date || todayChores?.date || 'today'}_${chore.templateId}`;
-    togglePersonalChore(choreKey);
 
     if (chore.templateId && !chore.templateId.startsWith('chefkoch_')) {
       try {
-        await api.chores.toggleComplete({
+        const res = await api.chores.toggleComplete({
           assignmentId: chore.assignmentId || undefined,
           templateId: chore.templateId,
           date: chore.date || todayChores?.date,
@@ -415,11 +443,31 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           locationId: activeLocationId,
           residentId: residentIdToToggle ?? (user?.role === 'BEWOHNER' ? user?.id : undefined),
         });
+
+        if (res?.assignment) {
+          const isDoneForMe = Boolean(res.assignment.isCompletedForMe);
+          setPersonalDoneChores((prev) => {
+            const next = isDoneForMe
+              ? (prev.includes(choreKey) ? prev : [...prev, choreKey])
+              : prev.filter((k) => k !== choreKey);
+            if (user?.id) {
+              try {
+                localStorage.setItem(`resident_chores_done_${user.id}`, JSON.stringify(next));
+              } catch {}
+            }
+            return next;
+          });
+        }
+
         const refreshed = await api.chores.today(activeLocationId);
-        setTodayChores(refreshed);
+        if (refreshed) {
+          setTodayChores(refreshed);
+        }
       } catch (err) {
         console.error('Fehler beim Abhaken der Aufgabe:', err);
       }
+    } else {
+      togglePersonalChore(choreKey);
     }
   };
 
