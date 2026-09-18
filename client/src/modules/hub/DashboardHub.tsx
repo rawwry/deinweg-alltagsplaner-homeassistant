@@ -366,6 +366,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
 
   // Personalized user greeting
   const firstName = user?.name ? user.name.split(' ')[0] : 'du';
+  const isResident = user?.role === 'BEWOHNER';
 
   // Greeting by time of day
   const timeGreeting =
@@ -543,7 +544,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
   }, [activeLocationId, currentYear, currentWeek]);
 
   const todayMeal = mealPlan?.days?.find((d: any) => d.dayOfWeek === currentDayOfWeek);
-  const openNotes = notesList.filter((n: any) => n.status !== 'DONE');
+  const openNotes = notesList.filter((n: any) => n.status !== 'DONE' && n.category !== 'ANKUENDIGUNG');
 
   // Filter waste pickups to today or upcoming dates only (ignoring past dates)
   const todayDate = new Date();
@@ -962,10 +963,12 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                       <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full ${config.badgeClass} uppercase tracking-wider font-display shrink-0`}>
                         {config.badge}
                       </span>
-                      <span className="text-[11px] text-slate-300 font-medium">
-                        von <strong className="text-white font-semibold">{config.senderName}</strong>
-                      </span>
-                      {isAnnouncement && note.expiresAt && (
+                      {(!isAnnouncement || !isResident) && (
+                        <span className="text-[11px] text-slate-300 font-medium">
+                          von <strong className="text-white font-semibold">{config.senderName}</strong>
+                        </span>
+                      )}
+                      {!isResident && isAnnouncement && note.expiresAt && (
                         <span className="text-[10px] text-rose-300/90 font-mono bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 rounded-md">
                           Gültig bis {formatGermanDate(note.expiresAt)}
                         </span>

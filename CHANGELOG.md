@@ -3,6 +3,20 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.7] - 2026-09-18
+
+### Neu & Verbessert
+- **Radikale Vereinfachung der Konversations- und Beitragsansicht (`CaregiverNotesView.tsx`)**:
+  - **Konversation im Mittelpunkt**: Verschachtelte dunkle Container, laute Rollen-Badges (`[BEWOHNER]`) und ablenkende Zwischenüberschriften (`GESPRÄCHSVERLAUF`) wurden vollständig entfernt. Mitteilungen und Antworten fließen nun in einem modernen, ruhigen Chatverlauf.
+  - **Eingebetteter Ursprungsbeitrag**: Die Ausgangsnotiz wird direkt als erste Sprechblase dargestellt, sodass doppelte Autoren- und Datumszeilen entfallen.
+  - **Leichte Thread-Führung**: Antworten sind über eine zarte vertikale Verbindungslinie strukturiert an den Ursprungsbeitrag angebunden.
+  - **Schlanke Antworteingabe**: Kompaktes Eingabefeld mit schnellem Senden-Icon statt überdimensionierter Buttons.
+  - **Minimalistische Aktionsleiste**: Die frühere Flut aus 5 großen bunten Buttons wurde durch eine ruhige Leiste ersetzt – links ein kompakter Status-Button (*„Als erledigt archivieren“* / *„Wiedereröffnen“*), rechts dezente Icon-Buttons mit Tooltips für Pin, Bearbeiten und Löschen. Der redundante zweite Einklappen-Button am Ende der Karte entfällt.
+- **Bereinigte Ankündigungsdarstellung auf dem Bewohner-Dashboard (`DashboardHub.tsx`)**:
+  - **Fokus auf die Botschaft**: Bei Ankündigungen auf dem Home-Dashboard von Bewohnern werden die Fristanzeige (*„Gültig bis ...“*) sowie der Name des Verfassers (*„von [Betreuer]“*) ausgeblendet.
+- **Exklusion von Ankündigungen aus der Flurfunk-Pille (`DashboardHub.tsx`)**:
+  - **Reine Mitteilungszählung**: Wichtige Ankündigungen werden nicht mehr zur Pille *„X Einträge im Flurfunk“* auf dem Dashboard oder dem *„X offen“*-Badge der Bento-Box dazugezählt, sodass die Zahl ausschließlich offene, reguläre Flurfunk-Mitteilungen wiedergibt.
+
 ## [0.1.6] - 2026-09-18
 
 ### Neu & Verbessert

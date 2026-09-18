@@ -875,29 +875,31 @@ export const CaregiverNotesView: React.FC = () => {
                     </div>
 
                     {/* Author & Timestamp row */}
-                    <div className="flex items-center justify-between text-xs text-slate-400 mb-2 gap-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div
-                          className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white uppercase shrink-0"
-                          style={{
-                            backgroundColor: note.authorAvatarColor || (note.authorRole === 'BETREUER' || note.authorRole === 'ADMIN' ? '#f43f5e' : '#3b82f6'),
-                          }}
-                        >
-                          {(note.authorName || note.residentName || 'WG').charAt(0)}
+                    {!isExpanded && (
+                      <div className="flex items-center justify-between text-xs text-slate-400 mb-2 gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div
+                            className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white uppercase shrink-0"
+                            style={{
+                              backgroundColor: note.authorAvatarColor || (note.authorRole === 'BETREUER' || note.authorRole === 'ADMIN' ? '#f43f5e' : '#3b82f6'),
+                            }}
+                          >
+                            {(note.authorName || note.residentName || 'WG').charAt(0)}
+                          </div>
+                          <div className="truncate text-slate-300 font-medium text-xs">
+                            <span className="text-white font-semibold">{note.authorName || 'WG-Mitglied'}</span>
+                            {isDirect && note.residentName && (
+                              <span className="text-purple-300 font-medium"> → {note.residentName}</span>
+                            )}
+                          </div>
                         </div>
-                        <div className="truncate text-slate-300 font-medium text-xs">
-                          <span className="text-white font-semibold">{note.authorName || 'WG-Mitglied'}</span>
-                          {isDirect && note.residentName && (
-                            <span className="text-purple-300 font-medium"> → {note.residentName}</span>
-                          )}
-                        </div>
-                      </div>
 
-                      <span className="text-[11px] font-mono text-slate-400 flex items-center gap-1 shrink-0">
-                        <Clock className="w-3 h-3 text-slate-500" />
-                        {formatGermanDateTime(note.createdAt)}
-                      </span>
-                    </div>
+                        <span className="text-[11px] font-mono text-slate-400 flex items-center gap-1 shrink-0">
+                          <Clock className="w-3 h-3 text-slate-500" />
+                          {formatGermanDateTime(note.createdAt)}
+                        </span>
+                      </div>
+                    )}
 
                     {/* Title */}
                     <h3
@@ -948,88 +950,127 @@ export const CaregiverNotesView: React.FC = () => {
                         </div>
                       </div>
                     ) : (
-                      /* EXPANDED VIEW */
-                      <div className="mt-3 space-y-4 animate-in fade-in duration-150">
-                        <p className="text-xs text-slate-200 leading-relaxed whitespace-pre-line font-normal bg-black/20 p-3.5 rounded-2xl border border-white/5">
-                          {note.content}
-                        </p>
-
-                        {/* Conversation History */}
-                        {hasMessages ? (
-                          <div className="pt-2 border-t border-white/5 space-y-2.5">
-                            <div className="text-[11px] font-display font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-2">
-                              <MessageSquare className="w-3.5 h-3.5 text-rose-400" />
-                              <span>Gesprächsverlauf ({note.messages!.length})</span>
+                      /* EXPANDED VIEW: Streamlined chat stream */
+                      <div className="mt-3.5 space-y-3.5 animate-in fade-in duration-150">
+                        {/* Conversation Stream */}
+                        <div className="space-y-3">
+                          {/* 1. Opening message (Author's Note) */}
+                          <div className="flex gap-2.5 items-start">
+                            <div
+                              className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white uppercase shrink-0 mt-0.5 shadow-xs"
+                              style={{
+                                backgroundColor: note.authorAvatarColor || (note.authorRole === 'BETREUER' || note.authorRole === 'ADMIN' ? '#f43f5e' : '#3b82f6'),
+                              }}
+                            >
+                              {(note.authorName || note.residentName || 'WG').charAt(0)}
                             </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-2 mb-1">
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <span className="text-xs font-semibold text-white truncate">
+                                    {note.authorName || 'WG-Mitglied'}
+                                  </span>
+                                  {isDirect && note.residentName && (
+                                    <span className="text-purple-300 font-normal text-[11px] truncate">
+                                      → {note.residentName}
+                                    </span>
+                                  )}
+                                  {(note.authorRole === 'BETREUER' || note.authorRole === 'ADMIN') && (
+                                    <span className="text-[10px] text-rose-400/80 font-medium shrink-0">
+                                      • Betreuer
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="text-[10px] font-mono text-slate-400 shrink-0">
+                                  {formatGermanDateTime(note.createdAt)}
+                                </span>
+                              </div>
+                              <div className="p-3 rounded-2xl rounded-tl-sm bg-surface-elevated/80 border border-surface-border/60 text-xs text-slate-200 leading-relaxed whitespace-pre-line">
+                                {note.content}
+                              </div>
+                            </div>
+                          </div>
 
-                            <div className="space-y-2">
+                          {/* 2. Thread replies */}
+                          {hasMessages && (
+                            <div className="space-y-3 pl-3 sm:pl-4 border-l-2 border-surface-border/40 ml-3.5">
                               {note.messages!.map((msg) => {
                                 const isStaffMsg = msg.authorRole === 'BETREUER' || msg.authorRole === 'ADMIN';
                                 return (
-                                  <div
-                                    key={msg.id}
-                                    className={`p-3.5 rounded-2xl border text-xs ${
-                                      isStaffMsg
-                                        ? 'bg-rose-500/10 border-rose-500/25 ml-2 sm:ml-5'
-                                        : 'bg-surface-elevated/70 border-surface-border mr-2 sm:mr-5'
-                                    }`}
-                                  >
-                                    <div className="flex items-center justify-between gap-2 mb-1">
-                                      <div className="flex items-center gap-2">
-                                        <div
-                                          className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white uppercase shrink-0"
-                                          style={{ backgroundColor: msg.authorAvatarColor || (isStaffMsg ? '#f43f5e' : '#3b82f6') }}
-                                        >
-                                          {msg.authorName.charAt(0)}
+                                  <div key={msg.id} className="flex gap-2.5 items-start">
+                                    <div
+                                      className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold text-white uppercase shrink-0 mt-0.5 shadow-xs"
+                                      style={{ backgroundColor: msg.authorAvatarColor || (isStaffMsg ? '#f43f5e' : '#3b82f6') }}
+                                    >
+                                      {msg.authorName.charAt(0)}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center justify-between gap-2 mb-1">
+                                        <div className="flex items-center gap-1.5 min-w-0">
+                                          <span className={`text-xs font-semibold truncate ${isStaffMsg ? 'text-rose-300' : 'text-slate-200'}`}>
+                                            {msg.authorName}
+                                          </span>
+                                          {isStaffMsg && (
+                                            <span className="text-[10px] text-rose-400/80 font-medium shrink-0">
+                                              • Betreuer
+                                            </span>
+                                          )}
                                         </div>
-                                        <span className="font-semibold text-slate-200">
-                                          {msg.authorName}
-                                        </span>
-                                        <span
-                                          className={`text-[9px] px-1.5 py-0.5 font-bold rounded-md uppercase tracking-wider ${
-                                            isStaffMsg
-                                              ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                                              : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                                          }`}
-                                        >
-                                          {isStaffMsg ? 'Betreuer' : 'Bewohner'}
+                                        <span className="text-[10px] font-mono text-slate-400 shrink-0">
+                                          {formatGermanDateTime(msg.createdAt)}
                                         </span>
                                       </div>
-                                      <span className="text-[10px] text-slate-400 font-mono">
-                                        {formatGermanDateTime(msg.createdAt)}
-                                      </span>
+                                      <div
+                                        className={`p-3 rounded-2xl rounded-tl-sm text-xs leading-relaxed whitespace-pre-line ${
+                                          isStaffMsg
+                                            ? 'bg-rose-500/10 border border-rose-500/20 text-rose-100'
+                                            : 'bg-surface-elevated/60 border border-surface-border/50 text-slate-200'
+                                        }`}
+                                      >
+                                        {msg.content}
+                                      </div>
                                     </div>
-                                    <p className="text-slate-200 whitespace-pre-line leading-relaxed pl-7 font-normal">
-                                      {msg.content}
-                                    </p>
                                   </div>
                                 );
                               })}
                             </div>
-                          </div>
-                        ) : note.caregiverResponse ? (
-                          /* Legacy fallback */
-                          <div className="p-4 bg-surface-elevated/70 border border-rose-500/30 rounded-2xl">
-                            <div className="flex items-center justify-between text-xs mb-1.5">
-                              <span className="font-display font-bold text-rose-300 flex items-center gap-1.5">
-                                <MessageSquare className="w-4 h-4 text-rose-400" />
-                                Rückmeldung von {note.respondedByName || 'Betreuer'}
-                              </span>
-                              {note.respondedAt && (
-                                <span className="text-[11px] text-slate-400 font-mono">
-                                  {formatGermanDateTime(note.respondedAt)}
-                                </span>
-                              )}
+                          )}
+
+                          {/* 3. Legacy response fallback */}
+                          {!hasMessages && note.caregiverResponse && (
+                            <div className="space-y-3 pl-3 sm:pl-4 border-l-2 border-surface-border/40 ml-3.5">
+                              <div className="flex gap-2.5 items-start">
+                                <div className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold text-white uppercase shrink-0 mt-0.5 bg-rose-500 shadow-xs">
+                                  {(note.respondedByName || 'B').charAt(0)}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center justify-between gap-2 mb-1">
+                                    <div className="flex items-center gap-1.5 min-w-0">
+                                      <span className="text-xs font-semibold text-rose-300 truncate">
+                                        {note.respondedByName || 'Betreuer'}
+                                      </span>
+                                      <span className="text-[10px] text-rose-400/80 font-medium shrink-0">
+                                        • Rückmeldung
+                                      </span>
+                                    </div>
+                                    {note.respondedAt && (
+                                      <span className="text-[10px] font-mono text-slate-400 shrink-0">
+                                        {formatGermanDateTime(note.respondedAt)}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="p-3 rounded-2xl rounded-tl-sm text-xs leading-relaxed whitespace-pre-line bg-rose-500/10 border border-rose-500/20 text-rose-100">
+                                    {note.caregiverResponse}
+                                  </div>
+                                </div>
+                              </div>
                             </div>
-                            <p className="text-xs text-slate-200 leading-relaxed whitespace-pre-line font-medium">
-                              {note.caregiverResponse}
-                            </p>
-                          </div>
-                        ) : null}
+                          )}
+                        </div>
 
                         {/* Inline Thread Reply Input */}
                         {canReply && (
-                          <div className="pt-2 border-t border-white/5 flex items-center gap-2">
+                          <div className="pt-2 flex items-center gap-2">
                             <input
                               type="text"
                               value={threadReplyInputs[note.id] || ''}
@@ -1042,33 +1083,33 @@ export const CaregiverNotesView: React.FC = () => {
                                   handleSendThreadMessage(note.id);
                                 }
                               }}
-                              placeholder="Auf diesen Beitrag antworten..."
-                              className="flex-1 px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans"
+                              placeholder="Antworten..."
+                              className="flex-1 px-3.5 py-2 bg-surface-elevated/90 border border-surface-border/60 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-rose-500/50 font-sans"
                             />
                             <button
                               type="button"
                               onClick={() => handleSendThreadMessage(note.id)}
                               disabled={!threadReplyInputs[note.id]?.trim() || isSubmittingMap[note.id]}
-                              className="px-4 py-2.5 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 disabled:opacity-40 transition-all cursor-pointer shrink-0 shadow-sm"
+                              title="Antwort senden"
+                              aria-label="Antwort senden"
+                              className="p-2 bg-rose-500 hover:bg-rose-400 disabled:opacity-30 text-white rounded-xl transition-all cursor-pointer shrink-0 shadow-xs flex items-center justify-center"
                             >
                               <Send className="w-3.5 h-3.5" />
-                              <span className="hidden sm:inline">Antworten</span>
                             </button>
                           </div>
                         )}
 
-                        {/* Action Bar */}
-                        <div className="pt-3 border-t border-white/5 flex items-center justify-between gap-3 flex-wrap">
-                          <div className="flex items-center gap-2.5">
+                        {/* Streamlined Action Bar */}
+                        <div className="pt-2.5 border-t border-white/5 flex items-center justify-between gap-2">
+                          <div>
                             {!note.isArchived ? (
-                              // Residents can only resolve their own notes (and cannot resolve ANKUENDIGUNG)
                               (!isStaff && (note.category === 'ANKUENDIGUNG' || (note.authorId !== user?.id && note.residentId !== user?.id))) ? null : (
                                 <button
                                   type="button"
                                   onClick={() => handleResolveTicket(note.id)}
-                                  className="px-3.5 py-2 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+                                  className="px-3 py-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                                 >
-                                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                                   <span>{isStaff ? 'Als erledigt archivieren' : 'Als erledigt markieren'}</span>
                                 </button>
                               )
@@ -1077,60 +1118,56 @@ export const CaregiverNotesView: React.FC = () => {
                                 <button
                                   type="button"
                                   onClick={() => handleReopenTicket(note.id)}
-                                  className="px-3.5 py-2 bg-surface-elevated hover:bg-surface-card text-slate-200 border border-surface-border rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                                  className="px-3 py-1.5 bg-surface-elevated hover:bg-surface-card text-slate-300 border border-surface-border rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                                 >
                                   <RotateCcw className="w-3.5 h-3.5 text-rose-400" />
                                   <span>Wiedereröffnen</span>
                                 </button>
                               )
                             )}
+                          </div>
 
+                          <div className="flex items-center gap-1 text-slate-400">
                             {/* Staff Pin Toggle */}
                             {isStaff && !note.isArchived && (
                               <button
                                 type="button"
                                 onClick={(e) => handleTogglePin(note.id, e)}
-                                className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+                                title={note.isPinned ? 'Pin lösen' : 'Oben anpinnen'}
+                                aria-label={note.isPinned ? 'Pin lösen' : 'Oben anpinnen'}
+                                className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                                   note.isPinned
-                                    ? 'bg-rose-500/20 border-rose-500/40 text-rose-300 hover:bg-rose-500/30'
-                                    : 'bg-surface-elevated border-surface-border text-slate-400 hover:text-white'
+                                    ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                                    : 'hover:text-white hover:bg-white/5'
                                 }`}
                               >
-                                <Pin className={`w-3.5 h-3.5 ${note.isPinned ? 'fill-current' : ''}`} />
-                                <span>{note.isPinned ? 'Pin lösen' : 'Oben anpinnen'}</span>
+                                <Pin className={`w-3.5 h-3.5 ${note.isPinned ? 'fill-current text-rose-400' : ''}`} />
                               </button>
                             )}
 
+                            {/* Author/Admin Edit */}
                             {isAuthorOrAdmin && !note.isArchived && (
                               <button
                                 type="button"
                                 onClick={(e) => handleStartEdit(note, e)}
-                                className="px-3 py-1.5 rounded-xl bg-surface-elevated hover:bg-surface-card text-amber-300 hover:text-amber-200 border border-amber-500/30 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors"
+                                title="Beitrag bearbeiten"
+                                aria-label="Beitrag bearbeiten"
+                                className="p-1.5 rounded-lg hover:text-amber-300 hover:bg-amber-400/10 transition-colors cursor-pointer"
                               >
                                 <Pencil className="w-3.5 h-3.5 text-amber-400" />
-                                <span>Bearbeiten</span>
                               </button>
                             )}
-                          </div>
 
-                          <div className="flex items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={() => toggleExpand(note.id)}
-                              className="px-3 py-1.5 rounded-xl bg-surface-elevated hover:bg-surface-card text-slate-400 hover:text-slate-200 text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors"
-                            >
-                              <span>Einklappen</span>
-                              <ChevronUp className="w-3.5 h-3.5" />
-                            </button>
-
+                            {/* Staff Delete */}
                             {isStaff && (
                               <button
                                 type="button"
                                 onClick={() => handleDelete(note.id)}
-                                title="Notiz löschen"
-                                className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/15 rounded-xl transition-colors cursor-pointer"
+                                title="Beitrag löschen"
+                                aria-label="Beitrag löschen"
+                                className="p-1.5 rounded-lg hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
                               >
-                                <Trash2 className="w-4 h-4" />
+                                <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             )}
                           </div>
