@@ -270,6 +270,15 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
     }
   });
 
+  const [lastReadMap, setLastReadMap] = useState<Record<string, string>>(() => {
+    try {
+      const stored = localStorage.getItem(`flurfunk_last_read_${user?.id}`);
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
+
   useEffect(() => {
     if (!user?.id) return;
     try {
@@ -284,6 +293,14 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
       const storedChores = localStorage.getItem(`resident_chores_done_${user.id}`);
       if (storedChores) {
         setPersonalDoneChores(JSON.parse(storedChores));
+      }
+    } catch {
+      // ignore
+    }
+    try {
+      const storedRead = localStorage.getItem(`flurfunk_last_read_${user.id}`);
+      if (storedRead) {
+        setLastReadMap(JSON.parse(storedRead));
       }
     } catch {
       // ignore
@@ -313,6 +330,9 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
     if (user?.id) {
       try {
         localStorage.setItem(`flurfunk_dismissed_${user.id}`, JSON.stringify(updated));
+        const updatedRead = { ...lastReadMap, [note.id]: new Date().toISOString() };
+        setLastReadMap(updatedRead);
+        localStorage.setItem(`flurfunk_last_read_${user.id}`, JSON.stringify(updatedRead));
       } catch (e) {
         console.error(e);
       }
@@ -340,6 +360,15 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
         } catch (e) {
           console.error(e);
         }
+      }
+    }
+    if (user?.id) {
+      const updatedRead = { ...lastReadMap, [note.id]: new Date().toISOString() };
+      setLastReadMap(updatedRead);
+      try {
+        localStorage.setItem(`flurfunk_last_read_${user.id}`, JSON.stringify(updatedRead));
+      } catch (e) {
+        console.error(e);
       }
     }
     if (note.hasUnreadResponse) {
@@ -595,24 +624,43 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
-  // 2. Other Flurfunk notifications (hints, unread messages, new topics within 7 days)
+  // 2. Other Flurfunk notifications: Initial incoming messages for the recipient
+  // (Once Person B has replied or dismissed, the message must NO LONGER be displayed on the dashboard)
   const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
   const otherNotifications = notesList
     .filter((note: any) => {
       if (note.category === 'ANKUENDIGUNG') return false;
       if (note.isArchived || note.status === 'DONE' || note.isExpired) return false;
       if (note.expiresAt && new Date(note.expiresAt).getTime() <= Date.now()) return false;
+
+      // Sender (Person A) never sees incoming banner on their own dashboard
       if (note.authorId && user?.id && note.authorId === user.id) return false;
+
+      // Dismissed notes are not displayed as banner
       if (dismissedTopicIds.includes(note.id)) return false;
 
-      const isResident = user?.role === 'BEWOHNER';
+      // Privacy check for residents
       if (isResident) {
-        if (note.residentId === user?.id && note.hasUnreadResponse) return true;
         if (note.isPrivate && note.residentId !== user?.id) return false;
       }
 
-      if (note.hasUnreadResponse) return true;
+      // If Person B (the recipient/user) has written a reply to this note,
+      // it must NO LONGER be displayed on the dashboard!
+      const userHasReplied = (note.messages || []).some((m: any) => m.authorId === user?.id);
+      const staffHasReplied = !isResident && (
+        (note.messages || []).some((m: any) => m.authorRole === 'BETREUER' || m.authorRole === 'ADMIN') ||
+        Boolean(note.caregiverResponse)
+      );
+      if (userHasReplied || staffHasReplied) {
+        return false;
+      }
 
+      // Initial direct/private note for the recipient is always shown until replied or dismissed
+      if (note.isPrivate) {
+        return true;
+      }
+
+      // Initial public notes within 7 days or if pinned
       const age = note.createdAt ? Date.now() - new Date(note.createdAt).getTime() : Infinity;
       return note.isPinned || age < SEVEN_DAYS_MS;
     })
@@ -620,6 +668,64 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
       if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
+
+  // 3. Notes with new unread replies in active conversations
+  // (From the moment a reply is written, only a hint in the Flurfunk pill indicates new replies)
+  const notesWithNewReplies = notesList.filter((note: any) => {
+    if (note.category === 'ANKUENDIGUNG') return false;
+    if (note.isArchived || note.status === 'DONE' || note.isExpired) return false;
+    if (!note.messages || note.messages.length === 0) return false;
+
+    // Check if the current user is a participant or recipient in this conversation
+    const isAuthor = note.authorId === user?.id;
+    const isTargetResident = isResident && note.residentId === user?.id;
+    const isStaffMember = !isResident;
+    const hasUserReplied = (note.messages || []).some((m: any) => m.authorId === user?.id);
+
+    const isRelevant = isAuthor || isTargetResident || hasUserReplied || (isStaffMember && note.isPrivate);
+    if (!isRelevant) return false;
+
+    // The latest message in the thread
+    const lastMsg = note.messages[note.messages.length - 1];
+
+    // Must be from someone else!
+    const isFromOther =
+      lastMsg.authorId !== user?.id &&
+      (!isStaffMember || (lastMsg.authorRole !== 'BETREUER' && lastMsg.authorRole !== 'ADMIN'));
+    if (!isFromOther) return false;
+
+    // Check if unread (either locally or on server)
+    const lastRead = lastReadMap[note.id];
+    const isUnreadLocally = !lastRead || new Date(lastMsg.createdAt).getTime() > new Date(lastRead).getTime();
+    const isUnreadServer = note.hasUnreadResponse && note.respondedByUserId !== user?.id;
+
+    return isUnreadLocally || isUnreadServer;
+  });
+
+  const handleOpenFlurfunkPill = async () => {
+    if (notesWithNewReplies.length > 0) {
+      const targetNote = notesWithNewReplies[0];
+      if (user?.id) {
+        const updatedRead = { ...lastReadMap, [targetNote.id]: new Date().toISOString() };
+        setLastReadMap(updatedRead);
+        try {
+          localStorage.setItem(`flurfunk_last_read_${user.id}`, JSON.stringify(updatedRead));
+        } catch (e) {}
+      }
+      if (targetNote.hasUnreadResponse) {
+        try {
+          await api.notes.markRead(targetNote.id);
+          setNotesList((prev) =>
+            prev.map((n) => (n.id === targetNote.id ? { ...n, hasUnreadResponse: false } : n))
+          );
+        } catch (e) {}
+      }
+      try {
+        sessionStorage.setItem('flurfunk_focus_note_id', targetNote.id);
+      } catch {}
+    }
+    setCurrentTab('notes');
+  };
 
   // Displayed notifications: ALL active announcements are ALWAYS displayed at the top,
   // accompanied by other notifications
@@ -826,11 +932,16 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             <MessageSquare className="w-3.5 h-3.5 stroke-[2]" />
             <span>Flurfunk</span>
           </span>
-          {openNotes.length > 0 && (
+          {notesWithNewReplies.length > 0 ? (
+            <span className="text-xs text-rose-200 font-bold bg-rose-500/20 border border-rose-500/40 px-2.5 py-0.5 rounded-full font-sans flex items-center gap-1.5 animate-pulse">
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+              {notesWithNewReplies.length} {notesWithNewReplies.length === 1 ? 'neue Antwort' : 'neue Antworten'}
+            </span>
+          ) : openNotes.length > 0 ? (
             <span className="text-xs text-rose-300 font-semibold bg-rose-500/15 border border-rose-500/30 px-2.5 py-0.5 rounded-full font-mono">
               {openNotes.length} offen
             </span>
-          )}
+          ) : null}
         </div>
 
         <h3 className="text-xl font-semibold text-white mb-1.5 font-sans tracking-tight">
@@ -923,16 +1034,36 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           {formattedToday} — Schön, dass du da bist.
         </p>
 
-        {openNotes.length > 0 && (
+        {(notesWithNewReplies.length > 0 || openNotes.length > 0) && (
           <div className="mt-4">
-            <button
-              type="button"
-              onClick={() => setCurrentTab('notes')}
-              className="px-3.5 py-1.5 rounded-2xl bg-surface-card border border-rose-500/30 text-xs text-rose-300 font-medium hover:bg-surface-elevated transition-colors flex items-center gap-2 cursor-pointer shadow-sm"
-            >
-              <MessageSquare className="w-4 h-4 stroke-[2]" />
-              <span>{openNotes.length} {openNotes.length === 1 ? 'Eintrag' : 'Einträge'} im Flurfunk</span>
-            </button>
+            {notesWithNewReplies.length > 0 ? (
+              <button
+                type="button"
+                onClick={handleOpenFlurfunkPill}
+                className="px-4 py-2 rounded-2xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/50 text-xs text-rose-200 font-semibold transition-all flex items-center gap-2 cursor-pointer shadow-md shadow-rose-500/10 group animate-in fade-in"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                </span>
+                <MessageSquare className="w-4 h-4 text-rose-300 stroke-[2.2]" />
+                <span>
+                  {notesWithNewReplies.length === 1
+                    ? '1 neue Antwort im Flurfunk'
+                    : `${notesWithNewReplies.length} neue Antworten im Flurfunk`}
+                </span>
+                <ArrowRight className="w-3.5 h-3.5 text-rose-400 group-hover:translate-x-0.5 transition-transform ml-0.5" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setCurrentTab('notes')}
+                className="px-3.5 py-1.5 rounded-2xl bg-surface-card border border-rose-500/30 text-xs text-rose-300 font-medium hover:bg-surface-elevated transition-colors flex items-center gap-2 cursor-pointer shadow-sm"
+              >
+                <MessageSquare className="w-4 h-4 stroke-[2]" />
+                <span>{openNotes.length} {openNotes.length === 1 ? 'Eintrag' : 'Einträge'} im Flurfunk</span>
+              </button>
+            )}
           </div>
         )}
       </div>

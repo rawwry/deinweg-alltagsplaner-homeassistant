@@ -547,7 +547,9 @@ router.post('/:id/messages', requireAuth, async (req: Request, res: Response) =>
       await prisma.caregiverNote.update({
         where: { id },
         data: {
-          hasUnreadResponse: false,
+          hasUnreadResponse: true,
+          respondedByUserId: req.user!.id,
+          respondedAt: new Date(),
           status: note.status === 'DONE' ? 'OPEN' : note.status,
         },
       });
@@ -590,7 +592,7 @@ router.patch('/:id/read', requireAuth, async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Notiz nicht gefunden.' });
     }
 
-    if (req.user!.role === 'BEWOHNER' && note.residentId !== req.user!.id) {
+    if (req.user!.role === 'BEWOHNER' && note.residentId !== req.user!.id && note.authorId !== req.user!.id) {
       return res.status(403).json({ error: 'Zugriff verweigert.' });
     }
 

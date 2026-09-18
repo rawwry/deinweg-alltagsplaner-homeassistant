@@ -3,6 +3,17 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.8] - 2026-09-18
+
+### Neu & Verbessert
+- **Bereinigter Gesprächsverlauf ohne Rollen-Badges (`CaregiverNotesView.tsx`)**:
+  - **Keine „Betreuer“- und „Bewohner“-Badges mehr**: Sämtliche Rollenkennzeichnungen (`• Betreuer`, `• Rückmeldung` etc.) wurden aus den Chat-Sprechblasen und Beitrags-Headern im Gesprächsverlauf restlos entfernt. Es werden nur noch die reinen Namen der Absender (und ggf. der Ziel-Empfänger bei Direktnachrichten) übersichtlich dargestellt.
+- **Logisches Benachrichtigungssystem für Direkt- & Flurfunk-Nachrichten (`DashboardHub.tsx`, `CaregiverNotesView.tsx`, `routes.ts`)**:
+  - **Erstnachricht auf dem Home-Dashboard der empfangenden Person**: Wird erstmals eine Nachricht von Person A an Person B geschickt, erscheint diese als prominentes Benachrichtigungsbanner auf dem Home-Dashboard der empfangenden Person. Der Sender sieht seine eigene Nachricht dort nicht als Benachrichtigung.
+  - **Automatisches Verschwinden nach Antwort**: Sobald Person B auf die Nachricht geklickt und eine Antwort verfasst hat, verschwindet die Nachricht dauerhaft aus den Benachrichtigungsbannern des Home-Dashboards.
+  - **Dezenter Hinweis auf neue Antworten in der Flurfunk-Pille**: Ab dem Moment, in dem eine Antwort verfasst wurde, erscheinen nachfolgende Antworten anderer Teilnehmer nicht mehr als störende Groß-Banner auf dem Dashboard, sondern als dezenter, animierter Hinweis in der Flurfunk-Pille (z. B. *„1 neue Antwort im Flurfunk“* mit pulsierendem Indikator).
+  - **Direkter Absprung & Gelesen-Status**: Ein Klick auf die Flurfunk-Pille führt unmittelbar in den Flurfunk, fokussiert die betreffende Konversation, markiert die Antwort als gelesen und setzt die Pille wieder auf den Normalzustand zurück.
+
 ## [0.1.7] - 2026-09-18
 
 ### Neu & Verbessert

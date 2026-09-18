@@ -127,11 +127,28 @@ export const CaregiverNotesView: React.FC = () => {
       const sorted = sortNotes(data);
       setNotes(sorted);
 
-      // Auto-mark unread notes as read for resident
-      if (!isStaff) {
-        data.filter(n => n.hasUnreadResponse && n.residentId === user?.id).forEach(n => {
+      // Auto-mark unread notes as read
+      data
+        .filter((n) => n.hasUnreadResponse && (!n.respondedByUserId || n.respondedByUserId !== user?.id))
+        .forEach((n) => {
           api.notes.markRead(n.id).catch(() => {});
         });
+
+      if (user?.id) {
+        try {
+          const lastRead: Record<string, string> = JSON.parse(
+            localStorage.getItem(`flurfunk_last_read_${user.id}`) || '{}'
+          );
+          data.forEach((n) => {
+            const lastMsg = n.messages && n.messages.length > 0 ? n.messages[n.messages.length - 1] : null;
+            if (lastMsg) {
+              lastRead[n.id] = new Date(lastMsg.createdAt).toISOString();
+            }
+          });
+          localStorage.setItem(`flurfunk_last_read_${user.id}`, JSON.stringify(lastRead));
+        } catch (e) {
+          console.error(e);
+        }
       }
 
       // Check if arriving from DashboardHub with a focused note ID
@@ -278,6 +295,20 @@ export const CaregiverNotesView: React.FC = () => {
       setNotes((prev) => prev.map((n) => (n.id === noteId ? updated : n)));
       setThreadReplyInputs((prev) => ({ ...prev, [noteId]: '' }));
       setExpandedNoteIds((prev) => new Set(prev).add(noteId));
+
+      if (user?.id) {
+        try {
+          const dismissed: string[] = JSON.parse(localStorage.getItem(`flurfunk_dismissed_${user.id}`) || '[]');
+          if (!dismissed.includes(noteId)) {
+            localStorage.setItem(`flurfunk_dismissed_${user.id}`, JSON.stringify([...dismissed, noteId]));
+          }
+          const lastRead: Record<string, string> = JSON.parse(localStorage.getItem(`flurfunk_last_read_${user.id}`) || '{}');
+          lastRead[noteId] = new Date().toISOString();
+          localStorage.setItem(`flurfunk_last_read_${user.id}`, JSON.stringify(lastRead));
+        } catch (e) {
+          console.error(e);
+        }
+      }
     } catch (err: any) {
       alert(`Fehler beim Senden der Antwort: ${err.message || err}`);
     } finally {
@@ -975,11 +1006,6 @@ export const CaregiverNotesView: React.FC = () => {
                                       → {note.residentName}
                                     </span>
                                   )}
-                                  {(note.authorRole === 'BETREUER' || note.authorRole === 'ADMIN') && (
-                                    <span className="text-[10px] text-rose-400/80 font-medium shrink-0">
-                                      • Betreuer
-                                    </span>
-                                  )}
                                 </div>
                                 <span className="text-[10px] font-mono text-slate-400 shrink-0">
                                   {formatGermanDateTime(note.createdAt)}
@@ -1010,11 +1036,6 @@ export const CaregiverNotesView: React.FC = () => {
                                           <span className={`text-xs font-semibold truncate ${isStaffMsg ? 'text-rose-300' : 'text-slate-200'}`}>
                                             {msg.authorName}
                                           </span>
-                                          {isStaffMsg && (
-                                            <span className="text-[10px] text-rose-400/80 font-medium shrink-0">
-                                              • Betreuer
-                                            </span>
-                                          )}
                                         </div>
                                         <span className="text-[10px] font-mono text-slate-400 shrink-0">
                                           {formatGermanDateTime(msg.createdAt)}
@@ -1048,9 +1069,6 @@ export const CaregiverNotesView: React.FC = () => {
                                     <div className="flex items-center gap-1.5 min-w-0">
                                       <span className="text-xs font-semibold text-rose-300 truncate">
                                         {note.respondedByName || 'Betreuer'}
-                                      </span>
-                                      <span className="text-[10px] text-rose-400/80 font-medium shrink-0">
-                                        • Rückmeldung
                                       </span>
                                     </div>
                                     {note.respondedAt && (
