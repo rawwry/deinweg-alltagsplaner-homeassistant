@@ -475,22 +475,26 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
     if (!activeLocationId) return;
 
     let isMounted = true;
-    const pollChores = async () => {
+    const pollRealtimeData = async () => {
       try {
-        const res = await api.chores.today(activeLocationId);
-        if (isMounted && res) {
-          setTodayChores(res);
+        const [choresRes, notesRes] = await Promise.all([
+          api.chores.today(activeLocationId).catch(() => null),
+          api.notes.list(activeLocationId).catch(() => null),
+        ]);
+        if (isMounted) {
+          if (choresRes) setTodayChores(choresRes);
+          if (notesRes) setNotesList(notesRes);
         }
       } catch {
         // ignore background poll errors
       }
     };
 
-    const interval = setInterval(pollChores, 5000);
+    const interval = setInterval(pollRealtimeData, 5000);
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        pollChores();
+        pollRealtimeData();
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -572,37 +576,56 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
     REST: 'Restmülltonne',
   };
 
-  // Filter new/active Flurfunk topics for both Caregivers and Residents
+  // 1. Active Announcements (ANKUENDIGUNG) are ALWAYS displayed at the top as long as they are valid
+  const activeAnnouncements = notesList
+    .filter((note: any) => {
+      if (note.category !== 'ANKUENDIGUNG') return false;
+      // Must not be archived
+      if (note.isArchived) return false;
+      // Must not be marked DONE
+      if (note.status === 'DONE') return false;
+      // Must not be expired (check both isExpired flag and expiresAt timestamp)
+      if (note.isExpired) return false;
+      if (note.expiresAt && new Date(note.expiresAt).getTime() <= Date.now()) return false;
+      return true;
+    })
+    .sort((a: any, b: any) => {
+      if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
+  // 2. Other Flurfunk notifications (hints, unread messages, new topics within 7 days)
   const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
-  const newFlurfunkNotifications = notesList.filter((note: any) => {
-    if (note.isArchived || note.status === 'DONE' || note.isExpired) return false;
-    // Do not alert authors about their own postings
-    if (note.authorId && user?.id && note.authorId === user.id) return false;
-
-    const isResident = user?.role === 'BEWOHNER';
-    const isAnnouncement = note.category === 'ANKUENDIGUNG';
-
-    // Announcements cannot be dismissed - they stay visible until caregiver removes them or deadline expires
-    if (!isAnnouncement) {
+  const otherNotifications = notesList
+    .filter((note: any) => {
+      if (note.category === 'ANKUENDIGUNG') return false;
+      if (note.isArchived || note.status === 'DONE' || note.isExpired) return false;
+      if (note.expiresAt && new Date(note.expiresAt).getTime() <= Date.now()) return false;
+      if (note.authorId && user?.id && note.authorId === user.id) return false;
       if (dismissedTopicIds.includes(note.id)) return false;
-    }
 
-    // For Residents:
-    if (isResident) {
-      if (note.residentId === user?.id && note.hasUnreadResponse) return true;
-      if (note.isPrivate && note.residentId !== user?.id) return false;
-    }
+      const isResident = user?.role === 'BEWOHNER';
+      if (isResident) {
+        if (note.residentId === user?.id && note.hasUnreadResponse) return true;
+        if (note.isPrivate && note.residentId !== user?.id) return false;
+      }
 
-    // Unread caregiver response or direct message
-    if (note.hasUnreadResponse) return true;
+      if (note.hasUnreadResponse) return true;
 
-    // Time window: either pinned or created within last 7 days
-    const age = note.createdAt ? Date.now() - new Date(note.createdAt).getTime() : Infinity;
-    return note.isPinned || age < SEVEN_DAYS_MS;
-  });
+      const age = note.createdAt ? Date.now() - new Date(note.createdAt).getTime() : Infinity;
+      return note.isPinned || age < SEVEN_DAYS_MS;
+    })
+    .sort((a: any, b: any) => {
+      if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
 
-  const displayedNotifications = newFlurfunkNotifications.slice(0, 3);
-  const remainingNotificationsCount = newFlurfunkNotifications.length - displayedNotifications.length;
+  // Displayed notifications: ALL active announcements are ALWAYS displayed at the top,
+  // accompanied by other notifications
+  const otherDisplayCount = Math.max(1, 3 - activeAnnouncements.length);
+  const displayedOtherNotifications = otherNotifications.slice(0, otherDisplayCount);
+  const displayedNotifications = [...activeAnnouncements, ...displayedOtherNotifications];
+  const remainingNotificationsCount = otherNotifications.length - displayedOtherNotifications.length;
 
   const getBannerConfig = (note: any) => {
     // 1. ANKUENDIGUNG is always RED/ROSE with AlertCircle
@@ -706,6 +729,181 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
     };
   };
 
+  const wasteBentoCard = (
+    <div key="bento-waste" className="bento-card rounded-[2.5rem] p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
+      <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-yellow-500/10 rounded-full blur-3xl pointer-events-none" />
+
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-yellow-500/15 border border-yellow-500/30 text-yellow-300 text-xs font-semibold uppercase tracking-wider font-sans whitespace-nowrap">
+            <Trash2 className="w-3.5 h-3.5 stroke-[2]" />
+            <span>Abfall-Radar</span>
+          </span>
+        </div>
+
+        <h3 className="text-xl font-semibold text-white mb-1.5 font-sans tracking-tight">
+          {nextWaste ? `Nächste Abholung: ${wasteTypeNames[nextWaste.wasteType] || 'Abfalltermin'}` : 'Keine anstehende Abfuhr'}
+        </h3>
+        <p className="text-xs text-slate-300 mb-4 leading-relaxed font-sans">
+          {nextWaste
+            ? daysUntilWaste === 1
+              ? 'Bitte heute Abend nach dem Abendessen vor das Tor stellen.'
+              : daysUntilWaste === 0
+              ? 'Steht heute zur Abholung bereit!'
+              : `Nächste Leerung am ${formatGermanDate(nextWaste.date, { withWeekday: true })}.`
+            : 'Aktuell steht in den nächsten Tagen keine Abholung an.'}
+        </p>
+
+        {/* Visual Authentic Wheelie Bins Showcase */}
+        <div className="p-4 rounded-2xl bg-surface-elevated/70 border border-surface-border mb-4 flex items-center justify-around gap-2">
+          {/* Gelber Sack / Wertstoff */}
+          <div
+            className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
+              nextWaste?.wasteType === 'YELLOW'
+                ? 'bg-yellow-500/15 border border-yellow-500/40 scale-105 shadow-md shadow-yellow-500/10'
+                : 'opacity-40 hover:opacity-75'
+            }`}
+          >
+            <WasteWheelieBin type="YELLOW" size="sm" animate={nextWaste?.wasteType === 'YELLOW'} />
+            <span className="text-[10px] font-semibold text-yellow-300 mt-1">Gelb</span>
+          </div>
+
+          {/* Biotonne */}
+          <div
+            className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
+              nextWaste?.wasteType === 'BIO'
+                ? 'bg-emerald-500/15 border border-emerald-500/40 scale-105 shadow-md shadow-emerald-500/10'
+                : 'opacity-40 hover:opacity-75'
+            }`}
+          >
+            <WasteWheelieBin type="BIO" size="sm" animate={nextWaste?.wasteType === 'BIO'} />
+            <span className="text-[10px] font-semibold text-emerald-300 mt-1">Bio</span>
+          </div>
+
+          {/* Altpapier */}
+          <div
+            className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
+              nextWaste?.wasteType === 'PAPER'
+                ? 'bg-sky-500/15 border border-sky-500/40 scale-105 shadow-md shadow-sky-500/10'
+                : 'opacity-40 hover:opacity-75'
+            }`}
+          >
+            <WasteWheelieBin type="PAPER" size="sm" animate={nextWaste?.wasteType === 'PAPER'} />
+            <span className="text-[10px] font-semibold text-sky-300 mt-1">Papier</span>
+          </div>
+
+          {/* Restmüll */}
+          <div
+            className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
+              nextWaste?.wasteType === 'REST'
+                ? 'bg-slate-500/15 border border-slate-500/40 scale-105 shadow-md shadow-slate-500/10'
+                : 'opacity-40 hover:opacity-75'
+            }`}
+          >
+            <WasteWheelieBin type="REST" size="sm" animate={nextWaste?.wasteType === 'REST'} />
+            <span className="text-[10px] font-semibold text-slate-300 mt-1">Rest</span>
+          </div>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => setCurrentTab('waste')}
+        className="w-full py-2.5 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer font-sans"
+      >
+        <span>Abfallkalender öffnen</span>
+        <ArrowRight className="w-3.5 h-3.5 text-rose-400" />
+      </button>
+    </div>
+  );
+
+  const flurfunkBentoCard = (
+    <div key="bento-flurfunk" className="bento-card rounded-[2.5rem] p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-semibold uppercase tracking-wider font-sans whitespace-nowrap">
+            <MessageSquare className="w-3.5 h-3.5 stroke-[2]" />
+            <span>Flurfunk</span>
+          </span>
+          {openNotes.length > 0 && (
+            <span className="text-xs text-rose-300 font-semibold bg-rose-500/15 border border-rose-500/30 px-2.5 py-0.5 rounded-full font-mono">
+              {openNotes.length} offen
+            </span>
+          )}
+        </div>
+
+        <h3 className="text-xl font-semibold text-white mb-1.5 font-sans tracking-tight">
+          Mitteilungen & Notizen
+        </h3>
+        <p className="text-xs text-slate-300 mb-4 leading-relaxed font-sans">
+          Wichtige Absprachen, Termine und Wünsche für alle WG-Mitglieder.
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+          {notesList && notesList.length > 0 ? (
+            notesList.slice(0, 2).map((note: any, idx: number) => {
+              let cardClass = 'bg-sky-500/10 border-sky-500/30 text-sky-200 hover:border-sky-400/60';
+              let headerClass = 'text-sky-300 font-medium';
+              let categoryLabel = 'Mitteilung';
+              let CatIcon = MessageSquare;
+
+              if (note.category === 'ANKUENDIGUNG') {
+                cardClass = 'bg-rose-500/10 border-rose-500/30 text-rose-200 hover:border-rose-400/60';
+                headerClass = 'text-rose-300 font-medium';
+                categoryLabel = 'Ankündigung';
+                CatIcon = AlertCircle;
+              } else if (note.category === 'HINWEIS') {
+                cardClass = 'bg-amber-500/10 border-amber-500/30 text-amber-200 hover:border-amber-400/60';
+                headerClass = 'text-amber-300 font-medium';
+                categoryLabel = 'Hinweis';
+                CatIcon = Lightbulb;
+              }
+
+              return (
+                <div
+                  key={note.id || idx}
+                  onClick={() => handleOpenTopic(note)}
+                  className={`p-4 rounded-2xl border shadow-inner transition-all hover:scale-[1.01] cursor-pointer ${cardClass}`}
+                >
+                  <div className="flex items-center justify-between text-xs font-semibold mb-1.5">
+                    <span className={`flex items-center gap-1.5 truncate ${headerClass}`}>
+                      <CatIcon className="w-3.5 h-3.5 shrink-0 stroke-[2.25]" />
+                      <span className="truncate">{categoryLabel} · {note.authorName || 'WG-Mitglied'}</span>
+                    </span>
+                    <span className="text-[10px] font-mono opacity-60 shrink-0 ml-1">
+                      {note.createdAt ? formatGermanDate(note.createdAt) : 'Aktuell'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-200 leading-relaxed font-medium line-clamp-3">
+                    {note.content || note.title}
+                  </p>
+                </div>
+              );
+            })
+          ) : (
+            <div className="sm:col-span-2 p-4 rounded-2xl bg-surface-elevated/60 border border-surface-border text-center">
+              <p className="text-xs text-slate-300 font-medium">
+                Alles ruhig im Flurfunk! Noch keine Einträge vorhanden.
+              </p>
+              <p className="text-[11px] text-slate-400 mt-1">
+                Trage einen Wunsch, eine Frage oder eine Erinnerung für die Gruppe ein.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => setCurrentTab('notes')}
+        className="w-full py-2.5 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer font-sans"
+      >
+        <span>Zum Flurfunk</span>
+        <ArrowRight className="w-3.5 h-3.5 text-rose-400" />
+      </button>
+    </div>
+  );
+
   return (
     <div className="space-y-7 max-w-6xl mx-auto pb-10">
       {/* Top Welcome Headline (Centered) */}
@@ -767,6 +965,11 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                       <span className="text-[11px] text-slate-300 font-medium">
                         von <strong className="text-white font-semibold">{config.senderName}</strong>
                       </span>
+                      {isAnnouncement && note.expiresAt && (
+                        <span className="text-[10px] text-rose-300/90 font-mono bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 rounded-md">
+                          Gültig bis {formatGermanDate(note.expiresAt)}
+                        </span>
+                      )}
                     </div>
 
                     {/* Title with NO quotation marks */}
@@ -1258,178 +1461,18 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           </button>
         </div>
 
-        {/* Bento 3: Visual Waste Radar (Clean header without confusing negative day counter) */}
-        <div className="bento-card rounded-[2.5rem] p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
-          <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-yellow-500/10 rounded-full blur-3xl pointer-events-none" />
-
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-yellow-500/15 border border-yellow-500/30 text-yellow-300 text-xs font-semibold uppercase tracking-wider font-sans whitespace-nowrap">
-                <Trash2 className="w-3.5 h-3.5 stroke-[2]" />
-                <span>Abfall-Radar</span>
-              </span>
-            </div>
-
-            <h3 className="text-xl font-semibold text-white mb-1.5 font-sans tracking-tight">
-              {nextWaste ? `Nächste Abholung: ${wasteTypeNames[nextWaste.wasteType] || 'Abfalltermin'}` : 'Keine anstehende Abfuhr'}
-            </h3>
-            <p className="text-xs text-slate-300 mb-4 leading-relaxed font-sans">
-              {nextWaste
-                ? daysUntilWaste === 1
-                  ? 'Bitte heute Abend nach dem Abendessen vor das Tor stellen.'
-                  : daysUntilWaste === 0
-                  ? 'Steht heute zur Abholung bereit!'
-                  : `Nächste Leerung am ${formatGermanDate(nextWaste.date, { withWeekday: true })}.`
-                : 'Aktuell steht in den nächsten Tagen keine Abholung an.'}
-            </p>
-
-            {/* Visual Authentic Wheelie Bins Showcase */}
-            <div className="p-4 rounded-2xl bg-surface-elevated/70 border border-surface-border mb-4 flex items-center justify-around gap-2">
-              {/* Gelber Sack / Wertstoff */}
-              <div
-                className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
-                  nextWaste?.wasteType === 'YELLOW'
-                    ? 'bg-yellow-500/15 border border-yellow-500/40 scale-105 shadow-md shadow-yellow-500/10'
-                    : 'opacity-40 hover:opacity-75'
-                }`}
-              >
-                <WasteWheelieBin type="YELLOW" size="sm" animate={nextWaste?.wasteType === 'YELLOW'} />
-                <span className="text-[10px] font-semibold text-yellow-300 mt-1">Gelb</span>
-              </div>
-
-              {/* Biotonne */}
-              <div
-                className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
-                  nextWaste?.wasteType === 'BIO'
-                    ? 'bg-emerald-500/15 border border-emerald-500/40 scale-105 shadow-md shadow-emerald-500/10'
-                    : 'opacity-40 hover:opacity-75'
-                }`}
-              >
-                <WasteWheelieBin type="BIO" size="sm" animate={nextWaste?.wasteType === 'BIO'} />
-                <span className="text-[10px] font-semibold text-emerald-300 mt-1">Bio</span>
-              </div>
-
-              {/* Altpapier */}
-              <div
-                className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
-                  nextWaste?.wasteType === 'PAPER'
-                    ? 'bg-sky-500/15 border border-sky-500/40 scale-105 shadow-md shadow-sky-500/10'
-                    : 'opacity-40 hover:opacity-75'
-                }`}
-              >
-                <WasteWheelieBin type="PAPER" size="sm" animate={nextWaste?.wasteType === 'PAPER'} />
-                <span className="text-[10px] font-semibold text-sky-300 mt-1">Papier</span>
-              </div>
-
-              {/* Restmüll */}
-              <div
-                className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
-                  nextWaste?.wasteType === 'REST'
-                    ? 'bg-slate-500/15 border border-slate-500/40 scale-105 shadow-md shadow-slate-500/10'
-                    : 'opacity-40 hover:opacity-75'
-                }`}
-              >
-                <WasteWheelieBin type="REST" size="sm" animate={nextWaste?.wasteType === 'REST'} />
-                <span className="text-[10px] font-semibold text-slate-300 mt-1">Rest</span>
-              </div>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setCurrentTab('waste')}
-            className="w-full py-2.5 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer font-sans"
-          >
-            <span>Abfallkalender öffnen</span>
-            <ArrowRight className="w-3.5 h-3.5 text-rose-400" />
-          </button>
-        </div>
-
-        {/* Bento 4: WG Bulletin Sticky Board (Flurfunk) */}
-        <div className="bento-card rounded-[2.5rem] p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-semibold uppercase tracking-wider font-sans whitespace-nowrap">
-                <MessageSquare className="w-3.5 h-3.5 stroke-[2]" />
-                <span>Flurfunk</span>
-              </span>
-              {openNotes.length > 0 && (
-                <span className="text-xs text-rose-300 font-semibold bg-rose-500/15 border border-rose-500/30 px-2.5 py-0.5 rounded-full font-mono">
-                  {openNotes.length} offen
-                </span>
-              )}
-            </div>
-
-            <h3 className="text-xl font-semibold text-white mb-1.5 font-sans tracking-tight">
-              Mitteilungen & Notizen
-            </h3>
-            <p className="text-xs text-slate-300 mb-4 leading-relaxed font-sans">
-              Wichtige Absprachen, Termine und Wünsche für alle WG-Mitglieder.
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-              {notesList && notesList.length > 0 ? (
-                notesList.slice(0, 2).map((note: any, idx: number) => {
-                  let cardClass = 'bg-sky-500/10 border-sky-500/30 text-sky-200 hover:border-sky-400/60';
-                  let headerClass = 'text-sky-300 font-medium';
-                  let categoryLabel = 'Mitteilung';
-                  let CatIcon = MessageSquare;
-
-                  if (note.category === 'ANKUENDIGUNG') {
-                    cardClass = 'bg-rose-500/10 border-rose-500/30 text-rose-200 hover:border-rose-400/60';
-                    headerClass = 'text-rose-300 font-medium';
-                    categoryLabel = 'Ankündigung';
-                    CatIcon = AlertCircle;
-                  } else if (note.category === 'HINWEIS') {
-                    cardClass = 'bg-amber-500/10 border-amber-500/30 text-amber-200 hover:border-amber-400/60';
-                    headerClass = 'text-amber-300 font-medium';
-                    categoryLabel = 'Hinweis';
-                    CatIcon = Lightbulb;
-                  }
-
-                  return (
-                    <div
-                      key={note.id || idx}
-                      onClick={() => handleOpenTopic(note)}
-                      className={`p-4 rounded-2xl border shadow-inner transition-all hover:scale-[1.01] cursor-pointer ${cardClass}`}
-                    >
-                      <div className="flex items-center justify-between text-xs font-semibold mb-1.5">
-                        <span className={`flex items-center gap-1.5 truncate ${headerClass}`}>
-                          <CatIcon className="w-3.5 h-3.5 shrink-0 stroke-[2.25]" />
-                          <span className="truncate">{categoryLabel} · {note.authorName || 'WG-Mitglied'}</span>
-                        </span>
-                        <span className="text-[10px] font-mono opacity-60 shrink-0 ml-1">
-                          {note.createdAt ? formatGermanDate(note.createdAt) : 'Aktuell'}
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-200 leading-relaxed font-medium line-clamp-3">
-                        {note.content || note.title}
-                      </p>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="sm:col-span-2 p-4 rounded-2xl bg-surface-elevated/60 border border-surface-border text-center">
-                  <p className="text-xs text-slate-300 font-medium">
-                    Alles ruhig im Flurfunk! Noch keine Einträge vorhanden.
-                  </p>
-                  <p className="text-[11px] text-slate-400 mt-1">
-                    Trage einen Wunsch, eine Frage oder eine Erinnerung für die Gruppe ein.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setCurrentTab('notes')}
-            className="w-full py-2.5 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer font-sans"
-          >
-            <span>Zum Flurfunk</span>
-            <ArrowRight className="w-3.5 h-3.5 text-rose-400" />
-          </button>
-        </div>
+        {/* Bento 3 & 4: Flurfunk and Waste Radar (Flurfunk is placed above Waste Radar for residents) */}
+        {user?.role === 'BEWOHNER' ? (
+          <>
+            {flurfunkBentoCard}
+            {wasteBentoCard}
+          </>
+        ) : (
+          <>
+            {wasteBentoCard}
+            {flurfunkBentoCard}
+          </>
+        )}
       </div>
 
       {/* Compact WG Areas Quick Access Bento Dock */}

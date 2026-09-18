@@ -3,6 +3,19 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.6] - 2026-09-18
+
+### Neu & Verbessert
+- **Permanente Ankündigungen oben auf dem Home-Dashboard (`DashboardHub.tsx`)**:
+  - **Garantierte Sichtbarkeit**: Gültige Ankündigungen (`category === 'ANKUENDIGUNG'`) werden für Bewohner (und Betreuer) nun ausnahmslos an oberster Stelle des Home-Dashboards angezeigt, solange diese gültig sind.
+  - **Kein 7-Tage-Ablauf mehr**: Ankündigungen unterliegen nicht mehr dem 7-Tage-Filter für Neuigkeiten, sondern bleiben bis zum Ablaufdatum (`expiresAt`) bzw. bis zur Deaktivierung durch Betreuer dauerhaft präsent.
+  - **Kein Abschneiden im Slice**: Alle aktiven Ankündigungen werden vollständig dargestellt und niemals durch andere Benachrichtigungen verdrängt oder abgeschnitten.
+  - **Gültigkeitsanzeige**: Enthält eine Ankündigung ein Fristdatum (`expiresAt`), wird dieses dezent und übersichtlich im Banner als *„Gültig bis [Datum]“* ausgewiesen.
+  - **Echtzeit-Synchronisierung**: Das Hintergrund-Polling auf dem Dashboard gleicht nun auch Mitteilungen und Ankündigungen alle 5 Sekunden sowie bei Tab-Fokus live ab.
+- **Flurfunk über Abfall-Radar bei Bewohnern (`DashboardHub.tsx`)**:
+  - **Vertauschte Bento-Reihenfolge für Bewohner**: Auf dem Home-Dashboard von Bewohnern ist die Bento-Box *„Flurfunk“* nun vor dem *„Abfall-Radar“* platziert.
+  - **Optimiert für Smartphone-Nutzung**: Auf Mobilgeräten erscheint der interaktive Flurfunk somit direkt über dem Abfallkalender, sodass Bewohner wichtige Absprachen und Notizen sofort sehen, ohne erst am Abfall-Radar vorbeiscrollen zu müssen.
+
 ## [0.1.5] - 2026-09-18
 
 ### Aufgeräumt & Verbessert
