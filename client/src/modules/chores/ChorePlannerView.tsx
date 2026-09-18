@@ -501,9 +501,9 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                 <div
                   key={tmpl.id}
                   className={`rounded-2xl border p-4 sm:p-5 transition-all flex flex-col gap-3 ${
-                    isAllDone
+                    (user?.role === 'BEWOHNER' ? isMyDone : isAllDone)
                       ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-100 shadow-xs'
-                      : isPartiallyDone
+                      : isStaff && isPartiallyDone
                       ? 'bg-indigo-500/10 border-indigo-500/30 text-slate-200 shadow-xs'
                       : isAssigned
                       ? 'bg-surface-elevated/70 hover:bg-surface-elevated border-surface-border hover:border-indigo-500/40 shadow-xs'
@@ -596,9 +596,9 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                         <Check className="w-3.5 h-3.5 text-emerald-400 stroke-[3]" />
                         <span>Erledigt</span>
                       </span>
-                    ) : isPartiallyDone ? (
+                    ) : isStaff && isPartiallyDone ? (
                       <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-bold shrink-0">
-                        <span>{completedCount}/${totalAssignedCount} erledigt</span>
+                        <span>{completedCount}/{totalAssignedCount} erledigt</span>
                       </span>
                     ) : null}
                   </div>
@@ -644,55 +644,53 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                           )}
                         </button>
                       ) : assignedResidents.length > 1 ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (isStaff) {
+                        isStaff ? (
+                          <button
+                            type="button"
+                            onClick={() => {
                               setAssignModal({
                                 isOpen: true,
                                 template: tmpl,
                                 day,
                                 selectedResidentIds: assignedResidents.map((r: any) => r.id),
                               });
-                            }
-                          }}
-                          disabled={!isStaff}
-                          className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
-                            isStaff
-                              ? 'bg-surface-card hover:bg-indigo-600/10 border-surface-border hover:border-indigo-500/40 text-slate-200 hover:text-white cursor-pointer shadow-xs group'
-                              : 'bg-surface-card border-surface-border text-slate-300 cursor-default'
-                          }`}
-                          title={isStaff ? 'Einteilung ändern oder aufheben' : undefined}
-                        >
-                          <div className="flex -space-x-1.5 overflow-hidden shrink-0">
-                            {assignedResidents.slice(0, 3).map((r: any) =>
-                              r.avatarUrl ? (
-                                <img
-                                  key={r.id}
-                                  src={r.avatarUrl}
-                                  alt={r.name}
-                                  className="inline-block h-5 w-5 rounded-full ring-1 ring-surface-card object-cover"
-                                />
-                              ) : (
-                                <div
-                                  key={r.id}
-                                  className="inline-flex h-5 w-5 rounded-full ring-1 ring-surface-card items-center justify-center text-[9px] text-white font-bold"
-                                  style={{ backgroundColor: r.avatarColor || '#6366f1' }}
-                                >
-                                  {r.name.charAt(0).toUpperCase()}
-                                </div>
-                              )
-                            )}
-                          </div>
-                          <span className="truncate max-w-[160px]">
-                            {assignedResidents.map((r: any) => r.name).join(', ')}
-                          </span>
-                          {isStaff && (
+                            }}
+                            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all bg-surface-card hover:bg-indigo-600/10 border-surface-border hover:border-indigo-500/40 text-slate-200 hover:text-white cursor-pointer shadow-xs group"
+                            title="Einteilung ändern oder aufheben"
+                          >
+                            <div className="flex -space-x-1.5 overflow-hidden shrink-0">
+                              {assignedResidents.slice(0, 3).map((r: any) =>
+                                r.avatarUrl ? (
+                                  <img
+                                    key={r.id}
+                                    src={r.avatarUrl}
+                                    alt={r.name}
+                                    className="inline-block h-5 w-5 rounded-full ring-1 ring-surface-card object-cover"
+                                  />
+                                ) : (
+                                  <div
+                                    key={r.id}
+                                    className="inline-flex h-5 w-5 rounded-full ring-1 ring-surface-card items-center justify-center text-[9px] text-white font-bold"
+                                    style={{ backgroundColor: r.avatarColor || '#6366f1' }}
+                                  >
+                                    {r.name.charAt(0).toUpperCase()}
+                                  </div>
+                                )
+                              )}
+                            </div>
+                            <span className="truncate max-w-[160px]">
+                              {assignedResidents.map((r: any) => r.name).join(', ')}
+                            </span>
                             <span className="text-[10px] text-slate-500 group-hover:text-indigo-300 ml-0.5">
                               ✎
                             </span>
-                          )}
-                        </button>
+                          </button>
+                        ) : (
+                          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-indigo-500/20 bg-indigo-500/10 text-indigo-300 text-xs font-semibold cursor-default">
+                            <Users className="w-3.5 h-3.5 text-indigo-400" />
+                            <span>Gemeinschaftsaufgabe</span>
+                          </div>
+                        )
                       ) : assignedResidents.length === 1 ? (
                         (() => {
                           const res = assignedResidents[0];
@@ -766,8 +764,8 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                         </span>
                       )}
 
-                      {/* Right: Progress summary for multi-resident */}
-                      {totalAssignedCount > 1 && (
+                      {/* Right: Progress summary for multi-resident (only staff) */}
+                      {isStaff && totalAssignedCount > 1 && (
                         <span
                           className={`text-[11px] font-bold px-2 py-0.5 rounded-lg shrink-0 ${
                             isAllDone
@@ -782,8 +780,8 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                       )}
                     </div>
 
-                    {/* Resident completion breakdown chips when multiple residents */}
-                    {assignedResidents.length > 0 && (totalAssignedCount > 1 || isAllResidents) && (
+                    {/* Resident completion breakdown chips when multiple residents (only staff) */}
+                    {isStaff && assignedResidents.length > 0 && (totalAssignedCount > 1 || isAllResidents) && (
                       <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-surface-border/30">
                         {assignedResidents.map((r: any) => {
                           const rDone = completedResidentIds.includes(r.id);
@@ -791,25 +789,18 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                             <button
                               key={r.id}
                               type="button"
-                              disabled={!isStaff && user?.id !== r.id}
                               onClick={() => {
-                                if (isStaff || user?.id === r.id) {
-                                  handleToggleChoreInPlan(tmpl, day, assignment, r.id);
-                                }
+                                handleToggleChoreInPlan(tmpl, day, assignment, r.id);
                               }}
                               title={
                                 rDone
-                                  ? `${r.name}: Erledigt${isStaff ? ' (Klicken zum Umschalten)' : ''}`
-                                  : `${r.name}: Offen${isStaff ? ' (Klicken zum Umschalten)' : ''}`
+                                  ? `${r.name}: Erledigt (Klicken zum Umschalten)`
+                                  : `${r.name}: Offen (Klicken zum Umschalten)`
                               }
-                              className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-medium border transition-all ${
+                              className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-medium border transition-all cursor-pointer hover:border-indigo-400/60 ${
                                 rDone
                                   ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-200'
                                   : 'bg-surface-card/80 border-surface-border text-slate-400'
-                              } ${
-                                isStaff || user?.id === r.id
-                                  ? 'cursor-pointer hover:border-indigo-400/60'
-                                  : 'cursor-default'
                               }`}
                             >
                               <span

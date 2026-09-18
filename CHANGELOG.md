@@ -3,6 +3,16 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.5] - 2026-09-18
+
+### Aufgeräumt & Verbessert
+- **Fokusierte & ruhige Aufgabenansicht für Bewohner (`ChorePlannerView.tsx`)**:
+  - **Mitbewohner-Details entfernt**: In der Aufgabenübersicht werden Mitbewohner und deren individueller Bearbeitungsstand (Name, Status-Dot, Haken) für Bewohner vollständig ausgeblendet. Die Aufgabenkarten wirken dadurch ruhig, klar und nicht mehr überladen.
+  - **Keine irritierenden Fortschrittszahlen**: Die Zähleranzeige (z. B. `0/4 erledigt`) ist für Bewohner nicht mehr sichtbar, sodass Bewohner sich voll und ganz auf ihre eigene Aufgabe konzentrieren können.
+  - **Kompakte Gemeinschaftsaufgabe-Pille**: Bei mehreren zugewiesenen Bewohnern wird für Bewohner statt einer langen Namensauflistung eine dezente, statische Kennzeichnung (`Gemeinschaftsaufgabe` bzw. `Alle Bewohner`) angezeigt.
+  - **Direktes Feedback beim Abhaken**: Die Aufgabenkarte eines Bewohners färbt sich nun sofort grün (`bg-emerald-500/15`) mit durchgestrichenem Titel, sobald der Bewohner seine Aufgabe als erledigt abhakt – unabhängig davon, ob andere Mitbewohner ihren Teil noch offen haben.
+  - **Volle Transparenz für Betreuer bleibt erhalten**: Betreuer (`isStaff`) behalten weiterhin die vollständige Detailansicht inklusive Zähler, Zuweisungs-Editor und Einzelbewohner-Chips zum Nachvollziehen und Umschalten des Bearbeitungsstands.
+
 ## [0.1.4] - 2026-09-18
 
 ### Behoben & Verbessert
