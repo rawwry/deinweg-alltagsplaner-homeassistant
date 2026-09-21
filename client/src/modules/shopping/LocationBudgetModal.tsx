@@ -42,6 +42,7 @@ export const LocationBudgetModal: React.FC<LocationBudgetModalProps> = ({
   const [isLoading, setIsLoading] = useState(true);
 
   // Caregiver receipt form state
+  const [weeklyBudgetInput, setWeeklyBudgetInput] = useState('');
   const [actualSpentInput, setActualSpentInput] = useState('');
   const [receiptNoteInput, setReceiptNoteInput] = useState('');
   const [isConfirmedInput, setIsConfirmedInput] = useState(false);
@@ -61,6 +62,9 @@ export const LocationBudgetModal: React.FC<LocationBudgetModalProps> = ({
       setIsLoading(true);
       const data = await api.food.budget(locationId, year, weekNumber);
       setBudgetData(data);
+      setWeeklyBudgetInput(
+        data.weeklyBudget !== null && data.weeklyBudget !== undefined ? String(data.weeklyBudget) : '350'
+      );
       setActualSpentInput(
         data.actualSpent !== null && data.actualSpent !== undefined ? String(data.actualSpent) : ''
       );
@@ -85,18 +89,31 @@ export const LocationBudgetModal: React.FC<LocationBudgetModalProps> = ({
     e.preventDefault();
     try {
       setIsSavingReceipt(true);
+      const parsedBudget = weeklyBudgetInput !== '' ? parseFloat(weeklyBudgetInput.replace(',', '.')) : undefined;
+      const parsedSpent = actualSpentInput !== '' ? parseFloat(actualSpentInput.replace(',', '.')) : null;
+
+      if (parsedBudget !== undefined && isNaN(parsedBudget)) {
+        alert('Bitte gib einen gültigen Betrag für das Wochenbudget ein.');
+        return;
+      }
+      if (parsedSpent !== null && isNaN(parsedSpent)) {
+        alert('Bitte gib einen gültigen Betrag für den Kassenbon ein.');
+        return;
+      }
+
       await api.food.saveReceipt({
         locationId,
         year,
         weekNumber,
-        actualSpent: actualSpentInput !== '' ? parseFloat(actualSpentInput.replace(',', '.')) : null,
+        budgetAmount: parsedBudget,
+        actualSpent: parsedSpent,
         receiptNote: receiptNoteInput.trim(),
         isConfirmed: isConfirmedInput,
       });
       await fetchBudget();
       onBudgetUpdated();
     } catch (err: any) {
-      alert(`Fehler beim Speichern des Kassenbons: ${err.message || err}`);
+      alert(`Fehler beim Speichern: ${err.message || err}`);
     } finally {
       setIsSavingReceipt(false);
     }
@@ -306,18 +323,36 @@ export const LocationBudgetModal: React.FC<LocationBudgetModalProps> = ({
                 )}
               </div>
 
-              {/* Caregiver Form: Record Receipt */}
+              {/* Caregiver Form: Budget & Receipt */}
               {isStaff && (
                 <form
                   onSubmit={handleSaveReceipt}
                   className="bg-surface-elevated border border-surface-border rounded-2xl p-4 space-y-3"
                 >
                   <div className="text-xs font-display font-bold text-white flex items-center justify-between">
-                    <span>Kassenbon eintragen (Betreuer)</span>
+                    <span className="flex items-center gap-1.5 text-emerald-300">
+                      <Euro className="w-3.5 h-3.5" />
+                      Wochenbudget & Kassenbon (Betreuer)
+                    </span>
                     <span className="text-[10px] text-slate-400 font-normal">KW {weekNumber}</span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-emerald-400 mb-1">
+                        Wochenbudget für KW {weekNumber} (€)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={weeklyBudgetInput}
+                        onChange={(e) => setWeeklyBudgetInput(e.target.value)}
+                        placeholder="350.00"
+                        className="w-full px-3 py-2 bg-surface-card border border-emerald-500/40 rounded-xl text-xs text-emerald-300 font-bold placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 font-mono"
+                      />
+                    </div>
+
                     <div>
                       <label className="block text-[11px] text-slate-400 mb-1">
                         Betrag laut Bon (€)
@@ -335,7 +370,7 @@ export const LocationBudgetModal: React.FC<LocationBudgetModalProps> = ({
 
                     <div>
                       <label className="block text-[11px] text-slate-400 mb-1">
-                        Notiz zum Bon
+                        Notiz zum Bon / Einkauf
                       </label>
                       <input
                         type="text"
@@ -363,9 +398,10 @@ export const LocationBudgetModal: React.FC<LocationBudgetModalProps> = ({
                     <button
                       type="submit"
                       disabled={isSavingReceipt}
-                      className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-xs transition-colors cursor-pointer disabled:opacity-50 shadow-sm"
+                      className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-xs transition-colors cursor-pointer disabled:opacity-50 shadow-sm flex items-center justify-center gap-1.5"
                     >
-                      {isSavingReceipt ? 'Speichern...' : 'Kassenbon speichern'}
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>{isSavingReceipt ? 'Speichern...' : 'Wochenbudget & Bon speichern'}</span>
                     </button>
                   </div>
                 </form>

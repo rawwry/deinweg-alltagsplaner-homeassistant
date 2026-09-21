@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext.js';
 import { api } from '../../api/client.js';
 import { formatGermanDate } from '../../utils/formatters.js';
 import { WasteWheelieBin } from '../../components/waste/WasteWheelieBin.js';
+import { LocationBudgetModal } from '../shopping/LocationBudgetModal.js';
 import {
   Calendar,
   ShoppingCart,
@@ -251,6 +252,8 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
   const [notesList, setNotesList] = useState<any[]>([]);
   const [todayChores, setTodayChores] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
+  const isStaff = user?.role === 'ADMIN' || user?.role === 'BETREUER';
 
   const [dismissedTopicIds, setDismissedTopicIds] = useState<string[]>(() => {
     try {
@@ -571,6 +574,16 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
       isMounted = false;
     };
   }, [activeLocationId, currentYear, currentWeek]);
+
+  const refreshBudget = async () => {
+    if (!activeLocationId) return;
+    try {
+      const budgetRes = await api.food.budget(activeLocationId, currentYear, currentWeek).catch(() => null);
+      setBudgetSummary(budgetRes);
+    } catch (err) {
+      console.error('Fehler beim Aktualisieren des Budgets:', err);
+    }
+  };
 
   const todayMeal = mealPlan?.days?.find((d: any) => d.dayOfWeek === currentDayOfWeek);
   const openNotes = notesList.filter((n: any) => n.status !== 'DONE' && n.category !== 'ANKUENDIGUNG');
@@ -1525,12 +1538,29 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
 
             {/* Weekly Budget Status Widget (Clean horizontal layout with ample space) */}
             {budgetSummary && (
-              <div className="p-3.5 mb-4 rounded-2xl bg-surface-elevated/80 border border-emerald-500/30 flex items-center justify-between gap-3">
+              <div
+                onClick={() => {
+                  if (isStaff) {
+                    setIsBudgetModalOpen(true);
+                  }
+                }}
+                className={`p-3.5 mb-4 rounded-2xl bg-surface-elevated/80 border border-emerald-500/30 flex items-center justify-between gap-3 ${
+                  isStaff
+                    ? 'cursor-pointer hover:bg-surface-elevated hover:border-emerald-500/60 transition-all group'
+                    : ''
+                }`}
+                title={isStaff ? 'Klicken, um Wochenbudget & Kassenbon zu bearbeiten' : undefined}
+              >
                 <div className="flex items-center gap-3.5">
                   <Wallet className="w-7 h-7 text-emerald-400 shrink-0 stroke-[1.75]" />
                   <div>
-                    <div className="text-[10px] uppercase font-bold text-slate-400 font-sans tracking-wide">
-                      Aktuelles Wochenbudget
+                    <div className="text-[10px] uppercase font-bold text-slate-400 font-sans tracking-wide flex items-center gap-2">
+                      <span>Aktuelles Wochenbudget</span>
+                      {isStaff && (
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-normal border border-emerald-500/30 group-hover:bg-emerald-500/30 transition-colors">
+                          Bearbeiten
+                        </span>
+                      )}
                     </div>
                     <div className="text-sm font-bold text-emerald-400 font-mono">
                       Noch {budgetSummary.remainingBudget.toFixed(2)} € übrig
@@ -1663,6 +1693,19 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           </button>
         </div>
       </div>
+
+      {activeLocationId && (
+        <LocationBudgetModal
+          isOpen={isBudgetModalOpen}
+          onClose={() => setIsBudgetModalOpen(false)}
+          locationId={activeLocationId}
+          locationName={activeLocation?.name || user?.locationName || 'Standort'}
+          year={currentYear}
+          weekNumber={currentWeek}
+          isStaff={isStaff}
+          onBudgetUpdated={refreshBudget}
+        />
+      )}
     </div>
   );
 };

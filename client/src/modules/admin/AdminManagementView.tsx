@@ -118,6 +118,7 @@ export const AdminManagementView: React.FC = () => {
   const [newLocName, setNewLocName] = useState('');
   const [newLocAddress, setNewLocAddress] = useState('');
   const [newLocServings, setNewLocServings] = useState<number>(6);
+  const [newLocWeeklyBudget, setNewLocWeeklyBudget] = useState<number>(350);
   const [newLocSupermarketId, setNewLocSupermarketId] = useState('supermarket-netto');
   const [newLocCookingDays, setNewLocCookingDays] = useState<number[]>([1, 2, 3, 4, 5, 6, 7]);
   const [locationSuccessMsg, setLocationSuccessMsg] = useState<string | null>(null);
@@ -127,6 +128,7 @@ export const AdminManagementView: React.FC = () => {
   const [editLocName, setEditLocName] = useState('');
   const [editLocAddress, setEditLocAddress] = useState('');
   const [editLocServings, setEditLocServings] = useState<number>(6);
+  const [editLocWeeklyBudget, setEditLocWeeklyBudget] = useState<number>(350);
   const [editLocSupermarketId, setEditLocSupermarketId] = useState('supermarket-netto');
   const [editLocCookingDays, setEditLocCookingDays] = useState<number[]>([1, 2, 3, 4, 5, 6, 7]);
 
@@ -458,6 +460,7 @@ export const AdminManagementView: React.FC = () => {
         name: newLocName.trim(),
         address: newLocAddress.trim() || undefined,
         defaultServings: Number(newLocServings) || 6,
+        weeklyBudget: Number(newLocWeeklyBudget) || 350,
         defaultSupermarketId: newLocSupermarketId || undefined,
         cookingDays: newLocCookingDays.sort((a, b) => a - b).join(','),
       });
@@ -465,6 +468,8 @@ export const AdminManagementView: React.FC = () => {
       setLocationSuccessMsg(`Standort "${newLocName}" erfolgreich erstellt!`);
       setNewLocName('');
       setNewLocAddress('');
+      setNewLocServings(6);
+      setNewLocWeeklyBudget(350);
       setNewLocCookingDays([1, 2, 3, 4, 5, 6, 7]);
       setShowAddLocation(false);
       await refreshLocations();
@@ -479,6 +484,7 @@ export const AdminManagementView: React.FC = () => {
     setEditLocName(loc.name);
     setEditLocAddress(loc.address || '');
     setEditLocServings(loc.defaultServings || 6);
+    setEditLocWeeklyBudget(loc.weeklyBudget !== undefined && loc.weeklyBudget !== null ? Number(loc.weeklyBudget) : 350);
     setEditLocSupermarketId(loc.defaultSupermarketId || 'supermarket-netto');
     const days = loc.cookingDays
       ? loc.cookingDays.split(',').map((s: string) => parseInt(s.trim())).filter((n: number) => !isNaN(n))
@@ -495,6 +501,7 @@ export const AdminManagementView: React.FC = () => {
         name: editLocName.trim(),
         address: editLocAddress.trim() || undefined,
         defaultServings: Number(editLocServings) || 6,
+        weeklyBudget: Number(editLocWeeklyBudget) || 350,
         defaultSupermarketId: editLocSupermarketId || undefined,
         cookingDays: editLocCookingDays.sort((a, b) => a - b).join(','),
       });
@@ -1279,7 +1286,7 @@ export const AdminManagementView: React.FC = () => {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 <div className="min-w-0 space-y-1.5">
                   <label className="block text-xs font-semibold text-slate-300">Standort-Name *</label>
                   <input
@@ -1309,7 +1316,19 @@ export const AdminManagementView: React.FC = () => {
                     max="50"
                     value={newLocServings}
                     onChange={(e) => setNewLocServings(Number(e.target.value))}
-                    className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30"
+                    className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30 font-mono"
+                  />
+                </div>
+                <div className="min-w-0 space-y-1.5">
+                  <label className="block text-xs font-semibold text-slate-300">Standard-Wochenbudget (€)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={newLocWeeklyBudget}
+                    onChange={(e) => setNewLocWeeklyBudget(Number(e.target.value))}
+                    placeholder="350"
+                    className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30 font-mono"
                   />
                 </div>
                 <div className="min-w-0 space-y-1.5">
@@ -1326,7 +1345,7 @@ export const AdminManagementView: React.FC = () => {
                     ))}
                   </select>
                 </div>
-                <div className="sm:col-span-2 lg:col-span-4 pt-1 space-y-2">
+                <div className="sm:col-span-2 lg:col-span-5 pt-1 space-y-2">
                   <div className="flex items-center justify-between">
                     <label className="block text-xs font-semibold text-slate-300">
                       Geplante Kochtage ({newLocCookingDays.length} Tage)
@@ -1451,7 +1470,7 @@ export const AdminManagementView: React.FC = () => {
                       className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30"
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                       <label className="block font-semibold text-slate-300 mb-1.5">Standard-Portionen</label>
                       <input
@@ -1460,7 +1479,19 @@ export const AdminManagementView: React.FC = () => {
                         max="50"
                         value={editLocServings}
                         onChange={(e) => setEditLocServings(Number(e.target.value))}
-                        className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30"
+                        className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30 font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-semibold text-slate-300 mb-1.5">Wochenbudget (€)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={editLocWeeklyBudget}
+                        onChange={(e) => setEditLocWeeklyBudget(Number(e.target.value))}
+                        placeholder="350"
+                        className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30 font-mono"
                       />
                     </div>
                     <div>
@@ -1618,6 +1649,12 @@ export const AdminManagementView: React.FC = () => {
                       <div className="flex justify-between">
                         <span className="text-surface-muted">Standard-Portionen:</span>
                         <span className="font-bold text-slate-200">{loc.defaultServings} Personen</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-surface-muted">Standard-Wochenbudget:</span>
+                        <span className="font-bold text-emerald-400 font-mono">
+                          {loc.weeklyBudget !== undefined && loc.weeklyBudget !== null ? Number(loc.weeklyBudget).toFixed(2) : '350.00'} €
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-surface-muted">Standard-Supermarkt:</span>

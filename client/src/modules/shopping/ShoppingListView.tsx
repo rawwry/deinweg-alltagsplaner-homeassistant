@@ -384,7 +384,7 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
                 className="w-full py-1.5 px-3 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 hover:text-white text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
               >
                 <PiggyBank className="w-3.5 h-3.5" />
-                <span>WG-Kasse verwalten</span>
+                <span>WG-Kasse & Wochenbudget verwalten</span>
                 <ArrowRight className="w-3 h-3 text-emerald-400" />
               </button>
             </div>

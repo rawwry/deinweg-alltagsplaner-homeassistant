@@ -3,6 +3,17 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.9] - 2026-09-21
+
+### Neu & Verbessert
+- **Wochenbudget-Verwaltung für Betreuer direkt im Modal & Dashboard (`LocationBudgetModal.tsx`, `DashboardHub.tsx`, `ShoppingListView.tsx`)**:
+  - **Direkte Eingabe des Wochenbudgets**: Betreuer können im Modal *„WG-Kasse & Budget“* nun das wöchentliche Einkaufsbudget für die ausgewählte Kalenderwoche frei anpassen (neues Eingabefeld *„Wochenbudget für KW X (€)“* neben Bon-Betrag und Notiz).
+  - **1-Klick-Verwaltung vom Home-Dashboard**: Das Widget *„Aktuelles Wochenbudget“* auf der Einkaufs-Kachel des Dashboards ist für Betreuer nun direkt anklickbar (inklusive dezentem *„Bearbeiten“*-Chip), sodass das Wochenbudget und der Kassenbon ohne Umwege direkt von der Startseite aus gepflegt werden können.
+  - **Klarere Button-Beschriftung**: In der Einkaufsliste wurde der Button auf *„WG-Kasse & Wochenbudget verwalten“* aktualisiert, um Betreuern den direkten Zugang noch intuitiver zu machen.
+- **Standortweites Standard-Wochenbudget konfigurierbar (`AdminManagementView.tsx`)**:
+  - **Standard-Wochenbudget in den Standort-Einstellungen**: Bei der Neuanlage sowie beim Bearbeiten von Standorten kann das Standard-Wochenbudget (Fallback: 350,00 €) jetzt direkt im Formular festgelegt werden.
+  - **Budgetanzeige auf der Standort-Karte**: Das hinterlegte Standard-Wochenbudget wird übersichtlich auf der Bento-Karte jedes Standorts in der Verwaltung ausgewiesen.
+
 ## [0.1.8] - 2026-09-18
 
 ### Neu & Verbessert
