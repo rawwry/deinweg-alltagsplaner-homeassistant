@@ -22,7 +22,7 @@ import {
 
 export const RecipeCatalogView: React.FC = () => {
   const { user, activeLocation } = useAuth();
-  const isStaff = user?.role === 'ADMIN' || user?.role === 'BETREUER';
+  const isStaff = user?.role?.toUpperCase() === 'ADMIN' || user?.role?.toUpperCase() === 'BETREUER';
 
   const [recipes, setRecipes] = useState<RecipeSummary[]>([]);
   const [searchTerm, setSearchTerm] = useState('');

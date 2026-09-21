@@ -35,6 +35,7 @@ import {
   Flower2,
   Bed,
   SprayCan,
+  PiggyBank,
 } from 'lucide-react';
 
 export const BroomIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5 text-indigo-400 stroke-[1.75]' }) => (
@@ -253,7 +254,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
   const [todayChores, setTodayChores] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
-  const isStaff = user?.role === 'ADMIN' || user?.role === 'BETREUER';
+  const isStaff = user?.role?.toUpperCase() === 'ADMIN' || user?.role?.toUpperCase() === 'BETREUER';
 
   const [dismissedTopicIds, setDismissedTopicIds] = useState<string[]>(() => {
     try {
@@ -1537,43 +1538,43 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             </p>
 
             {/* Weekly Budget Status Widget (Clean horizontal layout with ample space) */}
-            {budgetSummary && (
-              <div
-                onClick={() => {
-                  if (isStaff) {
-                    setIsBudgetModalOpen(true);
-                  }
-                }}
-                className={`p-3.5 mb-4 rounded-2xl bg-surface-elevated/80 border border-emerald-500/30 flex items-center justify-between gap-3 ${
-                  isStaff
-                    ? 'cursor-pointer hover:bg-surface-elevated hover:border-emerald-500/60 transition-all group'
-                    : ''
-                }`}
-                title={isStaff ? 'Klicken, um Wochenbudget & Kassenbon zu bearbeiten' : undefined}
-              >
-                <div className="flex items-center gap-3.5">
-                  <Wallet className="w-7 h-7 text-emerald-400 shrink-0 stroke-[1.75]" />
-                  <div>
-                    <div className="text-[10px] uppercase font-bold text-slate-400 font-sans tracking-wide flex items-center gap-2">
-                      <span>Aktuelles Wochenbudget</span>
-                      {isStaff && (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-normal border border-emerald-500/30 group-hover:bg-emerald-500/30 transition-colors">
-                          Bearbeiten
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-sm font-bold text-emerald-400 font-mono">
-                      Noch {budgetSummary.remainingBudget.toFixed(2)} € übrig
-                    </div>
+            <div
+              onClick={() => {
+                if (isStaff) {
+                  setIsBudgetModalOpen(true);
+                }
+              }}
+              className={`p-3.5 mb-4 rounded-2xl bg-surface-elevated/80 border border-emerald-500/30 flex items-center justify-between gap-3 ${
+                isStaff
+                  ? 'cursor-pointer hover:bg-surface-elevated hover:border-emerald-500/60 transition-all group'
+                  : ''
+              }`}
+              title={isStaff ? 'Klicken, um Wochenbudget & Kassenbon zu bearbeiten' : undefined}
+            >
+              <div className="flex items-center gap-3.5">
+                <Wallet className="w-7 h-7 text-emerald-400 shrink-0 stroke-[1.75]" />
+                <div>
+                  <div className="text-[10px] uppercase font-bold text-slate-400 font-sans tracking-wide flex items-center gap-2">
+                    <span>Aktuelles Wochenbudget</span>
+                    {isStaff && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-normal border border-emerald-500/30 group-hover:bg-emerald-500/30 transition-colors">
+                        Bearbeiten
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-sm font-bold text-emerald-400 font-mono">
+                    {budgetSummary
+                      ? `Noch ${budgetSummary.remainingBudget.toFixed(2)} € übrig`
+                      : `Standard: ${(activeLocation?.weeklyBudget ?? 350).toFixed(2)} €`}
                   </div>
                 </div>
-                <div className="text-right shrink-0">
-                  <span className="text-xs text-slate-400 font-sans">
-                    von {budgetSummary.weeklyBudget.toFixed(0)} €
-                  </span>
-                </div>
               </div>
-            )}
+              <div className="text-right shrink-0">
+                <span className="text-xs text-slate-400 font-sans">
+                  von {(budgetSummary?.weeklyBudget ?? activeLocation?.weeklyBudget ?? 350).toFixed(0)} €
+                </span>
+              </div>
+            </div>
 
             {/* Quick Preview Items */}
             <div className="space-y-2 mb-4">
@@ -1646,7 +1647,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           <span className="font-sans font-bold">Schnellzugriff:</span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 w-full md:w-auto md:flex-1">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 w-full md:w-auto md:flex-1">
           <button
             type="button"
             onClick={() => setCurrentTab('mealplan')}
@@ -1663,6 +1664,16 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           >
             <ShoppingCart className="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition-transform" />
             <span className="truncate">Einkaufsliste</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsBudgetModalOpen(true)}
+            className="flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-surface-elevated/70 hover:bg-surface-elevated border border-surface-border hover:border-emerald-500/40 text-slate-200 hover:text-white text-xs font-medium transition-all group cursor-pointer"
+            title="WG-Kasse & Wochenbudget verwalten"
+          >
+            <PiggyBank className="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition-transform" />
+            <span className="truncate">WG-Budget</span>
           </button>
 
           <button

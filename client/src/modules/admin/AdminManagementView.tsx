@@ -118,7 +118,7 @@ export const AdminManagementView: React.FC = () => {
   const [newLocName, setNewLocName] = useState('');
   const [newLocAddress, setNewLocAddress] = useState('');
   const [newLocServings, setNewLocServings] = useState<number>(6);
-  const [newLocWeeklyBudget, setNewLocWeeklyBudget] = useState<number>(350);
+  const [newLocWeeklyBudget, setNewLocWeeklyBudget] = useState<string>('350');
   const [newLocSupermarketId, setNewLocSupermarketId] = useState('supermarket-netto');
   const [newLocCookingDays, setNewLocCookingDays] = useState<number[]>([1, 2, 3, 4, 5, 6, 7]);
   const [locationSuccessMsg, setLocationSuccessMsg] = useState<string | null>(null);
@@ -128,7 +128,7 @@ export const AdminManagementView: React.FC = () => {
   const [editLocName, setEditLocName] = useState('');
   const [editLocAddress, setEditLocAddress] = useState('');
   const [editLocServings, setEditLocServings] = useState<number>(6);
-  const [editLocWeeklyBudget, setEditLocWeeklyBudget] = useState<number>(350);
+  const [editLocWeeklyBudget, setEditLocWeeklyBudget] = useState<string>('350');
   const [editLocSupermarketId, setEditLocSupermarketId] = useState('supermarket-netto');
   const [editLocCookingDays, setEditLocCookingDays] = useState<number[]>([1, 2, 3, 4, 5, 6, 7]);
 
@@ -460,7 +460,7 @@ export const AdminManagementView: React.FC = () => {
         name: newLocName.trim(),
         address: newLocAddress.trim() || undefined,
         defaultServings: Number(newLocServings) || 6,
-        weeklyBudget: Number(newLocWeeklyBudget) || 350,
+        weeklyBudget: newLocWeeklyBudget !== '' ? parseFloat(newLocWeeklyBudget.replace(',', '.')) : 350,
         defaultSupermarketId: newLocSupermarketId || undefined,
         cookingDays: newLocCookingDays.sort((a, b) => a - b).join(','),
       });
@@ -469,7 +469,7 @@ export const AdminManagementView: React.FC = () => {
       setNewLocName('');
       setNewLocAddress('');
       setNewLocServings(6);
-      setNewLocWeeklyBudget(350);
+      setNewLocWeeklyBudget('350');
       setNewLocCookingDays([1, 2, 3, 4, 5, 6, 7]);
       setShowAddLocation(false);
       await refreshLocations();
@@ -484,7 +484,9 @@ export const AdminManagementView: React.FC = () => {
     setEditLocName(loc.name);
     setEditLocAddress(loc.address || '');
     setEditLocServings(loc.defaultServings || 6);
-    setEditLocWeeklyBudget(loc.weeklyBudget !== undefined && loc.weeklyBudget !== null ? Number(loc.weeklyBudget) : 350);
+    setEditLocWeeklyBudget(
+      loc.weeklyBudget !== undefined && loc.weeklyBudget !== null ? String(loc.weeklyBudget) : '350'
+    );
     setEditLocSupermarketId(loc.defaultSupermarketId || 'supermarket-netto');
     const days = loc.cookingDays
       ? loc.cookingDays.split(',').map((s: string) => parseInt(s.trim())).filter((n: number) => !isNaN(n))
@@ -501,7 +503,7 @@ export const AdminManagementView: React.FC = () => {
         name: editLocName.trim(),
         address: editLocAddress.trim() || undefined,
         defaultServings: Number(editLocServings) || 6,
-        weeklyBudget: Number(editLocWeeklyBudget) || 350,
+        weeklyBudget: editLocWeeklyBudget !== '' ? parseFloat(editLocWeeklyBudget.replace(',', '.')) : 350,
         defaultSupermarketId: editLocSupermarketId || undefined,
         cookingDays: editLocCookingDays.sort((a, b) => a - b).join(','),
       });
@@ -1324,9 +1326,9 @@ export const AdminManagementView: React.FC = () => {
                   <input
                     type="number"
                     min="0"
-                    step="1"
+                    step="0.01"
                     value={newLocWeeklyBudget}
-                    onChange={(e) => setNewLocWeeklyBudget(Number(e.target.value))}
+                    onChange={(e) => setNewLocWeeklyBudget(e.target.value)}
                     placeholder="350"
                     className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30 font-mono"
                   />
@@ -1487,9 +1489,9 @@ export const AdminManagementView: React.FC = () => {
                       <input
                         type="number"
                         min="0"
-                        step="1"
+                        step="0.01"
                         value={editLocWeeklyBudget}
-                        onChange={(e) => setEditLocWeeklyBudget(Number(e.target.value))}
+                        onChange={(e) => setEditLocWeeklyBudget(e.target.value)}
                         placeholder="350"
                         className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30 font-mono"
                       />

@@ -22,7 +22,7 @@ interface ChorePlannerViewProps {
 
 export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTab }) => {
   const { user, activeLocation, activeLocationId } = useAuth();
-  const isStaff = user?.role === 'ADMIN' || user?.role === 'BETREUER';
+  const isStaff = user?.role?.toUpperCase() === 'ADMIN' || user?.role?.toUpperCase() === 'BETREUER';
 
   const now = new Date();
   // Get current ISO calendar week
@@ -123,7 +123,7 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
           weekNumber,
           dayOfWeek: day.dayOfWeek,
           locationId: activeLocationId,
-          residentId: residentIdToToggle ?? (user?.role === 'BEWOHNER' ? user?.id : undefined),
+          residentId: residentIdToToggle ?? (user?.role?.toUpperCase() === 'BEWOHNER' ? user?.id : undefined),
         });
 
         if (res?.assignment) {

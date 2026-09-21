@@ -15,13 +15,16 @@ import {
   Minus,
   ChefHat,
   Utensils,
-  Sparkles,
   Settings,
   X,
   Check,
   Building2,
   CalendarDays,
+  PiggyBank,
+  Euro,
+  Sparkles,
 } from 'lucide-react';
+import { LocationBudgetModal } from '../shopping/LocationBudgetModal.js';
 
 interface MealPlanViewProps {
   setCurrentTab: (tab: string) => void;
@@ -102,7 +105,11 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
   const [showLocationSettings, setShowLocationSettings] = useState(false);
   const [editDays, setEditDays] = useState<number[]>([1, 2, 3, 4, 5, 6, 7]);
   const [editServings, setEditServings] = useState<number>(6);
+  const [editWeeklyBudget, setEditWeeklyBudget] = useState<string>('350');
   const [isSavingSettings, setIsSavingSettings] = useState(false);
+
+  // Budget Modal state
+  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
@@ -156,6 +163,11 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
     if (!activeLocation) return;
     setEditDays(parseCookingDays(activeLocation.cookingDays));
     setEditServings(activeLocation.defaultServings || 6);
+    setEditWeeklyBudget(
+      activeLocation.weeklyBudget !== undefined && activeLocation.weeklyBudget !== null
+        ? String(activeLocation.weeklyBudget)
+        : '350'
+    );
     setShowLocationSettings(true);
   };
 
@@ -169,9 +181,12 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
     try {
       setIsSavingSettings(true);
       const sortedDays = [...editDays].sort((a, b) => a - b).join(',');
+      const parsedWeeklyBudget =
+        editWeeklyBudget !== '' ? parseFloat(editWeeklyBudget.replace(',', '.')) : 350;
       await api.locations.update(activeLocation.id, {
         cookingDays: sortedDays,
         defaultServings: Number(editServings) || 6,
+        weeklyBudget: isNaN(parsedWeeklyBudget) ? 350 : parsedWeeklyBudget,
       });
       await refreshLocations();
       setShowLocationSettings(false);
@@ -339,16 +354,28 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
             </button>
           </div>
 
-          {(user?.role === 'BETREUER' || user?.role === 'ADMIN') && activeLocation && (
-            <button
-              type="button"
-              onClick={handleOpenLocationSettings}
-              className="p-2.5 bg-surface-elevated hover:bg-surface-card border border-surface-border rounded-2xl text-slate-300 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer"
-              title="Kochtage & Portionen für diesen Standort anpassen"
-            >
-              <Settings className="w-4 h-4 text-rose-400" />
-              <span className="hidden sm:inline">Plan-Tage</span>
-            </button>
+          {(user?.role?.toUpperCase() === 'BETREUER' || user?.role?.toUpperCase() === 'ADMIN') && activeLocation && (
+            <>
+              <button
+                type="button"
+                onClick={handleOpenLocationSettings}
+                className="p-2.5 bg-surface-elevated hover:bg-surface-card border border-surface-border rounded-2xl text-slate-300 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer shadow-xs"
+                title="Kochtage, Standard-Portionen & Budget für diesen Standort anpassen"
+              >
+                <Settings className="w-4 h-4 text-rose-400" />
+                <span className="hidden sm:inline">Plan-Tage</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsBudgetModalOpen(true)}
+                className="p-2.5 bg-surface-elevated hover:bg-surface-card border border-surface-border hover:border-emerald-500/40 rounded-2xl text-slate-300 hover:text-emerald-300 transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer shadow-xs"
+                title={`Wochenbudget & Kassenbon für KW ${weekNumber} anpassen`}
+              >
+                <PiggyBank className="w-4 h-4 text-emerald-400" />
+                <span className="hidden sm:inline">WG-Budget</span>
+              </button>
+            </>
           )}
 
           <button
@@ -666,7 +693,7 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
                     Plan-Einstellungen: {activeLocation.name}
                   </h3>
                   <p className="text-xs text-slate-400 font-sans">
-                    Kochtage und Standard-Portionen für diesen Standort
+                    Kochtage, Portionen und Standard-Budget für diesen Standort
                   </p>
                 </div>
               </div>
@@ -735,19 +762,61 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
                 </p>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5 font-sans">
-                  Standard-Portionen
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="100"
-                  value={editServings}
-                  onChange={(e) => setEditServings(Number(e.target.value))}
-                  className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-mono"
-                  required
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5 font-sans">
+                    Standard-Portionen
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={editServings}
+                    onChange={(e) => setEditServings(Number(e.target.value))}
+                    className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-mono"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-emerald-400 mb-1.5 font-sans flex items-center justify-between">
+                    <span>Wochenbudget (€)</span>
+                    <span className="text-[10px] text-slate-400 font-normal font-sans">Wöchentlich</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={editWeeklyBudget}
+                    onChange={(e) => setEditWeeklyBudget(e.target.value)}
+                    placeholder="350.00"
+                    className="w-full px-3.5 py-2.5 bg-surface-elevated border border-emerald-500/40 rounded-xl text-xs text-emerald-300 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Quick shortcut to open weekly bon modal */}
+              <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-3">
+                <div className="text-xs">
+                  <div className="font-semibold text-emerald-300 flex items-center gap-1.5">
+                    <PiggyBank className="w-4 h-4" />
+                    <span>Bon & Kasse für KW {weekNumber}</span>
+                  </div>
+                  <div className="text-[11px] text-slate-400">
+                    Kassenbon erfassen oder Sonderkasse buchen
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowLocationSettings(false);
+                    setIsBudgetModalOpen(true);
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-200 border border-emerald-500/40 text-xs font-semibold transition-colors cursor-pointer shrink-0"
+                >
+                  Öffnen
+                </button>
               </div>
 
               <div className="pt-3 border-t border-surface-border flex items-center justify-end gap-2.5">
@@ -779,6 +848,20 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
         dayName={DAY_NAMES[selectedDayOfWeek - 1] || 'Wochentag'}
         onSelectRecipe={handleSelectRecipe}
       />
+
+      {/* Location Budget Modal */}
+      {activeLocationId && (
+        <LocationBudgetModal
+          isOpen={isBudgetModalOpen}
+          onClose={() => setIsBudgetModalOpen(false)}
+          locationId={activeLocationId}
+          locationName={activeLocation?.name || 'Standort'}
+          year={year}
+          weekNumber={weekNumber}
+          isStaff={user?.role?.toUpperCase() === 'ADMIN' || user?.role?.toUpperCase() === 'BETREUER'}
+          onBudgetUpdated={fetchPlan}
+        />
+      )}
     </div>
   );
 };

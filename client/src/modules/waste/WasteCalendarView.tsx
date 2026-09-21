@@ -18,7 +18,7 @@ import {
 
 export const WasteCalendarView: React.FC = () => {
   const { user, activeLocationId, activeLocation } = useAuth();
-  const isStaff = user?.role === 'ADMIN' || user?.role === 'BETREUER';
+  const isStaff = user?.role?.toUpperCase() === 'ADMIN' || user?.role?.toUpperCase() === 'BETREUER';
 
   const [pickups, setPickups] = useState<WastePickupSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);

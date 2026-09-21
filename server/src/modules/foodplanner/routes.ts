@@ -8,14 +8,15 @@ const router = Router();
 
 // Helper to determine target location for a request
 function resolveLocationId(req: Request): string | null {
-  const queryLoc = (req.query.locationId as string) || (req.body.locationId as string);
-  if (req.user?.role === 'BEWOHNER') {
-    if (queryLoc && queryLoc !== req.user.locationId) {
+  const queryLoc = (req.query.locationId as string) || (req.body?.locationId as string);
+  const userRole = req.user?.role?.toUpperCase();
+  if (userRole === 'BEWOHNER') {
+    if (queryLoc && queryLoc !== req.user?.locationId) {
       return null; // Resident attempted to access another location!
     }
-    return req.user.locationId || 'location-emsdetten';
+    return req.user?.locationId || null;
   }
-  return queryLoc || req.user?.locationId || 'location-emsdetten';
+  return queryLoc || req.user?.locationId || null;
 }
 
 // ==================== REZEPT-KATEGORIEN ====================
@@ -651,18 +652,22 @@ router.delete('/supermarkets/:id', requireAuth, requireRole('ADMIN', 'BETREUER')
 
 router.get('/mealplan', requireAuth, async (req: Request, res: Response) => {
   try {
-    const locationId = resolveLocationId(req);
-    if (!locationId) {
-      return res.status(403).json({ error: 'Zugriff auf fremden Standort verweigert.' });
+    const rawLocId = resolveLocationId(req);
+    let location = rawLocId ? await prisma.location.findUnique({ where: { id: rawLocId } }) : null;
+
+    if (!location) {
+      if (req.user?.role?.toUpperCase() === 'BEWOHNER' && req.user.locationId && rawLocId && rawLocId !== req.user.locationId) {
+        return res.status(403).json({ error: 'Zugriff auf fremden Standort verweigert.' });
+      }
+      location = await prisma.location.findFirst();
+      if (!location) {
+        return res.status(404).json({ error: 'Kein Standort gefunden.' });
+      }
     }
+    const locationId = location.id;
 
     const year = Number(req.query.year) || new Date().getFullYear();
     const weekNumber = Number(req.query.weekNumber) || 36;
-
-    const location = await prisma.location.findUnique({ where: { id: locationId } });
-    if (!location) {
-      return res.status(404).json({ error: 'Standort nicht gefunden.' });
-    }
 
     let mealPlan = await prisma.mealPlan.findUnique({
       where: {
@@ -846,10 +851,19 @@ router.put('/mealplan/day', requireAuth, async (req: Request, res: Response) => 
 
 router.get('/shopping-list', requireAuth, async (req: Request, res: Response) => {
   try {
-    const locationId = resolveLocationId(req);
-    if (!locationId) {
-      return res.status(403).json({ error: 'Zugriff auf fremden Standort verweigert.' });
+    const rawLocId = resolveLocationId(req);
+    let location = rawLocId ? await prisma.location.findUnique({ where: { id: rawLocId } }) : null;
+
+    if (!location) {
+      if (req.user?.role?.toUpperCase() === 'BEWOHNER' && req.user.locationId && rawLocId && rawLocId !== req.user.locationId) {
+        return res.status(403).json({ error: 'Zugriff auf fremden Standort verweigert.' });
+      }
+      location = await prisma.location.findFirst();
+      if (!location) {
+        return res.status(404).json({ error: 'Kein Standort gefunden.' });
+      }
     }
+    const locationId = location.id;
 
     const year = Number(req.query.year) || new Date().getFullYear();
     const weekNumber = Number(req.query.weekNumber) || 36;
@@ -1001,21 +1015,22 @@ function isWeekClosedBySunday(year: number, weekNumber: number): boolean {
 
 router.get('/budget', requireAuth, async (req: Request, res: Response) => {
   try {
-    const locationId = resolveLocationId(req);
-    if (!locationId) {
-      return res.status(403).json({ error: 'Zugriff auf fremden Standort verweigert.' });
+    const rawLocId = resolveLocationId(req);
+    let location = rawLocId ? await prisma.location.findUnique({ where: { id: rawLocId } }) : null;
+
+    if (!location) {
+      if (req.user?.role?.toUpperCase() === 'BEWOHNER' && req.user.locationId && rawLocId && rawLocId !== req.user.locationId) {
+        return res.status(403).json({ error: 'Zugriff auf fremden Standort verweigert.' });
+      }
+      location = await prisma.location.findFirst();
+      if (!location) {
+        return res.status(404).json({ error: 'Kein Standort gefunden.' });
+      }
     }
+    const locationId = location.id;
 
     const year = Number(req.query.year) || new Date().getFullYear();
     const weekNumber = Number(req.query.weekNumber) || 36;
-
-    const location = await prisma.location.findUnique({
-      where: { id: locationId },
-    });
-
-    if (!location) {
-      return res.status(404).json({ error: 'Standort nicht gefunden.' });
-    }
 
     const defaultWeeklyBudget = location.weeklyBudget ?? 350.0;
 
@@ -1052,7 +1067,7 @@ router.get('/budget', requireAuth, async (req: Request, res: Response) => {
     const remainingBudget = Math.round((weeklyBudget - effectiveSpent) * 100) / 100;
 
     // Residents should only receive the available budget info without caregiver bookkeeping
-    const isResident = req.user?.role === 'BEWOHNER';
+    const isResident = req.user?.role?.toUpperCase() === 'BEWOHNER';
     if (isResident) {
       return res.json({
         locationId,
@@ -1125,20 +1140,33 @@ router.get('/budget', requireAuth, async (req: Request, res: Response) => {
 
 router.post('/budget/receipt', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
   try {
-    const { locationId, year, weekNumber, actualSpent, receiptNote, isConfirmed, budgetAmount } = req.body;
+    const { year, weekNumber, actualSpent, receiptNote, isConfirmed, budgetAmount } = req.body;
+    const rawLocId = req.body?.locationId;
 
-    if (!locationId || year === undefined || weekNumber === undefined) {
-      return res.status(400).json({ error: 'Standort, Jahr und Kalenderwoche sind erforderlich.' });
+    if (year === undefined || weekNumber === undefined) {
+      return res.status(400).json({ error: 'Jahr und Kalenderwoche sind erforderlich.' });
     }
 
-    const location = await prisma.location.findUnique({ where: { id: locationId } });
+    let location = rawLocId ? await prisma.location.findUnique({ where: { id: rawLocId } }) : null;
     if (!location) {
-      return res.status(404).json({ error: 'Standort nicht gefunden.' });
+      location = await prisma.location.findFirst();
+      if (!location) {
+        return res.status(404).json({ error: 'Kein Standort gefunden.' });
+      }
     }
+    const locationId = location.id;
 
     const baseBudget = budgetAmount !== undefined && budgetAmount !== null
       ? Number(budgetAmount)
       : (location.weeklyBudget ?? 350.0);
+
+    // Also persist weeklyBudget to the Location if updated
+    if (budgetAmount !== undefined && budgetAmount !== null && Number(budgetAmount) > 0) {
+      await prisma.location.update({
+        where: { id: locationId },
+        data: { weeklyBudget: Number(budgetAmount) },
+      }).catch((e) => console.warn('Could not update location default budget:', e));
+    }
 
     const parsedActualSpent = actualSpent !== null && actualSpent !== undefined && actualSpent !== ''
       ? Number(actualSpent)
@@ -1178,11 +1206,21 @@ router.post('/budget/receipt', requireAuth, requireRole('ADMIN', 'BETREUER'), as
 
 router.post('/budget/transaction', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
   try {
-    const { locationId, date, amount, type, category, purpose } = req.body;
+    const { date, amount, type, category, purpose } = req.body;
+    const rawLocId = req.body?.locationId;
 
-    if (!locationId || !purpose || amount === undefined) {
-      return res.status(400).json({ error: 'Standort, Verwendungszweck und Betrag sind erforderlich.' });
+    if (!purpose || amount === undefined) {
+      return res.status(400).json({ error: 'Verwendungszweck und Betrag sind erforderlich.' });
     }
+
+    let location = rawLocId ? await prisma.location.findUnique({ where: { id: rawLocId } }) : null;
+    if (!location) {
+      location = await prisma.location.findFirst();
+      if (!location) {
+        return res.status(404).json({ error: 'Kein Standort gefunden.' });
+      }
+    }
+    const locationId = location.id;
 
     const numAmount = Number(amount);
     let finalAmount = numAmount;

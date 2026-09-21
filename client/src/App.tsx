@@ -24,7 +24,7 @@ const AppContent: React.FC = () => {
   const { user, isLoading, isSetupRequired, handleSetupComplete, activeLocation } = useAuth();
   const [currentTab, setCurrentTab] = useState<string>('hub');
   const [selectedRecipeDetail, setSelectedRecipeDetail] = useState<RecipeSummary | null>(null);
-  const isStaff = user?.role === 'ADMIN' || user?.role === 'BETREUER';
+  const isStaff = user?.role?.toUpperCase() === 'ADMIN' || user?.role?.toUpperCase() === 'BETREUER';
 
   if (isLoading) {
     return (

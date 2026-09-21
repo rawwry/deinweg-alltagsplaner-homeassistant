@@ -3,6 +3,21 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.10] - 2026-09-22
+
+### Neu & Verbessert
+- **Nahtlose Budget-Eingabe an allen relevanten Stellen der Webapp**:
+  - **Kochplan Plan-Einstellungen (`MealPlanView.tsx`)**: In den *„Plan-Einstellungen: [Standort]“* (Zahnrad / Button *„Plan-Tage“*) gibt es nun ein direktes Feld für das *„Standard-Wochenbudget (€)“*, das standortweit gespeichert wird. Zudem gibt es einen direkten Schnellzugriffs-Button, um das Wochenbudget oder den Kassenbon für die aktuelle Kalenderwoche aufzurufen.
+  - **Neuer „WG-Budget“-Button im Kochplan (`MealPlanView.tsx`)**: Betreuer finden nun direkt in der oberen Aktionsleiste des Kochplans (neben *„Plan-Tage“*) einen dedizierten *„WG-Budget“*-Button mit Sparschwein-Icon, der das Wochenbudget- und Kassenbon-Modal für die jeweilige Kalenderwoche sofort öffnet.
+  - **Resilientes Budget-Widget auf dem Home-Dashboard (`DashboardHub.tsx`)**: Das Wochenbudget-Widget wird nun stets zuverlässig gerendert – selbst wenn Daten noch geladen werden oder noch keine Wochenkonfiguration existiert. Betreuer können mit 1 Klick das Modal öffnen.
+  - **Schnellzugriff auf WG-Budget im Dashboard-Dock (`DashboardHub.tsx`)**: In der Schnellzugriff-Leiste unten auf dem Dashboard gibt es nun einen eigenen Button *„WG-Budget“*.
+  - **Komplett anklickbare Budget-Karte in der Einkaufsliste (`ShoppingListView.tsx`)**: Betreuer können auf die gesamte Budget-Karte klicken, um das Kassen- und Bon-Modal zu öffnen.
+  - **Eingabe-Fix in der Standort-Verwaltung (`AdminManagementView.tsx`)**: Das Löschen oder Überschreiben des Wochenbudgets bei der Neuanlage und beim Bearbeiten von Standorten springt nicht mehr unabsichtlich auf `0` zurück.
+- **Server- & Lade-Resilienz (Fehlerbehebung)**:
+  - **Kein endloser Ladespinner mehr im Budget-Modal (`LocationBudgetModal.tsx`)**: Bei Netzwerk- oder Datenbankverzögerungen werden automatisch sichere Standardwerte bereitgestellt, sodass Betreuer niemals vor einem endlosen Spinner stehen.
+  - **Robuste Standort-Auflösung im Backend (`routes.ts`)**: Routen für `/budget`, `/mealplan` und `/shopping-list` verfügen nun über einen automatischen Fallback auf den ersten verfügbaren Standort, falls der Betreuer-Account standortunabhängig ist oder IDs abweichen.
+  - **Rollen-Robustheit**: Groß-/Kleinschreibung bei Benutzerrollen (`BETREUER`, `ADMIN`, `BEWOHNER`) wird systemweit einheitlich und fehlertolerant verarbeitet.
+
 ## [0.1.9] - 2026-09-21
 
 ### Neu & Verbessert

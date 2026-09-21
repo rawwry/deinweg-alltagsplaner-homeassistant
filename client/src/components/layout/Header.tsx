@@ -11,7 +11,7 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab }) => {
   const { user, locations, activeLocationId, setActiveLocationId, activeLocation } = useAuth();
-  const isStaff = user?.role === 'ADMIN' || user?.role === 'BETREUER';
+  const isStaff = user?.role?.toUpperCase() === 'ADMIN' || user?.role?.toUpperCase() === 'BETREUER';
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   return (

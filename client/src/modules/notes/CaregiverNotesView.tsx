@@ -71,7 +71,7 @@ const sortNotes = (items: CaregiverNoteSummary[]): CaregiverNoteSummary[] => {
 
 export const CaregiverNotesView: React.FC = () => {
   const { user, activeLocationId, activeLocation } = useAuth();
-  const isStaff = user?.role === 'ADMIN' || user?.role === 'BETREUER';
+  const isStaff = user?.role?.toUpperCase() === 'ADMIN' || user?.role?.toUpperCase() === 'BETREUER';
 
   const [activeTab, setActiveTab] = useState<'ACTIVE' | 'ARCHIVE'>('ACTIVE');
   const [notes, setNotes] = useState<CaregiverNoteSummary[]>([]);

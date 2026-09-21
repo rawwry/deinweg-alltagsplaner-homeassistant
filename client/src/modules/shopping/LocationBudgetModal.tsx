@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useAuth } from '../../context/AuthContext.js';
 import { api } from '../../api/client.js';
 import { LocationBudgetSummary } from '../../../../shared/types.js';
 import {
@@ -37,9 +38,16 @@ export const LocationBudgetModal: React.FC<LocationBudgetModalProps> = ({
   isStaff,
   onBudgetUpdated,
 }) => {
+  const { user } = useAuth();
+  const effectiveIsStaff =
+    isStaff ||
+    user?.role?.toUpperCase() === 'ADMIN' ||
+    user?.role?.toUpperCase() === 'BETREUER';
+
   const [activeTab, setActiveTab] = useState<'WEEK' | 'SAVINGS'>('WEEK');
   const [budgetData, setBudgetData] = useState<LocationBudgetSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Caregiver receipt form state
   const [weeklyBudgetInput, setWeeklyBudgetInput] = useState('');
@@ -60,6 +68,7 @@ export const LocationBudgetModal: React.FC<LocationBudgetModalProps> = ({
   const fetchBudget = async () => {
     try {
       setIsLoading(true);
+      setLoadError(null);
       const data = await api.food.budget(locationId, year, weekNumber);
       setBudgetData(data);
       setWeeklyBudgetInput(
@@ -70,8 +79,28 @@ export const LocationBudgetModal: React.FC<LocationBudgetModalProps> = ({
       );
       setReceiptNoteInput(data.receiptNote || '');
       setIsConfirmedInput(data.isConfirmed || false);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Fehler beim Laden der Budgetdaten:', err);
+      setLoadError(err.message || 'Budgetdaten konnten nicht vom Server geladen werden.');
+      // Resilient fallback so the user is never locked out with an infinite spinner!
+      const fallbackData: LocationBudgetSummary = {
+        locationId,
+        year,
+        weekNumber,
+        weeklyBudget: 350,
+        estimatedShoppingCost: 0,
+        actualSpent: null,
+        receiptNote: null,
+        isConfirmed: false,
+        effectiveSpent: 0,
+        remainingBudget: 350,
+        totalSavingsBalance: 0,
+        confirmedSurplusTotal: 0,
+        extraTransactionsTotal: 0,
+        recentTransactions: [],
+      };
+      setBudgetData(fallbackData);
+      setWeeklyBudgetInput('350');
     } finally {
       setIsLoading(false);
     }
@@ -228,7 +257,23 @@ export const LocationBudgetModal: React.FC<LocationBudgetModalProps> = ({
 
         {/* Body Content */}
         <div className="p-6 overflow-y-auto space-y-4 flex-1">
-          {isLoading || !budgetData ? (
+          {loadError && (
+            <div className="p-3 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+                <span>Standard-Budgetdaten geladen. Server-Meldung: {loadError}</span>
+              </div>
+              <button
+                type="button"
+                onClick={fetchBudget}
+                className="px-2.5 py-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 text-[11px] font-bold shrink-0 transition-colors cursor-pointer"
+              >
+                Erneut laden
+              </button>
+            </div>
+          )}
+
+          {!budgetData ? (
             <div className="py-16 text-center text-slate-400">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-3 border-emerald-500 border-t-transparent mb-2" />
               <div className="text-xs">Lade Budgetdaten...</div>
@@ -324,7 +369,7 @@ export const LocationBudgetModal: React.FC<LocationBudgetModalProps> = ({
               </div>
 
               {/* Caregiver Form: Budget & Receipt */}
-              {isStaff && (
+              {effectiveIsStaff && (
                 <form
                   onSubmit={handleSaveReceipt}
                   className="bg-surface-elevated border border-surface-border rounded-2xl p-4 space-y-3"
@@ -437,7 +482,7 @@ export const LocationBudgetModal: React.FC<LocationBudgetModalProps> = ({
                   Kassenbuch & Ausgaben ({budgetData.recentTransactions.length})
                 </h3>
 
-                {isStaff && (
+                {effectiveIsStaff && (
                   <button
                     type="button"
                     onClick={() => setShowAddTransaction(!showAddTransaction)}
@@ -450,7 +495,7 @@ export const LocationBudgetModal: React.FC<LocationBudgetModalProps> = ({
               </div>
 
               {/* Add Transaction Form (Expandable) */}
-              {showAddTransaction && isStaff && (
+              {showAddTransaction && effectiveIsStaff && (
                 <form
                   onSubmit={handleCreateTransaction}
                   className="bg-surface-elevated border border-emerald-500/30 rounded-2xl p-4 space-y-3 animate-in fade-in duration-150"
@@ -592,7 +637,7 @@ export const LocationBudgetModal: React.FC<LocationBudgetModalProps> = ({
                             {tx.amount.toFixed(2)} €
                           </span>
 
-                          {isStaff && (
+                          {effectiveIsStaff && (
                             <button
                               type="button"
                               onClick={() => handleDeleteTransaction(tx.id)}

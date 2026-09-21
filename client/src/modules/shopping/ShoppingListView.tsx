@@ -38,6 +38,7 @@ const getCategoryEmoji = (category: string) => {
 
 export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTab }) => {
   const { user, activeLocationId, activeLocation } = useAuth();
+  const isStaff = user?.role?.toUpperCase() === 'ADMIN' || user?.role?.toUpperCase() === 'BETREUER';
 
   const getInitialWeek = () => {
     const now = new Date();
@@ -338,7 +339,17 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
         </div>
 
         {/* Card 3: WG-Wochenbudget & Sonderkasse */}
-        <div className="bento-card rounded-[2rem] p-5 flex flex-col justify-between shadow-lg relative overflow-hidden group">
+        <div
+          onClick={() => {
+            if (isStaff) {
+              setIsBudgetModalOpen(true);
+            }
+          }}
+          className={`bento-card rounded-[2rem] p-5 flex flex-col justify-between shadow-lg relative overflow-hidden group transition-all ${
+            isStaff ? 'cursor-pointer hover:border-emerald-500/50 hover:shadow-emerald-500/10' : ''
+          }`}
+          title={isStaff ? 'Klicken, um WG-Budget & Kassenbon zu bearbeiten' : undefined}
+        >
           <div className="absolute -right-8 -top-8 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
           <div>
             <div className="flex items-center justify-between gap-2 mb-3">
@@ -347,6 +358,11 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
                   🪙
                 </div>
                 <span>WG-Wochenbudget</span>
+                {isStaff && (
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-normal border border-emerald-500/30 group-hover:bg-emerald-500/30 transition-colors">
+                    Bearbeiten
+                  </span>
+                )}
               </div>
               <span
                 className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
@@ -368,7 +384,7 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
                 <span className="text-slate-400 text-xs font-medium ml-1">frei</span>
               </div>
               <p className="text-[11px] text-slate-400 mt-1.5 font-sans">
-                {user?.role === 'BEWOHNER'
+                {!isStaff
                   ? 'Noch verfügbar für den Wocheneinkauf'
                   : `von ${budgetData ? `${budgetData.weeklyBudget.toFixed(0)} €` : '350 €'} Wochensatz`}
               </p>
@@ -376,11 +392,14 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
           </div>
 
           {/* Caregiver cashbox management button (staff only) */}
-          {(user?.role === 'ADMIN' || user?.role === 'BETREUER') && (
+          {isStaff && (
             <div className="pt-3 border-t border-white/5 mt-2">
               <button
                 type="button"
-                onClick={() => setIsBudgetModalOpen(true)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsBudgetModalOpen(true);
+                }}
                 className="w-full py-1.5 px-3 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 hover:text-white text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
               >
                 <PiggyBank className="w-3.5 h-3.5" />
@@ -624,7 +643,7 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
         locationName={activeLocation?.name || user?.locationName || 'unsere WG'}
         year={year}
         weekNumber={weekNumber}
-        isStaff={user?.role === 'ADMIN' || user?.role === 'BETREUER'}
+        isStaff={isStaff}
         onBudgetUpdated={fetchShoppingAndBudget}
       />
     </div>

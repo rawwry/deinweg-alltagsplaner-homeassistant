@@ -10,7 +10,7 @@ interface BottomNavProps {
 
 export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, setCurrentTab }) => {
   const { user, activeLocationId } = useAuth();
-  const isStaff = user?.role === 'ADMIN' || user?.role === 'BETREUER';
+  const isStaff = user?.role?.toUpperCase() === 'ADMIN' || user?.role?.toUpperCase() === 'BETREUER';
   const [openTicketCount, setOpenTicketCount] = useState<number>(0);
 
   useEffect(() => {
