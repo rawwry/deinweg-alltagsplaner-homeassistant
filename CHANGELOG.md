@@ -3,6 +3,20 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.18] - 2026-09-23
+
+### Behoben & Polished
+- **Sichtbarkeit von Bewohner-Kommentaren auf Ankündigungen & Beiträgen (`DashboardHub.tsx`, `CaregiverNotesView.tsx`)**:
+  - **Dashboard-Benachrichtigung für Ankündigungs-Kommentare (`DashboardHub.tsx`)**:
+    - Der Filter `notesWithNewReplies` schließt Ankündigungen nicht mehr aus. Hinterlässt ein Bewohner einen Kommentar zu einer Ankündigung oder Notiz, pulsiert der Flurfunk-Hinweis-Button auf dem Dashboard sofort leuchtend rot (*„1 neue Antwort im Flurfunk“*).
+    - Auf der Dashboard-Benachrichtigungskarte wird der Antwortenzähler, das Badge *„● Neue Rückfrage“* sowie ein Textauszug der neuesten Bewohner-Nachricht direkt eingeblendet.
+  - **Unübersehbare Hervorhebung im Flurfunk (`CaregiverNotesView.tsx`)**:
+    - **Leuchtender Karten-Rahmen**: Notizen oder Ankündigungen mit offenen Bewohner-Rückfragen erhalten einen kräftigen, leuchtenden Rosenrot-Rahmen (`ring-2 ring-rose-500 shadow-xl`).
+    - **Pulsierendes Badge**: Ein leuchtendes Badge *„● Rückfrage von [Bewohnername]“* signalisiert Betreuern im Kopfbereich der Karte sofort, wer geantwortet hat.
+    - **Direkt-Vorschau der neuesten Nachricht**: Auch bei eingeklappter Karte wird die jüngste Antwort mit Absender, Uhrzeit und Textausschnitt in einer Kachel angezeigt – ein Übersehen ist damit ausgeschlossen.
+    - **Hervorgehobener Antworten-Button**: Der Zähler-Button hebt offene Rückfragen mit *(Rückfrage offen)* farblich hervor.
+    - **Klarer Banner-Text**: Der Text im oberen Banner lautet nun unmissverständlich *„X offene Bewohner-Rückfragen warten auf eine Antwort“*.
+
 ## [0.1.17] - 2026-09-22
 
 ### Behoben

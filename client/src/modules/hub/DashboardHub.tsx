@@ -684,10 +684,9 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
     });
 
   // 3. Notes with new unread replies in active conversations
-  // (From the moment a reply is written, only a hint in the Flurfunk pill indicates new replies)
+  // (From the moment a reply is written, a hint in the Flurfunk pill indicates new replies)
   const notesWithNewReplies = notesList.filter((note: any) => {
     if (note.isHiddenForMe) return false;
-    if (note.category === 'ANKUENDIGUNG') return false;
     if (note.isArchived || note.status === 'DONE' || note.isExpired) return false;
     if (!note.messages || note.messages.length === 0) return false;
 
@@ -697,16 +696,20 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
     const isStaffMember = !isResident;
     const hasUserReplied = (note.messages || []).some((m: any) => m.authorId === user?.id);
 
-    const isRelevant = isAuthor || isTargetResident || hasUserReplied || (isStaffMember && note.isPrivate);
+    // For staff members, ANY resident message in their WG (whether announcement, public note, or ticket) is relevant!
+    // For residents, only notes they authored, are targeted to them, or they replied to.
+    const isRelevant = isStaffMember || isAuthor || isTargetResident || hasUserReplied;
     if (!isRelevant) return false;
 
     // The latest message in the thread
     const lastMsg = note.messages[note.messages.length - 1];
 
     // Must be from someone else!
-    const isFromOther =
-      lastMsg.authorId !== user?.id &&
-      (!isStaffMember || (lastMsg.authorRole !== 'BETREUER' && lastMsg.authorRole !== 'ADMIN'));
+    // For staff: the latest message must be from a resident!
+    // For residents: the latest message must be from staff / another user.
+    const isFromOther = isStaffMember
+      ? (lastMsg.authorRole === 'BEWOHNER' || lastMsg.authorId !== user?.id)
+      : lastMsg.authorId !== user?.id;
     if (!isFromOther) return false;
 
     // Check if unread (either locally or on server)
@@ -1109,6 +1112,18 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                       <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full ${config.badgeClass} uppercase tracking-wider font-display shrink-0`}>
                         {config.badge}
                       </span>
+                      {note.messages && note.messages.length > 0 && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-surface-elevated border border-surface-border text-slate-200 shadow-xs">
+                          <MessageSquare className="w-3 h-3 text-rose-400" />
+                          <span>{note.messages.length} {note.messages.length === 1 ? 'Antwort' : 'Antworten'}</span>
+                        </span>
+                      )}
+                      {!isResident && note.messages && note.messages.length > 0 && note.messages[note.messages.length - 1].authorRole === 'BEWOHNER' && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500 text-white font-display shadow-xs animate-pulse">
+                          <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                          <span>Neue Rückfrage</span>
+                        </span>
+                      )}
                       {(!isAnnouncement || !isResident) && (
                         <span className="text-[11px] text-slate-300 font-medium">
                           von <strong className="text-white font-semibold">{config.senderName}</strong>
@@ -1130,6 +1145,16 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                     <p className={`text-xs ${config.textClass} mt-1 line-clamp-2 italic font-sans`}>
                       {config.snippet}
                     </p>
+
+                    {/* Latest reply snippet preview */}
+                    {note.messages && note.messages.length > 0 && (
+                      <div className="mt-2 text-[11px] text-rose-200/95 font-medium flex items-center gap-1.5 pt-1.5 border-t border-white/10">
+                        <MessageSquare className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                        <span className="truncate">
+                          <strong>{note.messages[note.messages.length - 1].authorName} ({note.messages[note.messages.length - 1].authorRole === 'BEWOHNER' ? 'Bewohner/in' : 'Betreuer/in'}):</strong> „{note.messages[note.messages.length - 1].content}“
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 

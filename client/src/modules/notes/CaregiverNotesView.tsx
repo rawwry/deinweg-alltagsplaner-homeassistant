@@ -467,10 +467,10 @@ export const CaregiverNotesView: React.FC = () => {
           </div>
           <div className="flex-1">
             <div className="text-sm font-display font-semibold text-rose-200">
-              {openTicketsCount === 1 ? '1 neue Mitteilung wartet auf eine Antwort' : `${openTicketsCount} Mitteilungen warten auf eine Antwort`}
+              {openTicketsCount === 1 ? '1 offene Bewohner-Rückfrage wartet auf eine Antwort' : `${openTicketsCount} offene Bewohner-Rückfragen warten auf eine Antwort`}
             </div>
             <p className="text-xs text-slate-300 mt-0.5">
-              Antworte den Bewohnern oder hake erledigte Absprachen einfach ab.
+              Antworte den Bewohnern auf ihre Fragen oder hake erledigte Absprachen einfach ab.
             </p>
           </div>
         </div>
@@ -921,6 +921,8 @@ export const CaregiverNotesView: React.FC = () => {
             const isDirect = note.isPrivate && (note.authorRole === 'BETREUER' || note.authorRole === 'ADMIN' || note.isDirectMessage);
             const isAuthorOrAdmin = isStaff && (note.authorId === user?.id || user?.role === 'ADMIN');
             const isEditing = editingNoteId === note.id;
+            const isAwaiting = isStaff && isAwaitingCaregiverResponse(note);
+            const latestMsg = note.messages && note.messages.length > 0 ? note.messages[note.messages.length - 1] : null;
 
             return (
               <div
@@ -930,7 +932,13 @@ export const CaregiverNotesView: React.FC = () => {
                   note.isArchived
                     ? 'border-surface-border opacity-70 bg-surface-card'
                     : categoryConfig.cardClass
-                } ${note.isPinned && !note.isArchived ? 'ring-2 ring-rose-500/40' : ''}`}
+                } ${
+                  isAwaiting
+                    ? 'ring-2 ring-rose-500 shadow-xl shadow-rose-500/20 border-rose-500/70'
+                    : note.isPinned && !note.isArchived
+                    ? 'ring-2 ring-rose-500/40'
+                    : ''
+                }`}
               >
                 {isEditing ? (
                   <div className="space-y-4 animate-in fade-in duration-150">
@@ -1156,6 +1164,14 @@ export const CaregiverNotesView: React.FC = () => {
                           <span>{categoryConfig.label}</span>
                         </span>
 
+                        {/* Open Question / Needs Staff Response Badge */}
+                        {isAwaiting && (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500 text-white shadow-sm font-display shrink-0 animate-pulse">
+                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                            <span>Rückfrage von {latestMsg ? latestMsg.authorName : (note.authorName || 'Bewohner')}</span>
+                          </span>
+                        )}
+
                         {/* Pinned Badge (interactive for staff) */}
                         {note.isPinned && (
                           <button
@@ -1294,18 +1310,82 @@ export const CaregiverNotesView: React.FC = () => {
                         <p className="text-xs sm:text-sm text-slate-300 line-clamp-2 leading-relaxed font-normal">
                           {note.content}
                         </p>
+
+                        {/* Direct Latest Message Preview Card when thread has messages */}
+                        {hasMessages && latestMsg && (
+                          <div
+                            onClick={() => toggleExpand(note.id)}
+                            className={`mt-2.5 p-3 rounded-2xl border text-xs cursor-pointer transition-colors flex items-start gap-2.5 ${
+                              isAwaiting
+                                ? 'bg-rose-500/15 border-rose-500/35 hover:bg-rose-500/25 text-rose-100 shadow-sm'
+                                : 'bg-surface-elevated/70 border-surface-border hover:bg-surface-elevated text-slate-300'
+                            }`}
+                          >
+                            <div
+                              className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white uppercase shrink-0 mt-0.5"
+                              style={{
+                                backgroundColor:
+                                  latestMsg.authorAvatarColor ||
+                                  (latestMsg.authorRole === 'BEWOHNER' ? '#3b82f6' : '#f43f5e'),
+                              }}
+                            >
+                              {latestMsg.authorName.charAt(0)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-2 mb-0.5">
+                                <span className="font-semibold text-white text-[11px] truncate flex items-center gap-1.5">
+                                  <span>{latestMsg.authorName}</span>
+                                  <span className={`text-[10px] font-normal px-1.5 py-0.2 rounded-md ${
+                                    latestMsg.authorRole === 'BEWOHNER'
+                                      ? 'bg-sky-500/20 text-sky-300'
+                                      : 'bg-rose-500/20 text-rose-300'
+                                  }`}>
+                                    {latestMsg.authorRole === 'BEWOHNER' ? 'Bewohner/in' : 'Betreuer/in'}
+                                  </span>
+                                  {isAwaiting && (
+                                    <span className="text-[10px] font-bold text-rose-300 bg-rose-500/20 px-1.5 py-0.2 rounded-md">
+                                      Neu
+                                    </span>
+                                  )}
+                                </span>
+                                <span className="text-[10px] font-mono text-slate-400 shrink-0">
+                                  {formatGermanDateTime(latestMsg.createdAt)}
+                                </span>
+                              </div>
+                              <p className="text-xs text-slate-200 line-clamp-2 leading-relaxed">
+                                „{latestMsg.content}“
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
                         <div className="mt-3 flex items-center justify-between text-xs pt-2.5 border-t border-white/5">
                           <div className="flex items-center gap-2">
                             {hasMessages ? (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/25 px-2.5 py-0.5 rounded-full">
+                              <button
+                                type="button"
+                                onClick={() => toggleExpand(note.id)}
+                                className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-0.5 rounded-full transition-colors cursor-pointer ${
+                                  isAwaiting
+                                    ? 'text-rose-200 bg-rose-500/25 border border-rose-500/50 font-bold'
+                                    : 'text-slate-300 bg-surface-elevated border border-surface-border hover:text-white'
+                                }`}
+                              >
                                 <MessageSquare className="w-3 h-3 text-rose-400" />
                                 <span>{note.messages!.length} {note.messages!.length === 1 ? 'Antwort' : 'Antworten'}</span>
-                              </span>
+                                {isAwaiting && (
+                                  <span className="text-[10px] text-rose-300 font-bold ml-0.5">(Rückfrage offen)</span>
+                                )}
+                              </button>
                             ) : note.caregiverResponse ? (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/25 px-2.5 py-0.5 rounded-full">
+                              <button
+                                type="button"
+                                onClick={() => toggleExpand(note.id)}
+                                className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/25 px-2.5 py-0.5 rounded-full cursor-pointer hover:bg-rose-500/20"
+                              >
                                 <MessageSquare className="w-3 h-3 text-rose-400" />
                                 <span>1 Antwort</span>
-                              </span>
+                              </button>
                             ) : (
                               <span className="text-[11px] text-slate-500 flex items-center gap-1 font-medium">
                                 <MessageSquare className="w-3 h-3 text-slate-600" />
