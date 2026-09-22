@@ -3,6 +3,17 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.21] - 2026-09-23
+
+### Behoben & Verbessert
+- **Zuverlässige Beantwortung von Bewohner-Fragen für Betreuer (`CaregiverNotesView.tsx`, `DashboardHub.tsx`, `routes.ts`)**:
+  - **Automatisches Aufklappen & Fokus**: Fragen und Notizen, die auf eine Antwort der Betreuer warten, klappen beim Öffnen des Flurfunks automatisch auf und fokussieren das Antwortfeld direkt.
+  - **Prominenter Antworten-Button**: Auf eingeklappten Karten wird Betreuern nun ein unübersehbarer Button *„💬 Jetzt antworten“* angezeigt (statt eines unklickbaren Grautexts).
+  - **Neues Betreuer-Antwortfeld**: Gestaltetes Antwortfeld mit individuellem Platzhalter (*„Antwort als Betreuer an [Name] schreiben...“*) und klarem Absende-Button mit Ladezustand.
+  - **Echtzeit-Synchronisierung ohne Zustandsverlust**: Das Backend (`POST /api/notes/:id/messages`) liefert nun das vollständige, aktualisierte Notizobjekt inklusive aller Metadaten und Nachrichten zurück. Dadurch bleibt der Kartenstatus im Frontend stabil erhalten.
+  - **Titel-Fallback bei themenlosen Notizen**: Lässt ein Bewohner das Thema frei, wird im Backend wie im Frontend automatisch ein Auszug des Nachrichtentexts als Titel verwendet, sodass Karten nie ohne anklickbare Überschrift gerendert werden.
+  - **Dauerhafte Dashboard-Sichtbarkeit**: Unbeantwortete Bewohner-Anliegen bleiben auf dem Betreuer-Dashboard sichtbar und verschwinden nicht mehr beim bloßen Anklicken vor dem Verfassen einer Antwort.
+
 ## [0.1.20] - 2026-09-23
 
 ### Verbessert & Polished

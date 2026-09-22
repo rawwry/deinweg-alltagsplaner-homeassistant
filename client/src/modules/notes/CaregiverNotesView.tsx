@@ -166,10 +166,26 @@ export const CaregiverNotesView: React.FC = () => {
             if (el) {
               el.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
+            const input = document.getElementById(`reply-input-${focusId}`);
+            if (input) {
+              input.focus();
+            }
           }, 250);
         }
       } catch {
         // ignore
+      }
+
+      // Automatically expand any notes that are actively awaiting caregiver response
+      if (isStaff) {
+        const awaitingIds = sorted.filter(isAwaitingCaregiverResponse).map((n) => n.id);
+        if (awaitingIds.length > 0) {
+          setExpandedNoteIds((prev) => {
+            const next = new Set(prev);
+            awaitingIds.forEach((id) => next.add(id));
+            return next;
+          });
+        }
       }
     } catch (err) {
       console.error('Fehler beim Laden der Tickets:', err);
@@ -185,10 +201,19 @@ export const CaregiverNotesView: React.FC = () => {
   const toggleExpand = (id: string) => {
     setExpandedNoteIds((prev) => {
       const next = new Set(prev);
+      const isOpening = !next.has(id);
       if (next.has(id)) {
         next.delete(id);
       } else {
         next.add(id);
+      }
+      if (isOpening) {
+        setTimeout(() => {
+          const input = document.getElementById(`reply-input-${id}`);
+          if (input) {
+            input.focus();
+          }
+        }, 150);
       }
       return next;
     });
@@ -314,7 +339,11 @@ export const CaregiverNotesView: React.FC = () => {
     try {
       setIsSubmittingMap((prev) => ({ ...prev, [noteId]: true }));
       const updated = await api.notes.addMessage(noteId, text);
-      setNotes((prev) => prev.map((n) => (n.id === noteId ? updated : n)));
+      if (updated && updated.id) {
+        setNotes((prev) => prev.map((n) => (n.id === noteId ? updated : n)));
+      } else {
+        await fetchNotes();
+      }
       setThreadReplyInputs((prev) => ({ ...prev, [noteId]: '' }));
       setExpandedNoteIds((prev) => new Set(prev).add(noteId));
 
@@ -1376,11 +1405,15 @@ export const CaregiverNotesView: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => toggleExpand(note.id)}
-                          className="px-2.5 py-1 rounded-xl bg-surface-elevated hover:bg-surface-card border border-surface-border text-slate-200 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold shadow-xs shrink-0"
-                          aria-label={isExpanded ? 'Einklappen' : 'Details anzeigen'}
+                          className={`px-2.5 py-1 rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold shadow-xs shrink-0 ${
+                            isAwaiting && !isExpanded
+                              ? 'bg-rose-500 hover:bg-rose-600 border-rose-500 text-white shadow-rose-500/20'
+                              : 'bg-surface-elevated hover:bg-surface-card border-surface-border text-slate-200 hover:text-white'
+                          }`}
+                          aria-label={isExpanded ? 'Einklappen' : isAwaiting ? 'Antworten' : 'Details anzeigen'}
                         >
-                          <span className="text-[11px] font-medium">{isExpanded ? 'Einklappen' : 'Details'}</span>
-                          {isExpanded ? <ChevronUp className="w-3.5 h-3.5 text-slate-400" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
+                          <span className="text-[11px] font-medium">{isExpanded ? 'Einklappen' : isAwaiting ? 'Antworten' : 'Details'}</span>
+                          {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : isAwaiting ? <MessageSquare className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
                         </button>
                       </div>
                     </div>
@@ -1421,7 +1454,7 @@ export const CaregiverNotesView: React.FC = () => {
                       onClick={() => toggleExpand(note.id)}
                       className="text-base sm:text-lg font-display font-semibold text-white cursor-pointer hover:text-rose-300 transition-colors leading-snug"
                     >
-                      {note.title}
+                      {note.title || (note.content.length > 50 ? note.content.slice(0, 47) + '...' : note.content) || 'Mitteilung'}
                     </h3>
 
                     {/* Collapsed Snippet or Expanded Full Content */}
@@ -1507,14 +1540,37 @@ export const CaregiverNotesView: React.FC = () => {
                                 <span>1 Antwort</span>
                               </button>
                             ) : (
-                              <span className="text-[11px] text-slate-500 flex items-center gap-1 font-medium">
-                                <MessageSquare className="w-3 h-3 text-slate-600" />
-                                <span>Keine Antworten</span>
-                              </span>
+                              <button
+                                type="button"
+                                onClick={() => toggleExpand(note.id)}
+                                className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-xl transition-all cursor-pointer ${
+                                  isAwaiting
+                                    ? 'bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 border border-rose-500/40 font-bold shadow-xs'
+                                    : 'text-slate-400 hover:text-slate-200 bg-surface-elevated hover:bg-surface-card border border-surface-border'
+                                }`}
+                              >
+                                <MessageSquare className="w-3.5 h-3.5" />
+                                <span>{isAwaiting ? 'Antwort verfassen' : 'Keine Antworten'}</span>
+                              </button>
                             )}
                           </div>
 
                           <div className="flex items-center gap-2">
+                            {canReply && !isExpanded && (
+                              <button
+                                type="button"
+                                onClick={() => toggleExpand(note.id)}
+                                className={`text-xs font-semibold flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer shadow-xs ${
+                                  isAwaiting
+                                    ? 'bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white font-bold shadow-rose-500/20'
+                                    : 'bg-surface-elevated hover:bg-surface-card border border-surface-border text-slate-200 hover:text-white'
+                                }`}
+                              >
+                                <MessageSquare className="w-3.5 h-3.5" />
+                                <span>{isAwaiting ? 'Jetzt antworten' : 'Antworten'}</span>
+                              </button>
+                            )}
+
                             {isAuthorOrAdmin && !note.isArchived && (
                               <button
                                 type="button"
@@ -1647,32 +1703,40 @@ export const CaregiverNotesView: React.FC = () => {
 
                         {/* Inline Thread Reply Input */}
                         {canReply && (
-                          <div className="pt-2 flex items-center gap-2">
-                            <input
-                              type="text"
-                              value={threadReplyInputs[note.id] || ''}
-                              onChange={(e) =>
-                                setThreadReplyInputs((prev) => ({ ...prev, [note.id]: e.target.value }))
-                              }
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' && !e.shiftKey) {
-                                  e.preventDefault();
-                                  handleSendThreadMessage(note.id);
+                          <div className="pt-3 border-t border-white/10">
+                            <div className="flex items-center gap-2">
+                              <input
+                                id={`reply-input-${note.id}`}
+                                type="text"
+                                value={threadReplyInputs[note.id] || ''}
+                                onChange={(e) =>
+                                  setThreadReplyInputs((prev) => ({ ...prev, [note.id]: e.target.value }))
                                 }
-                              }}
-                              placeholder="Antworten..."
-                              className="flex-1 px-3.5 py-2 bg-surface-elevated/90 border border-surface-border/60 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-rose-500/50 font-sans"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => handleSendThreadMessage(note.id)}
-                              disabled={!threadReplyInputs[note.id]?.trim() || isSubmittingMap[note.id]}
-                              title="Antwort senden"
-                              aria-label="Antwort senden"
-                              className="p-2 bg-rose-500 hover:bg-rose-400 disabled:opacity-30 text-white rounded-xl transition-all cursor-pointer shrink-0 shadow-xs flex items-center justify-center"
-                            >
-                              <Send className="w-3.5 h-3.5" />
-                            </button>
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleSendThreadMessage(note.id);
+                                  }
+                                }}
+                                placeholder={
+                                  isStaff
+                                    ? `Antwort als Betreuer an ${note.authorName || note.residentName || 'Bewohner'} schreiben...`
+                                    : 'Deine Antwort schreiben...'
+                                }
+                                className="flex-1 px-4 py-2.5 bg-surface-elevated/90 border border-surface-border/80 focus:border-rose-500 rounded-xl text-xs sm:text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleSendThreadMessage(note.id)}
+                                disabled={!threadReplyInputs[note.id]?.trim() || isSubmittingMap[note.id]}
+                                title="Antwort senden"
+                                aria-label="Antwort senden"
+                                className="px-4 py-2.5 bg-rose-500 hover:bg-rose-600 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl transition-all cursor-pointer shrink-0 shadow-sm flex items-center gap-1.5 text-xs font-semibold"
+                              >
+                                <Send className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">Senden</span>
+                              </button>
+                            </div>
                           </div>
                         )}
 

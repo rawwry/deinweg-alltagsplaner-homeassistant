@@ -352,8 +352,9 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
   };
 
   const handleOpenTopic = async (note: any) => {
-    // Non-announcements disappear from Home once clicked/opened
-    if (note.category !== 'ANKUENDIGUNG') {
+    // Non-announcements disappear from Home once clicked/opened - EXCEPT if awaiting caregiver response!
+    const isAwaiting = !isResident && isAwaitingCaregiver(note);
+    if (note.category !== 'ANKUENDIGUNG' && !isAwaiting) {
       const updated = Array.from(new Set([...dismissedTopicIds, note.id]));
       setDismissedTopicIds(updated);
       if (user?.id) {
@@ -680,9 +681,6 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
       if (note.isArchived || note.status === 'DONE' || note.isExpired) return false;
       if (note.expiresAt && new Date(note.expiresAt).getTime() <= Date.now()) return false;
 
-      // Dismissed notes are not displayed as banner
-      if (dismissedTopicIds.includes(note.id)) return false;
-
       // Privacy check for residents
       if (isResident) {
         if (note.isPrivate && note.residentId !== user?.id) return false;
@@ -693,6 +691,9 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
       if (!isResident && isAwaitingCaregiver(note)) {
         return true;
       }
+
+      // Dismissed notes are not displayed as banner
+      if (dismissedTopicIds.includes(note.id)) return false;
 
       // Sender (Person A) never sees incoming banner on their own dashboard
       if (note.authorId && user?.id && note.authorId === user.id) return false;
@@ -862,7 +863,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
         iconColor: 'text-purple-400',
         Icon: Mail,
         senderName: note.authorName || note.residentName || 'Bewohner',
-        headline: note.title,
+        headline: note.title || (note.content?.length > 40 ? note.content.slice(0, 37) + '...' : note.content) || 'Mitteilung',
         snippet: note.content,
         textClass: 'text-purple-200/90',
       };

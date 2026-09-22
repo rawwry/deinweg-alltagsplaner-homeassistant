@@ -169,7 +169,7 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
               where: { userId: req.user!.id },
               select: { userId: true, hiddenAt: true },
             }
-          : false,
+          : undefined,
       },
       orderBy: [
         { isPinned: 'desc' },
@@ -266,8 +266,14 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
   try {
     const { title, content, locationId, residentId, isPrivate, category, isPinned, expiresAt } = req.body;
 
-    if (!title || !content) {
-      return res.status(400).json({ error: 'Titel und Inhalt sind erforderlich.' });
+    const finalContent = (content || '').trim();
+    if (!finalContent) {
+      return res.status(400).json({ error: 'Inhalt ist erforderlich.' });
+    }
+
+    let finalTitle = (title || '').trim();
+    if (!finalTitle) {
+      finalTitle = finalContent.length > 40 ? finalContent.slice(0, 37) + '...' : finalContent;
     }
 
     const locId = locationId || req.user!.locationId;
@@ -294,8 +300,8 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
         locationId: locId,
         authorId: req.user!.id,
         residentId: targetResidentId,
-        title: title.trim(),
-        content: content.trim(),
+        title: finalTitle,
+        content: finalContent,
         category: noteCategory,
         isPinned: isStaff ? Boolean(isPinned) : false,
         expiresAt: expiresAt ? new Date(expiresAt) : null,
@@ -620,7 +626,7 @@ router.post('/:id/messages', requireAuth, async (req: Request, res: Response) =>
           noteTitle: note.title,
           responderName: req.user!.name,
           replyText: content.trim(),
-          locationName: note.location.name,
+          locationName: note.location?.name || '',
         }).catch((err) => console.error('[Mailer] Fehler beim Senden an Bewohner:', err));
       }
     } else {
@@ -642,7 +648,7 @@ router.post('/:id/messages', requireAuth, async (req: Request, res: Response) =>
       if (note.isPrivate) {
         sendCaregiverNewNoteEmail({
           locationId: note.locationId,
-          locationName: note.location.name,
+          locationName: note.location?.name || '',
           authorName: req.user!.name,
           noteTitle: `Neue Antwort zu: ${note.title}`,
           noteContent: content.trim(),
@@ -651,16 +657,79 @@ router.post('/:id/messages', requireAuth, async (req: Request, res: Response) =>
       }
     }
 
+    // Fetch and return the complete updated note so the client remains in perfect sync
+    const updatedNote = await prisma.caregiverNote.findUnique({
+      where: { id },
+      include: {
+        resident: { select: { id: true, name: true, username: true } },
+        author: { select: { id: true, name: true, role: true, avatarColor: true, avatarUrl: true } },
+        location: { select: { id: true, name: true } },
+        messages: {
+          include: {
+            author: { select: { id: true, name: true, role: true, avatarColor: true, avatarUrl: true } },
+          },
+          orderBy: { createdAt: 'asc' },
+        },
+        hiddenBy: isStaff
+          ? {
+              where: { userId: req.user!.id },
+              select: { userId: true, hiddenAt: true },
+            }
+          : undefined,
+      },
+    });
+
+    if (!updatedNote) {
+      return res.status(404).json({ error: 'Notiz nicht gefunden.' });
+    }
+
+    const responder = updatedNote.respondedByUserId
+      ? await prisma.user.findUnique({ where: { id: updatedNote.respondedByUserId }, select: { name: true } })
+      : null;
+
+    const isDirectMessage = updatedNote.isPrivate && req.user!.role !== 'BEWOHNER';
+    const isExpired = Boolean(updatedNote.expiresAt && new Date(updatedNote.expiresAt).getTime() <= Date.now());
+
     return res.json({
-      id: message.id,
-      noteId: message.noteId,
-      authorId: message.authorId,
-      authorName: message.author.name,
-      authorRole: message.author.role,
-      authorAvatarColor: message.author.avatarColor,
-      authorAvatarUrl: message.author.avatarUrl,
-      content: message.content,
-      createdAt: message.createdAt.toISOString(),
+      id: updatedNote.id,
+      locationId: updatedNote.locationId,
+      locationName: updatedNote.location.name,
+      authorId: updatedNote.authorId || (updatedNote.resident ? updatedNote.resident.id : null),
+      authorName: updatedNote.author ? updatedNote.author.name : (updatedNote.resident ? updatedNote.resident.name : 'Unbekannt'),
+      authorRole: updatedNote.author ? updatedNote.author.role : 'BEWOHNER',
+      authorAvatarColor: updatedNote.author?.avatarColor || null,
+      authorAvatarUrl: updatedNote.author?.avatarUrl || null,
+      residentId: updatedNote.residentId,
+      residentName: updatedNote.resident.name,
+      title: updatedNote.title,
+      content: updatedNote.content,
+      category: updatedNote.category || 'ALLGEMEIN',
+      isPinned: Boolean(updatedNote.isPinned),
+      expiresAt: updatedNote.expiresAt?.toISOString() || null,
+      isExpired,
+      isDirectMessage,
+      isHiddenForMe: Boolean((updatedNote as any).hiddenBy && (updatedNote as any).hiddenBy.length > 0),
+      hiddenAt: (updatedNote as any).hiddenBy?.[0]?.hiddenAt?.toISOString() || null,
+      status: updatedNote.status,
+      isArchived: updatedNote.isArchived,
+      isPrivate: updatedNote.isPrivate,
+      hasUnreadResponse: updatedNote.hasUnreadResponse,
+      caregiverResponse: updatedNote.caregiverResponse,
+      respondedAt: updatedNote.respondedAt?.toISOString() || null,
+      respondedByName: responder?.name || (isStaff ? req.user!.name : 'Betreuer'),
+      resolvedAt: updatedNote.resolvedAt?.toISOString() || null,
+      createdAt: updatedNote.createdAt.toISOString(),
+      messages: updatedNote.messages.map((m: any) => ({
+        id: m.id,
+        noteId: m.noteId,
+        authorId: m.authorId,
+        authorName: m.author.name,
+        authorRole: m.author.role,
+        authorAvatarColor: m.author.avatarColor,
+        authorAvatarUrl: m.author.avatarUrl,
+        content: m.content,
+        createdAt: m.createdAt.toISOString(),
+      })),
     });
   } catch (err) {
     console.error('Fehler beim Senden der Antwort:', err);
