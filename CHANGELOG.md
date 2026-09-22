@@ -3,6 +3,19 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.12] - 2026-09-22
+
+### Neu & Verbessert
+- **Erfassung von vorhandenen Alt-Rücklagen / Startguthaben in der WG-Sonderkasse (`BudgetManagementView.tsx`, `LocationBudgetModal.tsx`)**:
+  - **Direkter Aktions-Button „Startguthaben / Alt-Rücklagen“**: Im Kopfbereich der WG-Sonderkasse können Betreuer nun mit einem Klick vorhandene Kassenbestände oder Ersparnisse aus der Zeit vor der Einführung dieser App festhalten.
+  - **Einladendes Hinweisfeld bei neuen Wohngruppen**: Wurde für einen Standort noch kein Startguthaben hinterlegt, weist eine intuitive Bento-Karte Betreuer darauf hin, dass sie nicht bei 0 € starten müssen, sondern ihre bestehenden Kassenbestände direkt übernehmen können.
+  - **Dediziertes Startguthaben-Formular**: Abfrage von Betrag (€), Stichtag/Datum und Bezeichnung (z. B. *„Bargeldbestand Tresor aus Vorjahren“*). Der Betrag wird als positive Einzahlung verbucht und erhöht sofort den Gesamtsaldo der Sonderkasse.
+  - **Kategorie `STARTGUTHABEN` im Buchungsformular**: In regulären Buchungen kann die Kategorie *„🪙 Startguthaben / Alt-Rücklage (vor App-Start)“* nun auch direkt ausgewählt werden (stellt die Buchungsart automatisch auf *Einzahlung (+)*).
+  - **Hervorhebung im Kassenbuch & KPI-Aufschlüsselung**:
+    - Historische Rücklagen erhalten im Kassenbuch ein goldenes Sparkles/Landmark-Icon und ein dezentes *„Startguthaben“*-Badge.
+    - In der KPI-Karte der WG-Sonderkasse wird das Startguthaben separat transparent aufgeschlüsselt (*Startguthaben*, *Wochenüberschüsse*, *weitere Buchungen*).
+  - **Synchronisiert im Budget-Modal**: Auch im schnellen Pop-Up-Modal steht die Kategorie *„Startguthaben / Alt-Rücklagen“* zur Verfügung.
+
 ## [0.1.11] - 2026-09-22
 
 ### Neu & Verbessert

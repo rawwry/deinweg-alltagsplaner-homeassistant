@@ -15,6 +15,7 @@ import {
   Clock,
   Euro,
   ArrowRight,
+  Landmark,
 } from 'lucide-react';
 
 interface LocationBudgetModalProps {
@@ -521,12 +522,19 @@ export const LocationBudgetModal: React.FC<LocationBudgetModalProps> = ({
                       <label className="block text-[11px] text-slate-400 mb-1">Kategorie</label>
                       <select
                         value={transCategory}
-                        onChange={(e) => setTransCategory(e.target.value)}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setTransCategory(val);
+                          if (val === 'STARTGUTHABEN') {
+                            setTransType('DEPOSIT');
+                          }
+                        }}
                         className="w-full px-3 py-1.5 bg-surface-card border border-surface-border rounded-xl text-xs text-white"
                       >
                         <option value="AKTIVITAET">Aktivität (Kino, Ausflug)</option>
                         <option value="SONDERANSCHAFFUNG">Sonderanschaffung</option>
                         <option value="REPARATUR">Reparatur</option>
+                        <option value="STARTGUTHABEN">🪙 Startguthaben / Alt-Rücklagen</option>
                         <option value="SONSTIGES">Sonstiges</option>
                       </select>
                     </div>
@@ -598,6 +606,11 @@ export const LocationBudgetModal: React.FC<LocationBudgetModalProps> = ({
                 <div className="space-y-2">
                   {budgetData.recentTransactions.map((tx) => {
                     const isNegative = tx.amount < 0;
+                    const isStartguthaben =
+                      tx.category === 'STARTGUTHABEN' ||
+                      tx.purpose.toLowerCase().includes('startguthaben') ||
+                      tx.purpose.toLowerCase().includes('alt-rücklage');
+
                     return (
                       <div
                         key={tx.id}
@@ -606,12 +619,16 @@ export const LocationBudgetModal: React.FC<LocationBudgetModalProps> = ({
                         <div className="flex items-center gap-2.5">
                           <div
                             className={`p-2 rounded-xl shrink-0 ${
-                              isNegative
+                              isStartguthaben
+                                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                : isNegative
                                 ? 'bg-rose-500/15 text-rose-400'
                                 : 'bg-emerald-500/15 text-emerald-400'
                             }`}
                           >
-                            {isNegative ? (
+                            {isStartguthaben ? (
+                              <Landmark className="w-3.5 h-3.5" />
+                            ) : isNegative ? (
                               <TrendingDown className="w-3.5 h-3.5" />
                             ) : (
                               <TrendingUp className="w-3.5 h-3.5" />
@@ -620,7 +637,15 @@ export const LocationBudgetModal: React.FC<LocationBudgetModalProps> = ({
                           <div>
                             <div className="font-semibold text-slate-200">{tx.purpose}</div>
                             <div className="text-[11px] text-slate-400 flex items-center gap-1.5">
-                              <span>{tx.category}</span>
+                              <span
+                                className={
+                                  isStartguthaben
+                                    ? 'text-amber-300 font-bold'
+                                    : ''
+                                }
+                              >
+                                {isStartguthaben ? '🪙 Startguthaben' : tx.category}
+                              </span>
                               <span>•</span>
                               <span className="font-mono">{tx.date}</span>
                             </div>
@@ -630,7 +655,11 @@ export const LocationBudgetModal: React.FC<LocationBudgetModalProps> = ({
                         <div className="flex items-center gap-2.5">
                           <span
                             className={`font-mono font-bold text-sm ${
-                              isNegative ? 'text-rose-400' : 'text-emerald-400'
+                              isStartguthaben
+                                ? 'text-amber-300'
+                                : isNegative
+                                ? 'text-rose-400'
+                                : 'text-emerald-400'
                             }`}
                           >
                             {isNegative ? '' : '+'}

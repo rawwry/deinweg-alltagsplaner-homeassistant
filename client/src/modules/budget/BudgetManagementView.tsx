@@ -23,6 +23,8 @@ import {
   Building2,
   ShieldCheck,
   Search,
+  Landmark,
+  Coins,
 } from 'lucide-react';
 
 interface BudgetManagementViewProps {
@@ -71,6 +73,13 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
   const [transDate, setTransDate] = useState(new Date().toISOString().split('T')[0]);
   const [isSubmittingTrans, setIsSubmittingTrans] = useState(false);
   const [transactionSearchQuery, setTransactionSearchQuery] = useState('');
+
+  // Startguthaben state (historische Rücklagen vor App-Einführung)
+  const [showStartguthabenModal, setShowStartguthabenModal] = useState(false);
+  const [startguthabenAmountInput, setStartguthabenAmountInput] = useState('');
+  const [startguthabenDateInput, setStartguthabenDateInput] = useState(() => new Date().toISOString().split('T')[0]);
+  const [startguthabenNoteInput, setStartguthabenNoteInput] = useState('Bestehende Rücklagen aus Zeit vor der App');
+  const [isSavingStartguthaben, setIsSavingStartguthaben] = useState(false);
 
   // Active section tab for mobile/desktop toggling
   const [activeSection, setActiveSection] = useState<'WEEK' | 'SAVINGS'>('WEEK');
@@ -235,6 +244,39 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
     }
   };
 
+  const handleSaveStartguthaben = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!startguthabenAmountInput) return;
+
+    try {
+      setIsSavingStartguthaben(true);
+      const parsedAmount = Math.abs(parseFloat(startguthabenAmountInput.replace(',', '.')));
+      if (isNaN(parsedAmount) || parsedAmount <= 0) {
+        alert('Bitte gib einen gültigen Betrag größer als 0 € ein.');
+        return;
+      }
+
+      await api.food.createSavingsTransaction({
+        locationId: activeLocationId,
+        date: startguthabenDateInput,
+        amount: parsedAmount,
+        type: 'DEPOSIT',
+        category: 'STARTGUTHABEN',
+        purpose: startguthabenNoteInput.trim() || 'Bestehende Rücklagen aus Zeit vor der App',
+      });
+
+      setStartguthabenAmountInput('');
+      setShowStartguthabenModal(false);
+      await fetchBudget();
+      setSuccessMessage(`Bestehende Rücklagen (${parsedAmount.toFixed(2)} €) erfolgreich als Startguthaben verbucht!`);
+      setTimeout(() => setSuccessMessage(null), 5000);
+    } catch (err: any) {
+      alert(`Fehler beim Erfassen des Startguthabens: ${err.message || err}`);
+    } finally {
+      setIsSavingStartguthaben(false);
+    }
+  };
+
   // Visual metrics calculation
   const spentAmount = budgetData
     ? budgetData.actualSpent !== null && budgetData.actualSpent !== undefined
@@ -245,6 +287,19 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
   const totalBudget = budgetData?.weeklyBudget || 350;
   const spentPercent = Math.min(100, Math.round((spentAmount / totalBudget) * 100));
   const isOverBudget = spentAmount > totalBudget;
+
+  // Startguthaben / Alt-Rücklagen analysis
+  const startguthabenTransactions = (budgetData?.recentTransactions || []).filter(
+    (tx) =>
+      tx.category === 'STARTGUTHABEN' ||
+      tx.purpose.toLowerCase().includes('startguthaben') ||
+      tx.purpose.toLowerCase().includes('alt-rücklage')
+  );
+  const totalStartguthaben = startguthabenTransactions.reduce(
+    (sum, tx) => sum + (tx.amount > 0 ? tx.amount : 0),
+    0
+  );
+  const otherTransactionsTotal = (budgetData?.extraTransactionsTotal || 0) - totalStartguthaben;
 
   const filteredTransactions = (budgetData?.recentTransactions || []).filter((tx) => {
     if (!transactionSearchQuery.trim()) return true;
@@ -489,10 +544,19 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
             Überschüsse aus abgeschlossenen Einkäufen sowie Sonderbuchungen für Ausflüge, Kino und WG-Anschaffungen.
           </p>
 
-          <div className="mt-2 text-[11px] text-slate-400 flex items-center gap-3 font-mono">
-            <span>Überschüsse: {budgetData?.confirmedSurplusTotal.toFixed(2) ?? '0.00'} €</span>
+          <div className="mt-2 text-[11px] text-slate-400 flex flex-wrap items-center gap-x-2.5 gap-y-1 font-mono">
+            {totalStartguthaben > 0 && (
+              <>
+                <span className="text-amber-300 font-bold flex items-center gap-1">
+                  <Coins className="w-3 h-3" />
+                  <span>Start: {totalStartguthaben.toFixed(2)} €</span>
+                </span>
+                <span>•</span>
+              </>
+            )}
+            <span>Überschuss: {budgetData?.confirmedSurplusTotal.toFixed(2) ?? '0.00'} €</span>
             <span>•</span>
-            <span>Buchungen: {budgetData?.extraTransactionsTotal.toFixed(2) ?? '0.00'} €</span>
+            <span>Weitere Buchungen: {otherTransactionsTotal.toFixed(2)} €</span>
           </div>
         </div>
       </div>
@@ -797,6 +861,15 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
             <div className="shrink-0 flex flex-col sm:flex-row md:flex-col gap-2.5">
               <button
                 type="button"
+                onClick={() => setShowStartguthabenModal(true)}
+                className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-2xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-amber-500/20"
+              >
+                <Coins className="w-4 h-4" />
+                <span>Startguthaben / Alt-Rücklagen</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={() => setShowAddTransaction(!showAddTransaction)}
                 className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-2xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-500/20"
               >
@@ -805,6 +878,167 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
               </button>
             </div>
           </div>
+
+          {/* Helper Card for recording historical reserves if none exist yet */}
+          {totalStartguthaben === 0 ? (
+            <div className="bento-card border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-surface-card to-surface-elevated rounded-3xl p-5 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
+                <div className="p-3 rounded-2xl bg-amber-500/20 text-amber-300 border border-amber-500/30 shrink-0 shadow-sm">
+                  <Landmark className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold font-display text-amber-200 flex items-center gap-2">
+                    <span>Vorhandene Alt-Rücklagen vor App-Einführung erfassen</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] bg-amber-500/20 text-amber-300 font-mono">Für Betreuer</span>
+                  </h4>
+                  <p className="text-xs text-slate-300 mt-1 leading-relaxed max-w-2xl">
+                    Du startest hier nicht bei 0 €: Wenn deine Wohngruppe vor der Nutzung dieser App bereits Kassenbestände oder Ersparnisse hatte, trage diese hier als Startguthaben ein, damit sie im Gesamtsaldo der WG-Sonderkasse berücksichtigt werden.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowStartguthabenModal(true)}
+                className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-2xl text-xs flex items-center justify-center gap-2 shrink-0 transition-all cursor-pointer shadow-md shadow-amber-500/20"
+              >
+                <Coins className="w-4 h-4" />
+                <span>Startguthaben eintragen</span>
+              </button>
+            </div>
+          ) : (
+            <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-amber-500/20 text-amber-300">
+                  <Landmark className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="font-semibold text-amber-200 text-sm flex items-center gap-2">
+                    <span>Startguthaben vor App-Einführung:</span>
+                    <span className="font-mono font-bold text-white text-base">{totalStartguthaben.toFixed(2)} €</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    Bestehende Rücklagen wurden erfasst und sind fest im aktuellen Gesamtsaldo ({budgetData ? `${budgetData.totalSavingsBalance.toFixed(2)} €` : '...'}) enthalten.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowStartguthabenModal(true)}
+                className="px-3.5 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 rounded-xl text-xs font-semibold cursor-pointer transition-colors shrink-0 flex items-center gap-1.5"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Weiteren Alt-Bestand erfassen</span>
+              </button>
+            </div>
+          )}
+
+          {/* MODAL / OVERLAY: RECORD HISTORICAL RESERVES (STARTGUTHABEN) */}
+          {showStartguthabenModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+              <div className="bg-surface-card border border-amber-500/40 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+                <div className="px-6 py-4 border-b border-surface-border bg-surface-elevated/40 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 bg-amber-500/20 border border-amber-500/30 text-amber-300 rounded-xl shadow-xs">
+                      <Landmark className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-display font-bold text-white">
+                        Vorhandene Rücklagen erfassen
+                      </h3>
+                      <p className="text-[11px] text-slate-400">
+                        Startguthaben aus der Zeit vor dieser App · {activeLocation?.name}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowStartguthabenModal(false)}
+                    className="p-1.5 text-slate-400 hover:text-white hover:bg-surface-elevated rounded-xl transition-colors cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <form onSubmit={handleSaveStartguthaben} className="p-6 space-y-4">
+                  <div className="p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-2xl text-xs text-slate-300 space-y-1 leading-relaxed">
+                    <div className="font-bold text-amber-200 flex items-center gap-1.5">
+                      <Coins className="w-3.5 h-3.5" />
+                      <span>Wie funktioniert das Startguthaben?</span>
+                    </div>
+                    <p className="text-[11px] text-slate-300">
+                      Hier kannst du den Geldbetrag eintragen, den die Wohngruppe bereits vor der Einführung dieser App angespart oder in der Barkasse hatte. Der Betrag wird als Anfangsbestand im Kassenbuch hinterlegt und dem Guthaben der WG-Sonderkasse gutgeschrieben.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                      <label className="block text-xs font-semibold text-amber-300 mb-1.5">
+                        Vorhandene Rücklagen (€) *
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0.01"
+                          required
+                          value={startguthabenAmountInput}
+                          onChange={(e) => setStartguthabenAmountInput(e.target.value)}
+                          placeholder="z.B. 450.00"
+                          className="w-full px-3.5 py-2.5 bg-surface-elevated border border-amber-500/40 rounded-xl text-sm font-bold text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 font-mono"
+                        />
+                        <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-mono">€</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                        Stichtag / Datum
+                      </label>
+                      <input
+                        type="date"
+                        required
+                        value={startguthabenDateInput}
+                        onChange={(e) => setStartguthabenDateInput(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                      Bezeichnung / Herkunft
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={startguthabenNoteInput}
+                      onChange={(e) => setStartguthabenNoteInput(e.target.value)}
+                      placeholder="z.B. Bisherige Barkasse Tresor, Ersparnisse vor digitalem Alltagsplaner"
+                      className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-surface-border">
+                    <button
+                      type="button"
+                      onClick={() => setShowStartguthabenModal(false)}
+                      className="px-4 py-2 bg-surface-elevated hover:bg-surface-card text-slate-300 rounded-xl text-xs transition-colors cursor-pointer"
+                    >
+                      Abbrechen
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSavingStartguthaben}
+                      className="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition-colors cursor-pointer disabled:opacity-50 shadow-md shadow-amber-500/20 flex items-center gap-1.5"
+                    >
+                      <Coins className="w-3.5 h-3.5" />
+                      <span>{isSavingStartguthaben ? 'Speichere...' : 'Als Startguthaben übernehmen'}</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
 
           {/* Form to add a new transaction */}
           {showAddTransaction && (
@@ -841,12 +1075,20 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
                     <label className="block text-xs font-semibold text-slate-300 mb-1.5">Kategorie</label>
                     <select
                       value={transCategory}
-                      onChange={(e) => setTransCategory(e.target.value)}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setTransCategory(val);
+                        if (val === 'STARTGUTHABEN' || val === 'EINZAHLUNG') {
+                          setTransType('DEPOSIT');
+                        }
+                      }}
                       className="w-full px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/40 cursor-pointer"
                     >
                       <option value="AKTIVITAET">Aktivität (Kino, Bowling, Eis essen)</option>
                       <option value="SONDERANSCHAFFUNG">Sonderanschaffung (Spiele, Küchengerät)</option>
                       <option value="REPARATUR">Reparatur & Instandhaltung</option>
+                      <option value="STARTGUTHABEN">🪙 Startguthaben / Alt-Rücklage (vor App-Start)</option>
+                      <option value="EINZAHLUNG">Einzahlung / Spende / Pfandkasse</option>
                       <option value="SONSTIGES">Sonstiges</option>
                     </select>
                   </div>
@@ -951,6 +1193,11 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
               <div className="space-y-2.5">
                 {filteredTransactions.map((tx) => {
                   const isNegative = tx.amount < 0;
+                  const isStartguthaben =
+                    tx.category === 'STARTGUTHABEN' ||
+                    tx.purpose.toLowerCase().includes('startguthaben') ||
+                    tx.purpose.toLowerCase().includes('alt-rücklage');
+
                   return (
                     <div
                       key={tx.id}
@@ -959,12 +1206,16 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
                       <div className="flex items-center gap-3 min-w-0">
                         <div
                           className={`p-2.5 rounded-xl shrink-0 ${
-                            isNegative
+                            isStartguthaben
+                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-xs'
+                              : isNegative
                               ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
                               : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
                           }`}
                         >
-                          {isNegative ? (
+                          {isStartguthaben ? (
+                            <Landmark className="w-4 h-4" />
+                          ) : isNegative ? (
                             <TrendingDown className="w-4 h-4" />
                           ) : (
                             <TrendingUp className="w-4 h-4" />
@@ -976,8 +1227,14 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
                             {tx.purpose}
                           </div>
                           <div className="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5 font-mono">
-                            <span className="px-2 py-0.5 rounded-md bg-surface-card border border-surface-border text-slate-300">
-                              {tx.category}
+                            <span
+                              className={`px-2 py-0.5 rounded-md border ${
+                                isStartguthaben
+                                  ? 'bg-amber-500/15 text-amber-300 border-amber-500/40 font-bold'
+                                  : 'bg-surface-card border-surface-border text-slate-300'
+                              }`}
+                            >
+                              {isStartguthaben ? '🪙 Startguthaben' : tx.category}
                             </span>
                             <span>•</span>
                             <span>{tx.date}</span>
@@ -988,7 +1245,11 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
                       <div className="flex items-center gap-3 shrink-0">
                         <span
                           className={`font-mono font-bold text-base ${
-                            isNegative ? 'text-rose-400' : 'text-emerald-400'
+                            isStartguthaben
+                              ? 'text-amber-300'
+                              : isNegative
+                              ? 'text-rose-400'
+                              : 'text-emerald-400'
                           }`}
                         >
                           {isNegative ? '' : '+'}
