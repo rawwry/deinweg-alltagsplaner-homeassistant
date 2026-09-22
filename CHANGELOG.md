@@ -3,6 +3,19 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.16] - 2026-09-22
+
+### Verbessert & Polished
+- **Zentrierte & einheitliche Reiter-Leiste im Flurfunk (`CaregiverNotesView.tsx`)**:
+  - **Zentrierte Anordnung auf Desktop**: Die Reiterleiste (*„Aktuelle Notizen“*, *„Ausgeblendet“*, *„Erledigt & Archiv“*) ist nun in einer ausgewogenen Segmented-Control-Leiste exakt zentriert platziert, anstatt an den linken Rand gequetscht zu sein.
+  - **Ausnahmslos monochrome Stroke-Icons (im Stil von `EyeOff`)**:
+    - Alle bunten Emojis (`📌`, `✅`, `📻`) in der Reiter-Navigation wurden durch hochwertige, einheitliche Lucide-Icons ersetzt:
+      - *Aktuelle Notizen*: `<Pin />`
+      - *Ausgeblendet*: `<EyeOff />`
+      - *Erledigt & Archiv*: `<Archive />`
+    - Keine harten Farbklassen: Die Icons erben harmonisch den Zustand des Reiters (leuchtend weiß im aktiven Zustand, edles Schiefergrau im inaktiven Zustand).
+  - **Empty-States & Header bereinigt**: Auch in den leeren Zuständen des Archivs und der ausgeblendeten Beiträge sowie im Formular-Header wurden Emojis durch stilsichere monochrome Lucide-Icons abgelöst.
+
 ## [0.1.15] - 2026-09-22
 
 ### Neu & Behoben

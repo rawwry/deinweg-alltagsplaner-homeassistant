@@ -26,6 +26,8 @@ import {
   X,
   Eye,
   EyeOff,
+  Archive,
+  Radio,
 } from 'lucide-react';
 
 const NOTE_CATEGORIES: {
@@ -396,7 +398,7 @@ export const CaregiverNotesView: React.FC = () => {
       <div className="bg-surface-card rounded-[2.5rem] p-6 border border-surface-border shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-rose-500/15 border border-rose-500/30 rounded-full text-xs font-semibold text-rose-300 mb-2 font-display">
-            <span className="text-sm">📻</span>
+            <Radio className="w-3.5 h-3.5 text-rose-400" />
             <span>Flurfunk & Mitteilungen</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-display font-semibold text-white tracking-tight flex items-center gap-2">
@@ -421,8 +423,8 @@ export const CaregiverNotesView: React.FC = () => {
       {/* Staff Alert Banner when there are open notes */}
       {isStaff && activeTab === 'ACTIVE' && openTicketsCount > 0 && (
         <div className="bg-gradient-to-r from-rose-500/15 via-surface-card to-surface-card border border-rose-500/40 rounded-3xl p-5 flex items-center gap-3.5 shadow-md">
-          <div className="p-2.5 bg-rose-500 text-white rounded-2xl shrink-0 font-bold text-base shadow-sm">
-            📌
+          <div className="p-2.5 bg-rose-500 text-white rounded-2xl shrink-0 font-bold text-base shadow-sm flex items-center justify-center">
+            <Pin className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1">
             <div className="text-sm font-display font-semibold text-rose-200">
@@ -435,62 +437,74 @@ export const CaregiverNotesView: React.FC = () => {
         </div>
       )}
 
-      {/* Tabs: Active vs Hidden vs Archive - Modern Segmented Control */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-surface-border pb-3">
-        <div className="bg-surface-card/90 p-1.5 rounded-2xl border border-surface-border flex items-center gap-1.5 w-full sm:w-auto shadow-inner flex-wrap">
+      {/* Tabs: Active vs Hidden vs Archive - Centered Modern Segmented Control */}
+      <div className="flex items-center justify-center w-full border-b border-surface-border/70 pb-4">
+        <div className="bg-surface-card/95 p-1.5 rounded-2xl border border-surface-border/80 flex items-center justify-center gap-1.5 sm:gap-2 w-full sm:w-auto shadow-sm">
+          {/* 1. Aktuelle Notizen */}
           <button
             type="button"
             onClick={() => setActiveTab('ACTIVE')}
-            className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-2 cursor-pointer select-none ${
               activeTab === 'ACTIVE'
-                ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md shadow-rose-500/20'
-                : 'text-slate-400 hover:text-white hover:bg-surface-elevated/60'
+                ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md shadow-rose-500/25 font-bold'
+                : 'text-slate-400 hover:text-white hover:bg-surface-elevated/70'
             }`}
           >
-            <span>📌</span>
+            <Pin className="w-4 h-4 shrink-0" />
             <span>Aktuelle Notizen</span>
             {activeNotes.length > 0 && (
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-black font-mono ${
-                activeTab === 'ACTIVE' ? 'bg-black/30 text-white' : 'bg-surface-elevated text-slate-300'
-              }`}>
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-black font-mono transition-colors ${
+                  activeTab === 'ACTIVE' ? 'bg-black/25 text-white' : 'bg-surface-elevated text-slate-300'
+                }`}
+              >
                 {activeNotes.length}
               </span>
             )}
           </button>
 
+          {/* 2. Ausgeblendet (Nur für Betreuer/Admin) */}
           {isStaff && (
             <button
               type="button"
               onClick={() => setActiveTab('HIDDEN')}
-              className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+              className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-2 cursor-pointer select-none ${
                 activeTab === 'HIDDEN'
-                  ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md shadow-rose-500/20'
-                  : 'text-slate-400 hover:text-white hover:bg-surface-elevated/60'
+                  ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md shadow-rose-500/25 font-bold'
+                  : 'text-slate-400 hover:text-white hover:bg-surface-elevated/70'
               }`}
             >
-              <EyeOff className="w-3.5 h-3.5" />
+              <EyeOff className="w-4 h-4 shrink-0" />
               <span>Ausgeblendet</span>
               {hiddenNotes.length > 0 && (
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black font-mono ${
-                  activeTab === 'HIDDEN' ? 'bg-black/30 text-white' : 'bg-slate-700/80 text-slate-300'
-                }`}>
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-black font-mono transition-colors ${
+                    activeTab === 'HIDDEN' ? 'bg-black/25 text-white' : 'bg-slate-700/80 text-slate-300'
+                  }`}
+                >
                   {hiddenNotes.length}
                 </span>
               )}
             </button>
           )}
 
+          {/* 3. Erledigt & Archiv */}
           <button
             type="button"
             onClick={() => setActiveTab('ARCHIVE')}
-            className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-2 cursor-pointer select-none ${
               activeTab === 'ARCHIVE'
-                ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md shadow-rose-500/20'
-                : 'text-slate-400 hover:text-white hover:bg-surface-elevated/60'
+                ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md shadow-rose-500/25 font-bold'
+                : 'text-slate-400 hover:text-white hover:bg-surface-elevated/70'
             }`}
           >
-            <span>✅</span>
+            <Archive className="w-4 h-4 shrink-0" />
             <span>Erledigt & Archiv</span>
+            {activeTab === 'ARCHIVE' && notes.length > 0 && (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-black font-mono bg-black/25 text-white">
+                {notes.length}
+              </span>
+            )}
           </button>
         </div>
       </div>
@@ -503,7 +517,7 @@ export const CaregiverNotesView: React.FC = () => {
         >
           <div className="flex items-center justify-between border-b border-white/5 pb-3">
             <h3 className="text-sm font-display font-semibold text-white flex items-center gap-2">
-              <span>✏️</span>
+              <Pencil className="w-4 h-4 text-rose-400" />
               <span>Neuen Beitrag für den Flurfunk schreiben</span>
             </h3>
             <span className="text-xs text-slate-400">Verfasser: <strong className="text-slate-200">{user?.name}</strong></span>
@@ -820,7 +834,9 @@ export const CaregiverNotesView: React.FC = () => {
             </>
           ) : activeTab === 'HIDDEN' ? (
             <>
-              <div className="text-4xl mb-3">👁️‍🗨️ ✨</div>
+              <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-surface-elevated/70 border border-surface-border flex items-center justify-center text-slate-400">
+                <EyeOff className="w-8 h-8 text-slate-400" />
+              </div>
               <h3 className="text-base font-display font-semibold text-slate-200">Keine ausgeblendeten Beiträge</h3>
               <p className="text-xs text-slate-400 mt-1.5 max-w-sm mx-auto leading-relaxed">
                 Du hast aktuell keine Mitteilungen ausgeblendet. Alle aktiven Flurfunk-Nachrichten sind in der Übersicht sichtbar.
@@ -828,7 +844,9 @@ export const CaregiverNotesView: React.FC = () => {
             </>
           ) : (
             <>
-              <div className="text-4xl mb-3">📁 🍃</div>
+              <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-surface-elevated/70 border border-surface-border flex items-center justify-center text-slate-400">
+                <Archive className="w-8 h-8 text-slate-400" />
+              </div>
               <h3 className="text-base font-display font-semibold text-slate-200">Das Archiv ist leer</h3>
               <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto leading-relaxed">
                 Erledigte Notizen und geklärte Absprachen werden hier aufbewahrt.
