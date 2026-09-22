@@ -3,6 +3,17 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.17] - 2026-09-22
+
+### Behoben
+- **Präzise Zählung von Mitteilungen, die auf Antwort warten (`CaregiverNotesView.tsx`, `server/src/modules/notes/routes.ts`)**:
+  - **Ankündigungen und eigene Beiträge ausgeschlossen**:
+    - Reine *Ankündigungen* (`ANKUENDIGUNG`) sowie von Betreuern/Admins selbst verfasste Beiträge werden in der Betreuersicht nicht mehr fälschlicherweise als *„Mitteilung wartet auf eine Antwort“* gezählt.
+    - Eine Ankündigung oder ein eigener Betreuer-Beitrag wird nur dann als antwortbedürftig gewertet, wenn ein Bewohner einen Kommentar bzw. eine Rückfrage im Beitrags-Thread verfasst hat, auf die das Betreuerteam noch nicht geantwortet hat.
+  - **Präzise Status- und Thread-Prüfung**:
+    - Bei Bewohner-Mitteilungen wird exakt geprüft, ob das Betreuerteam bereits geantwortet hat. Antwortet ein Bewohner danach erneut, wird der Beitrag wieder korrekt als antwortbedürftig gezählt.
+  - **Synchronisiert mit Backend-Counter**: Der Zähler im oberen Hinweis-Banner sowie der Badge in der Navigationsleiste (`DesktopNav`, `BottomNav`) basieren nun auf exakt derselben intelligenten Logik.
+
 ## [0.1.16] - 2026-09-22
 
 ### Verbessert & Polished

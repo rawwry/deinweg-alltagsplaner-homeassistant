@@ -44,16 +44,65 @@ router.get('/count-open', requireAuth, async (req: Request, res: Response) => {
           userId: req.user!.id,
         },
       };
+
+      const activeNotes = await prisma.caregiverNote.findMany({
+        where: whereClause,
+        select: {
+          id: true,
+          category: true,
+          caregiverResponse: true,
+          authorId: true,
+          author: { select: { role: true } },
+          messages: {
+            select: {
+              authorId: true,
+              author: { select: { role: true } },
+              createdAt: true,
+            },
+            orderBy: { createdAt: 'asc' },
+          },
+        },
+      });
+
+      const count = activeNotes.filter((note) => {
+        const isAuthorStaff = note.author?.role === 'BETREUER' || note.author?.role === 'ADMIN' || note.authorId === req.user!.id;
+        const messages = note.messages || [];
+        const residentMessages = messages.filter((m) => m.author?.role === 'BEWOHNER');
+        const hasStaffResponse = Boolean(note.caregiverResponse) || messages.some((m) => m.author?.role === 'BETREUER' || m.author?.role === 'ADMIN');
+
+        // Announcements: only count if resident asked something and staff hasn't answered
+        if (note.category === 'ANKUENDIGUNG') {
+          if (residentMessages.length === 0) return false;
+          const lastMsg = messages[messages.length - 1];
+          return lastMsg?.author?.role === 'BEWOHNER';
+        }
+
+        // Staff-authored posts: only count if resident replied and staff hasn't answered
+        if (isAuthorStaff) {
+          if (residentMessages.length === 0) return false;
+          const lastMsg = messages[messages.length - 1];
+          return lastMsg?.author?.role === 'BEWOHNER';
+        }
+
+        // Resident-authored posts:
+        if (!hasStaffResponse) return true;
+        if (messages.length > 0) {
+          const lastMsg = messages[messages.length - 1];
+          return lastMsg?.author?.role === 'BEWOHNER';
+        }
+        return false;
+      }).length;
+
+      return res.json({ count });
     } else {
       whereClause.OR = [
         { isPrivate: false },
         { residentId: req.user!.id },
         { authorId: req.user!.id },
       ];
+      const count = await prisma.caregiverNote.count({ where: whereClause });
+      return res.json({ count });
     }
-
-    const count = await prisma.caregiverNote.count({ where: whereClause });
-    return res.json({ count });
   } catch (err) {
     console.error('Fehler beim Zählen offener Notizen:', err);
     return res.status(500).json({ error: 'Fehler beim Zählen der Notizen.' });

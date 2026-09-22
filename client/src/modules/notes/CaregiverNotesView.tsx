@@ -390,7 +390,46 @@ export const CaregiverNotesView: React.FC = () => {
   const hiddenNotes = notes.filter((n) => Boolean(n.isHiddenForMe));
   const displayedNotes = activeTab === 'HIDDEN' ? hiddenNotes : (activeTab === 'ACTIVE' ? activeNotes : notes);
 
-  const openTicketsCount = activeTab === 'ACTIVE' ? activeNotes.filter((n) => n.status !== 'DONE').length : 0;
+  const isAwaitingCaregiverResponse = (n: CaregiverNoteSummary): boolean => {
+    if (n.isArchived || n.status === 'DONE' || n.isHiddenForMe) return false;
+
+    const messages = n.messages || [];
+    const residentMessages = messages.filter((m) => m.authorRole === 'BEWOHNER');
+    const hasStaffResponse = Boolean(n.caregiverResponse) || messages.some((m) => m.authorRole === 'BETREUER' || m.authorRole === 'ADMIN');
+
+    // 1. Announcements (ANKUENDIGUNG): Informational broadcasts, not inquiries.
+    // They only need staff response if a resident asked something in the thread and staff hasn't answered yet.
+    if (n.category === 'ANKUENDIGUNG') {
+      if (residentMessages.length === 0) return false;
+      const lastMsg = messages[messages.length - 1];
+      return lastMsg?.authorRole === 'BEWOHNER';
+    }
+
+    // 2. Posts authored by staff (caregivers or admins):
+    // Staff does not need to answer their own post.
+    const isStaffAuthor = n.authorRole === 'BETREUER' || n.authorRole === 'ADMIN' || (user?.id ? n.authorId === user.id : false);
+    if (isStaffAuthor) {
+      if (residentMessages.length === 0) return false;
+      const lastMsg = messages[messages.length - 1];
+      return lastMsg?.authorRole === 'BEWOHNER';
+    }
+
+    // 3. Notes created by residents:
+    // If staff has not yet replied or responded:
+    if (!hasStaffResponse) {
+      return true;
+    }
+
+    // If staff replied previously, check if resident replied again afterwards
+    if (messages.length > 0) {
+      const lastMsg = messages[messages.length - 1];
+      return lastMsg?.authorRole === 'BEWOHNER';
+    }
+
+    return false;
+  };
+
+  const openTicketsCount = activeTab === 'ACTIVE' ? activeNotes.filter(isAwaitingCaregiverResponse).length : 0;
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-24 md:pb-8">
