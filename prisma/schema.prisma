@@ -49,6 +49,7 @@ model User {
   notes        CaregiverNote[] @relation("ResidentNotes")
   authoredNotes CaregiverNote[] @relation("AuthoredNotes")
   noteMessages CaregiverNoteMessage[]
+  hiddenNotes  CaregiverNoteHidden[]
   choreAssignments ChoreAssignment[] @relation("ResidentChores")
 }
 
@@ -208,6 +209,7 @@ model CaregiverNote {
   resident            User      @relation("ResidentNotes", fields: [residentId], references: [id], onDelete: Cascade)
   author              User?     @relation("AuthoredNotes", fields: [authorId], references: [id], onDelete: SetNull)
   messages            CaregiverNoteMessage[]
+  hiddenBy            CaregiverNoteHidden[]
 }
 
 model CaregiverNoteMessage {
@@ -219,6 +221,18 @@ model CaregiverNoteMessage {
 
   note                CaregiverNote @relation(fields: [noteId], references: [id], onDelete: Cascade)
   author              User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model CaregiverNoteHidden {
+  id                  String        @id @default(cuid())
+  noteId              String
+  userId              String
+  hiddenAt            DateTime      @default(now())
+
+  note                CaregiverNote @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([noteId, userId])
 }
 
 model WastePickup {

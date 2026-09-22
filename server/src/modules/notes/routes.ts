@@ -38,7 +38,13 @@ router.get('/count-open', requireAuth, async (req: Request, res: Response) => {
       whereClause.locationId = locationId;
     }
 
-    if (!isStaff) {
+    if (isStaff) {
+      whereClause.hiddenBy = {
+        none: {
+          userId: req.user!.id,
+        },
+      };
+    } else {
       whereClause.OR = [
         { isPrivate: false },
         { residentId: req.user!.id },
@@ -109,6 +115,12 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
           },
           orderBy: { createdAt: 'asc' },
         },
+        hiddenBy: isStaff
+          ? {
+              where: { userId: req.user!.id },
+              select: { userId: true, hiddenAt: true },
+            }
+          : false,
       },
       orderBy: [
         { isPinned: 'desc' },
@@ -123,9 +135,26 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
       : [];
     const responderMap = new Map(responders.map((r) => [r.id, r.name]));
 
-    const formatted = notes.map((n) => {
+    const formatted = notes.map((n: any) => {
       const isExpired = n.expiresAt ? n.expiresAt.getTime() <= Date.now() : false;
       const isDirectMessage = n.isPrivate && n.author && n.author.role !== 'BEWOHNER';
+
+      let isHiddenForMe = Boolean(n.hiddenBy && n.hiddenBy.length > 0);
+      let hiddenAt: string | null = null;
+      if (isHiddenForMe && n.hiddenBy[0]) {
+        hiddenAt = n.hiddenBy[0].hiddenAt.toISOString();
+        // Check if any resident reply was posted AFTER the caregiver hid this note
+        const hasNewResidentReply = (n.messages || []).some(
+          (m: any) => m.author?.role === 'BEWOHNER' && new Date(m.createdAt) > n.hiddenBy[0].hiddenAt
+        );
+        if (hasNewResidentReply) {
+          isHiddenForMe = false;
+          // Asynchronously clear obsolete hidden record
+          prisma.caregiverNoteHidden.deleteMany({
+            where: { noteId: n.id, userId: req.user!.id },
+          }).catch((err) => console.error('Fehler beim automatischen Einblenden:', err));
+        }
+      }
 
       return {
         id: n.id,
@@ -145,6 +174,8 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
         expiresAt: n.expiresAt?.toISOString() || null,
         isExpired,
         isDirectMessage,
+        isHiddenForMe,
+        hiddenAt,
         status: n.status,
         isArchived: n.isArchived,
         isPrivate: n.isPrivate,
@@ -154,7 +185,7 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
         respondedByName: n.respondedByUserId ? responderMap.get(n.respondedByUserId) || 'Betreuer' : null,
         resolvedAt: n.resolvedAt?.toISOString() || null,
         createdAt: n.createdAt.toISOString(),
-        messages: n.messages?.map((m) => ({
+        messages: n.messages?.map((m: any) => ({
           id: m.id,
           noteId: m.noteId,
           authorId: m.authorId,
@@ -554,6 +585,11 @@ router.post('/:id/messages', requireAuth, async (req: Request, res: Response) =>
         },
       });
 
+      // Automatically unhide note for all caregivers when a resident posts a new reply!
+      await prisma.caregiverNoteHidden.deleteMany({
+        where: { noteId: id },
+      });
+
       if (note.isPrivate) {
         sendCaregiverNewNoteEmail({
           locationId: note.locationId,
@@ -580,6 +616,68 @@ router.post('/:id/messages', requireAuth, async (req: Request, res: Response) =>
   } catch (err) {
     console.error('Fehler beim Senden der Antwort:', err);
     return res.status(500).json({ error: 'Fehler beim Senden der Antwort.' });
+  }
+});
+
+// POST /api/notes/:id/hide - Hide note for the current staff user
+router.post('/:id/hide', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const isStaff = req.user!.role === 'ADMIN' || req.user!.role === 'BETREUER';
+    if (!isStaff) {
+      return res.status(403).json({ error: 'Nur Betreuer können Beiträge für sich ausblenden.' });
+    }
+
+    const { id } = req.params;
+    const userId = req.user!.id;
+
+    const note = await prisma.caregiverNote.findUnique({ where: { id } });
+    if (!note) {
+      return res.status(404).json({ error: 'Notiz nicht gefunden.' });
+    }
+
+    await prisma.caregiverNoteHidden.upsert({
+      where: {
+        noteId_userId: { noteId: id, userId },
+      },
+      create: {
+        noteId: id,
+        userId,
+        hiddenAt: new Date(),
+      },
+      update: {
+        hiddenAt: new Date(),
+      },
+    });
+
+    return res.json({ success: true, hidden: true, noteId: id });
+  } catch (err) {
+    console.error('Fehler beim Ausblenden der Notiz:', err);
+    return res.status(500).json({ error: 'Fehler beim Ausblenden der Notiz.' });
+  }
+});
+
+// POST /api/notes/:id/unhide - Unhide note for the current staff user
+router.post('/:id/unhide', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const isStaff = req.user!.role === 'ADMIN' || req.user!.role === 'BETREUER';
+    if (!isStaff) {
+      return res.status(403).json({ error: 'Nur Betreuer können Beiträge einblenden.' });
+    }
+
+    const { id } = req.params;
+    const userId = req.user!.id;
+
+    await prisma.caregiverNoteHidden.deleteMany({
+      where: {
+        noteId: id,
+        userId,
+      },
+    });
+
+    return res.json({ success: true, hidden: false, noteId: id });
+  } catch (err) {
+    console.error('Fehler beim Wieder-Einblenden der Notiz:', err);
+    return res.status(500).json({ error: 'Fehler beim Wieder-Einblenden der Notiz.' });
   }
 });
 

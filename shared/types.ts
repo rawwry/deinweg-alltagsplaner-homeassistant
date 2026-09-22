@@ -166,6 +166,8 @@ export interface CaregiverNoteSummary {
   isArchived: boolean;
   isPrivate?: boolean;
   isDirectMessage?: boolean;
+  isHiddenForMe?: boolean;
+  hiddenAt?: string | null;
   hasUnreadResponse?: boolean;
   caregiverResponse?: string | null;
   respondedByName?: string | null;

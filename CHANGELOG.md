@@ -3,6 +3,17 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.15] - 2026-09-22
+
+### Neu & Behoben
+- **Behebung des Darstellungsproblems beim Ablaufdatum im Flurfunk (`CaregiverNotesView.tsx`)**:
+  - **Fester Input-Stil & WebKit-Kompatibilität**: Das native HTML-Datumsfeld (`<input type="date">`) kollabierte in WebKit- bzw. mobilen Webviews zu einem unleserlichen, schmalen Schlitz. Es besitzt nun eine garantierte Mindesthöhe (`h-10 min-h-[40px]`), sauberes Padding, Dark-Mode-Farbschema (`colorScheme: 'dark'`) sowie ein lesbares Bestätigungs-Badge (*„✓ Gültig bis: DD.MM.YYYY“*).
+- **Persönliches Ausblenden von Beiträgen für Betreuer (`CaregiverNotesView.tsx`, `DashboardHub.tsx`, `server/src/modules/notes/routes.ts`)**:
+  - **Beiträge für sich selbst ausblenden**: Betreuer können Notizen oder Mitteilungen mit einem Klick auf *„Ausblenden“* (Auge-durchgestrichen-Icon) für ihr eigenes Benutzerkonto verbergen. Der Beitrag wird dabei nicht gelöscht und bleibt für Bewohner und andere Betreuer uneingeschränkt sichtbar.
+  - **Automatisches Wieder-Einblenden bei Bewohner-Antwort**: Schreibt ein Bewohner eine neue Nachricht in einen vom Betreuer ausgeblendeten Beitrag, wird dieser für Betreuer automatisch wieder eingeblendet und als aktiv hervorgehoben.
+  - **Neuer Reiter „Ausgeblendet“ für Betreuer**: Ausgeblendete Beiträge können jederzeit über den neuen Reiter *„Ausgeblendet“* eingesehen und mit einem Klick auf *„Wieder einblenden“* zurück in die aktive Liste geholt werden.
+  - **Dashboard-Integration**: Persönlich ausgeblendete Mitteilungen erscheinen weder als Banner noch in der Dashboard-Notizkarte, solange kein Bewohner erneut darauf geantwortet hat.
+
 ## [0.1.14] - 2026-09-22
 
 ### Neu & Verbessert / Polish

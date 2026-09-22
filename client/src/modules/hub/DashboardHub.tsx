@@ -585,7 +585,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
   };
 
   const todayMeal = mealPlan?.days?.find((d: any) => d.dayOfWeek === currentDayOfWeek);
-  const openNotes = notesList.filter((n: any) => n.status !== 'DONE' && n.category !== 'ANKUENDIGUNG');
+  const openNotes = notesList.filter((n: any) => !n.isHiddenForMe && n.status !== 'DONE' && n.category !== 'ANKUENDIGUNG');
 
   // Filter waste pickups to today or upcoming dates only (ignoring past dates)
   const todayDate = new Date();
@@ -621,6 +621,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
   // 1. Active Announcements (ANKUENDIGUNG) are ALWAYS displayed at the top as long as they are valid
   const activeAnnouncements = notesList
     .filter((note: any) => {
+      if (note.isHiddenForMe) return false;
       if (note.category !== 'ANKUENDIGUNG') return false;
       // Must not be archived
       if (note.isArchived) return false;
@@ -641,6 +642,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
   const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
   const otherNotifications = notesList
     .filter((note: any) => {
+      if (note.isHiddenForMe) return false;
       if (note.category === 'ANKUENDIGUNG') return false;
       if (note.isArchived || note.status === 'DONE' || note.isExpired) return false;
       if (note.expiresAt && new Date(note.expiresAt).getTime() <= Date.now()) return false;
@@ -684,6 +686,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
   // 3. Notes with new unread replies in active conversations
   // (From the moment a reply is written, only a hint in the Flurfunk pill indicates new replies)
   const notesWithNewReplies = notesList.filter((note: any) => {
+    if (note.isHiddenForMe) return false;
     if (note.category === 'ANKUENDIGUNG') return false;
     if (note.isArchived || note.status === 'DONE' || note.isExpired) return false;
     if (!note.messages || note.messages.length === 0) return false;
@@ -965,7 +968,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           {notesList && notesList.length > 0 ? (
-            notesList.slice(0, 2).map((note: any, idx: number) => {
+            notesList.filter((n: any) => !n.isHiddenForMe).slice(0, 2).map((note: any, idx: number) => {
               let cardClass = 'bg-sky-500/10 border-sky-500/30 text-sky-200 hover:border-sky-400/60';
               let headerClass = 'text-sky-300 font-medium';
               let categoryLabel = 'Mitteilung';

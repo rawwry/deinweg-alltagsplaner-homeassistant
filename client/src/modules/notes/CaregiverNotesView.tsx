@@ -24,6 +24,8 @@ import {
   AlertCircle,
   Lightbulb,
   X,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 
 const NOTE_CATEGORIES: {
@@ -73,7 +75,7 @@ export const CaregiverNotesView: React.FC = () => {
   const { user, activeLocationId, activeLocation } = useAuth();
   const isStaff = user?.role?.toUpperCase() === 'ADMIN' || user?.role?.toUpperCase() === 'BETREUER';
 
-  const [activeTab, setActiveTab] = useState<'ACTIVE' | 'ARCHIVE'>('ACTIVE');
+  const [activeTab, setActiveTab] = useState<'ACTIVE' | 'HIDDEN' | 'ARCHIVE'>('ACTIVE');
   const [notes, setNotes] = useState<CaregiverNoteSummary[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [title, setTitle] = useState('');
@@ -358,7 +360,35 @@ export const CaregiverNotesView: React.FC = () => {
     }
   };
 
-  const openTicketsCount = activeTab === 'ACTIVE' ? notes.filter((n) => n.status !== 'DONE').length : 0;
+  const handleHideNote = async (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    try {
+      setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, isHiddenForMe: true } : n)));
+      await api.notes.hide(id);
+    } catch (err: any) {
+      console.error('Fehler beim Ausblenden:', err);
+      alert(`Fehler beim Ausblenden: ${err.message || err}`);
+      fetchNotes();
+    }
+  };
+
+  const handleUnhideNote = async (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    try {
+      setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, isHiddenForMe: false } : n)));
+      await api.notes.unhide(id);
+    } catch (err: any) {
+      console.error('Fehler beim Wieder-Einblenden:', err);
+      alert(`Fehler beim Wieder-Einblenden: ${err.message || err}`);
+      fetchNotes();
+    }
+  };
+
+  const activeNotes = notes.filter((n) => !n.isHiddenForMe);
+  const hiddenNotes = notes.filter((n) => Boolean(n.isHiddenForMe));
+  const displayedNotes = activeTab === 'HIDDEN' ? hiddenNotes : (activeTab === 'ACTIVE' ? activeNotes : notes);
+
+  const openTicketsCount = activeTab === 'ACTIVE' ? activeNotes.filter((n) => n.status !== 'DONE').length : 0;
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-24 md:pb-8">
@@ -405,9 +435,9 @@ export const CaregiverNotesView: React.FC = () => {
         </div>
       )}
 
-      {/* Tabs: Active vs Archive - Modern Segmented Control */}
+      {/* Tabs: Active vs Hidden vs Archive - Modern Segmented Control */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-surface-border pb-3">
-        <div className="bg-surface-card/90 p-1.5 rounded-2xl border border-surface-border flex items-center gap-1.5 w-full sm:w-auto shadow-inner">
+        <div className="bg-surface-card/90 p-1.5 rounded-2xl border border-surface-border flex items-center gap-1.5 w-full sm:w-auto shadow-inner flex-wrap">
           <button
             type="button"
             onClick={() => setActiveTab('ACTIVE')}
@@ -419,12 +449,36 @@ export const CaregiverNotesView: React.FC = () => {
           >
             <span>📌</span>
             <span>Aktuelle Notizen</span>
-            {activeTab === 'ACTIVE' && notes.length > 0 && (
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-black/30 text-white font-mono">
-                {notes.length}
+            {activeNotes.length > 0 && (
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-black font-mono ${
+                activeTab === 'ACTIVE' ? 'bg-black/30 text-white' : 'bg-surface-elevated text-slate-300'
+              }`}>
+                {activeNotes.length}
               </span>
             )}
           </button>
+
+          {isStaff && (
+            <button
+              type="button"
+              onClick={() => setActiveTab('HIDDEN')}
+              className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                activeTab === 'HIDDEN'
+                  ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md shadow-rose-500/20'
+                  : 'text-slate-400 hover:text-white hover:bg-surface-elevated/60'
+              }`}
+            >
+              <EyeOff className="w-3.5 h-3.5" />
+              <span>Ausgeblendet</span>
+              {hiddenNotes.length > 0 && (
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black font-mono ${
+                  activeTab === 'HIDDEN' ? 'bg-black/30 text-white' : 'bg-slate-700/80 text-slate-300'
+                }`}>
+                  {hiddenNotes.length}
+                </span>
+              )}
+            </button>
+          )}
 
           <button
             type="button"
@@ -624,38 +678,47 @@ export const CaregiverNotesView: React.FC = () => {
                         </button>
                       </div>
 
-                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                        <div className="relative flex-1">
-                          <input
-                            type="date"
-                            value={expiresAt}
-                            onChange={(e) => setExpiresAt(e.target.value)}
-                            className="w-full px-3 py-1.5 bg-surface-card border border-surface-border focus:border-rose-500/50 rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans"
-                          />
+                      <div className="space-y-2">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                          <div className="relative flex-1">
+                            <input
+                              type="date"
+                              value={expiresAt}
+                              onChange={(e) => setExpiresAt(e.target.value)}
+                              style={{ colorScheme: 'dark' }}
+                              className="w-full h-10 min-h-[40px] px-3.5 py-2 bg-surface-card border border-surface-border focus:border-rose-500/50 rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans"
+                            />
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => setExpiresAt(getFutureDateString(3))}
+                              className="px-2.5 py-2 bg-surface-card hover:bg-surface-hover border border-surface-border rounded-xl text-[11px] font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
+                            >
+                              +3 Tage
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setExpiresAt(getFutureDateString(7))}
+                              className="px-2.5 py-2 bg-surface-card hover:bg-surface-hover border border-surface-border rounded-xl text-[11px] font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
+                            >
+                              +1 Woche
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setExpiresAt(getFutureDateString(14))}
+                              className="px-2.5 py-2 bg-surface-card hover:bg-surface-hover border border-surface-border rounded-xl text-[11px] font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
+                            >
+                              +2 Wochen
+                            </button>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1 shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => setExpiresAt(getFutureDateString(3))}
-                            className="px-2.5 py-1.5 bg-surface-card hover:bg-surface-hover border border-surface-border rounded-xl text-[11px] font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
-                          >
-                            +3 Tage
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setExpiresAt(getFutureDateString(7))}
-                            className="px-2.5 py-1.5 bg-surface-card hover:bg-surface-hover border border-surface-border rounded-xl text-[11px] font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
-                          >
-                            +1 Woche
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setExpiresAt(getFutureDateString(14))}
-                            className="px-2.5 py-1.5 bg-surface-card hover:bg-surface-hover border border-surface-border rounded-xl text-[11px] font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
-                          >
-                            +2 Wochen
-                          </button>
-                        </div>
+                        {expiresAt && (
+                          <div className="text-[11px] text-rose-300 font-mono flex items-center gap-1.5 pt-0.5">
+                            <Check className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                            <span>Gültig bis: <strong className="text-white font-semibold">{formatGermanDate(expiresAt)}</strong></span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ) : (
@@ -738,7 +801,7 @@ export const CaregiverNotesView: React.FC = () => {
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-3 border-rose-500 border-t-transparent mb-2" />
           <div>Flurfunk wird geladen...</div>
         </div>
-      ) : notes.length === 0 ? (
+      ) : displayedNotes.length === 0 ? (
         <div className="bento-card rounded-[2.5rem] p-12 text-center border border-surface-border shadow-xl">
           {activeTab === 'ACTIVE' ? (
             <>
@@ -755,6 +818,14 @@ export const CaregiverNotesView: React.FC = () => {
                 Keine offenen Mitteilungen oder Anliegen vorhanden. Wenn du etwas besprechen möchtest, klicke einfach oben auf „Neuen Beitrag verfassen“.
               </p>
             </>
+          ) : activeTab === 'HIDDEN' ? (
+            <>
+              <div className="text-4xl mb-3">👁️‍🗨️ ✨</div>
+              <h3 className="text-base font-display font-semibold text-slate-200">Keine ausgeblendeten Beiträge</h3>
+              <p className="text-xs text-slate-400 mt-1.5 max-w-sm mx-auto leading-relaxed">
+                Du hast aktuell keine Mitteilungen ausgeblendet. Alle aktiven Flurfunk-Nachrichten sind in der Übersicht sichtbar.
+              </p>
+            </>
           ) : (
             <>
               <div className="text-4xl mb-3">📁 🍃</div>
@@ -767,7 +838,24 @@ export const CaregiverNotesView: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-4">
-          {notes.map((note) => {
+          {/* Helpful info banner in HIDDEN tab */}
+          {isStaff && activeTab === 'HIDDEN' && (
+            <div className="bg-surface-card/90 border border-surface-border rounded-3xl p-4 flex items-center justify-between gap-3 text-xs text-slate-300">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-surface-elevated border border-surface-border flex items-center justify-center text-slate-400 shrink-0">
+                  <EyeOff className="w-4 h-4 text-slate-400" />
+                </div>
+                <div>
+                  <strong className="text-white block font-display">Persönlich ausgeblendete Beiträge</strong>
+                  <span className="text-slate-400 text-[11px]">
+                    Diese Beiträge sind nur für dein Profil verborgen. Sobald ein Bewohner eine neue Nachricht in den Beitrag schreibt, wird er automatisch wieder in den aktuellen Notizen angezeigt.
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {displayedNotes.map((note) => {
             const isExpanded = expandedNoteIds.has(note.id);
             const hasMessages = note.messages && note.messages.length > 0;
             const canReply = !note.isArchived;
@@ -912,38 +1000,47 @@ export const CaregiverNotesView: React.FC = () => {
                                   </button>
                                 </div>
 
-                                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                                  <div className="relative flex-1">
-                                    <input
-                                      type="date"
-                                      value={editExpiresAt}
-                                      onChange={(e) => setEditExpiresAt(e.target.value)}
-                                      className="w-full px-3 py-1.5 bg-surface-elevated border border-surface-border focus:border-rose-500/50 rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans"
-                                    />
+                                <div className="space-y-2">
+                                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                    <div className="relative flex-1">
+                                      <input
+                                        type="date"
+                                        value={editExpiresAt}
+                                        onChange={(e) => setEditExpiresAt(e.target.value)}
+                                        style={{ colorScheme: 'dark' }}
+                                        className="w-full h-10 min-h-[40px] px-3.5 py-2 bg-surface-elevated border border-surface-border focus:border-rose-500/50 rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans"
+                                      />
+                                    </div>
+                                    <div className="flex items-center gap-1 shrink-0">
+                                      <button
+                                        type="button"
+                                        onClick={() => setEditExpiresAt(getFutureDateString(3))}
+                                        className="px-2.5 py-2 bg-surface-elevated hover:bg-surface-hover border border-surface-border rounded-xl text-[11px] font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
+                                      >
+                                        +3 Tage
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => setEditExpiresAt(getFutureDateString(7))}
+                                        className="px-2.5 py-2 bg-surface-elevated hover:bg-surface-hover border border-surface-border rounded-xl text-[11px] font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
+                                      >
+                                        +1 Woche
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => setEditExpiresAt(getFutureDateString(14))}
+                                        className="px-2.5 py-2 bg-surface-elevated hover:bg-surface-hover border border-surface-border rounded-xl text-[11px] font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
+                                      >
+                                        +2 Wochen
+                                      </button>
+                                    </div>
                                   </div>
-                                  <div className="flex items-center gap-1 shrink-0">
-                                    <button
-                                      type="button"
-                                      onClick={() => setEditExpiresAt(getFutureDateString(3))}
-                                      className="px-2.5 py-1.5 bg-surface-elevated hover:bg-surface-hover border border-surface-border rounded-xl text-[11px] font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
-                                    >
-                                      +3 Tage
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => setEditExpiresAt(getFutureDateString(7))}
-                                      className="px-2.5 py-1.5 bg-surface-elevated hover:bg-surface-hover border border-surface-border rounded-xl text-[11px] font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
-                                    >
-                                      +1 Woche
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => setEditExpiresAt(getFutureDateString(14))}
-                                      className="px-2.5 py-1.5 bg-surface-elevated hover:bg-surface-hover border border-surface-border rounded-xl text-[11px] font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
-                                    >
-                                      +2 Wochen
-                                    </button>
-                                  </div>
+                                  {editExpiresAt && (
+                                    <div className="text-[11px] text-rose-300 font-mono flex items-center gap-1.5 pt-0.5">
+                                      <Check className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                                      <span>Gültig bis: <strong className="text-white font-semibold">{formatGermanDate(editExpiresAt)}</strong></span>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             ) : (
@@ -1048,18 +1145,55 @@ export const CaregiverNotesView: React.FC = () => {
                             In Bearbeitung
                           </span>
                         ) : null}
+
+                        {/* Hidden Badge */}
+                        {note.isHiddenForMe && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-500/20 text-slate-300 border border-slate-500/30 font-display shrink-0">
+                            <EyeOff className="w-3 h-3 text-slate-400" />
+                            <span>Ausgeblendet</span>
+                          </span>
+                        )}
                       </div>
 
-                      {/* Single Action on Right: Details / Einklappen Toggle */}
-                      <button
-                        type="button"
-                        onClick={() => toggleExpand(note.id)}
-                        className="px-2.5 py-1 rounded-xl bg-surface-elevated hover:bg-surface-card border border-surface-border text-slate-200 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold shadow-xs shrink-0"
-                        aria-label={isExpanded ? 'Einklappen' : 'Details anzeigen'}
-                      >
-                        <span className="text-[11px] font-medium">{isExpanded ? 'Einklappen' : 'Details'}</span>
-                        {isExpanded ? <ChevronUp className="w-3.5 h-3.5 text-slate-400" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
-                      </button>
+                      {/* Header Actions on Right */}
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {/* Staff Unhide Button */}
+                        {isStaff && note.isHiddenForMe && (
+                          <button
+                            type="button"
+                            onClick={(e) => handleUnhideNote(note.id, e)}
+                            title="Diesen Beitrag wieder für mich einblenden"
+                            className="px-2.5 py-1 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 hover:text-white text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
+                          >
+                            <Eye className="w-3.5 h-3.5 text-rose-300" />
+                            <span>Wieder einblenden</span>
+                          </button>
+                        )}
+
+                        {/* Staff Hide Button */}
+                        {isStaff && !note.isArchived && !note.isHiddenForMe && (
+                          <button
+                            type="button"
+                            onClick={(e) => handleHideNote(note.id, e)}
+                            title="Für mich ausblenden (nur für dein Profil verborgen)"
+                            className="px-2 py-1 rounded-xl bg-surface-elevated/70 hover:bg-surface-card border border-surface-border text-slate-400 hover:text-slate-200 text-xs transition-all cursor-pointer flex items-center gap-1"
+                          >
+                            <EyeOff className="w-3.5 h-3.5 text-slate-400" />
+                            <span className="hidden sm:inline text-[11px]">Ausblenden</span>
+                          </button>
+                        )}
+
+                        {/* Details / Einklappen Toggle */}
+                        <button
+                          type="button"
+                          onClick={() => toggleExpand(note.id)}
+                          className="px-2.5 py-1 rounded-xl bg-surface-elevated hover:bg-surface-card border border-surface-border text-slate-200 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold shadow-xs shrink-0"
+                          aria-label={isExpanded ? 'Einklappen' : 'Details anzeigen'}
+                        >
+                          <span className="text-[11px] font-medium">{isExpanded ? 'Einklappen' : 'Details'}</span>
+                          {isExpanded ? <ChevronUp className="w-3.5 h-3.5 text-slate-400" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
+                        </button>
+                      </div>
                     </div>
 
                     {/* Author & Timestamp row */}
@@ -1303,6 +1437,35 @@ export const CaregiverNotesView: React.FC = () => {
                           </div>
 
                           <div className="flex items-center gap-1 text-slate-400">
+                            {/* Staff Hide/Unhide Toggle */}
+                            {isStaff && (
+                              <button
+                                type="button"
+                                onClick={(e) =>
+                                  note.isHiddenForMe ? handleUnhideNote(note.id, e) : handleHideNote(note.id, e)
+                                }
+                                title={
+                                  note.isHiddenForMe
+                                    ? 'Diesen Beitrag wieder für mich einblenden'
+                                    : 'Diesen Beitrag für mich ausblenden (bleibt für andere sichtbar)'
+                                }
+                                aria-label={
+                                  note.isHiddenForMe ? 'Wieder einblenden' : 'Für mich ausblenden'
+                                }
+                                className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                                  note.isHiddenForMe
+                                    ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                                    : 'hover:text-white hover:bg-white/5'
+                                }`}
+                              >
+                                {note.isHiddenForMe ? (
+                                  <Eye className="w-3.5 h-3.5 text-rose-300" />
+                                ) : (
+                                  <EyeOff className="w-3.5 h-3.5" />
+                                )}
+                              </button>
+                            )}
+
                             {/* Staff Pin Toggle */}
                             {isStaff && !note.isArchived && (
                               <button

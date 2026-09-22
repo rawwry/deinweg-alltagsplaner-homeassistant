@@ -241,6 +241,8 @@ export const api = {
       request<any>(`notes/${id}/reopen`, { method: 'PATCH' }),
     updateStatus: (id: string, status: 'OPEN' | 'IN_PROGRESS' | 'DONE') =>
       request<any>(`notes/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+    hide: (id: string) => request<{ success: boolean; hidden: boolean; noteId: string }>(`notes/${id}/hide`, { method: 'POST' }),
+    unhide: (id: string) => request<{ success: boolean; hidden: boolean; noteId: string }>(`notes/${id}/unhide`, { method: 'POST' }),
     delete: (id: string) => request<any>(`notes/${id}`, { method: 'DELETE' }),
   },
 
