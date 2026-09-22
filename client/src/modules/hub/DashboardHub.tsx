@@ -3,7 +3,6 @@ import { useAuth } from '../../context/AuthContext.js';
 import { api } from '../../api/client.js';
 import { formatGermanDate } from '../../utils/formatters.js';
 import { WasteWheelieBin } from '../../components/waste/WasteWheelieBin.js';
-import { LocationBudgetModal } from '../shopping/LocationBudgetModal.js';
 import {
   Calendar,
   ShoppingCart,
@@ -253,7 +252,6 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
   const [notesList, setNotesList] = useState<any[]>([]);
   const [todayChores, setTodayChores] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
   const isStaff = user?.role?.toUpperCase() === 'ADMIN' || user?.role?.toUpperCase() === 'BETREUER';
 
   const [dismissedTopicIds, setDismissedTopicIds] = useState<string[]>(() => {
@@ -1542,16 +1540,14 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
               onClick={() => {
                 if (isStaff) {
                   setCurrentTab('budget');
-                } else {
-                  setIsBudgetModalOpen(true);
                 }
               }}
               className={`p-3.5 mb-4 rounded-2xl bg-surface-elevated/80 border border-emerald-500/30 flex items-center justify-between gap-3 ${
                 isStaff
                   ? 'cursor-pointer hover:bg-surface-elevated hover:border-emerald-500/60 transition-all group'
-                  : 'cursor-pointer hover:bg-surface-elevated transition-all'
+                  : ''
               }`}
-              title={isStaff ? 'Klicken, um Wochenbudget & Kassenbon zu bearbeiten' : undefined}
+              title={isStaff ? 'Klicken, um Kasse & Budget zu öffnen' : undefined}
             >
               <div className="flex items-center gap-3.5">
                 <Wallet className="w-7 h-7 text-emerald-400 shrink-0 stroke-[1.75]" />
@@ -1649,7 +1645,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           <span className="font-sans font-bold">Schnellzugriff:</span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 w-full md:w-auto md:flex-1">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 w-full md:w-auto md:flex-1">
           <button
             type="button"
             onClick={() => setCurrentTab('mealplan')}
@@ -1666,22 +1662,6 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           >
             <ShoppingCart className="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition-transform" />
             <span className="truncate">Einkaufsliste</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              if (isStaff) {
-                setCurrentTab('budget');
-              } else {
-                setIsBudgetModalOpen(true);
-              }
-            }}
-            className="flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-surface-elevated/70 hover:bg-surface-elevated border border-surface-border hover:border-emerald-500/40 text-slate-200 hover:text-white text-xs font-medium transition-all group cursor-pointer"
-            title="WG-Kasse & Wochenbudget verwalten"
-          >
-            <PiggyBank className="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition-transform" />
-            <span className="truncate">WG-Budget</span>
           </button>
 
           <button
@@ -1712,19 +1692,6 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           </button>
         </div>
       </div>
-
-      {activeLocationId && (
-        <LocationBudgetModal
-          isOpen={isBudgetModalOpen}
-          onClose={() => setIsBudgetModalOpen(false)}
-          locationId={activeLocationId}
-          locationName={activeLocation?.name || user?.locationName || 'Standort'}
-          year={currentYear}
-          weekNumber={currentWeek}
-          isStaff={isStaff}
-          onBudgetUpdated={refreshBudget}
-        />
-      )}
     </div>
   );
 };

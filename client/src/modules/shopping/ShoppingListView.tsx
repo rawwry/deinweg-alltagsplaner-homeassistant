@@ -15,7 +15,6 @@ import {
   ArrowRight,
   PiggyBank,
 } from 'lucide-react';
-import { LocationBudgetModal } from './LocationBudgetModal.js';
 
 interface ShoppingListViewProps {
   setCurrentTab: (tab: string) => void;
@@ -56,7 +55,6 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
 
   const [shoppingData, setShoppingData] = useState<any>(null);
   const [budgetData, setBudgetData] = useState<any>(null);
-  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   // New custom item form
@@ -626,18 +624,6 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
           ))}
         </div>
       )}
-
-      {/* WG-Budget & Sonderkasse Modal */}
-      <LocationBudgetModal
-        isOpen={isBudgetModalOpen}
-        onClose={() => setIsBudgetModalOpen(false)}
-        locationId={activeLocationId}
-        locationName={activeLocation?.name || user?.locationName || 'unsere WG'}
-        year={year}
-        weekNumber={weekNumber}
-        isStaff={isStaff}
-        onBudgetUpdated={fetchShoppingAndBudget}
-      />
     </div>
   );
 };

@@ -3,6 +3,20 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.13] - 2026-09-22
+
+### Neu & Verbessert / Bereinigung
+- **Entfernung des WG-Budget-Buttons aus dem Schnellzugriff & strikte Rollentrennung für Finanzen**:
+  - **Schnellzugriff auf dem Dashboard (`DashboardHub.tsx`)**:
+    - Der Button *„WG-Budget“* wurde aus der Schnellzugriff-Leiste unten auf dem Dashboard entfernt. Der Schnellzugriff konzentriert sich nun rein auf alltägliche Bereiche: *Kochplan*, *Einkaufsliste*, *Rezepte*, *Flurfunk* und *Abfallkalender*.
+    - Das Dashboard-Budget-Widget ist für Bewohner rein informativ und nicht interaktiv. Nur Betreuer können per Klick direkt in die Ansicht *„Kasse & Budget“* wechseln.
+    - Nicht mehr benötigte Modal-Instanzen (`LocationBudgetModal`) auf dem Dashboard wurden entfernt.
+  - **Bereinigung im Kochplan (`MealPlanView.tsx`)**:
+    - Der zusätzliche Kasse-&amp;-Budget-Button in der Aktionsleiste des Kochplans wurde entfernt, um Verwirrung zu vermeiden. Die Finanzverwaltung erfolgt zentral über den dedizierten Menüpunkt.
+  - **Bereinigung in der Einkaufsliste (`ShoppingListView.tsx`)**:
+    - Die Budget-Übersichtskarte bleibt für Bewohner rein lesend. Bewohner haben keinerlei Möglichkeit, Finanz- oder Kassen-Dialoge zu öffnen.
+    - Betreuer können die Kassenverwaltung nach wie vor bequem über die linke Navigation *„Kasse & Budget“* oder die dedizierte Schaltfläche auf der Budget-Karte erreichen.
+
 ## [0.1.12] - 2026-09-22
 
 ### Neu & Verbessert

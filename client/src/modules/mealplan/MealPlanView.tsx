@@ -24,7 +24,6 @@ import {
   Euro,
   Sparkles,
 } from 'lucide-react';
-import { LocationBudgetModal } from '../shopping/LocationBudgetModal.js';
 
 interface MealPlanViewProps {
   setCurrentTab: (tab: string) => void;
@@ -107,9 +106,6 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
   const [editServings, setEditServings] = useState<number>(6);
   const [editWeeklyBudget, setEditWeeklyBudget] = useState<string>('350');
   const [isSavingSettings, setIsSavingSettings] = useState(false);
-
-  // Budget Modal state
-  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
@@ -364,16 +360,6 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
               >
                 <Settings className="w-4 h-4 text-rose-400" />
                 <span className="hidden sm:inline">Plan-Tage</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setCurrentTab('budget')}
-                className="p-2.5 bg-surface-elevated hover:bg-surface-card border border-surface-border hover:border-emerald-500/40 rounded-2xl text-slate-300 hover:text-emerald-300 transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer shadow-xs"
-                title={`Kasse & Budget für KW ${weekNumber} verwalten`}
-              >
-                <PiggyBank className="w-4 h-4 text-emerald-400" />
-                <span className="hidden sm:inline">Kasse & Budget</span>
               </button>
             </>
           )}
@@ -848,20 +834,6 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
         dayName={DAY_NAMES[selectedDayOfWeek - 1] || 'Wochentag'}
         onSelectRecipe={handleSelectRecipe}
       />
-
-      {/* Location Budget Modal */}
-      {activeLocationId && (
-        <LocationBudgetModal
-          isOpen={isBudgetModalOpen}
-          onClose={() => setIsBudgetModalOpen(false)}
-          locationId={activeLocationId}
-          locationName={activeLocation?.name || 'Standort'}
-          year={year}
-          weekNumber={weekNumber}
-          isStaff={user?.role?.toUpperCase() === 'ADMIN' || user?.role?.toUpperCase() === 'BETREUER'}
-          onBudgetUpdated={fetchPlan}
-        />
-      )}
     </div>
   );
 };
