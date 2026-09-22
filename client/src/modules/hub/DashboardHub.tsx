@@ -637,8 +637,41 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
-  // 2. Other Flurfunk notifications: Initial incoming messages for the recipient
-  // (Once Person B has replied or dismissed, the message must NO LONGER be displayed on the dashboard)
+  // Helper to determine if a note is currently awaiting caregiver response / open question
+  const isAwaitingCaregiver = (n: any): boolean => {
+    if (n.isArchived || n.status === 'DONE' || n.isHiddenForMe) return false;
+    const messages = n.messages || [];
+    const residentMessages = messages.filter((m: any) => m.authorRole === 'BEWOHNER');
+    const hasStaffResponse = Boolean(n.caregiverResponse) || messages.some((m: any) => m.authorRole === 'BETREUER' || m.authorRole === 'ADMIN');
+
+    if (n.category === 'ANKUENDIGUNG') {
+      if (residentMessages.length === 0) return false;
+      const lastMsg = messages[messages.length - 1];
+      return lastMsg?.authorRole === 'BEWOHNER';
+    }
+
+    const isStaffAuthor = n.authorRole === 'BETREUER' || n.authorRole === 'ADMIN' || (user?.id ? n.authorId === user.id : false);
+    if (isStaffAuthor) {
+      if (residentMessages.length === 0) return false;
+      const lastMsg = messages[messages.length - 1];
+      return lastMsg?.authorRole === 'BEWOHNER';
+    }
+
+    if (!hasStaffResponse) {
+      return true;
+    }
+
+    if (messages.length > 0) {
+      const lastMsg = messages[messages.length - 1];
+      return lastMsg?.authorRole === 'BEWOHNER';
+    }
+
+    return false;
+  };
+
+  const openQuestionsCount = !isResident ? notesList.filter(isAwaitingCaregiver).length : 0;
+
+  // 2. Other Flurfunk notifications: Initial incoming messages for the recipient or open Rückfragen
   const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
   const otherNotifications = notesList
     .filter((note: any) => {
@@ -646,9 +679,6 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
       if (note.category === 'ANKUENDIGUNG') return false;
       if (note.isArchived || note.status === 'DONE' || note.isExpired) return false;
       if (note.expiresAt && new Date(note.expiresAt).getTime() <= Date.now()) return false;
-
-      // Sender (Person A) never sees incoming banner on their own dashboard
-      if (note.authorId && user?.id && note.authorId === user.id) return false;
 
       // Dismissed notes are not displayed as banner
       if (dismissedTopicIds.includes(note.id)) return false;
@@ -658,11 +688,21 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
         if (note.isPrivate && note.residentId !== user?.id) return false;
       }
 
+      // For caregivers: If this note is awaiting a caregiver reply (new note or open resident Rückfrage),
+      // it MUST appear on the dashboard!
+      if (!isResident && isAwaitingCaregiver(note)) {
+        return true;
+      }
+
+      // Sender (Person A) never sees incoming banner on their own dashboard
+      if (note.authorId && user?.id && note.authorId === user.id) return false;
+
       // If Person B (the recipient/user) has written a reply to this note,
       // it must NO LONGER be displayed on the dashboard!
-      const userHasReplied = (note.messages || []).some((m: any) => m.authorId === user?.id);
+      const messages = note.messages || [];
+      const userHasReplied = messages.some((m: any) => m.authorId === user?.id);
       const staffHasReplied = !isResident && (
-        (note.messages || []).some((m: any) => m.authorRole === 'BETREUER' || m.authorRole === 'ADMIN') ||
+        messages.some((m: any) => m.authorRole === 'BETREUER' || m.authorRole === 'ADMIN') ||
         Boolean(note.caregiverResponse)
       );
       if (userHasReplied || staffHasReplied) {
@@ -679,6 +719,9 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
       return note.isPinned || age < SEVEN_DAYS_MS;
     })
     .sort((a: any, b: any) => {
+      const aAwaiting = !isResident && isAwaitingCaregiver(a);
+      const bAwaiting = !isResident && isAwaitingCaregiver(b);
+      if (aAwaiting !== bAwaiting) return aAwaiting ? -1 : 1;
       if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
@@ -764,6 +807,28 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
         senderName: note.authorName || 'Betreuer',
         headline: note.title,
         snippet: note.content,
+        textClass: 'text-rose-200/90',
+      };
+    }
+
+    // 2. Open resident follow-up question (Rückfrage) for staff
+    const messages = note.messages || [];
+    const lastMsg = messages.length > 0 ? messages[messages.length - 1] : null;
+    const isResidentRückfrage = Boolean(
+      (user?.role === 'BETREUER' || user?.role === 'ADMIN') &&
+      lastMsg &&
+      lastMsg.authorRole === 'BEWOHNER'
+    );
+    if (isResidentRückfrage) {
+      return {
+        badge: 'Offene Rückfrage von Bewohner',
+        badgeClass: 'bg-rose-500/20 text-rose-200 border border-rose-500/40',
+        containerClass: 'bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/40 hover:border-rose-400/80 shadow-rose-500/5',
+        iconColor: 'text-rose-400',
+        Icon: MessageSquare,
+        senderName: lastMsg.authorName || 'Bewohner',
+        headline: `Rückfrage zu: ${note.title}`,
+        snippet: lastMsg.content,
         textClass: 'text-rose-200/90',
       };
     }
@@ -1052,7 +1117,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           {formattedToday} — Schön, dass du da bist.
         </p>
 
-        {(notesWithNewReplies.length > 0 || openNotes.length > 0) && (
+        {(notesWithNewReplies.length > 0 || openNotes.length > 0 || openQuestionsCount > 0) && (
           <div className="mt-4">
             {notesWithNewReplies.length > 0 ? (
               <button
@@ -1067,8 +1132,24 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                 <MessageSquare className="w-4 h-4 text-rose-300 stroke-[2.2]" />
                 <span>
                   {notesWithNewReplies.length === 1
-                    ? '1 neue Antwort im Flurfunk'
-                    : `${notesWithNewReplies.length} neue Antworten im Flurfunk`}
+                    ? '1 neue Rückfrage im Flurfunk'
+                    : `${notesWithNewReplies.length} neue Rückfragen im Flurfunk`}
+                </span>
+                <ArrowRight className="w-3.5 h-3.5 text-rose-400 group-hover:translate-x-0.5 transition-transform ml-0.5" />
+              </button>
+            ) : openQuestionsCount > 0 ? (
+              <button
+                type="button"
+                onClick={() => setCurrentTab('notes')}
+                className="px-4 py-2 rounded-2xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/40 text-xs text-rose-200 font-medium transition-all flex items-center gap-2 cursor-pointer shadow-md shadow-rose-500/5 group"
+              >
+                <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                <MessageSquare className="w-4 h-4 text-rose-400 stroke-[2]" />
+                <span>
+                  {openNotes.length} {openNotes.length === 1 ? 'Eintrag' : 'Einträge'} im Flurfunk
+                </span>
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-rose-500/25 text-rose-300 font-bold text-[11px] border border-rose-500/30">
+                  +{openQuestionsCount} {openQuestionsCount === 1 ? 'Rückfrage' : 'Rückfragen'}
                 </span>
                 <ArrowRight className="w-3.5 h-3.5 text-rose-400 group-hover:translate-x-0.5 transition-transform ml-0.5" />
               </button>
@@ -1124,7 +1205,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                           <span>Neue Rückfrage</span>
                         </span>
                       )}
-                      {(!isAnnouncement || !isResident) && (
+                      {!isAnnouncement && (
                         <span className="text-[11px] text-slate-300 font-medium">
                           von <strong className="text-white font-semibold">{config.senderName}</strong>
                         </span>

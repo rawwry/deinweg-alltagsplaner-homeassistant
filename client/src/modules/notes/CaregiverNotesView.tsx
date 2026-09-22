@@ -263,7 +263,13 @@ export const CaregiverNotesView: React.FC = () => {
 
   const handleCreateNote = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !content.trim()) return;
+    const finalContent = content.trim();
+    if (!finalContent) return;
+
+    let finalTitle = title.trim();
+    if (!finalTitle) {
+      finalTitle = finalContent.length > 40 ? finalContent.slice(0, 37) + '...' : finalContent;
+    }
 
     if (isStaff && isPrivate && !targetResidentId) {
       alert('Bitte wähle einen Bewohner aus, an den die Mitteilung gerichtet ist.');
@@ -271,14 +277,14 @@ export const CaregiverNotesView: React.FC = () => {
     }
 
     try {
-      const isAnnouncement = category === 'ANKUENDIGUNG';
+      const isAnnouncement = isStaff && category === 'ANKUENDIGUNG';
       await api.notes.create({
-        title: title.trim(),
-        content: content.trim(),
+        title: finalTitle,
+        content: finalContent,
         locationId: activeLocationId,
         residentId: isStaff && isPrivate ? targetResidentId : undefined,
         isPrivate,
-        category,
+        category: isStaff ? category : 'ALLGEMEIN',
         isPinned: isStaff ? isPinned : false,
         // Only announcements can have an expiry date
         expiresAt: isStaff && isAnnouncement && expiresAt ? new Date(expiresAt).toISOString() : undefined,
@@ -550,104 +556,224 @@ export const CaregiverNotesView: React.FC = () => {
 
       {/* Add Note Form */}
       {showAddForm && (
-        <form
-          onSubmit={handleCreateNote}
-          className="bento-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border shadow-xl space-y-4 animate-in fade-in duration-150"
-        >
-          <div className="flex items-center justify-between border-b border-white/5 pb-3">
-            <h3 className="text-sm font-display font-semibold text-white flex items-center gap-2">
-              <Pencil className="w-4 h-4 text-rose-400" />
-              <span>Neuen Beitrag für den Flurfunk schreiben</span>
-            </h3>
-            <span className="text-xs text-slate-400">Verfasser: <strong className="text-slate-200">{user?.name}</strong></span>
-          </div>
-
-          {/* Visibility Option */}
-          <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-slate-300 font-display">
-              Sichtbarkeit des Beitrags
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setIsPrivate(false)}
-                className={`p-3 rounded-2xl border text-left flex items-start gap-3 transition-all cursor-pointer ${
-                  !isPrivate
-                    ? 'bg-rose-500/15 border-rose-500/40 text-white shadow-sm'
-                    : 'bg-surface-elevated border-surface-border text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                <div className={`p-2 rounded-xl shrink-0 ${!isPrivate ? 'bg-rose-500 text-white' : 'bg-surface-card text-slate-400'}`}>
-                  <Globe className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-slate-100 flex items-center gap-1.5">
-                    <span>Öffentlich für alle</span>
-                    {!isPrivate && <Check className="w-3.5 h-3.5 text-rose-400" />}
-                  </div>
-                  <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
-                    Für alle Bewohner und Betreuer der WG sichtbar.
-                  </p>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setIsPrivate(true)}
-                className={`p-3 rounded-2xl border text-left flex items-start gap-3 transition-all cursor-pointer ${
-                  isPrivate
-                    ? 'bg-purple-500/15 border-purple-500/40 text-white shadow-sm'
-                    : 'bg-surface-elevated border-surface-border text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                <div className={`p-2 rounded-xl shrink-0 ${isPrivate ? 'bg-purple-600 text-white' : 'bg-surface-card text-slate-400'}`}>
-                  <Lock className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-slate-100 flex items-center gap-1.5">
-                    <span>{isStaff ? 'Direkt an Bewohner' : 'Privat an Betreuer'}</span>
-                    {isPrivate && <Check className="w-3.5 h-3.5 text-purple-400" />}
-                  </div>
-                  <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
-                    {isStaff
-                      ? 'Vertrauliche Mitteilung gezielt an einen Bewohner dieser WG.'
-                      : 'Nur für dich und das Betreuer-Team des Standorts sichtbar.'}
-                  </p>
-                </div>
-              </button>
+        !isStaff ? (
+          /* RESIDENT NOTE FORM - Simplified, accessible, mobile-first */
+          <form
+            onSubmit={handleCreateNote}
+            className="bento-card rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-7 border border-surface-border shadow-xl space-y-4 animate-in fade-in duration-150"
+          >
+            <div className="flex items-center justify-between border-b border-white/5 pb-3">
+              <h3 className="text-sm sm:text-base font-display font-bold text-white flex items-center gap-2">
+                <span className="text-base sm:text-lg">💬</span>
+                <span>Nachricht schreiben</span>
+              </h3>
+              <span className="text-xs text-slate-400">Verfasser: <strong className="text-slate-200">{user?.name}</strong></span>
             </div>
 
-            {/* Resident dropdown when caregiver sends direct note */}
-            {isStaff && isPrivate && (
-              <div className="p-3.5 rounded-2xl bg-purple-500/10 border border-purple-500/30 space-y-1.5 mt-2 animate-in fade-in duration-150">
-                <label className="block text-xs font-semibold text-purple-300 font-display flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5" />
-                  <span>Empfänger (Bewohner auswählen):</span>
-                </label>
-                {residents.length === 0 ? (
-                  <div className="text-xs text-slate-400 italic">
-                    Keine Bewohner mit Rolle „BEWOHNER“ an diesem Standort registriert.
+            {/* Recipient selection - Two simple buttons */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-slate-300 font-display">
+                Wer soll deine Nachricht lesen?
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsPrivate(false)}
+                  className={`p-3.5 rounded-2xl border text-left flex items-center gap-3 transition-all cursor-pointer ${
+                    !isPrivate
+                      ? 'bg-rose-500/20 border-rose-500 text-white shadow-sm ring-1 ring-rose-500/50'
+                      : 'bg-surface-elevated border-surface-border text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <div className={`p-2 rounded-xl shrink-0 ${!isPrivate ? 'bg-rose-500 text-white' : 'bg-surface-card text-slate-400'}`}>
+                    <Globe className="w-5 h-5" />
                   </div>
-                ) : (
-                  <select
-                    value={targetResidentId}
-                    onChange={(e) => setTargetResidentId(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-purple-500/40 cursor-pointer font-sans"
-                    required
-                  >
-                    {residents.map((r) => (
-                      <option key={r.id} value={r.id} className="bg-slate-900 text-white">
-                        {r.name} (@{r.username})
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </div>
-            )}
-          </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
+                      <span>An alle in der WG</span>
+                      {!isPrivate && <Check className="w-3.5 h-3.5 text-rose-400" />}
+                    </div>
+                    <span className="text-[11px] text-slate-400 block mt-0.5">
+                      Für alle Bewohner und Betreuer
+                    </span>
+                  </div>
+                </button>
 
-          {/* Category selection - Only staff can choose categories, residents write Mitteilungen */}
-          {isStaff ? (
+                <button
+                  type="button"
+                  onClick={() => setIsPrivate(true)}
+                  className={`p-3.5 rounded-2xl border text-left flex items-center gap-3 transition-all cursor-pointer ${
+                    isPrivate
+                      ? 'bg-purple-500/20 border-purple-500 text-white shadow-sm ring-1 ring-purple-500/50'
+                      : 'bg-surface-elevated border-surface-border text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <div className={`p-2 rounded-xl shrink-0 ${isPrivate ? 'bg-purple-600 text-white' : 'bg-surface-card text-slate-400'}`}>
+                    <Lock className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
+                      <span>Nur an Betreuer</span>
+                      {isPrivate && <Check className="w-3.5 h-3.5 text-purple-400" />}
+                    </div>
+                    <span className="text-[11px] text-slate-400 block mt-0.5">
+                      Privat nur an das Betreuer-Team
+                    </span>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Big Message Textarea */}
+            <div className="space-y-1.5">
+              <label className="block text-xs sm:text-sm font-semibold text-slate-200 font-display">
+                Deine Nachricht:
+              </label>
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Schreibe hier, was du fragen oder mitteilen möchtest..."
+                rows={4}
+                className="w-full px-4 py-3 bg-surface-elevated border border-surface-border focus:border-rose-500/50 rounded-2xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans resize-none"
+                required
+              />
+            </div>
+
+            {/* Optional Topic Field */}
+            <div className="space-y-1">
+              <label className="block text-xs font-medium text-slate-400 font-display">
+                Thema (optional):
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="z.B. Frage, Wunsch, Wochenende... (kannst du auch freilassen)"
+                className="w-full px-3.5 py-2 bg-surface-elevated/70 border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans"
+              />
+            </div>
+
+            {/* Actions for Residents */}
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAddForm(false);
+                  setIsPrivate(false);
+                  setTitle('');
+                  setContent('');
+                }}
+                className="px-4 py-2.5 bg-surface-elevated hover:bg-surface-card text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer text-center"
+              >
+                Abbrechen
+              </button>
+              <button
+                type="submit"
+                disabled={!content.trim()}
+                className="px-6 py-2.5 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-rose-500/20 transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <Send className="w-4 h-4" />
+                <span>Nachricht abschicken</span>
+              </button>
+            </div>
+          </form>
+        ) : (
+          /* STAFF FORM - Full controls with categories, pin, expiry date */
+          <form
+            onSubmit={handleCreateNote}
+            className="bento-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border shadow-xl space-y-4 animate-in fade-in duration-150"
+          >
+            <div className="flex items-center justify-between border-b border-white/5 pb-3">
+              <h3 className="text-sm font-display font-semibold text-white flex items-center gap-2">
+                <Pencil className="w-4 h-4 text-rose-400" />
+                <span>Neuen Beitrag für den Flurfunk schreiben</span>
+              </h3>
+              <span className="text-xs text-slate-400">Verfasser: <strong className="text-slate-200">{user?.name}</strong></span>
+            </div>
+
+            {/* Visibility Option */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-slate-300 font-display">
+                Sichtbarkeit des Beitrags
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsPrivate(false)}
+                  className={`p-3 rounded-2xl border text-left flex items-start gap-3 transition-all cursor-pointer ${
+                    !isPrivate
+                      ? 'bg-rose-500/15 border-rose-500/40 text-white shadow-sm'
+                      : 'bg-surface-elevated border-surface-border text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <div className={`p-2 rounded-xl shrink-0 ${!isPrivate ? 'bg-rose-500 text-white' : 'bg-surface-card text-slate-400'}`}>
+                    <Globe className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-slate-100 flex items-center gap-1.5">
+                      <span>Öffentlich für alle</span>
+                      {!isPrivate && <Check className="w-3.5 h-3.5 text-rose-400" />}
+                    </div>
+                    <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
+                      Für alle Bewohner und Betreuer der WG sichtbar.
+                    </p>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsPrivate(true)}
+                  className={`p-3 rounded-2xl border text-left flex items-start gap-3 transition-all cursor-pointer ${
+                    isPrivate
+                      ? 'bg-purple-500/15 border-purple-500/40 text-white shadow-sm'
+                      : 'bg-surface-elevated border-surface-border text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <div className={`p-2 rounded-xl shrink-0 ${isPrivate ? 'bg-purple-600 text-white' : 'bg-surface-card text-slate-400'}`}>
+                    <Lock className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-slate-100 flex items-center gap-1.5">
+                      <span>Direkt an Bewohner</span>
+                      {isPrivate && <Check className="w-3.5 h-3.5 text-purple-400" />}
+                    </div>
+                    <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
+                      Vertrauliche Mitteilung gezielt an einen Bewohner dieser WG.
+                    </p>
+                  </div>
+                </button>
+              </div>
+
+              {/* Resident dropdown when caregiver sends direct note */}
+              {isPrivate && (
+                <div className="p-3.5 rounded-2xl bg-purple-500/10 border border-purple-500/30 space-y-1.5 mt-2 animate-in fade-in duration-150">
+                  <label className="block text-xs font-semibold text-purple-300 font-display flex items-center gap-1.5">
+                    <User className="w-3.5 h-3.5" />
+                    <span>Empfänger (Bewohner auswählen):</span>
+                  </label>
+                  {residents.length === 0 ? (
+                    <div className="text-xs text-slate-400 italic">
+                      Keine Bewohner mit Rolle „BEWOHNER“ an diesem Standort registriert.
+                    </div>
+                  ) : (
+                    <select
+                      value={targetResidentId}
+                      onChange={(e) => setTargetResidentId(e.target.value)}
+                      className="w-full px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-purple-500/40 cursor-pointer font-sans"
+                      required
+                    >
+                      {residents.map((r) => (
+                        <option key={r.id} value={r.id} className="bg-slate-900 text-white">
+                          {r.name} (@{r.username})
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Category selection - Only staff can choose categories, residents write Mitteilungen */}
             <div className="space-y-1.5">
               <label className="block text-xs font-semibold text-slate-300 font-display">
                 Art des Beitrags (Kategorie)
@@ -679,18 +805,8 @@ export const CaregiverNotesView: React.FC = () => {
                 })}
               </div>
             </div>
-          ) : (
-            <div className="flex items-center gap-2 text-xs text-slate-400 font-sans">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/30 font-semibold font-display">
-                <MessageSquare className="w-3.5 h-3.5" />
-                <span>Mitteilung</span>
-              </span>
-              <span>Beitrag für die WG-Pinnwand</span>
-            </div>
-          )}
 
-          {/* Caregiver extra settings: Pin & Expiry */}
-          {isStaff && (
+            {/* Caregiver extra settings: Pin & Expiry */}
             <div className="space-y-3 pt-1">
               <label className="flex items-center gap-3 p-3 rounded-2xl bg-surface-elevated border border-surface-border cursor-pointer hover:border-surface-hover transition-colors">
                 <input
@@ -798,54 +914,54 @@ export const CaregiverNotesView: React.FC = () => {
                 </div>
               )}
             </div>
-          )}
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5 font-display">Betreff / Kurztitel</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Worum geht es? (z.B. Arzttermin, Waffeleisen leihen, Einkaufswunsch...)"
-              className="w-full px-4 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans"
-              required
-            />
-          </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5 font-display">Betreff / Kurztitel</label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Worum geht es? (z.B. Arzttermin, Waffeleisen leihen, Einkaufswunsch...)"
+                className="w-full px-4 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans"
+                required
+              />
+            </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5 font-display">Nachricht / Anliegen</label>
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Schreibe hier deine Nachricht ausführlicher..."
-              rows={4}
-              className="w-full px-4 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans resize-none"
-              required
-            />
-          </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5 font-display">Nachricht / Anliegen</label>
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Schreibe hier deine Nachricht ausführlicher..."
+                rows={4}
+                className="w-full px-4 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans resize-none"
+                required
+              />
+            </div>
 
-          <div className="flex justify-end gap-2.5 pt-2">
-            <button
-              type="button"
-              onClick={() => {
-                setShowAddForm(false);
-                setIsPrivate(false);
-                setCategory('ALLGEMEIN');
-                setIsPinned(false);
-                setExpiresAt('');
-              }}
-              className="px-4 py-2 bg-surface-elevated hover:bg-surface-card text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer"
-            >
-              Abbrechen
-            </button>
-            <button
-              type="submit"
-              className="px-5 py-2 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white rounded-xl text-xs font-bold shadow-md shadow-rose-500/20 transition-all cursor-pointer"
-            >
-              Beitrag veröffentlichen
-            </button>
-          </div>
-        </form>
+            <div className="flex justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAddForm(false);
+                  setIsPrivate(false);
+                  setCategory('ALLGEMEIN');
+                  setIsPinned(false);
+                  setExpiresAt('');
+                }}
+                className="px-4 py-2 bg-surface-elevated hover:bg-surface-card text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+              >
+                Abbrechen
+              </button>
+              <button
+                type="submit"
+                className="px-5 py-2 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white rounded-xl text-xs font-bold shadow-md shadow-rose-500/20 transition-all cursor-pointer"
+              >
+                Beitrag veröffentlichen
+              </button>
+            </div>
+          </form>
+        )
       )}
 
       {/* Notes List */}
@@ -1272,24 +1388,28 @@ export const CaregiverNotesView: React.FC = () => {
                     {/* Author & Timestamp row */}
                     {!isExpanded && (
                       <div className="flex items-center justify-between text-xs text-slate-400 mb-2 gap-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <div
-                            className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white uppercase shrink-0"
-                            style={{
-                              backgroundColor: note.authorAvatarColor || (note.authorRole === 'BETREUER' || note.authorRole === 'ADMIN' ? '#f43f5e' : '#3b82f6'),
-                            }}
-                          >
-                            {(note.authorName || note.residentName || 'WG').charAt(0)}
+                        {note.category !== 'ANKUENDIGUNG' ? (
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div
+                              className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white uppercase shrink-0"
+                              style={{
+                                backgroundColor: note.authorAvatarColor || (note.authorRole === 'BETREUER' || note.authorRole === 'ADMIN' ? '#f43f5e' : '#3b82f6'),
+                              }}
+                            >
+                              {(note.authorName || note.residentName || 'WG').charAt(0)}
+                            </div>
+                            <div className="truncate text-slate-300 font-medium text-xs">
+                              <span className="text-white font-semibold">{note.authorName || 'WG-Mitglied'}</span>
+                              {isDirect && note.residentName && (
+                                <span className="text-purple-300 font-medium"> → {note.residentName}</span>
+                              )}
+                            </div>
                           </div>
-                          <div className="truncate text-slate-300 font-medium text-xs">
-                            <span className="text-white font-semibold">{note.authorName || 'WG-Mitglied'}</span>
-                            {isDirect && note.residentName && (
-                              <span className="text-purple-300 font-medium"> → {note.residentName}</span>
-                            )}
-                          </div>
-                        </div>
+                        ) : (
+                          <div />
+                        )}
 
-                        <span className="text-[11px] font-mono text-slate-400 flex items-center gap-1 shrink-0">
+                        <span className="text-[11px] font-mono text-slate-400 flex items-center gap-1 shrink-0 ml-auto">
                           <Clock className="w-3 h-3 text-slate-500" />
                           {formatGermanDateTime(note.createdAt)}
                         </span>
@@ -1415,23 +1535,34 @@ export const CaregiverNotesView: React.FC = () => {
                         <div className="space-y-3">
                           {/* 1. Opening message (Author's Note) */}
                           <div className="flex gap-2.5 items-start">
-                            <div
-                              className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white uppercase shrink-0 mt-0.5 shadow-xs"
-                              style={{
-                                backgroundColor: note.authorAvatarColor || (note.authorRole === 'BETREUER' || note.authorRole === 'ADMIN' ? '#f43f5e' : '#3b82f6'),
-                              }}
-                            >
-                              {(note.authorName || note.residentName || 'WG').charAt(0)}
-                            </div>
+                            {note.category !== 'ANKUENDIGUNG' && (
+                              <div
+                                className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white uppercase shrink-0 mt-0.5 shadow-xs"
+                                style={{
+                                  backgroundColor: note.authorAvatarColor || (note.authorRole === 'BETREUER' || note.authorRole === 'ADMIN' ? '#f43f5e' : '#3b82f6'),
+                                }}
+                              >
+                                {(note.authorName || note.residentName || 'WG').charAt(0)}
+                              </div>
+                            )}
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between gap-2 mb-1">
                                 <div className="flex items-center gap-1.5 min-w-0">
-                                  <span className="text-xs font-semibold text-white truncate">
-                                    {note.authorName || 'WG-Mitglied'}
-                                  </span>
-                                  {isDirect && note.residentName && (
-                                    <span className="text-purple-300 font-normal text-[11px] truncate">
-                                      → {note.residentName}
+                                  {note.category !== 'ANKUENDIGUNG' ? (
+                                    <>
+                                      <span className="text-xs font-semibold text-white truncate">
+                                        {note.authorName || 'WG-Mitglied'}
+                                      </span>
+                                      {isDirect && note.residentName && (
+                                        <span className="text-purple-300 font-normal text-[11px] truncate">
+                                          → {note.residentName}
+                                        </span>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <span className="text-xs font-semibold text-rose-300 truncate flex items-center gap-1.5">
+                                      <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+                                      Ankündigung
                                     </span>
                                   )}
                                 </div>

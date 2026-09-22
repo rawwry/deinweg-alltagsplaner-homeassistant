@@ -3,6 +3,21 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.19] - 2026-09-23
+
+### Behoben, Verbessert & Zugänglich
+- **Kein Autorenname bei Ankündigungen (`CaregiverNotesView.tsx`, `DashboardHub.tsx`)**:
+  - In der Betreuersicht und auf Ankündigungskarten wird bei Ankündigungen (`ANKUENDIGUNG`) kein Verfassername oder Avatar mehr angezeigt (z. B. nicht mehr „Timo Vorwald“).
+  - Es verbleibt lediglich der Zeitstempel und der klare Hinweis auf eine WG-Ankündigung.
+- **Rückfragen von Bewohnern zuverlässig auf dem Home-Dashboard (`DashboardHub.tsx`)**:
+  - Wenn Betreuer auf eine Mitteilung antworten und ein Bewohner daraufhin eine weitere Rückfrage stellt, bleibt die Rückfrage im Benachrichtigungs-Banner erhalten mit dem Badge *„Offene Rückfrage von Bewohner“*, dem Absendernamen des Bewohners und dem direkten Textauszug der Frage.
+  - Im oberen Flurfunk-Hinweis-Pill wird die Anzahl offener Rückfragen prominent angezeigt (z. B. *„X Einträge im Flurfunk + 1 Rückfrage“* oder leuchtend *„1 neue Rückfrage im Flurfunk“*).
+- **Radikal vereinfachte Notiz-Erstellung für Bewohner auf Smartphones (`CaregiverNotesView.tsx`)**:
+  - Übersichtliches 2-Tasten-Auswahlfeld für Empfänger (*„👥 An alle in der WG“* vs. *„🔒 Nur an Betreuer“*).
+  - Ein einziges, großes Textfeld *„Deine Nachricht:“* mit freundlichem Platzhalter.
+  - Das Thema ist nun rein optional (*„Thema (optional):“*). Lässt ein Bewohner das Thema leer, generiert das System den Titel automatisch aus den ersten Worten der Nachricht, sodass keine Fehlermeldungen die Bewohner blockieren.
+  - Großer, leicht tippbarer Absende-Button *„✉️ Nachricht abschicken“*.
+
 ## [0.1.18] - 2026-09-23
 
 ### Behoben & Polished
