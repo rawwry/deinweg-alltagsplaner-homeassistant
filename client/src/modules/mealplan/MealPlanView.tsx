@@ -368,12 +368,12 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
 
               <button
                 type="button"
-                onClick={() => setIsBudgetModalOpen(true)}
+                onClick={() => setCurrentTab('budget')}
                 className="p-2.5 bg-surface-elevated hover:bg-surface-card border border-surface-border hover:border-emerald-500/40 rounded-2xl text-slate-300 hover:text-emerald-300 transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer shadow-xs"
-                title={`Wochenbudget & Kassenbon für KW ${weekNumber} anpassen`}
+                title={`Kasse & Budget für KW ${weekNumber} verwalten`}
               >
                 <PiggyBank className="w-4 h-4 text-emerald-400" />
-                <span className="hidden sm:inline">WG-Budget</span>
+                <span className="hidden sm:inline">Kasse & Budget</span>
               </button>
             </>
           )}
@@ -811,7 +811,7 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
                   type="button"
                   onClick={() => {
                     setShowLocationSettings(false);
-                    setIsBudgetModalOpen(true);
+                    setCurrentTab('budget');
                   }}
                   className="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-200 border border-emerald-500/40 text-xs font-semibold transition-colors cursor-pointer shrink-0"
                 >

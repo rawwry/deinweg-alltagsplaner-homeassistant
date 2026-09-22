@@ -10,6 +10,7 @@ import {
   ChefHat,
   PanelLeftClose,
   PanelLeftOpen,
+  PiggyBank,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.js';
 import { api } from '../../api/client.js';
@@ -67,6 +68,7 @@ export const DesktopNav: React.FC<DesktopNavProps> = ({ currentTab, setCurrentTa
     { id: 'chores', label: 'Aufgabenplan', icon: ListTodo },
     { id: 'mealplan', label: 'Kochplan', icon: ChefHat },
     { id: 'shopping', label: 'Einkaufsliste', icon: ShoppingCart },
+    ...(isStaff ? [{ id: 'budget', label: 'Kasse & Budget', icon: PiggyBank }] : []),
     { id: 'recipes', label: 'Rezepte', icon: BookOpen },
     { id: 'notes', label: 'Flurfunk', icon: MessageSquareText, badge: openTicketCount > 0 ? openTicketCount : undefined },
     { id: 'waste', label: 'Abfallkalender', icon: Trash2 },

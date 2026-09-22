@@ -14,6 +14,7 @@ import { CaregiverNotesView } from './modules/notes/CaregiverNotesView.js';
 import { WasteCalendarView } from './modules/waste/WasteCalendarView.js';
 import { ChorePlannerView } from './modules/chores/ChorePlannerView.js';
 import { AdminManagementView } from './modules/admin/AdminManagementView.js';
+import { BudgetManagementView } from './modules/budget/BudgetManagementView.js';
 import { RecipeModal } from './modules/recipes/RecipeModal.js';
 import { Footer } from './components/layout/Footer.js';
 import { api } from './api/client.js';
@@ -79,6 +80,7 @@ const AppContent: React.FC = () => {
               />
             )}
             {currentTab === 'shopping' && <ShoppingListView setCurrentTab={setCurrentTab} />}
+            {currentTab === 'budget' && isStaff && <BudgetManagementView setCurrentTab={setCurrentTab} />}
             {currentTab === 'recipes' && <RecipeCatalogView />}
             {currentTab === 'notes' && <CaregiverNotesView />}
             {currentTab === 'waste' && <WasteCalendarView />}

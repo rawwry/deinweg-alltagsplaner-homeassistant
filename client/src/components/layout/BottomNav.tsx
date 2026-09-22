@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Home, ChefHat, ShoppingCart, BookOpen, MessageSquareText, ListTodo } from 'lucide-react';
+import { Home, ChefHat, ShoppingCart, BookOpen, MessageSquareText, ListTodo, PiggyBank } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.js';
 import { api } from '../../api/client.js';
 
@@ -37,6 +37,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, setCurrentTab 
     { id: 'chores', label: 'Aufgaben', icon: ListTodo },
     { id: 'mealplan', label: 'Kochplan', icon: ChefHat },
     { id: 'shopping', label: 'Einkauf', icon: ShoppingCart },
+    ...(isStaff ? [{ id: 'budget', label: 'Kasse', icon: PiggyBank }] : []),
     ...(isStaff ? [{ id: 'recipes', label: 'Rezepte', icon: BookOpen }] : []),
     { id: 'notes', label: 'Flurfunk', icon: MessageSquareText, badge: isStaff && openTicketCount > 0 ? openTicketCount : undefined },
   ];

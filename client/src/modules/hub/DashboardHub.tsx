@@ -1541,13 +1541,15 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             <div
               onClick={() => {
                 if (isStaff) {
+                  setCurrentTab('budget');
+                } else {
                   setIsBudgetModalOpen(true);
                 }
               }}
               className={`p-3.5 mb-4 rounded-2xl bg-surface-elevated/80 border border-emerald-500/30 flex items-center justify-between gap-3 ${
                 isStaff
                   ? 'cursor-pointer hover:bg-surface-elevated hover:border-emerald-500/60 transition-all group'
-                  : ''
+                  : 'cursor-pointer hover:bg-surface-elevated transition-all'
               }`}
               title={isStaff ? 'Klicken, um Wochenbudget & Kassenbon zu bearbeiten' : undefined}
             >
@@ -1668,7 +1670,13 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
 
           <button
             type="button"
-            onClick={() => setIsBudgetModalOpen(true)}
+            onClick={() => {
+              if (isStaff) {
+                setCurrentTab('budget');
+              } else {
+                setIsBudgetModalOpen(true);
+              }
+            }}
             className="flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-surface-elevated/70 hover:bg-surface-elevated border border-surface-border hover:border-emerald-500/40 text-slate-200 hover:text-white text-xs font-medium transition-all group cursor-pointer"
             title="WG-Kasse & Wochenbudget verwalten"
           >

@@ -3,6 +3,28 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.11] - 2026-09-22
+
+### Neu & Verbessert
+- **Dedizierter Hauptmenü-Eintrag „Kasse & Budget“ für Betreuer (`DesktopNav.tsx`, `BottomNav.tsx`, `App.tsx`)**:
+  - **Direkter Menüpunkt in der linken Seitenleiste**: Betreuer und Administratoren finden links im Hauptmenü nun den neuen Eintrag *„Kasse & Budget“* mit Sparschwein-Icon (`PiggyBank`), platziert direkt unter der Einkaufsliste.
+  - **Mobiles Menü angepasst (`BottomNav.tsx`)**: Auch in der mobilen Menüleiste steht Betreuern der Punkt *„Kasse“* zur Verfügung.
+- **Neue vollwertige Ansicht zur Budget- & Kassenverwaltung (`BudgetManagementView.tsx`)**:
+  - **Wocheneinkauf & Abrechnung**:
+    - Wochen-Navigator (`< KW X · {year} >`) mit Schnellrücksprung zur aktuellen Woche.
+    - Standort-Umschaltung für standortübergreifend tätige Betreuer.
+    - KPI-Karten für Restbudget, Ist-Ausgaben laut Bon/Planung und Status (`In Planung` vs. `Abgerechnet`).
+    - Fortschrittsbalken mit prozentualer Budgetauslastung und visueller Warnung bei Budgetüberschreitung.
+    - Formular zur Erfassung des wöchentlichen Budgets, des tatsächlichen Kassenbon-Betrags und von Händlernotizen (z. B. Pfandabzug).
+    - Option *„Als Standard-Wochenbudget für Standort übernehmen“*, um künftige Wochen dauerhaft mit dem Wunschbetrag zu initialisieren.
+    - Checkbox *„Woche endgültig abschließen & als abgerechnet markieren“*, wodurch verbleibende Überschüsse fest verbucht und der WG-Sonderkasse gutgeschrieben werden.
+  - **WG-Sonderkasse & Kassenbuch**:
+    - Prominente Saldo-Karte der WG-Sonderkasse mit getrennter Aufschlüsselung von angesparten Wochenüberschüssen und getätigten Sonderbuchungen.
+    - Formular zur Erfassung neuer Buchungen (Art: Ausgabe oder Einzahlung, Kategorie: Aktivität, Sonderanschaffung, Reparatur, Sonstiges, Zweck, Datum).
+    - Chronologisches Kassenbuch mit Suchfunktion und Löschmöglichkeit durch Betreuer.
+- **Nahtlose Verlinkung aus allen Modulen (`DashboardHub.tsx`, `MealPlanView.tsx`, `ShoppingListView.tsx`)**:
+  - Sämtliche Budget-Karten und Buttons (auf dem Home-Dashboard, im Kochplan und in der Einkaufsliste) leiten Betreuer nun mit 1 Klick direkt in die neue Hauptansicht *„Kasse & Budget“*.
+
 ## [0.1.10] - 2026-09-22
 
 ### Neu & Verbessert
