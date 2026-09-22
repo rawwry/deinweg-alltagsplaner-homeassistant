@@ -203,14 +203,22 @@ export const CaregiverNotesView: React.FC = () => {
     }
   };
 
+  const getFutureDateString = (daysAhead: number): string => {
+    const d = new Date();
+    d.setDate(d.getDate() + daysAhead);
+    return d.toISOString().substring(0, 10);
+  };
+
   const handleStartEdit = (note: CaregiverNoteSummary, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
+    const effectiveCategory = (note.category === 'DRINGEND' ? 'ANKUENDIGUNG' : note.category) as NoteCategory || 'ALLGEMEIN';
     setEditingNoteId(note.id);
     setEditTitle(note.title);
     setEditContent(note.content);
-    setEditCategory((note.category === 'DRINGEND' ? 'ANKUENDIGUNG' : note.category) as NoteCategory || 'ALLGEMEIN');
+    setEditCategory(effectiveCategory);
     setEditIsPinned(note.isPinned);
-    setEditExpiresAt(note.expiresAt ? note.expiresAt.substring(0, 10) : '');
+    // Expiry date is ONLY used for announcements
+    setEditExpiresAt(effectiveCategory === 'ANKUENDIGUNG' && note.expiresAt ? note.expiresAt.substring(0, 10) : '');
     setEditIsPrivate(Boolean(note.isPrivate));
     setEditResidentId(note.residentId);
   };
@@ -225,12 +233,14 @@ export const CaregiverNotesView: React.FC = () => {
 
     try {
       setIsSavingEdit(true);
+      const isAnnouncement = editCategory === 'ANKUENDIGUNG';
       const updated = await api.notes.update(noteId, {
         title: editTitle.trim(),
         content: editContent.trim(),
         category: editCategory,
         isPinned: editIsPinned,
-        expiresAt: editExpiresAt ? new Date(editExpiresAt).toISOString() : null,
+        // Only announcements can have a deadline; all other categories have expiresAt cleared (null)
+        expiresAt: isAnnouncement && editExpiresAt ? new Date(editExpiresAt).toISOString() : null,
         isPrivate: editIsPrivate,
         residentId: (editIsPrivate && editResidentId) ? editResidentId : undefined,
       });
@@ -257,6 +267,7 @@ export const CaregiverNotesView: React.FC = () => {
     }
 
     try {
+      const isAnnouncement = category === 'ANKUENDIGUNG';
       await api.notes.create({
         title: title.trim(),
         content: content.trim(),
@@ -265,7 +276,8 @@ export const CaregiverNotesView: React.FC = () => {
         isPrivate,
         category,
         isPinned: isStaff ? isPinned : false,
-        expiresAt: isStaff && expiresAt ? new Date(expiresAt).toISOString() : undefined,
+        // Only announcements can have an expiry date
+        expiresAt: isStaff && isAnnouncement && expiresAt ? new Date(expiresAt).toISOString() : undefined,
       });
 
       setTitle('');
@@ -541,7 +553,12 @@ export const CaregiverNotesView: React.FC = () => {
                     <button
                       key={cat.id}
                       type="button"
-                      onClick={() => setCategory(cat.id)}
+                      onClick={() => {
+                        setCategory(cat.id);
+                        if (cat.id !== 'ANKUENDIGUNG') {
+                          setExpiresAt('');
+                        }
+                      }}
                       className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                         isSelected
                           ? `${cat.buttonClass} ring-2 ring-rose-500/40 scale-102 font-bold`
@@ -567,7 +584,7 @@ export const CaregiverNotesView: React.FC = () => {
 
           {/* Caregiver extra settings: Pin & Expiry */}
           {isStaff && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div className="space-y-3 pt-1">
               <label className="flex items-center gap-3 p-3 rounded-2xl bg-surface-elevated border border-surface-border cursor-pointer hover:border-surface-hover transition-colors">
                 <input
                   type="checkbox"
@@ -586,18 +603,84 @@ export const CaregiverNotesView: React.FC = () => {
                 </div>
               </label>
 
-              <div className="p-3 rounded-2xl bg-surface-elevated border border-surface-border space-y-1.5">
-                <label className="block text-xs font-bold text-slate-200 flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                  <span>Ablaufdatum (optional)</span>
-                </label>
-                <input
-                  type="date"
-                  value={expiresAt}
-                  onChange={(e) => setExpiresAt(e.target.value)}
-                  className="w-full px-3 py-1.5 bg-surface-card border border-surface-border rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans"
-                />
-              </div>
+              {/* Ablaufdatum / Frist: NUR BEI ANKÜNDIGUNGEN */}
+              {category === 'ANKUENDIGUNG' && (
+                <div>
+                  {expiresAt ? (
+                    <div className="p-3.5 rounded-2xl bg-surface-elevated border border-rose-500/30 space-y-2.5 shadow-xs">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-rose-300 flex items-center gap-1.5 font-display">
+                          <Clock className="w-3.5 h-3.5 text-rose-400" />
+                          <span>Frist / Ablaufdatum</span>
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setExpiresAt('')}
+                          className="text-[11px] text-slate-400 hover:text-rose-300 flex items-center gap-1 px-2 py-0.5 rounded-lg hover:bg-surface-card transition-colors cursor-pointer"
+                          title="Frist entfernen"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                          <span>Frist entfernen</span>
+                        </button>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                        <div className="relative flex-1">
+                          <input
+                            type="date"
+                            value={expiresAt}
+                            onChange={(e) => setExpiresAt(e.target.value)}
+                            className="w-full px-3 py-1.5 bg-surface-card border border-surface-border focus:border-rose-500/50 rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans"
+                          />
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => setExpiresAt(getFutureDateString(3))}
+                            className="px-2.5 py-1.5 bg-surface-card hover:bg-surface-hover border border-surface-border rounded-xl text-[11px] font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
+                          >
+                            +3 Tage
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setExpiresAt(getFutureDateString(7))}
+                            className="px-2.5 py-1.5 bg-surface-card hover:bg-surface-hover border border-surface-border rounded-xl text-[11px] font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
+                          >
+                            +1 Woche
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setExpiresAt(getFutureDateString(14))}
+                            className="px-2.5 py-1.5 bg-surface-card hover:bg-surface-hover border border-surface-border rounded-xl text-[11px] font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
+                          >
+                            +2 Wochen
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-3 rounded-2xl bg-surface-elevated/60 border border-dashed border-surface-border hover:border-surface-hover flex items-center justify-between gap-3 transition-colors">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-surface-card border border-surface-border flex items-center justify-center text-slate-400 shrink-0">
+                          <Calendar className="w-4 h-4 text-slate-400" />
+                        </div>
+                        <div>
+                          <div className="text-xs font-semibold text-slate-200">Keine Frist festgelegt</div>
+                          <div className="text-[11px] text-slate-400">Ankündigung bleibt dauerhaft im Flurfunk aktiv</div>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setExpiresAt(getFutureDateString(7))}
+                        className="px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 hover:text-white text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer shrink-0 shadow-xs"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Frist setzen</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -742,7 +825,12 @@ export const CaregiverNotesView: React.FC = () => {
                               <button
                                 key={cat.id}
                                 type="button"
-                                onClick={() => setEditCategory(cat.id)}
+                                onClick={() => {
+                                  setEditCategory(cat.id);
+                                  if (cat.id !== 'ANKUENDIGUNG') {
+                                    setEditExpiresAt('');
+                                  }
+                                }}
                                 className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                                   editCategory === cat.id
                                     ? `${cat.buttonClass} ring-2 ring-rose-500/40 font-bold scale-102`
@@ -782,9 +870,9 @@ export const CaregiverNotesView: React.FC = () => {
                       </div>
 
                       {/* Pin & Expiry */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                      <div className="space-y-3 pt-1">
                         {isStaff && (
-                          <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-surface-card border border-surface-border cursor-pointer hover:border-surface-hover">
+                          <label className="flex items-center gap-3 p-3 rounded-2xl bg-surface-card border border-surface-border cursor-pointer hover:border-surface-hover transition-colors">
                             <input
                               type="checkbox"
                               checked={editIsPinned}
@@ -792,26 +880,95 @@ export const CaregiverNotesView: React.FC = () => {
                               className="w-4 h-4 rounded text-rose-500 focus:ring-rose-500/40 cursor-pointer"
                             />
                             <div className="text-xs">
-                              <span className="font-bold text-slate-200 flex items-center gap-1">
+                              <span className="font-bold text-slate-200 flex items-center gap-1.5">
                                 <Pin className="w-3.5 h-3.5 text-rose-400" />
                                 <span>Oben anpinnen</span>
+                              </span>
+                              <span className="text-[11px] text-slate-400 block mt-0.5">
+                                Bleibt immer oben an erster Stelle im Flurfunk
                               </span>
                             </div>
                           </label>
                         )}
 
-                        <div className="p-2.5 rounded-xl bg-surface-card border border-surface-border space-y-1">
-                          <label className="block text-[11px] font-bold text-slate-300 flex items-center gap-1">
-                            <Calendar className="w-3 h-3 text-slate-400" />
-                            <span>Ablaufdatum (optional)</span>
-                          </label>
-                          <input
-                            type="date"
-                            value={editExpiresAt}
-                            onChange={(e) => setEditExpiresAt(e.target.value)}
-                            className="w-full px-2 py-1 bg-surface-elevated border border-surface-border rounded-lg text-xs text-white focus:outline-none focus:ring-1 focus:ring-rose-500"
-                          />
-                        </div>
+                        {/* Ablaufdatum / Frist: NUR FÜR ANKÜNDIGUNGEN */}
+                        {isStaff && editCategory === 'ANKUENDIGUNG' && (
+                          <div>
+                            {editExpiresAt ? (
+                              <div className="p-3.5 rounded-2xl bg-surface-card border border-rose-500/30 space-y-2.5 shadow-xs">
+                                <div className="flex items-center justify-between">
+                                  <label className="text-xs font-bold text-rose-300 flex items-center gap-1.5 font-display">
+                                    <Clock className="w-3.5 h-3.5 text-rose-400" />
+                                    <span>Frist / Ablaufdatum</span>
+                                  </label>
+                                  <button
+                                    type="button"
+                                    onClick={() => setEditExpiresAt('')}
+                                    className="text-[11px] text-slate-400 hover:text-rose-300 flex items-center gap-1 px-2 py-0.5 rounded-lg hover:bg-surface-elevated transition-colors cursor-pointer"
+                                    title="Frist entfernen"
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                    <span>Frist entfernen</span>
+                                  </button>
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                  <div className="relative flex-1">
+                                    <input
+                                      type="date"
+                                      value={editExpiresAt}
+                                      onChange={(e) => setEditExpiresAt(e.target.value)}
+                                      className="w-full px-3 py-1.5 bg-surface-elevated border border-surface-border focus:border-rose-500/50 rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans"
+                                    />
+                                  </div>
+                                  <div className="flex items-center gap-1 shrink-0">
+                                    <button
+                                      type="button"
+                                      onClick={() => setEditExpiresAt(getFutureDateString(3))}
+                                      className="px-2.5 py-1.5 bg-surface-elevated hover:bg-surface-hover border border-surface-border rounded-xl text-[11px] font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
+                                    >
+                                      +3 Tage
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setEditExpiresAt(getFutureDateString(7))}
+                                      className="px-2.5 py-1.5 bg-surface-elevated hover:bg-surface-hover border border-surface-border rounded-xl text-[11px] font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
+                                    >
+                                      +1 Woche
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setEditExpiresAt(getFutureDateString(14))}
+                                      className="px-2.5 py-1.5 bg-surface-elevated hover:bg-surface-hover border border-surface-border rounded-xl text-[11px] font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
+                                    >
+                                      +2 Wochen
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="p-3 rounded-2xl bg-surface-card/60 border border-dashed border-surface-border hover:border-surface-hover flex items-center justify-between gap-3 transition-colors">
+                                <div className="flex items-center gap-2.5">
+                                  <div className="w-8 h-8 rounded-xl bg-surface-elevated border border-surface-border flex items-center justify-center text-slate-400 shrink-0">
+                                    <Calendar className="w-4 h-4 text-slate-400" />
+                                  </div>
+                                  <div>
+                                    <div className="text-xs font-semibold text-slate-200">Keine Frist festgelegt</div>
+                                    <div className="text-[11px] text-slate-400">Ankündigung bleibt dauerhaft im Flurfunk aktiv</div>
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setEditExpiresAt(getFutureDateString(7))}
+                                  className="px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 hover:text-white text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer shrink-0 shadow-xs"
+                                >
+                                  <Plus className="w-3.5 h-3.5" />
+                                  <span>Frist setzen</span>
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
 
                       {/* Actions */}
@@ -874,7 +1031,7 @@ export const CaregiverNotesView: React.FC = () => {
                         )}
 
                         {/* Expiry Badge */}
-                        {note.expiresAt && (
+                        {note.category === 'ANKUENDIGUNG' && note.expiresAt && (
                           <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-surface-elevated text-slate-400 border border-surface-border shrink-0">
                             <Calendar className="w-3 h-3 text-slate-400" />
                             <span>Bis {formatGermanDate(note.expiresAt)}</span>

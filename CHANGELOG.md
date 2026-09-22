@@ -3,6 +3,18 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.14] - 2026-09-22
+
+### Neu & Verbessert / Polish
+- **Fristen & Ablaufdaten im Flurfunk logisch & visuell optimiert (`CaregiverNotesView.tsx`)**:
+  - **Fristen nur noch für Ankündigungen**:
+    - Die Möglichkeit, ein Ablaufdatum bzw. eine Frist festzulegen, steht im Bearbeiten- und Erstellen-Modus nur noch für *Ankündigungen* (`ANKUENDIGUNG`) zur Verfügung.
+    - *Mitteilungen* (`ALLGEMEIN`) und *Hinweise* (`HINWEIS`) benötigen keine Frist; das Ablaufdatum-Feld wird für diese Kategorien vollständig ausgeblendet und etwaige Alt-Fristen beim Kategoriewechsel automatisch bereinigt.
+  - **Polished Bento-Design für Fristen im Bearbeiten- und Erstellen-Modus**:
+    - **Ohne Frist**: Statt eines leeren HTML-Datumsfelds (`--.--.----`), das unvollständig oder deplatziert wirkte, wird nun eine aufgeräumte Infokarte angezeigt (*„Keine Frist festgelegt – Ankündigung bleibt dauerhaft im Flurfunk aktiv“*) mit einem ansprechenden Aktions-Button *„+ Frist setzen“*.
+    - **Mit Frist**: Das aktive Frist-Feld bietet einen Button *„Frist entfernen“* sowie praktische Schnellwahltasten (*„+3 Tage“*, *„+1 Woche“*, *„+2 Wochen“*) für ein schnelles und komfortables Festlegen.
+  - **Badge-Anzeige bereinigt**: Die Frist-Plakette (*„Bis ...“*) wird auf den Beitrags-Karten ausschließlich bei Ankündigungen eingeblendet.
+
 ## [0.1.13] - 2026-09-22
 
 ### Neu & Verbessert / Bereinigung
