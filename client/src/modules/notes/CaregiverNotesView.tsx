@@ -624,9 +624,23 @@ export const CaregiverNotesView: React.FC = () => {
               </div>
             </div>
 
+            {/* Optional Topic Field - Above message textarea like in an email */}
+            <div className="space-y-1.5">
+              <label className="block text-xs sm:text-sm font-semibold text-white font-display">
+                Thema (optional):
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="freiwillige Betreffzeile"
+                className="w-full px-4 py-2.5 bg-surface-elevated border border-surface-border focus:border-rose-500/50 rounded-xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans"
+              />
+            </div>
+
             {/* Big Message Textarea */}
             <div className="space-y-1.5">
-              <label className="block text-xs sm:text-sm font-semibold text-slate-200 font-display">
+              <label className="block text-xs sm:text-sm font-semibold text-white font-display">
                 Deine Nachricht:
               </label>
               <textarea
@@ -636,20 +650,6 @@ export const CaregiverNotesView: React.FC = () => {
                 rows={4}
                 className="w-full px-4 py-3 bg-surface-elevated border border-surface-border focus:border-rose-500/50 rounded-2xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans resize-none"
                 required
-              />
-            </div>
-
-            {/* Optional Topic Field */}
-            <div className="space-y-1">
-              <label className="block text-xs font-medium text-slate-400 font-display">
-                Thema (optional):
-              </label>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="z.B. Frage, Wunsch, Wochenende... (kannst du auch freilassen)"
-                className="w-full px-3.5 py-2 bg-surface-elevated/70 border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-sans"
               />
             </div>
 
