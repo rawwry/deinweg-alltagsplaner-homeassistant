@@ -139,13 +139,6 @@ export const LoginView: React.FC = () => {
               </button>
             </div>
           </form>
-
-          {/* Information Notice */}
-          <div className="mt-6 pt-5 border-t border-white/5 text-center text-xs text-slate-400 leading-relaxed">
-            <p>
-              Zugangsdaten für Bewohner und Betreuer werden durch die Einrichtungsleitung verwaltet.
-            </p>
-          </div>
         </div>
 
         {/* Footer Version Tag */}

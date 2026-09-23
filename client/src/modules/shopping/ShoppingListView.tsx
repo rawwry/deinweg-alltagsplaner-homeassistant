@@ -257,174 +257,50 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
         </div>
       </div>
 
-      {/* 3 Balanced Bento Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
-        {/* Card 1: Einkaufswagen & Fortschritt */}
-        <div className="bento-card rounded-[2rem] p-5 flex flex-col justify-between shadow-lg relative overflow-hidden group">
-          <div className="absolute -right-8 -top-8 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
-          <div>
-            <div className="flex items-center justify-between gap-2 mb-3">
-              <div className="flex items-center gap-2 text-xs font-semibold text-slate-200 font-display">
-                <div className="w-7 h-7 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 flex items-center justify-center text-sm shadow-xs">
-                  🧺
-                </div>
-                <span>Einkaufswagen</span>
-              </div>
-              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-mono">
-                {progressPercent}%
-              </span>
+      {/* Einkaufswagen-Fortschritt (Übersichtlich und kompakt oben) */}
+      <div className="bento-card rounded-[2rem] p-5 shadow-lg relative overflow-hidden group">
+        <div className="absolute -right-8 -top-8 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+          <div className="flex items-center gap-2.5 text-xs font-semibold text-slate-200 font-display">
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 flex items-center justify-center text-base shadow-xs">
+              🧺
             </div>
-
-            <div className="my-2.5">
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-3xl font-display font-bold text-white font-mono">
-                  {checkedCount}
-                </span>
-                <span className="text-slate-400 text-xs font-medium font-sans">
-                  von {totalCount} Artikel abgehakt
-                </span>
-              </div>
-              <div className="w-full h-2 bg-surface-elevated rounded-full overflow-hidden mt-3 border border-white/5">
-                <div
-                  className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-300 shadow-sm"
-                  style={{ width: `${progressPercent}%` }}
-                />
+            <div>
+              <div className="font-bold text-sm text-white">Einkaufswagen-Fortschritt</div>
+              <div className="text-[11px] text-slate-400 font-sans">
+                {checkedCount} von {totalCount} Artikeln im Einkaufswagen abgehakt
               </div>
             </div>
           </div>
-
-          <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono pt-3 border-t border-white/5 mt-2">
-            <span className="text-emerald-400/90 font-medium">✓ {checkedCount} erledigt</span>
-            <span>{totalCount - checkedCount} noch offen</span>
-          </div>
-        </div>
-
-        {/* Card 2: Kassen-Schätzung & Supermarkt */}
-        <div className="bento-card rounded-[2rem] p-5 flex flex-col justify-between shadow-lg relative overflow-hidden group">
-          <div className="absolute -right-8 -top-8 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
-          <div>
-            <div className="flex items-center justify-between gap-2 mb-3">
-              <div className="flex items-center gap-2 text-xs font-semibold text-slate-200 font-display">
-                <div className="w-7 h-7 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-300 flex items-center justify-center text-sm shadow-xs">
-                  🏷️
-                </div>
-                <span>Kassen-Schätzung</span>
-              </div>
-              <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-surface-elevated border border-surface-border text-slate-300 truncate max-w-[120px]">
-                {shoppingData?.supermarketName || 'Supermarkt'}
-              </span>
-            </div>
-
-            <div className="my-2.5">
-              <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-display font-bold text-white font-mono">
-                  {shoppingData?.totalEstimatedCost ? shoppingData.totalEstimatedCost.toFixed(2) : '0.00'}
-                </span>
-                <span className="text-lg font-bold text-slate-400 font-mono">€</span>
-              </div>
-              <p className="text-[11px] text-slate-400 mt-1.5 font-sans">
-                Geschätzter Richtwert der Rezeptzutaten
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between text-[11px] text-slate-400 pt-3 border-t border-white/5 mt-2 font-mono">
-            <span>Zugeordneter Markt</span>
-            <span className="text-slate-300 font-medium">
-              {shoppingData?.supermarketName || 'Standardmarkt'}
+          <div className="flex items-center gap-3 self-end sm:self-center">
+            <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-mono">
+              {progressPercent}% erledigt
             </span>
           </div>
         </div>
 
-        {/* Card 3: WG-Wochenbudget & Sonderkasse */}
-        <div
-          onClick={() => {
-            if (isStaff) {
-              setCurrentTab('budget');
-            }
-          }}
-          className={`bento-card rounded-[2rem] p-5 flex flex-col justify-between shadow-lg relative overflow-hidden group transition-all ${
-            isStaff ? 'cursor-pointer hover:border-emerald-500/50 hover:shadow-emerald-500/10' : ''
-          }`}
-          title={isStaff ? 'Klicken, um Kasse & Budget zu öffnen' : undefined}
-        >
-          <div className="absolute -right-8 -top-8 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
-          <div>
-            <div className="flex items-center justify-between gap-2 mb-3">
-              <div className="flex items-center gap-2 text-xs font-semibold text-slate-200 font-display">
-                <div className="w-7 h-7 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 flex items-center justify-center text-sm shadow-xs">
-                  🪙
-                </div>
-                <span>Wochenbudget</span>
-              </div>
-              <span
-                className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                  budgetData?.isConfirmed
-                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                    : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                }`}
-              >
-                {budgetData?.isConfirmed ? 'Abgerechnet' : 'In Planung'}
-              </span>
-            </div>
+        <div className="w-full h-2.5 bg-surface-elevated rounded-full overflow-hidden border border-white/5">
+          <div
+            className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-300 shadow-sm"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
 
-            <div className="flex items-baseline justify-between">
-              <div>
-                <div className="text-2xl sm:text-3xl font-display font-bold text-white font-mono">
-                  {budgetData?.remainingBudget != null ? `${budgetData.remainingBudget.toFixed(2)} €` : '...'}
-                </div>
-                <div className="text-[11px] text-slate-400 mt-1">
-                  {budgetData?.actualSpent != null
-                    ? `Kassenbon erfasst: ${budgetData.actualSpent.toFixed(2)} €`
-                    : `Zutaten-Kalkulation: ~${budgetData?.estimatedShoppingCost != null ? budgetData.estimatedShoppingCost.toFixed(2) : '0.00'} €`}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {isStaff && (
-            <div className="pt-3 border-t border-white/5 mt-2">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setCurrentTab('budget');
-                }}
-                className="w-full py-1.5 px-3 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 hover:text-white text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
-              >
-                <PiggyBank className="w-3.5 h-3.5" />
-                <span>Kasse & Budget verwalten</span>
-                <ArrowRight className="w-3 h-3 text-emerald-400" />
-              </button>
-            </div>
-          )}
+        <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono pt-2.5 mt-2 border-t border-white/5">
+          <span className="text-emerald-400/90 font-medium">✓ {checkedCount} im Korb</span>
+          <span>{totalCount - checkedCount} noch zu besorgen</span>
         </div>
       </div>
 
-      {/* Action Bar: Category summary and quick-add toggle */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-surface-card/70 border border-surface-border rounded-2xl px-4 py-3 shadow-sm">
-        <div className="text-xs text-slate-400 flex items-center gap-2">
-          <span className="font-semibold text-slate-200 font-display">Übersicht:</span>
-          <span className="font-mono text-slate-300">{categoryList.length} Kategorien</span>
-          {customItems.length > 0 && (
-            <>
-              <span className="text-slate-600">•</span>
-              <span className="text-rose-300 font-medium font-sans">
-                {customItems.length} zusätzliche Besorgung(en)
-              </span>
-            </>
-          )}
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setShowAddCustom(!showAddCustom)}
-          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 hover:text-white rounded-xl text-xs font-semibold transition-all cursor-pointer shadow-xs self-stretch sm:self-auto justify-center"
-        >
-          <Plus className="w-3.5 h-3.5 text-emerald-400" />
-          <span>Eigenen Artikel hinzufügen</span>
-        </button>
-      </div>
+      {/* Prominenter Button: Eigenen Artikel hinzufügen */}
+      <button
+        type="button"
+        onClick={() => setShowAddCustom(!showAddCustom)}
+        className="w-full py-3.5 sm:py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 hover:from-emerald-500 hover:to-teal-500 active:scale-[0.99] text-white font-display font-bold text-sm sm:text-base flex items-center justify-center gap-2.5 shadow-lg shadow-emerald-950/40 hover:shadow-emerald-500/20 transition-all cursor-pointer border border-emerald-400/30 select-none"
+      >
+        <Plus className="w-5 h-5 text-emerald-100 stroke-[2.5]" />
+        <span>Eigenen Artikel hinzufügen</span>
+      </button>
 
       {/* Add Custom Item Form */}
       {showAddCustom && (
@@ -447,7 +323,7 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
               value={customName}
               onChange={(e) => setCustomName(e.target.value)}
               placeholder="Artikelname (z.B. Hafermilch)"
-              className="sm:col-span-2 px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+              className="sm:col-span-2 px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
               required
               autoFocus
             />
@@ -457,33 +333,53 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
               onChange={(e) => setCustomAmount(e.target.value)}
               placeholder="Menge (z.B. 2)"
               step="any"
-              className="px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 font-mono"
+              className="px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 font-mono"
             />
             <input
               type="text"
               value={customUnit}
               onChange={(e) => setCustomUnit(e.target.value)}
               placeholder="Einheit (z.B. Packung, Liter)"
-              className="px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+              className="px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
             />
           </div>
           <div className="flex justify-end gap-2.5 pt-1">
             <button
               type="button"
               onClick={() => setShowAddCustom(false)}
-              className="px-4 py-1.5 bg-surface-elevated hover:bg-surface-card text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+              className="px-4 py-2 bg-surface-elevated hover:bg-surface-card text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer"
             >
               Abbrechen
             </button>
             <button
               type="submit"
-              className="px-5 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-500/20 transition-all cursor-pointer"
+              className="px-5 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-500/20 transition-all cursor-pointer"
             >
               Hinzufügen
             </button>
           </div>
         </form>
       )}
+
+      {/* Category & Custom Items Summary Bar */}
+      <div className="flex items-center justify-between gap-3 bg-surface-card/60 border border-surface-border rounded-2xl px-4 py-2.5 shadow-sm">
+        <div className="text-xs text-slate-400 flex items-center gap-2 flex-wrap">
+          <span className="font-semibold text-slate-200 font-display">Übersicht:</span>
+          <span className="font-mono text-slate-300">
+            {categoryList.length} {categoryList.length === 1 ? 'Kategorie' : 'Kategorien'}
+          </span>
+          {customItems.length > 0 && (
+            <>
+              <span className="text-slate-600">•</span>
+              <span className="text-emerald-300 font-medium font-sans">
+                {customItems.length === 1
+                  ? '1 zusätzliche Besorgung'
+                  : `${customItems.length} zusätzliche Besorgungen`}
+              </span>
+            </>
+          )}
+        </div>
+      </div>
 
       {/* Shopping List Categories */}
       {isLoading ? (
@@ -624,6 +520,116 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
           ))}
         </div>
       )}
+
+      {/* Finanzen & Richtwerte (Kassenschätzung & Wochenbudget unterhalb der Einkaufsliste) */}
+      <div className="pt-6 border-t border-surface-border/70 space-y-3.5">
+        <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider font-sans px-1">
+          <span>Kasse & Budget</span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+          {/* Card 1: Kassen-Schätzung & Supermarkt */}
+          <div className="bento-card rounded-[2rem] p-5 flex flex-col justify-between shadow-lg relative overflow-hidden group">
+            <div className="absolute -right-8 -top-8 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
+            <div>
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <div className="flex items-center gap-2 text-xs font-semibold text-slate-200 font-display">
+                  <div className="w-7 h-7 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-300 flex items-center justify-center text-sm shadow-xs">
+                    🏷️
+                  </div>
+                  <span>Kassen-Schätzung</span>
+                </div>
+                <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-surface-elevated border border-surface-border text-slate-300 truncate max-w-[120px]">
+                  {shoppingData?.supermarketName || 'Supermarkt'}
+                </span>
+              </div>
+
+              <div className="my-2.5">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-display font-bold text-white font-mono">
+                    {shoppingData?.totalEstimatedCost ? shoppingData.totalEstimatedCost.toFixed(2) : '0.00'}
+                  </span>
+                  <span className="text-lg font-bold text-slate-400 font-mono">€</span>
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1.5 font-sans">
+                  Geschätzter Richtwert der Rezeptzutaten
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between text-[11px] text-slate-400 pt-3 border-t border-white/5 mt-2 font-mono">
+              <span>Zugeordneter Markt</span>
+              <span className="text-slate-300 font-medium">
+                {shoppingData?.supermarketName || 'Standardmarkt'}
+              </span>
+            </div>
+          </div>
+
+          {/* Card 2: Wochenbudget & Sonderkasse */}
+          <div
+            onClick={() => {
+              if (isStaff) {
+                setCurrentTab('budget');
+              }
+            }}
+            className={`bento-card rounded-[2rem] p-5 flex flex-col justify-between shadow-lg relative overflow-hidden group transition-all ${
+              isStaff ? 'cursor-pointer hover:border-emerald-500/50 hover:shadow-emerald-500/10' : ''
+            }`}
+            title={isStaff ? 'Klicken, um Kasse & Budget zu öffnen' : undefined}
+          >
+            <div className="absolute -right-8 -top-8 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+            <div>
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <div className="flex items-center gap-2 text-xs font-semibold text-slate-200 font-display">
+                  <div className="w-7 h-7 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 flex items-center justify-center text-sm shadow-xs">
+                    🪙
+                  </div>
+                  <span>Wochenbudget</span>
+                </div>
+                <span
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                    budgetData?.isConfirmed
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                      : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                  }`}
+                >
+                  {budgetData?.isConfirmed ? 'Abgerechnet' : 'In Planung'}
+                </span>
+              </div>
+
+              <div className="flex items-baseline justify-between">
+                <div>
+                  <div className="text-2xl sm:text-3xl font-display font-bold text-white font-mono">
+                    {budgetData?.remainingBudget != null ? `${budgetData.remainingBudget.toFixed(2)} €` : '...'}
+                  </div>
+                  <div className="text-[11px] text-slate-400 mt-1">
+                    {budgetData?.actualSpent != null
+                      ? `Kassenbon erfasst: ${budgetData.actualSpent.toFixed(2)} €`
+                      : `Zutaten-Kalkulation: ~${budgetData?.estimatedShoppingCost != null ? budgetData.estimatedShoppingCost.toFixed(2) : '0.00'} €`}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {isStaff && (
+              <div className="pt-3 border-t border-white/5 mt-2">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCurrentTab('budget');
+                  }}
+                  className="w-full py-1.5 px-3 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 hover:text-white text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                >
+                  <PiggyBank className="w-3.5 h-3.5" />
+                  <span>Kasse & Budget verwalten</span>
+                  <ArrowRight className="w-3 h-3 text-emerald-400" />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

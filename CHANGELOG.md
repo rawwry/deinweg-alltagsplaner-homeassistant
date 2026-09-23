@@ -3,6 +3,17 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.26] - 2026-09-23
+
+### Polished & Nutzerfreundlich
+- **Einkäufe & Vorräte (`ShoppingListView.tsx`)**:
+  - **Fokus auf das Einkaufen**: Die Kacheln für *„Kassen-Schätzung“* und *„Wochenbudget“* wurden unter die eigentliche Einkaufsliste verschoben.
+  - **Großer Aktions-Button**: Der Button *„Eigenen Artikel hinzufügen“* ist nun groß, vollflächig und prominent oben platziert für eine spürbar leichtere und schnellere Bedienung.
+  - **Einkaufswagen-Fortschritt**: Der Fortschrittsbalken oben ist kompakt und übersichtlich gestaltet, sodass Nutzer ohne langes Scrollen sofort zu den Lebensmitteln gelangen.
+  - **Text- & Leerzeichen-Korrektur**: Bei zusätzlichen Besorgungen wird nun sauber mit Leerzeichen und korrekter deutscher Grammatik formatiert (*„1 zusätzliche Besorgung“* bzw. *„X zusätzliche Besorgungen“*).
+- **Loginscreen (`LoginView.tsx`)**:
+  - Der Hinweissatz *„Zugangsdaten für Bewohner und Betreuer werden durch die Einrichtungsleitung verwaltet.“* ganz unten wurde entfernt.
+
 ## [0.1.25] - 2026-09-23
 
 ### Polished & Verschlankt
