@@ -48,11 +48,6 @@ export const LoginView: React.FC = () => {
               className="h-16 sm:h-20 w-auto max-w-[280px] object-contain drop-shadow-[0_16px_32px_rgba(0,0,0,0.6)] hover:scale-105 transition-transform duration-300 select-none pointer-events-none"
             />
           </div>
-          <div className="mt-3 text-center">
-            <span className="inline-block text-xs font-medium text-rose-300/90 tracking-wide font-sans">
-              Willkommen zuhause · Dein WG-Begleiter
-            </span>
-          </div>
         </div>
 
         {/* Modern Warm Living Card */}
@@ -138,7 +133,7 @@ export const LoginView: React.FC = () => {
                 ) : (
                   <>
                     <LogIn className="w-4 h-4" />
-                    <span>In den WG-Planer einloggen</span>
+                    <span>Einloggen</span>
                   </>
                 )}
               </button>

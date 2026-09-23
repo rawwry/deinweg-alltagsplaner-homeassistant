@@ -3,6 +3,13 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.25] - 2026-09-23
+
+### Polished & Verschlankt
+- **Login-Maske (`LoginView.tsx`)**:
+  - Der Anmelde-Button wurde prägnant und klar in *„Einloggen“* umbenannt (zuvor: *„In den WG-Planer einloggen“*).
+  - Die Unterzeile *„Willkommen zuhause · Dein WG-Begleiter“* unterhalb des Logos wurde entfernt.
+
 ## [0.1.24] - 2026-09-23
 
 ### Behoben & Polished
