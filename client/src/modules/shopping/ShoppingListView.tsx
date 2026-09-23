@@ -260,20 +260,20 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
       {/* Einkaufswagen-Fortschritt (Übersichtlich und kompakt oben) */}
       <div className="bento-card rounded-[2rem] p-5 shadow-lg relative overflow-hidden group">
         <div className="absolute -right-8 -top-8 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-          <div className="flex items-center gap-2.5 text-xs font-semibold text-slate-200 font-display">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 flex items-center justify-center text-base shadow-xs">
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="flex items-center gap-2.5 text-xs font-semibold text-slate-200 font-display min-w-0">
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 flex items-center justify-center text-base shadow-xs shrink-0">
               🧺
             </div>
-            <div>
-              <div className="font-bold text-sm text-white">Einkaufswagen-Fortschritt</div>
-              <div className="text-[11px] text-slate-400 font-sans">
-                {checkedCount} von {totalCount} Artikeln im Einkaufswagen abgehakt
+            <div className="min-w-0">
+              <div className="font-bold text-sm text-white truncate">Abgehakte Artikel</div>
+              <div className="text-[11px] text-slate-400 font-sans truncate">
+                {checkedCount} von {totalCount} Artikeln im Einkaufswagen
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-3 self-end sm:self-center">
-            <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-mono">
+          <div className="flex items-center shrink-0">
+            <span className="text-xs font-bold px-2.5 sm:px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-mono whitespace-nowrap">
               {progressPercent}% erledigt
             </span>
           </div>

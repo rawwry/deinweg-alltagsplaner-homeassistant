@@ -3,6 +3,13 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.27] - 2026-09-23
+
+### Polished & UI
+- **Einkaufsliste - Fortschrittsbox (`ShoppingListView.tsx`)**:
+  - Die Box *„Einkaufswagen-Fortschritt“* wurde prägnant in *„Abgehakte Artikel“* umbenannt.
+  - Die Fortschrittspille (*„X% erledigt“*) ist nun fest auf gleicher Höhe mit der Titelzeile ausgerichtet (`flex items-center justify-between`) und wird auch auf Smartphones nicht mehr umgebrochen.
+
 ## [0.1.26] - 2026-09-23
 
 ### Polished & Nutzerfreundlich
