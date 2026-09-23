@@ -3,6 +3,22 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.28] - 2026-09-23
+
+### Neu & Verbessert (Einkaufsliste)
+- **2-Sekunden-Verzögerung beim Abhaken von Artikeln (`ShoppingListView.tsx`)**:
+  - Wird ein Artikel (Rezept-Zutat oder eigene Besorgung) angetippt/abgehakt, bleibt er für 2 Sekunden mit grünem Häkchen und Durchstreichung an Ort und Stelle sichtbar (visuelle Bestätigung).
+  - Nach Ablauf der 2 Sekunden verschwindet er automatisch aus der aktiven Liste und wandert nach unten in die Sektion *„Abgehakte Artikel“*.
+  - Kategorien ohne noch zu besorgende Artikel schließen sich automatisch.
+- **Sektion „Abgehakte Artikel“ mit Sofort-Wiederherstellung**:
+  - Unten in der Einkaufsliste werden alle erledigten Artikel in reduzierter, dezenter Optik aufgeführt.
+  - Ein Klick/Tipp auf einen abgehakten Artikel stellt ihn sofort wieder in seiner ursprünglichen Kategorie in der aktiven Einkaufsliste her (perfekt bei versehentlichem Antippen).
+  - Sind alle Artikel erledigt, erscheint ein übersichtlicher Erfolgs-Banner (*„Alles erledigt!“*).
+- **Entfernung der Übersichtszeile**:
+  - Die redundante Zwischenzeile *„Übersicht: X Kategorien - Y zusätzliche Besorgungen“* wurde ersatzlos entfernt.
+- **Kombinierte Finanz- & Budget-Box**:
+  - Die beiden bisher getrennten Kacheln *„Kassen-Schätzung“* und *„Wochenbudget“* wurden zu einer aufgeräumten, gemeinsamen Bento-Box zusammengeführt.
+
 ## [0.1.27] - 2026-09-23
 
 ### Polished & UI

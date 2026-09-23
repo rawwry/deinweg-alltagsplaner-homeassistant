@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext.js';
 import { api } from '../../api/client.js';
 import {
@@ -57,12 +57,30 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
   const [budgetData, setBudgetData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // 2-second grace period before moving checked items to "Abgehakte Artikel"
+  const [pendingMoveKeys, setPendingMoveKeys] = useState<Set<string>>(new Set());
+  const pendingTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
   // New custom item form
   const [customName, setCustomName] = useState('');
   const [customAmount, setCustomAmount] = useState('');
   const [customUnit, setCustomUnit] = useState('');
   const [customCategory, setCustomCategory] = useState('Sonstiges');
   const [showAddCustom, setShowAddCustom] = useState(false);
+
+  // Clear pending timers on unmount or navigation
+  useEffect(() => {
+    pendingTimeoutsRef.current.forEach((t) => clearTimeout(t));
+    pendingTimeoutsRef.current.clear();
+    setPendingMoveKeys(new Set());
+  }, [activeLocationId, year, weekNumber]);
+
+  useEffect(() => {
+    return () => {
+      pendingTimeoutsRef.current.forEach((t) => clearTimeout(t));
+      pendingTimeoutsRef.current.clear();
+    };
+  }, []);
 
   const fetchShoppingAndBudget = async () => {
     try {
@@ -107,11 +125,43 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
 
   const handleToggleIngredient = async (ingredientId: string, currentStatus: boolean) => {
     const newStatus = !currentStatus;
+    const itemKey = `recipe-${ingredientId}`;
+
+    if (newStatus) {
+      // User checked the item: keep in active list for 2 seconds before moving down
+      if (pendingTimeoutsRef.current.has(itemKey)) {
+        clearTimeout(pendingTimeoutsRef.current.get(itemKey)!);
+      }
+      setPendingMoveKeys((prev) => new Set(prev).add(itemKey));
+
+      const timer = setTimeout(() => {
+        setPendingMoveKeys((prev) => {
+          const next = new Set(prev);
+          next.delete(itemKey);
+          return next;
+        });
+        pendingTimeoutsRef.current.delete(itemKey);
+      }, 2000);
+
+      pendingTimeoutsRef.current.set(itemKey, timer);
+    } else {
+      // User unchecked the item: restore immediately to active list
+      if (pendingTimeoutsRef.current.has(itemKey)) {
+        clearTimeout(pendingTimeoutsRef.current.get(itemKey)!);
+        pendingTimeoutsRef.current.delete(itemKey);
+      }
+      setPendingMoveKeys((prev) => {
+        if (!prev.has(itemKey)) return prev;
+        const next = new Set(prev);
+        next.delete(itemKey);
+        return next;
+      });
+    }
 
     // Optimistic UI update
     setShoppingData((prev: any) => ({
       ...prev,
-      items: prev.items.map((i: any) =>
+      items: (prev?.items || []).map((i: any) =>
         i.ingredientId === ingredientId ? { ...i, isChecked: newStatus } : i
       ),
     }));
@@ -156,11 +206,46 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
   };
 
   const handleToggleCustom = async (id: string) => {
+    const currentItem = (shoppingData?.customItems || []).find((ci: any) => ci.id === id);
+    const newStatus = !currentItem?.isChecked;
+    const itemKey = `custom-${id}`;
+
+    if (newStatus) {
+      // User checked custom item: keep in active list for 2 seconds before moving down
+      if (pendingTimeoutsRef.current.has(itemKey)) {
+        clearTimeout(pendingTimeoutsRef.current.get(itemKey)!);
+      }
+      setPendingMoveKeys((prev) => new Set(prev).add(itemKey));
+
+      const timer = setTimeout(() => {
+        setPendingMoveKeys((prev) => {
+          const next = new Set(prev);
+          next.delete(itemKey);
+          return next;
+        });
+        pendingTimeoutsRef.current.delete(itemKey);
+      }, 2000);
+
+      pendingTimeoutsRef.current.set(itemKey, timer);
+    } else {
+      // User unchecked custom item: restore immediately to active list
+      if (pendingTimeoutsRef.current.has(itemKey)) {
+        clearTimeout(pendingTimeoutsRef.current.get(itemKey)!);
+        pendingTimeoutsRef.current.delete(itemKey);
+      }
+      setPendingMoveKeys((prev) => {
+        if (!prev.has(itemKey)) return prev;
+        const next = new Set(prev);
+        next.delete(itemKey);
+        return next;
+      });
+    }
+
     // Optimistic UI update
     setShoppingData((prev: any) => ({
       ...prev,
-      customItems: prev.customItems.map((ci: any) =>
-        ci.id === id ? { ...ci, isChecked: !ci.isChecked } : ci
+      customItems: (prev?.customItems || []).map((ci: any) =>
+        ci.id === id ? { ...ci, isChecked: newStatus } : ci
       ),
     }));
 
@@ -173,6 +258,18 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
   };
 
   const handleDeleteCustom = async (id: string) => {
+    const itemKey = `custom-${id}`;
+    if (pendingTimeoutsRef.current.has(itemKey)) {
+      clearTimeout(pendingTimeoutsRef.current.get(itemKey)!);
+      pendingTimeoutsRef.current.delete(itemKey);
+    }
+    setPendingMoveKeys((prev) => {
+      if (!prev.has(itemKey)) return prev;
+      const next = new Set(prev);
+      next.delete(itemKey);
+      return next;
+    });
+
     try {
       await api.food.deleteCustomItem(id);
       fetchShoppingAndBudget();
@@ -190,17 +287,34 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
     customItems.filter((i: any) => i.isChecked).length;
   const progressPercent = totalCount > 0 ? Math.round((checkedCount / totalCount) * 100) : 0;
 
-  // Group recipe items by category
-  const categoriesMap = new Map<string, any[]>();
-  for (const item of allItems) {
+  // Partition items into active and completed (delayed by 2 seconds after being checked)
+  const activeCustomItems = customItems.filter(
+    (ci: any) => !ci.isChecked || pendingMoveKeys.has(`custom-${ci.id}`)
+  );
+  const completedCustomItems = customItems.filter(
+    (ci: any) => ci.isChecked && !pendingMoveKeys.has(`custom-${ci.id}`)
+  );
+
+  const activeRecipeItems = allItems.filter(
+    (item: any) => !item.isChecked || pendingMoveKeys.has(`recipe-${item.ingredientId}`)
+  );
+  const completedRecipeItems = allItems.filter(
+    (item: any) => item.isChecked && !pendingMoveKeys.has(`recipe-${item.ingredientId}`)
+  );
+
+  const totalCompletedCount = completedCustomItems.length + completedRecipeItems.length;
+
+  // Group active recipe items by category
+  const activeCategoriesMap = new Map<string, any[]>();
+  for (const item of activeRecipeItems) {
     const cat = item.category || 'Sonstiges';
-    if (!categoriesMap.has(cat)) {
-      categoriesMap.set(cat, []);
+    if (!activeCategoriesMap.has(cat)) {
+      activeCategoriesMap.set(cat, []);
     }
-    categoriesMap.get(cat)!.push(item);
+    activeCategoriesMap.get(cat)!.push(item);
   }
 
-  const categoryList = Array.from(categoriesMap.entries());
+  const activeCategoryList = Array.from(activeCategoriesMap.entries());
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-24 md:pb-8">
@@ -361,26 +475,6 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
         </form>
       )}
 
-      {/* Category & Custom Items Summary Bar */}
-      <div className="flex items-center justify-between gap-3 bg-surface-card/60 border border-surface-border rounded-2xl px-4 py-2.5 shadow-sm">
-        <div className="text-xs text-slate-400 flex items-center gap-2 flex-wrap">
-          <span className="font-semibold text-slate-200 font-display">Übersicht:</span>
-          <span className="font-mono text-slate-300">
-            {categoryList.length} {categoryList.length === 1 ? 'Kategorie' : 'Kategorien'}
-          </span>
-          {customItems.length > 0 && (
-            <>
-              <span className="text-slate-600">•</span>
-              <span className="text-emerald-300 font-medium font-sans">
-                {customItems.length === 1
-                  ? '1 zusätzliche Besorgung'
-                  : `${customItems.length} zusätzliche Besorgungen`}
-              </span>
-            </>
-          )}
-        </div>
-      </div>
-
       {/* Shopping List Categories */}
       {isLoading ? (
         <div className="py-20 text-center text-slate-400">
@@ -404,18 +498,20 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
         </div>
       ) : (
         <div className="space-y-6">
-          {/* Custom Items Section */}
-          {customItems.length > 0 && (
+          {/* Active Custom Items Section */}
+          {activeCustomItems.length > 0 && (
             <div className="bento-card rounded-[2rem] p-6 border border-surface-border shadow-md">
               <h3 className="text-sm font-display font-semibold text-white flex items-center gap-2 mb-3">
                 <Sparkles className="w-4 h-4 text-rose-400" />
-                <span>Zusätzliche Besorgungen ({customItems.length})</span>
+                <span>Zusätzliche Besorgungen ({activeCustomItems.length})</span>
               </h3>
               <div className="divide-y divide-white/5">
-                {customItems.map((ci: any) => (
+                {activeCustomItems.map((ci: any) => (
                   <div
                     key={ci.id}
-                    className="py-3 flex items-center justify-between gap-3 group"
+                    className={`py-3 flex items-center justify-between gap-3 group px-2 rounded-xl transition-all ${
+                      ci.isChecked ? 'opacity-70' : ''
+                    }`}
                   >
                     <button
                       type="button"
@@ -423,14 +519,14 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
                       className="flex items-center gap-3 text-left flex-1 cursor-pointer"
                     >
                       {ci.isChecked ? (
-                        <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                        <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0 animate-in zoom-in-75 duration-150" />
                       ) : (
                         <Circle className="w-5 h-5 text-slate-600 group-hover:text-emerald-400 flex-shrink-0 transition-colors" />
                       )}
                       <span
                         className={`text-sm ${
                           ci.isChecked
-                            ? 'line-through text-slate-500'
+                            ? 'line-through text-slate-400 font-medium'
                             : 'text-slate-200 font-medium'
                         }`}
                       >
@@ -457,7 +553,7 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
           )}
 
           {/* Aggregated Recipe Ingredients by Supermarket Category */}
-          {categoryList.map(([categoryName, items]) => (
+          {activeCategoryList.map(([categoryName, items]) => (
             <div
               key={categoryName}
               className="bento-card rounded-[2rem] p-6 border border-surface-border shadow-md"
@@ -467,8 +563,8 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
                   <span className="text-base">{getCategoryEmoji(categoryName)}</span>
                   <span>{categoryName}</span>
                 </h3>
-                <span className="text-xs text-slate-300 font-semibold bg-surface-elevated px-3 py-1 rounded-full border border-surface-border font-mono">
-                  {items.filter((i) => i.isChecked).length} / {items.length} erledigt
+                <span className="text-xs text-slate-400 font-semibold bg-surface-elevated px-3 py-1 rounded-full border border-surface-border font-mono">
+                  {items.length} {items.length === 1 ? 'Artikel' : 'Artikel'}
                 </span>
               </div>
 
@@ -477,11 +573,13 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
                   <div
                     key={item.ingredientId}
                     onClick={() => handleToggleIngredient(item.ingredientId, item.isChecked)}
-                    className="py-3 flex items-center justify-between gap-3 cursor-pointer hover:bg-surface-elevated/70 rounded-2xl px-2.5 transition-colors select-none"
+                    className={`py-3 flex items-center justify-between gap-3 cursor-pointer hover:bg-surface-elevated/70 rounded-2xl px-2.5 transition-all select-none ${
+                      item.isChecked ? 'opacity-70' : ''
+                    }`}
                   >
                     <div className="flex items-center gap-3">
                       {item.isChecked ? (
-                        <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                        <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0 animate-in zoom-in-75 duration-150" />
                       ) : (
                         <Circle className="w-5 h-5 text-slate-600 hover:text-emerald-400 flex-shrink-0 transition-colors" />
                       )}
@@ -489,7 +587,7 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
                         <span
                           className={`text-sm ${
                             item.isChecked
-                              ? 'line-through text-slate-500'
+                              ? 'line-through text-slate-400 font-medium'
                               : 'text-slate-200 font-semibold'
                           }`}
                         >
@@ -518,115 +616,202 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
               </div>
             </div>
           ))}
+
+          {/* All active items completed banner */}
+          {activeRecipeItems.length === 0 && activeCustomItems.length === 0 && (
+            <div className="bento-card rounded-[2.5rem] p-8 sm:p-10 text-center border border-emerald-500/20 bg-emerald-950/20 shadow-xl">
+              <div className="text-4xl mb-2">🎉 🛒 ✨</div>
+              <h3 className="text-base font-display font-bold text-emerald-300">
+                Alles erledigt!
+              </h3>
+              <p className="text-xs text-slate-300 mt-1 max-w-sm mx-auto">
+                Alle Artikel für diese Woche wurden eingekauft und befinden sich unten bei den abgehakten Artikeln.
+              </p>
+            </div>
+          )}
+
+          {/* Abgehakte Artikel (Visuell reduziert, wiederherstellbar bei Klick) */}
+          {totalCompletedCount > 0 && (
+            <div className="bento-card rounded-[2rem] p-5 sm:p-6 border border-white/5 bg-surface-card/40 opacity-80 hover:opacity-100 transition-opacity">
+              <div className="flex items-center justify-between mb-3 border-b border-white/5 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <h3 className="text-xs sm:text-sm font-display font-semibold text-slate-300">
+                    Abgehakte Artikel ({totalCompletedCount})
+                  </h3>
+                </div>
+                <span className="text-[11px] text-slate-400 font-sans">
+                  Antippen zum Wiederherstellen
+                </span>
+              </div>
+
+              <div className="divide-y divide-white/5">
+                {/* Completed Custom Items */}
+                {completedCustomItems.map((ci: any) => (
+                  <div
+                    key={ci.id}
+                    className="py-2.5 px-2 flex items-center justify-between gap-3 group rounded-xl hover:bg-surface-elevated/40 transition-colors select-none"
+                  >
+                    <div
+                      onClick={() => handleToggleCustom(ci.id)}
+                      className="flex items-center gap-3 text-left flex-1 cursor-pointer"
+                      title="Antippen, um wieder in die Einkaufsliste zu verschieben"
+                    >
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500/80 flex-shrink-0" />
+                      <span className="text-xs sm:text-sm line-through text-slate-500">
+                        {ci.name}
+                        {(ci.amount || ci.unit) && (
+                          <span className="text-[11px] text-slate-600 ml-2 font-mono">
+                            ({ci.amount} {ci.unit})
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteCustom(ci.id)}
+                      className="text-slate-600 hover:text-rose-400 p-1 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                      title="Endgültig löschen"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+
+                {/* Completed Recipe Ingredients */}
+                {completedRecipeItems.map((item: any) => (
+                  <div
+                    key={item.ingredientId}
+                    onClick={() => handleToggleIngredient(item.ingredientId, true)}
+                    className="py-2.5 px-2 flex items-center justify-between gap-3 group rounded-xl hover:bg-surface-elevated/40 transition-colors cursor-pointer select-none"
+                    title="Antippen, um wieder in die Einkaufsliste zu verschieben"
+                  >
+                    <div className="flex items-center gap-3">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500/80 flex-shrink-0" />
+                      <div>
+                        <span className="text-xs sm:text-sm line-through text-slate-500">
+                          {item.name}
+                        </span>
+                        <span className="text-[11px] text-slate-600 ml-2 font-mono">
+                          ({item.totalAmount} {item.unit})
+                        </span>
+                      </div>
+                    </div>
+                    {item.estimatedPrice != null && (
+                      <span className="text-[11px] font-mono text-slate-600">
+                        ~ {item.estimatedPrice.toFixed(2)} €
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Finanzen & Richtwerte (Kassenschätzung & Wochenbudget unterhalb der Einkaufsliste) */}
-      <div className="pt-6 border-t border-surface-border/70 space-y-3.5">
-        <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider font-sans px-1">
-          <span>Kasse & Budget</span>
-        </div>
+      {/* Finanzen & Richtwerte (Gemeinsame Bento-Box für Kassenschätzung & Wochenbudget) */}
+      <div className="pt-2">
+        <div className="bento-card rounded-[2.5rem] p-5 sm:p-7 border border-surface-border shadow-xl relative overflow-hidden group">
+          <div className="absolute -right-10 -top-10 w-44 h-44 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -left-10 -bottom-10 w-44 h-44 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
-          {/* Card 1: Kassen-Schätzung & Supermarkt */}
-          <div className="bento-card rounded-[2rem] p-5 flex flex-col justify-between shadow-lg relative overflow-hidden group">
-            <div className="absolute -right-8 -top-8 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
-            <div>
-              <div className="flex items-center justify-between gap-2 mb-3">
-                <div className="flex items-center gap-2 text-xs font-semibold text-slate-200 font-display">
-                  <div className="w-7 h-7 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-300 flex items-center justify-center text-sm shadow-xs">
-                    🏷️
-                  </div>
-                  <span>Kassen-Schätzung</span>
-                </div>
-                <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-surface-elevated border border-surface-border text-slate-300 truncate max-w-[120px]">
-                  {shoppingData?.supermarketName || 'Supermarkt'}
+          {/* Unified Header */}
+          <div className="flex items-center justify-between pb-4 border-b border-white/5 gap-2">
+            <div className="flex items-center gap-2.5 text-xs font-semibold text-slate-200 font-display">
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 flex items-center justify-center text-sm shadow-xs shrink-0">
+                💰
+              </div>
+              <div>
+                <span className="text-sm font-bold text-white block">Kasse & Wochenbudget</span>
+                <span className="text-[11px] text-slate-400 font-sans block">
+                  Finanzen und Richtwerte für diese Woche
                 </span>
               </div>
-
-              <div className="my-2.5">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-display font-bold text-white font-mono">
-                    {shoppingData?.totalEstimatedCost ? shoppingData.totalEstimatedCost.toFixed(2) : '0.00'}
-                  </span>
-                  <span className="text-lg font-bold text-slate-400 font-mono">€</span>
-                </div>
-                <p className="text-[11px] text-slate-400 mt-1.5 font-sans">
-                  Geschätzter Richtwert der Rezeptzutaten
-                </p>
-              </div>
             </div>
-
-            <div className="flex items-center justify-between text-[11px] text-slate-400 pt-3 border-t border-white/5 mt-2 font-mono">
-              <span>Zugeordneter Markt</span>
-              <span className="text-slate-300 font-medium">
-                {shoppingData?.supermarketName || 'Standardmarkt'}
-              </span>
-            </div>
+            <span
+              className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider shrink-0 ${
+                budgetData?.isConfirmed
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                  : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+              }`}
+            >
+              {budgetData?.isConfirmed ? 'Abgerechnet' : 'In Planung'}
+            </span>
           </div>
 
-          {/* Card 2: Wochenbudget & Sonderkasse */}
-          <div
-            onClick={() => {
-              if (isStaff) {
-                setCurrentTab('budget');
-              }
-            }}
-            className={`bento-card rounded-[2rem] p-5 flex flex-col justify-between shadow-lg relative overflow-hidden group transition-all ${
-              isStaff ? 'cursor-pointer hover:border-emerald-500/50 hover:shadow-emerald-500/10' : ''
-            }`}
-            title={isStaff ? 'Klicken, um Kasse & Budget zu öffnen' : undefined}
-          >
-            <div className="absolute -right-8 -top-8 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
-            <div>
-              <div className="flex items-center justify-between gap-2 mb-3">
-                <div className="flex items-center gap-2 text-xs font-semibold text-slate-200 font-display">
-                  <div className="w-7 h-7 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 flex items-center justify-center text-sm shadow-xs">
-                    🪙
+          {/* 2-Column Grid inside the single card */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-5 divide-y md:divide-y-0 md:divide-x divide-white/5">
+            {/* Left Column: Kassen-Schätzung */}
+            <div className="flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-slate-300 font-display">
+                    <span className="text-sm">🏷️</span>
+                    <span>Kassen-Schätzung</span>
                   </div>
-                  <span>Wochenbudget</span>
+                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-surface-elevated border border-surface-border text-slate-300 truncate max-w-[130px]">
+                    {shoppingData?.supermarketName || 'Supermarkt'}
+                  </span>
                 </div>
-                <span
-                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                    budgetData?.isConfirmed
-                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                      : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                  }`}
-                >
-                  {budgetData?.isConfirmed ? 'Abgerechnet' : 'In Planung'}
-                </span>
+
+                <div className="my-2">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-display font-bold text-white font-mono">
+                      {shoppingData?.totalEstimatedCost ? shoppingData.totalEstimatedCost.toFixed(2) : '0.00'}
+                    </span>
+                    <span className="text-lg font-bold text-slate-400 font-mono">€</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1 font-sans">
+                    Geschätzter Richtwert der Rezeptzutaten
+                  </p>
+                </div>
               </div>
 
-              <div className="flex items-baseline justify-between">
-                <div>
-                  <div className="text-2xl sm:text-3xl font-display font-bold text-white font-mono">
+              <div className="flex items-center justify-between text-[11px] text-slate-400 pt-3 border-t border-white/5 mt-2 font-mono">
+                <span>Zugeordneter Markt</span>
+                <span className="text-slate-300 font-medium">
+                  {shoppingData?.supermarketName || 'Standardmarkt'}
+                </span>
+              </div>
+            </div>
+
+            {/* Right Column: Wochenbudget */}
+            <div className="flex flex-col justify-between pt-5 md:pt-0 md:pl-6">
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-slate-300 font-display">
+                    <span className="text-sm">🪙</span>
+                    <span>Verbleibendes Wochenbudget</span>
+                  </div>
+                </div>
+
+                <div className="my-2">
+                  <div className="text-3xl font-display font-bold text-white font-mono">
                     {budgetData?.remainingBudget != null ? `${budgetData.remainingBudget.toFixed(2)} €` : '...'}
                   </div>
-                  <div className="text-[11px] text-slate-400 mt-1">
+                  <div className="text-[11px] text-slate-400 mt-1 font-sans">
                     {budgetData?.actualSpent != null
                       ? `Kassenbon erfasst: ${budgetData.actualSpent.toFixed(2)} €`
                       : `Zutaten-Kalkulation: ~${budgetData?.estimatedShoppingCost != null ? budgetData.estimatedShoppingCost.toFixed(2) : '0.00'} €`}
                   </div>
                 </div>
               </div>
-            </div>
 
-            {isStaff && (
-              <div className="pt-3 border-t border-white/5 mt-2">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setCurrentTab('budget');
-                  }}
-                  className="w-full py-1.5 px-3 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 hover:text-white text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
-                >
-                  <PiggyBank className="w-3.5 h-3.5" />
-                  <span>Kasse & Budget verwalten</span>
-                  <ArrowRight className="w-3 h-3 text-emerald-400" />
-                </button>
-              </div>
-            )}
+              {isStaff && (
+                <div className="pt-3 border-t border-white/5 mt-2">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentTab('budget')}
+                    className="w-full py-2 px-3 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 hover:text-white text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                  >
+                    <PiggyBank className="w-3.5 h-3.5" />
+                    <span>Kasse & Budget verwalten</span>
+                    <ArrowRight className="w-3 h-3 text-emerald-400" />
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
