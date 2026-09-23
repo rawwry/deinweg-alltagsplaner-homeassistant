@@ -35,9 +35,9 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab }) => 
               </button>
             </div>
 
-            {/* Center: Location Switcher (Staff) / Location Indicator (Residents - hidden on mobile) */}
-            <div className="flex items-center min-w-0">
-              {isStaff ? (
+            {/* Center: Location Switcher (Staff Only) */}
+            {isStaff && (
+              <div className="flex items-center min-w-0">
                 <div className="relative flex items-center bg-surface-elevated/90 hover:bg-surface-elevated border border-surface-border hover:border-theme rounded-2xl px-2.5 sm:px-4 py-1.5 sm:py-2 transition-all shadow-inner max-w-[140px] sm:max-w-none">
                   <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-theme-primary mr-1.5 sm:mr-2.5 animate-pulse flex-shrink-0 shadow-sm" />
                   <span className="text-xs text-slate-400 mr-1.5 hidden md:inline font-medium">Standort:</span>
@@ -54,14 +54,8 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab }) => 
                   </select>
                   <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2 sm:right-3 pointer-events-none shrink-0" />
                 </div>
-              ) : (
-                /* Hidden for residents on mobile (< 640px) as requested */
-                <div className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-theme-subtle border border-theme rounded-2xl text-slate-200 text-xs font-semibold shadow-inner">
-                  <span className="w-2 h-2 rounded-full bg-theme-primary animate-pulse" />
-                  <span className="tracking-wide uppercase font-sans">WG {activeLocation?.name || user?.locationName || 'Emsdetten'}</span>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Right: User Profile & Administration Button (Gear) */}
             <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">

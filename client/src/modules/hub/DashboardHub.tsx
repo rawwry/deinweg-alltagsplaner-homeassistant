@@ -1671,7 +1671,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                     )}
                   </div>
                   <div className="text-sm font-bold text-emerald-400 font-mono">
-                    {budgetSummary
+                    {budgetSummary?.remainingBudget != null
                       ? `Noch ${budgetSummary.remainingBudget.toFixed(2)} € übrig`
                       : `Standard: ${(activeLocation?.weeklyBudget ?? 350).toFixed(2)} €`}
                   </div>
@@ -1685,9 +1685,9 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             </div>
 
             {/* Quick Preview Items */}
-            <div className="space-y-2 mb-4">
-              {shoppingSummary?.items && shoppingSummary.items.length > 0 ? (
-                shoppingSummary.items.slice(0, 3).map((item: any, idx: number) => {
+            {shoppingSummary?.items && shoppingSummary.items.length > 0 ? (
+              <div className="space-y-2 mb-4">
+                {shoppingSummary.items.slice(0, 3).map((item: any, idx: number) => {
                   const itemName = item.name || item.title || 'Artikel';
                   const itemAmount = item.totalAmount ?? item.amount;
                   return (
@@ -1711,17 +1711,19 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                         </span>
                       </span>
                       <span className="text-slate-400 font-mono flex-shrink-0 ml-2">
-                        {item.estimatedPrice ? `${item.estimatedPrice.toFixed(2)} €` : '—'}
+                        {item.estimatedPrice != null ? `${item.estimatedPrice.toFixed(2)} €` : '—'}
                       </span>
                     </div>
                   );
-                })
-              ) : (
+                })}
+              </div>
+            ) : !isResident ? (
+              <div className="space-y-2 mb-4">
                 <div className="p-3.5 rounded-2xl bg-surface-elevated/50 border border-surface-border text-xs text-slate-400 text-center font-medium">
                   Alle Einkäufe erledigt! 🎉
                 </div>
-              )}
-            </div>
+              </div>
+            ) : null}
           </div>
 
           <button

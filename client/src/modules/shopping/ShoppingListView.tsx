@@ -371,12 +371,12 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
             <div className="flex items-baseline justify-between">
               <div>
                 <div className="text-2xl sm:text-3xl font-display font-bold text-white font-mono">
-                  {budgetData ? `${budgetData.remainingBudget.toFixed(2)} €` : '...'}
+                  {budgetData?.remainingBudget != null ? `${budgetData.remainingBudget.toFixed(2)} €` : '...'}
                 </div>
                 <div className="text-[11px] text-slate-400 mt-1">
-                  {budgetData?.actualSpent !== null && budgetData?.actualSpent !== undefined
+                  {budgetData?.actualSpent != null
                     ? `Kassenbon erfasst: ${budgetData.actualSpent.toFixed(2)} €`
-                    : `Zutaten-Kalkulation: ~${budgetData?.estimatedShoppingCost.toFixed(2) || '0.00'} €`}
+                    : `Zutaten-Kalkulation: ~${budgetData?.estimatedShoppingCost != null ? budgetData.estimatedShoppingCost.toFixed(2) : '0.00'} €`}
                 </div>
               </div>
             </div>
@@ -606,7 +606,7 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
                     </div>
 
                     {/* Estimated Netto Price */}
-                    {item.estimatedPrice && (
+                    {item.estimatedPrice != null && (
                       <div className="text-right flex-shrink-0">
                         <span
                           className={`text-xs font-mono font-bold ${

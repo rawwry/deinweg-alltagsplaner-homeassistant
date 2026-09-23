@@ -3,6 +3,30 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.24] - 2026-09-23
+
+### Behoben & Polished
+- **Kritischer Bugfix in der Einkaufsliste (`routes.ts`, `ShoppingListView.tsx`)**:
+  - Behoben: `TypeError: Cannot read properties of undefined (reading 'toFixed')` beim Aufrufen der Einkaufsliste durch Bewohner.
+  - Das Budget-API liefert für Bewohner nun zuverlässig `actualSpent` und `estimatedShoppingCost`. Sämtliche Währungsformatierungen sind nun gegen `null` und `undefined` abgesichert.
+- **Home Dashboard (Bewohneransicht, `DashboardHub.tsx`)**:
+  - In der Einkaufskorb-Kachel wurde das leere Statusfeld *„Alle Einkäufe erledigt! 🎉“* für Bewohner entfernt.
+- **Aufgabenplan (Bewohneransicht, `ChorePlannerView.tsx`)**:
+  - *„Ganze Woche (7 Tage)“* auf Desktop für Bewohner ausgeblendet; der Aufgabenplan fokussiert standardmäßig direkt den aktuellen Wochentag.
+  - Sämtliche 7 Wochentage werden sowohl mobil als auch auf dem Desktop in einem gleichmäßigen 7-Spalten-Raster (`grid-cols-7`) ohne seitlichen Scrollbalken dargestellt.
+  - Der Standort-Zusatz im Kopfbereich (*„WG Emsdetten“*) wird für Bewohner ausgeblendet.
+- **Kochplan (Bewohneransicht, `MealPlanView.tsx`)**:
+  - Die Unterzeile *„Wöchentliche Menüauswahl, Mengenkalkulation und Einteilung der Chefköche.“* ist für Bewohner ausgeblendet.
+  - Die Standort-Pille (*„WG Emsdetten“*) ist für Bewohner ausgeblendet.
+  - Der Kochtage-Badge wurde präzise umbenannt in *„Gemeinschaftsverpflegung: Mo - Do“* (bzw. die jeweils konfigurierten Tage).
+- **Abfallkalender (`WasteCalendarView.tsx`)**:
+  - Sämtliche störenden Animationen (`animate-pulse`, `fade-in`) in der Terminübersicht und den Badges wurden entfernt.
+  - Titel prägnant in *„Abfallkalender“* umbenannt; die bisherige Unterzeile mit Standortbezug wurde entfernt.
+- **Menüleiste & Header (`Header.tsx`)**:
+  - Der mittige Standort-Reiter / Standort-Badge (*„Emsdetten (7) v“* bzw. *„WG Emsdetten“*) wird für Bewohner vollständig ausgeblendet.
+- **Neues App-Icon & Favicon**:
+  - App-Icon, Favicon (`favicon.ico`, `favicon.png`), Apple-Touch-Icon und Home Assistant Add-On Icon wurden mit dem neuen Motiv (Punk-Totenkopf mit gekreuzten Besen) aktualisiert.
+
 ## [0.1.23] - 2026-09-23
 
 ### Polished & Umbenennungen

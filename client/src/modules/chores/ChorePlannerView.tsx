@@ -176,8 +176,10 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
   const todayDayOfWeek = now.getDay() === 0 ? 7 : now.getDay();
   const [selectedMobileDay, setSelectedMobileDay] = useState<number>(todayDayOfWeek);
 
-  // Desktop day filter: 'ALL' or dayOfWeek (1..7)
-  const [desktopDayFilter, setDesktopDayFilter] = useState<'ALL' | number>('ALL');
+  // Desktop day filter: 'ALL' or dayOfWeek (1..7) - residents default to today's day
+  const [desktopDayFilter, setDesktopDayFilter] = useState<'ALL' | number>(
+    user?.role === 'BEWOHNER' ? todayDayOfWeek : 'ALL'
+  );
 
   // Assign Modal State (for Staff)
   const [assignModal, setAssignModal] = useState<{
@@ -832,8 +834,12 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
         <div>
           <div className="inline-flex items-center gap-2 text-indigo-400 text-xs font-semibold tracking-wider uppercase mb-1.5 font-sans">
             <span>📋 Aufgabenplan</span>
-            <span className="text-slate-600">•</span>
-            <span className="text-slate-400 font-medium">WG {activeLocation?.name || user?.locationName || 'Emsdetten'}</span>
+            {isStaff && (
+              <>
+                <span className="text-slate-600">•</span>
+                <span className="text-slate-400 font-medium">WG {activeLocation?.name || user?.locationName || 'Emsdetten'}</span>
+              </>
+            )}
           </div>
           <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white font-sans">
             Aufgabenübersicht
@@ -930,19 +936,21 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
       </div>
 
       {/* Desktop Weekday Quick-Filter Bar (visible on >= lg screens) */}
-      <div className="hidden lg:flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-        <button
-          type="button"
-          onClick={() => setDesktopDayFilter('ALL')}
-          className={`px-4 py-2.5 rounded-2xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 border ${
-            desktopDayFilter === 'ALL'
-              ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-600/30'
-              : 'bg-surface-card border-surface-border text-slate-300 hover:bg-surface-elevated hover:text-white'
-          }`}
-        >
-          <Calendar className="w-3.5 h-3.5" />
-          <span>Ganze Woche (7 Tage)</span>
-        </button>
+      <div className={`hidden lg:grid ${isStaff ? 'grid-cols-8' : 'grid-cols-7'} gap-2 w-full`}>
+        {isStaff && (
+          <button
+            type="button"
+            onClick={() => setDesktopDayFilter('ALL')}
+            className={`px-3 py-2.5 rounded-2xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 border text-center ${
+              desktopDayFilter === 'ALL'
+                ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-600/30'
+                : 'bg-surface-card border-surface-border text-slate-300 hover:bg-surface-elevated hover:text-white'
+            }`}
+          >
+            <Calendar className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">Ganze Woche</span>
+          </button>
+        )}
 
         {(weekData?.days || []).map((day: any) => {
           const isToday =
@@ -955,8 +963,11 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
             <button
               key={day.dayOfWeek}
               type="button"
-              onClick={() => setDesktopDayFilter(day.dayOfWeek)}
-              className={`px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 border ${
+              onClick={() => {
+                setDesktopDayFilter(day.dayOfWeek);
+                setSelectedMobileDay(day.dayOfWeek);
+              }}
+              className={`px-2 py-2.5 rounded-2xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 border text-center ${
                 isSelected
                   ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-600/30'
                   : isToday
@@ -969,7 +980,7 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                 {day.date ? day.date.slice(8, 10) + '.' + day.date.slice(5, 7) : ''}
               </span>
               {isToday && (
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse shrink-0" />
               )}
             </button>
           );
@@ -977,7 +988,7 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
       </div>
 
       {/* Mobile Day Tabs (visible only on < lg screens) */}
-      <div className="lg:hidden flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none">
+      <div className="lg:hidden grid grid-cols-7 gap-1 sm:gap-1.5 w-full">
         {(weekData?.days || []).map((day: any) => {
           const isToday =
             year === realCurrentYear &&
@@ -989,8 +1000,11 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
             <button
               key={day.dayOfWeek}
               type="button"
-              onClick={() => setSelectedMobileDay(day.dayOfWeek)}
-              className={`flex-1 min-w-[75px] py-2.5 px-2 rounded-2xl border flex flex-col items-center text-center transition-all cursor-pointer relative ${
+              onClick={() => {
+                setSelectedMobileDay(day.dayOfWeek);
+                setDesktopDayFilter(day.dayOfWeek);
+              }}
+              className={`py-2 px-1 rounded-xl sm:rounded-2xl border flex flex-col items-center justify-center text-center transition-all cursor-pointer relative ${
                 isSelected
                   ? 'bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-600/30 font-bold'
                   : isToday
@@ -998,10 +1012,13 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                   : 'bg-surface-card border-surface-border text-slate-300 hover:bg-surface-elevated'
               }`}
             >
-              <span className="text-[11px] font-semibold">{day.name.slice(0, 2)}</span>
-              <span className="text-[10px] opacity-75 font-mono">
+              <span className="text-[11px] sm:text-xs font-semibold">{day.name.slice(0, 2)}</span>
+              <span className="text-[9px] sm:text-[10px] opacity-75 font-mono">
                 {day.date ? day.date.slice(8, 10) + '.' + day.date.slice(5, 7) : ''}
               </span>
+              {isToday && (
+                <span className="w-1 h-1 rounded-full bg-indigo-400 mt-0.5" />
+              )}
             </button>
           );
         })}

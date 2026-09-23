@@ -65,8 +65,28 @@ const formatCookingDays = (daysStr?: string | null): string => {
   return days.map((d) => names[d - 1]).join(', ') + ` (${days.length} Tage)`;
 };
 
+const formatCookingDaysRange = (daysStr?: string | null): string => {
+  if (!daysStr) return 'Mo - So';
+  const days = daysStr
+    .split(',')
+    .map((s) => parseInt(s.trim()))
+    .filter((n) => !isNaN(n))
+    .sort((a, b) => a - b);
+  if (days.length === 0) return 'Keine Kochtage';
+  if (days.length === 7) return 'Mo - So';
+  if (days.length === 5 && days[0] === 1 && days[4] === 5) return 'Mo - Fr';
+  if (days.length === 4 && days[0] === 1 && days[3] === 4) return 'Mo - Do';
+  const names = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+  const isSequential = days.every((d, i) => i === 0 || d === days[i - 1] + 1);
+  if (isSequential && days.length > 1) {
+    return `${names[days[0] - 1]} - ${names[days[days.length - 1] - 1]}`;
+  }
+  return days.map((d) => names[d - 1]).join(', ');
+};
+
 export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpenRecipeDetail }) => {
   const { user, activeLocationId, activeLocation, refreshLocations } = useAuth();
+  const isStaff = user?.role === 'BETREUER' || user?.role === 'ADMIN';
 
   // Get current ISO calendar week
   const getInitialWeek = () => {
@@ -290,23 +310,27 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
             <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white font-sans">
               Unser Kochplan
             </h1>
-            <p className="text-xs text-slate-400 mt-1 font-medium font-sans">
-              Wöchentliche Menüauswahl, Mengenkalkulation und Einteilung der Chefköche.
-            </p>
+            {isStaff && (
+              <p className="text-xs text-slate-400 mt-1 font-medium font-sans">
+                Wöchentliche Menüauswahl, Mengenkalkulation und Einteilung der Chefköche.
+              </p>
+            )}
           </div>
 
           {/* Structured Bento Metadata Chips */}
           <div className="flex flex-wrap items-center gap-2 pt-0.5">
-            {/* Location Chip */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-elevated border border-surface-border text-slate-300 text-xs font-medium">
-              <Building2 className="w-3.5 h-3.5 text-rose-400 shrink-0" />
-              <span>WG {activeLocation?.name || user?.locationName || 'Emsdetten'}</span>
-            </div>
+            {/* Location Chip (Staff Only) */}
+            {isStaff && (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-elevated border border-surface-border text-slate-300 text-xs font-medium">
+                <Building2 className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                <span>WG {activeLocation?.name || user?.locationName || 'Emsdetten'}</span>
+              </div>
+            )}
 
             {/* Cooking Days Chip */}
             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-elevated border border-surface-border text-slate-300 text-xs font-medium">
               <CalendarDays className="w-3.5 h-3.5 text-rose-400 shrink-0" />
-              <span>{configuredCookingDays.length} Kochtage ({formatCookingDays(activeLocation?.cookingDays)})</span>
+              <span>Gemeinschaftsverpflegung: {formatCookingDaysRange(activeLocation?.cookingDays)}</span>
             </div>
 
             {/* Portions Chip */}
@@ -379,7 +403,7 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
       {configuredCookingDays.length < 7 && (
         <div className="hidden sm:flex sm:flex-row sm:items-center justify-between gap-2 px-2 text-xs">
           <div className="text-slate-400 font-medium">
-            Geplante Kochtage für {activeLocation?.name}:{' '}
+            Geplante Kochtage{isStaff && activeLocation?.name ? ` für ${activeLocation.name}` : ''}:{' '}
             <strong className="text-slate-200 font-semibold">
               {formatCookingDays(activeLocation?.cookingDays)}
             </strong>

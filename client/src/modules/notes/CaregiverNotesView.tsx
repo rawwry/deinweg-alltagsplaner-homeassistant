@@ -480,7 +480,7 @@ export const CaregiverNotesView: React.FC = () => {
             <span>Unser Flurfunk</span>
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Fragen, Notizen, Wünsche und Absprachen für Bewohner und Betreuer ({activeLocation?.name || user?.locationName || 'Emsdetten'})
+            Fragen, Notizen, Wünsche und Absprachen für Bewohner und Betreuer{isStaff ? ` (${activeLocation?.name || user?.locationName || 'Emsdetten'})` : ''}
           </p>
         </div>
 

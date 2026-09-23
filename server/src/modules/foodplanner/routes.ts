@@ -1076,6 +1076,8 @@ router.get('/budget', requireAuth, async (req: Request, res: Response) => {
         weeklyBudget,
         remainingBudget,
         isConfirmed,
+        actualSpent: actualSpent ?? null,
+        estimatedShoppingCost: estimatedShoppingCost ?? 0,
       });
     }
 

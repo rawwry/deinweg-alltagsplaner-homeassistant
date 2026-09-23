@@ -167,7 +167,7 @@ export const WasteCalendarView: React.FC = () => {
   const isAdvanceReminder = daysUntilNext !== null && (daysUntilNext === 1 || daysUntilNext === 0);
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-24 md:pb-8 animate-in fade-in duration-300">
+    <div className="space-y-6 max-w-4xl mx-auto pb-24 md:pb-8">
       {/* Header */}
       <div className="bento-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border flex flex-col sm:flex-row items-center justify-between gap-5">
         <div>
@@ -177,11 +177,8 @@ export const WasteCalendarView: React.FC = () => {
           </div>
           <h1 className="text-2xl sm:text-3xl font-display font-semibold text-surface-cream tracking-tight flex items-center gap-2.5">
             <Trash2 className="w-7 h-7 text-rose-400" />
-            <span>Unser WG-Abfallkalender</span>
+            <span>Abfallkalender</span>
           </h1>
-          <p className="text-xs sm:text-sm text-surface-muted mt-1.5 font-sans">
-            Damit alle Tonnen rechtzeitig an die Straße gestellt werden ({activeLocation?.name || user?.locationName || 'Emsdetten'})
-          </p>
         </div>
 
         {isStaff && (
@@ -251,7 +248,7 @@ export const WasteCalendarView: React.FC = () => {
                 daysUntilNext === 0
                   ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
                   : daysUntilNext === 1
-                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30 animate-pulse'
+                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                   : 'bg-surface-elevated text-surface-muted border border-surface-border'
               }`}
             >
@@ -457,7 +454,7 @@ export const WasteCalendarView: React.FC = () => {
                             className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                               days === 0
                                 ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                                : 'bg-amber-500/20 text-amber-300 border border-amber-500/30 animate-pulse'
+                                : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                             }`}
                           >
                             {days === 0 ? 'Heute Abholung' : 'Morgen (heute rausstellen!)'}
