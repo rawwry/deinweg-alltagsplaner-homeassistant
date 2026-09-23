@@ -513,19 +513,19 @@ export const CaregiverNotesView: React.FC = () => {
 
       {/* Tabs: Active vs Hidden vs Archive - Centered Modern Segmented Control */}
       <div className="flex items-center justify-center w-full border-b border-surface-border/70 pb-4">
-        <div className="bg-surface-card/95 p-1.5 rounded-2xl border border-surface-border/80 flex items-center justify-center gap-1.5 sm:gap-2 w-full sm:w-auto shadow-sm">
-          {/* 1. Aktuelle Notizen */}
+        <div className="bg-surface-card/95 p-1.5 rounded-2xl border border-surface-border/80 flex items-center justify-center gap-1 sm:gap-2 w-full sm:w-auto shadow-sm">
+          {/* 1. Aktuelle */}
           <button
             type="button"
             onClick={() => setActiveTab('ACTIVE')}
-            className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-2 cursor-pointer select-none ${
+            className={`flex-1 sm:flex-initial px-2.5 sm:px-6 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer select-none whitespace-nowrap ${
               activeTab === 'ACTIVE'
                 ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md shadow-rose-500/25 font-bold'
                 : 'text-slate-400 hover:text-white hover:bg-surface-elevated/70'
             }`}
           >
             <Pin className="w-4 h-4 shrink-0" />
-            <span>Aktuelle Notizen</span>
+            <span>Aktuelle</span>
             {activeNotes.length > 0 && (
               <span
                 className={`px-2 py-0.5 rounded-full text-[10px] font-black font-mono transition-colors ${
@@ -542,7 +542,7 @@ export const CaregiverNotesView: React.FC = () => {
             <button
               type="button"
               onClick={() => setActiveTab('HIDDEN')}
-              className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-2 cursor-pointer select-none ${
+              className={`flex-1 sm:flex-initial px-2.5 sm:px-6 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer select-none whitespace-nowrap ${
                 activeTab === 'HIDDEN'
                   ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md shadow-rose-500/25 font-bold'
                   : 'text-slate-400 hover:text-white hover:bg-surface-elevated/70'
@@ -562,18 +562,18 @@ export const CaregiverNotesView: React.FC = () => {
             </button>
           )}
 
-          {/* 3. Erledigt & Archiv */}
+          {/* 3. Erledigt */}
           <button
             type="button"
             onClick={() => setActiveTab('ARCHIVE')}
-            className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-2 cursor-pointer select-none ${
+            className={`flex-1 sm:flex-initial px-2.5 sm:px-6 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer select-none whitespace-nowrap ${
               activeTab === 'ARCHIVE'
                 ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md shadow-rose-500/25 font-bold'
                 : 'text-slate-400 hover:text-white hover:bg-surface-elevated/70'
             }`}
           >
             <Archive className="w-4 h-4 shrink-0" />
-            <span>Erledigt & Archiv</span>
+            <span>Erledigt</span>
             {activeTab === 'ARCHIVE' && notes.length > 0 && (
               <span className="px-2 py-0.5 rounded-full text-[10px] font-black font-mono bg-black/25 text-white">
                 {notes.length}

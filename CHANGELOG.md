@@ -3,6 +3,13 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.22] - 2026-09-23
+
+### Polished & Mobile-Optimiert
+- **Kompakte Reiterbeschriftungen im Flurfunk (`CaregiverNotesView.tsx`)**:
+  - Die Reiter wurden für eine saubere, einzeilige Darstellung auf Smartphones umbenannt in *„Aktuelle“*, *„Ausgeblendet“* und *„Erledigt“*.
+  - Unschöne Zeilenumbrüche auf kleineren Displays gehören damit der Vergangenheit an (`whitespace-nowrap` & optimierte Abstände).
+
 ## [0.1.21] - 2026-09-23
 
 ### Behoben & Verbessert
