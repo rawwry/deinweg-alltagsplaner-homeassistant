@@ -922,8 +922,6 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
 
   const wasteBentoCard = (
     <div key="bento-waste" className="bento-card rounded-[2.5rem] p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
-      <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-yellow-500/10 rounded-full blur-3xl pointer-events-none" />
-
       <div>
         <div className="flex items-center justify-between mb-4">
           <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-yellow-500/15 border border-yellow-500/30 text-yellow-300 text-xs font-semibold uppercase tracking-wider font-sans whitespace-nowrap">
@@ -963,12 +961,12 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           <div
             className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
               nextWaste?.wasteType === 'BIO'
-                ? 'bg-emerald-500/15 border border-emerald-500/40 scale-105 shadow-md shadow-emerald-500/10'
+                ? 'bg-amber-900/25 border border-amber-700/50 scale-105 shadow-md shadow-amber-900/20'
                 : 'opacity-40 hover:opacity-75'
             }`}
           >
             <WasteWheelieBin type="BIO" size="sm" animate={nextWaste?.wasteType === 'BIO'} />
-            <span className="text-[10px] font-semibold text-emerald-300 mt-1">Bio</span>
+            <span className="text-[10px] font-semibold text-amber-200 mt-1">Bio</span>
           </div>
 
           {/* Altpapier */}
@@ -1315,12 +1313,93 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
               </p>
 
               {residentTasksList.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                <div
+                  className={
+                    residentTasksList.length === 1
+                      ? 'w-full'
+                      : residentTasksList.length === 2
+                      ? 'grid grid-cols-1 md:grid-cols-2 gap-3.5'
+                      : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5'
+                  }
+                >
                   {residentTasksList.map((task: any) => {
                     const choreKey = `${task.date || todayChores?.date || 'today'}_${task.templateId}`;
                     const isDone = task.isCompletedForMe !== undefined
                       ? Boolean(task.isCompletedForMe)
                       : (Boolean(task.isCompleted) || personalDoneChores.includes(choreKey));
+
+                    if (residentTasksList.length === 1) {
+                      return (
+                        <div
+                          key={task.templateId}
+                          onClick={() => handleToggleChore(task, user?.id)}
+                          className={`p-4 sm:p-5 rounded-2xl sm:rounded-3xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 select-none cursor-pointer group/task ${
+                            isDone
+                              ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-100 shadow-sm'
+                              : 'bg-surface-elevated/70 hover:bg-surface-elevated border-surface-border hover:border-indigo-500/40 text-slate-100'
+                          }`}
+                        >
+                          <div className="flex items-start sm:items-center gap-3.5 min-w-0 flex-1">
+                            <div
+                              className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-xs ${
+                                isDone
+                                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                                  : 'bg-surface-card border border-surface-border text-indigo-400'
+                              }`}
+                            >
+                              {getChoreOutlineIcon(task, 'w-6 h-6')}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2.5 flex-wrap">
+                                <span
+                                  className={`text-sm sm:text-base font-semibold leading-snug break-words ${
+                                    isDone ? 'line-through text-slate-400' : 'text-white'
+                                  }`}
+                                >
+                                  {task.title}
+                                </span>
+                                <span
+                                  className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
+                                    isDone
+                                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                                      : 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
+                                  }`}
+                                >
+                                  {isDone ? '✓ Erledigt' : 'Offen'}
+                                </span>
+                              </div>
+                              {task.description && (
+                                <p className="text-xs text-slate-300 mt-1 leading-relaxed break-words font-sans max-w-2xl">
+                                  {task.description}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="shrink-0 flex items-center sm:self-center self-end">
+                            <div
+                              className={`px-3.5 py-2 rounded-xl flex items-center gap-2 border font-semibold text-xs transition-all ${
+                                isDone
+                                  ? 'bg-emerald-500 border-emerald-500 text-slate-950 shadow-xs'
+                                  : 'border-slate-500 bg-surface-card/60 group-hover/task:border-indigo-400 text-slate-200'
+                              }`}
+                            >
+                              {isDone ? (
+                                <>
+                                  <Check className="w-4 h-4 stroke-[3]" />
+                                  <span>Erledigt</span>
+                                </>
+                              ) : (
+                                <>
+                                  <span className="w-2 h-2 rounded-full bg-slate-400 group-hover/task:bg-indigo-400 transition-colors" />
+                                  <span>Als erledigt abhaken</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
 
                     return (
                       <div
@@ -1585,10 +1664,10 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                 <ChefHat className="w-5 h-5 text-rose-400 stroke-[1.75]" />
                 <div>
                   <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold font-sans">
-                    Chefkoch heute
+                    Kochdienst
                   </div>
                   <div className="text-xs font-semibold text-rose-200">
-                    {todayMeal?.cookName || 'Team / Offen'}
+                    {todayMeal?.cookName || 'Offen'}
                   </div>
                 </div>
               </div>
@@ -1726,7 +1805,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                     </div>
                     <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono">
                       <span>{percentWeeklySpent}% verbraucht</span>
-                      <span>{isWeeklyReceiptRecorded ? '✓ Kassenbon abgerechnet' : 'Zutaten-Kalkulation'}</span>
+                      {isWeeklyReceiptRecorded && <span>✓ Kassenbon abgerechnet</span>}
                     </div>
                   </div>
                 </div>

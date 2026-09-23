@@ -128,12 +128,12 @@ export const WasteCalendarView: React.FC = () => {
         };
       case 'BIO':
         return {
-          title: 'Biotonne (Grün/Braun)',
+          title: 'Biotonne (Braun)',
           emoji: '🍂',
           bg: 'bg-waste-bio/15',
           border: 'border-waste-bio/35',
-          badge: 'bg-emerald-500 text-slate-950 font-bold',
-          iconColor: 'text-emerald-300',
+          badge: 'bg-amber-800 text-amber-100 font-bold',
+          iconColor: 'text-amber-400',
         };
       case 'PAPER':
         return {
@@ -206,9 +206,9 @@ export const WasteCalendarView: React.FC = () => {
 
       {/* 1-Day Advance Reminder Banner */}
       {isAdvanceReminder && nextPickup && (
-        <div className="bg-gradient-to-r from-rose-950/40 via-surface-card to-surface-card border-2 border-rose-500/50 rounded-[2rem] p-5 sm:p-6 shadow-xl shadow-rose-950/20 flex items-start gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+        <div className="bg-gradient-to-r from-rose-950/40 via-surface-card to-surface-card border-2 border-rose-500/50 rounded-[2rem] p-5 sm:p-6 shadow-xl shadow-rose-950/20 flex items-start gap-4">
           <div className="p-3 bg-gradient-to-br from-rose-500 to-pink-500 text-white rounded-2xl shrink-0 mt-0.5 shadow-lg shadow-rose-500/20">
-            <Bell className="w-5 h-5 animate-bounce" />
+            <Bell className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2">
@@ -262,7 +262,7 @@ export const WasteCalendarView: React.FC = () => {
 
           <div className="flex items-center gap-5">
             <div className="shrink-0 p-2 rounded-2xl bg-surface-elevated/80 border border-surface-border flex items-center justify-center shadow-lg">
-              <WasteWheelieBin type={nextPickup.wasteType} size="lg" animate />
+              <WasteWheelieBin type={nextPickup.wasteType} size="lg" />
             </div>
             <div>
               <h2 className="text-xl sm:text-2xl font-display font-semibold text-surface-cream">
@@ -288,7 +288,7 @@ export const WasteCalendarView: React.FC = () => {
       {showAddForm && isStaff && (
         <form
           onSubmit={handleCreate}
-          className="bento-card rounded-[2rem] p-6 border border-surface-border shadow-xl space-y-4 animate-in fade-in duration-150"
+          className="bento-card rounded-[2rem] p-6 border border-surface-border shadow-xl space-y-4"
         >
           <h3 className="text-sm font-bold text-surface-cream">Abfuhrtermin manuell eintragen</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -310,7 +310,7 @@ export const WasteCalendarView: React.FC = () => {
                 className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-surface-cream focus:outline-none focus:ring-2 focus:ring-rose-500/40"
               >
                 <option value="YELLOW">Gelber Sack / Wertstoff</option>
-                <option value="BIO">Biotonne (Grün)</option>
+                <option value="BIO">Biotonne (Braun)</option>
                 <option value="REST">Restmüll (Schwarz)</option>
                 <option value="PAPER">Papiertonne (Blau)</option>
               </select>
@@ -348,7 +348,7 @@ export const WasteCalendarView: React.FC = () => {
       {showIcsImport && isStaff && (
         <form
           onSubmit={handleIcsImport}
-          className="bento-card rounded-[2rem] p-6 border border-surface-border shadow-xl space-y-4 animate-in fade-in duration-150"
+          className="bento-card rounded-[2rem] p-6 border border-surface-border shadow-xl space-y-4"
         >
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-surface-cream">

@@ -36,15 +36,15 @@ const COLOR_MAP: Record<string, BinColorProfile> = {
     label: 'Gelbe Tonne',
   },
   BIO: {
-    lid: '#16a34a', // green-600
-    lidHighlight: '#4ade80', // green-400
-    lidHandle: '#15803d',
-    body: '#15803d', // green-700
-    bodyHighlight: '#16a34a',
-    bodyRibs: '#14532d',
-    badgeBg: 'rgba(34, 197, 94, 0.15)',
-    badgeText: '#4ade80',
-    glowColor: 'rgba(34, 197, 94, 0.35)',
+    lid: '#78350f', // amber-900 brown
+    lidHighlight: '#92400e', // amber-800 warm brown
+    lidHandle: '#451a03',
+    body: '#542508', // rich bin brown
+    bodyHighlight: '#78350f',
+    bodyRibs: '#2a1002',
+    badgeBg: 'rgba(120, 53, 15, 0.2)',
+    badgeText: '#d97706',
+    glowColor: 'rgba(146, 64, 14, 0.35)',
     label: 'Biotonne',
   },
   PAPER: {
@@ -119,12 +119,9 @@ export const WasteWheelieBin: React.FC<WasteWheelieBinProps> = ({
             <stop offset="60%" stopColor="#1e293b" />
             <stop offset="100%" stopColor="#0f172a" />
           </radialGradient>
-          <filter id="subtle-glow" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor={colors.glowColor} />
-          </filter>
         </defs>
 
-        <g filter="url(#subtle-glow)">
+        <g>
           {/* Left Wheel */}
           <circle cx="10" cy="69" r="6" fill="url(#wheel-grad)" stroke="#0f172a" strokeWidth="1" />
           <circle cx="10" cy="69" r="2.5" fill="#94a3b8" />
@@ -207,7 +204,7 @@ export const WasteWheelieBin: React.FC<WasteWheelieBinProps> = ({
               /* Leaf */
               <path
                 d="M 6 1 C 10 1 11 5 11 9 C 9 9 7 9 5 7 C 3 5 2 3 6 1 Z"
-                fill="#bbf7d0"
+                fill="#fed7aa"
               />
             )}
             {normType === 'PAPER' && (

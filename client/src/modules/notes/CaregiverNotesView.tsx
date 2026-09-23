@@ -589,7 +589,7 @@ export const CaregiverNotesView: React.FC = () => {
           /* RESIDENT NOTE FORM - Simplified, accessible, mobile-first */
           <form
             onSubmit={handleCreateNote}
-            className="bento-card rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-7 border border-surface-border shadow-xl space-y-4 animate-in fade-in duration-150"
+            className="bento-card rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-7 border border-surface-border shadow-xl space-y-4"
           >
             <div className="flex items-center justify-between border-b border-white/5 pb-3">
               <h3 className="text-sm sm:text-base font-display font-bold text-white flex items-center gap-2">
@@ -710,7 +710,7 @@ export const CaregiverNotesView: React.FC = () => {
           /* STAFF FORM - Full controls with categories, pin, expiry date */
           <form
             onSubmit={handleCreateNote}
-            className="bento-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border shadow-xl space-y-4 animate-in fade-in duration-150"
+            className="bento-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border shadow-xl space-y-4"
           >
             <div className="flex items-center justify-between border-b border-white/5 pb-3">
               <h3 className="text-sm font-display font-semibold text-white flex items-center gap-2">
@@ -775,7 +775,7 @@ export const CaregiverNotesView: React.FC = () => {
 
               {/* Resident dropdown when caregiver sends direct note */}
               {isPrivate && (
-                <div className="p-3.5 rounded-2xl bg-purple-500/10 border border-purple-500/30 space-y-1.5 mt-2 animate-in fade-in duration-150">
+                <div className="p-3.5 rounded-2xl bg-purple-500/10 border border-purple-500/30 space-y-1.5 mt-2">
                   <label className="block text-xs font-semibold text-purple-300 font-display flex items-center gap-1.5">
                     <User className="w-3.5 h-3.5" />
                     <span>Empfänger (Bewohner auswählen):</span>
@@ -1086,7 +1086,7 @@ export const CaregiverNotesView: React.FC = () => {
                 }`}
               >
                 {isEditing ? (
-                  <div className="space-y-4 animate-in fade-in duration-150">
+                  <div className="space-y-4">
                     <div className="flex items-center justify-between pb-3 border-b border-white/10">
                       <div className="flex items-center gap-2">
                         <span className="p-1.5 rounded-xl bg-amber-500/20 text-amber-300">
@@ -1311,8 +1311,8 @@ export const CaregiverNotesView: React.FC = () => {
 
                         {/* Open Question / Needs Staff Response Badge */}
                         {isAwaiting && (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500 text-white shadow-sm font-display shrink-0 animate-pulse">
-                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500 text-white shadow-sm font-display shrink-0">
+                            <span className="w-1.5 h-1.5 rounded-full bg-white" />
                             <span>Rückfrage von {latestMsg ? latestMsg.authorName : (note.authorName || 'Bewohner')}</span>
                           </span>
                         )}
@@ -1586,7 +1586,7 @@ export const CaregiverNotesView: React.FC = () => {
                       </div>
                     ) : (
                       /* EXPANDED VIEW: Streamlined chat stream */
-                      <div className="mt-3.5 space-y-3.5 animate-in fade-in duration-150">
+                      <div className="mt-3.5 space-y-3.5">
                         {/* Conversation Stream */}
                         <div className="space-y-3">
                           {/* 1. Opening message (Author's Note) */}

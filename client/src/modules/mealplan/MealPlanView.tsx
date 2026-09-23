@@ -399,7 +399,7 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
         </div>
       </div>
 
-      {/* Kochtage info & toggle if < 7 days - Hidden on mobile */}
+      {/* Kochtage info if < 7 days - Hidden on mobile */}
       {configuredCookingDays.length < 7 && (
         <div className="hidden sm:flex sm:flex-row sm:items-center justify-between gap-2 px-2 text-xs">
           <div className="text-slate-400 font-medium">
@@ -408,15 +408,6 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
               {formatCookingDaysRange(activeLocation?.cookingDays)}
             </strong>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowAllDays(!showAllDays)}
-            className="text-rose-400 hover:text-rose-300 font-semibold self-start sm:self-auto hover:underline cursor-pointer"
-          >
-            {showAllDays
-              ? `Nur geplante Kochtage anzeigen (${configuredCookingDays.length})`
-              : `Alle 7 Tage anzeigen (inkl. Selbstversorgung)`}
-          </button>
         </div>
       )}
 

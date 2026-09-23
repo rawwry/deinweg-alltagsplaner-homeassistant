@@ -3,6 +3,27 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.31] - 2026-09-24
+
+### Neu & Verbessert
+- **Abfall-Radar & Abfallkalender (`WasteWheelieBin.tsx`, `DashboardHub.tsx`, `WasteCalendarView.tsx`)**:
+  - **Authentische braune Biotonne**: Biotonnen werden jetzt einheitlich in authentischem Braun dargestellt (Deckel, Tonnenkörper, Ribs und Akzente), statt fälschlicherweise in Grün.
+  - **Beseitigung des abgeschnittenen Hintergrundverlaufs**: Der störende, hart abgeschnittene WebKit-Blur-Farbverlauf hinter den Mülltonnen auf dem Dashboard wurde restlos entfernt.
+  - **Optionen & Badges angepasst**: Im Abfallkalender und in Formularen heißt die Tonne nun sauber *„Biotonne (Braun)“* mit warmen Amber-/Braun-Akzenten.
+- **Home Dashboard – Heutige Aufgaben für Bewohner (`DashboardHub.tsx`)**:
+  - Wenn nur 1 Aufgabe (oder wenige Aufgaben) für den heutigen Tag anstehen, wird die Aufgabe im Desktop-Modus nun nicht mehr als winzige 1/3-Kachel am linken Rand dargestellt, sondern füllt als harmonische, responsive Spotlight-Karte die gesamte Breite mit klar lesbarer Beschreibung und komfortablem Abhake-Button aus.
+  - Bei 2 Aufgaben schaltet das Layout auf ein ausgewogenes `md:grid-cols-2`.
+- **Einkaufskorb-Widget (`DashboardHub.tsx`)**:
+  - Der Schriftzug *„Zutaten-Kalkulation“* im Fortschrittsbalken der Einkaufskorb-Kachel wurde entfernt; lediglich abgerechnete Kassenbons werden noch dezent bestätigt.
+- **„Heute frisch auf den Tisch“ (`DashboardHub.tsx`)**:
+  - *„Chefkoch heute“* wurde präzise in *„Kochdienst“* umbenannt.
+  - Bei Selbstverpflegung bzw. noch unbesetztem Kochdienst steht dort nun schlicht *„Offen“* (statt zuvor *„Team / Offen“*).
+- **Kochplan (`MealPlanView.tsx`)**:
+  - Der Button *„Alle 7 Tage anzeigen (inkl. Selbstversorgung)“* in der Kopfzeile der Kochtage wurde entfernt.
+- **Keine störenden Einfliege-Animationen mehr (`WasteCalendarView.tsx`, `CaregiverNotesView.tsx`, `index.css`)**:
+  - Sämtliche störenden Einfliege-, Fade-In- und Hüpf-Animationen beim Öffnen des Abfallkalenders und des Flurfunks über das Seitenmenü (`slide-in-from-top`, `animate-bounce`, `animate-pulse`, `animate-ping`) wurden entfernt.
+  - Das CSS-Übergangsverhalten von `.bento-card` wurde von `transition: all` auf gezielte `border-color` und `box-shadow` optimiert, sodass beim Tab-Wechsel keine flackernden Layout-Animationen auftreten.
+
 ## [0.1.30] - 2026-09-23
 
 ### Polished & UI

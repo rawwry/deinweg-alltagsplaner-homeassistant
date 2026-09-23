@@ -34,7 +34,7 @@ export default {
         },
         waste: {
           yellow: '#eab308',
-          bio: '#84cc16',
+          bio: '#78350f',
           paper: '#0284c7',
           rest: '#64748b',
         },
