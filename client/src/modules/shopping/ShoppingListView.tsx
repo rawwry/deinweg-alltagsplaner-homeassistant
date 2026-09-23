@@ -503,7 +503,7 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
             <div className="bento-card rounded-[2rem] p-6 border border-surface-border shadow-md">
               <h3 className="text-sm font-display font-semibold text-white flex items-center gap-2 mb-3">
                 <Sparkles className="w-4 h-4 text-rose-400" />
-                <span>Zusätzliche Besorgungen ({activeCustomItems.length})</span>
+                <span>Zusätzliche Besorgungen</span>
               </h3>
               <div className="divide-y divide-white/5">
                 {activeCustomItems.map((ci: any) => (

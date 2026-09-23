@@ -3,6 +3,30 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.29] - 2026-09-23
+
+### Neu & Verbessert
+- **Einkaufsliste (`ShoppingListView.tsx`)**:
+  - In der Kachel *„Zusätzliche Besorgungen“* wurde die Angabe der Anzahl in Klammern (z. B. `(1)`) entfernt.
+- **Übersichts-Dashboard (`DashboardHub.tsx`)**:
+  - **Aufgeräumter Einkaufskorb**: Die 3-Artikel-Vorschau wurde entfernt, sodass der Fokus direkt auf den wichtigen Kerninformationen und dem Wocheneinkauf liegt.
+  - **Elegantes, direkt integriertes Wochenbudget**: Keine verschachtelte „Box in der Box“ mehr. Das Wochenbudget fügt sich harmonisch in die Kachel ein und zeigt auf einen Blick:
+    - Gesamtbudget (z. B. `350 €`)
+    - Bereits verwendet (Kassenbon oder Zutatenschätzung)
+    - Noch offen (in beruhigendem Smaragdgrün hervorgehoben)
+    - Integrierter visueller Verbrauchs-Fortschrittsbalken.
+- **Radikal vereinfachter Bereich „Kasse & Budget“ (`BudgetManagementView.tsx`)**:
+  - Die bisher überfrachtete Ansicht wurde von Grund auf bereinigt und in zwei klare, fokussierte Bereiche aufgeteilt:
+    1. **Wocheneinkauf (KW X)**:
+       - 3 prägnante Kernzahlen auf einer Hero-Karte (*Wochenbudget*, *Ausgegeben*, *Verbleibend / Ersparnis*) mit Verbrauchs-Fortschrittsbalken.
+       - Diskrete Budget-Anpassung über ein Stift-Icon (optional als Standort-Standard speicherbar).
+       - Schnelle Erfassung von Kassenbon-Betrag, Notiz und Wochenabschluss.
+    2. **Sonderkasse & Kassenbuch**:
+       - Präsente Gesamtsaldo-Kachel der Sonderkasse.
+       - Einfache Schnellerfassung von Ausgaben, Einzahlungen oder historischem Startguthaben.
+       - Klares, chronologisches Kassenbuch mit integrierter Schnellsuche und Löschfunktion.
+  - Beseitigung sämtlicher belehrender Textwände, redundanter KPI-Karten und doppelter Formulare.
+
 ## [0.1.28] - 2026-09-23
 
 ### Neu & Verbessert (Einkaufsliste)

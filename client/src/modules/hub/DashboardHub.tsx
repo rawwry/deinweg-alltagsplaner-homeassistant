@@ -1622,119 +1622,129 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           </div>
         </div>
 
-        {/* Bento 2: Shopping Radar & Basket (Paired with Food spotlight, ample width, no text wraps) */}
-        <div className="bento-card rounded-[2.5rem] p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
-          <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        {/* Bento 2: Shopping Radar & Basket (Directly integrated weekly budget, ample width, no preview clutter) */}
+        {(() => {
+          const totalWeeklyBudget = budgetSummary?.weeklyBudget ?? activeLocation?.weeklyBudget ?? 350;
+          const spentWeeklyAmount =
+            budgetSummary?.actualSpent !== null && budgetSummary?.actualSpent !== undefined
+              ? budgetSummary.actualSpent
+              : (budgetSummary?.estimatedShoppingCost ?? shoppingSummary?.totalEstimatedCost ?? 0);
+          const remainingWeeklyBudget =
+            budgetSummary?.remainingBudget != null
+              ? budgetSummary.remainingBudget
+              : Math.max(0, totalWeeklyBudget - spentWeeklyAmount);
+          const percentWeeklySpent =
+            totalWeeklyBudget > 0 ? Math.min(100, Math.round((spentWeeklyAmount / totalWeeklyBudget) * 100)) : 0;
+          const isWeeklyReceiptRecorded =
+            budgetSummary?.actualSpent !== null && budgetSummary?.actualSpent !== undefined;
 
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold uppercase tracking-wider font-sans whitespace-nowrap">
-                <ShoppingCart className="w-3.5 h-3.5 stroke-[2]" />
-                <span>Einkaufskorb</span>
-              </span>
-              <span className="text-xs font-semibold text-emerald-400 font-mono">
-                ~ {shoppingSummary?.totalEstimatedCost ? `${shoppingSummary.totalEstimatedCost.toFixed(2)} €` : '0.00 €'}
-              </span>
-            </div>
+          return (
+            <div className="bento-card rounded-[2.5rem] p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
+              <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
-            <h3 className="text-xl font-semibold text-white mb-1.5 font-sans tracking-tight">
-              {shoppingSummary?.items?.length || 0}{' '}
-              {shoppingSummary?.items?.length === 1 ? 'Artikel auf der Einkaufsliste' : 'Artikel auf der Einkaufsliste'}
-            </h3>
-            <p className="text-xs text-slate-300 mb-4 leading-relaxed font-sans">
-              Geplant bei <strong className="text-white font-semibold">{shoppingSummary?.supermarketName || 'Supermarkt'}</strong> für diese Woche.
-            </p>
+              <div>
+                {/* Header: Badge + Estimated Total */}
+                <div className="flex items-center justify-between mb-4">
+                  <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold uppercase tracking-wider font-sans whitespace-nowrap">
+                    <ShoppingCart className="w-3.5 h-3.5 stroke-[2]" />
+                    <span>Einkaufskorb</span>
+                  </span>
+                  <span className="text-xs font-semibold text-emerald-400 font-mono">
+                    ~ {shoppingSummary?.totalEstimatedCost ? `${shoppingSummary.totalEstimatedCost.toFixed(2)} €` : '0.00 €'}
+                  </span>
+                </div>
 
-            {/* Weekly Budget Status Widget (Clean horizontal layout with ample space) */}
-            <div
-              onClick={() => {
-                if (isStaff) {
-                  setCurrentTab('budget');
-                }
-              }}
-              className={`p-3.5 mb-4 rounded-2xl bg-surface-elevated/80 border border-emerald-500/30 flex items-center justify-between gap-3 ${
-                isStaff
-                  ? 'cursor-pointer hover:bg-surface-elevated hover:border-emerald-500/60 transition-all group'
-                  : ''
-              }`}
-              title={isStaff ? 'Klicken, um Kasse & Budget zu öffnen' : undefined}
-            >
-              <div className="flex items-center gap-3.5">
-                <Wallet className="w-7 h-7 text-emerald-400 shrink-0 stroke-[1.75]" />
-                <div>
-                  <div className="text-[10px] uppercase font-bold text-slate-400 font-sans tracking-wide flex items-center gap-2">
-                    <span>Aktuelles Wochenbudget</span>
+                <h3 className="text-xl font-semibold text-white mb-1.5 font-sans tracking-tight">
+                  {shoppingSummary?.items?.length || 0}{' '}
+                  {shoppingSummary?.items?.length === 1 ? 'Artikel auf der Einkaufsliste' : 'Artikel auf der Einkaufsliste'}
+                </h3>
+                <p className="text-xs text-slate-300 mb-5 leading-relaxed font-sans">
+                  Geplant bei <strong className="text-white font-semibold">{shoppingSummary?.supermarketName || 'Supermarkt'}</strong> für diese Woche.
+                </p>
+
+                {/* Harmoniously Integrated Weekly Budget (No box in a box, clear key metrics) */}
+                <div
+                  onClick={() => {
+                    if (isStaff) {
+                      setCurrentTab('budget');
+                    }
+                  }}
+                  className={`pt-4 pb-1 border-t border-white/5 space-y-3.5 ${
+                    isStaff ? 'cursor-pointer group/budget' : ''
+                  }`}
+                  title={isStaff ? 'Klicken, um Kasse & Budget zu öffnen' : undefined}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-slate-300 font-display">
+                      <Wallet className="w-4 h-4 text-emerald-400 stroke-[2]" />
+                      <span>Aktuelles Wochenbudget</span>
+                    </div>
                     {isStaff && (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-normal border border-emerald-500/30 group-hover:bg-emerald-500/30 transition-colors">
-                        Bearbeiten
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 group-hover/budget:bg-emerald-500/25 transition-colors">
+                        Verwalten →
                       </span>
                     )}
                   </div>
-                  <div className="text-sm font-bold text-emerald-400 font-mono">
-                    {budgetSummary?.remainingBudget != null
-                      ? `Noch ${budgetSummary.remainingBudget.toFixed(2)} € übrig`
-                      : `Standard: ${(activeLocation?.weeklyBudget ?? 350).toFixed(2)} €`}
+
+                  {/* 3 Metrics: Gesamtbudget, Verwendet, Noch offen */}
+                  <div className="grid grid-cols-3 gap-2 text-center sm:text-left">
+                    <div className="p-2.5 rounded-2xl bg-surface-elevated/60 border border-surface-border/60">
+                      <div className="text-[10px] text-slate-400 uppercase tracking-wider font-mono font-medium truncate">
+                        Gesamt
+                      </div>
+                      <div className="text-sm sm:text-base font-bold text-white font-mono mt-0.5">
+                        {totalWeeklyBudget.toFixed(0)} €
+                      </div>
+                    </div>
+
+                    <div className="p-2.5 rounded-2xl bg-surface-elevated/60 border border-surface-border/60">
+                      <div className="text-[10px] text-slate-400 uppercase tracking-wider font-mono font-medium truncate">
+                        {isWeeklyReceiptRecorded ? 'Bon erfasst' : 'Verwendet'}
+                      </div>
+                      <div className="text-sm sm:text-base font-bold text-slate-200 font-mono mt-0.5">
+                        {spentWeeklyAmount.toFixed(spentWeeklyAmount % 1 === 0 ? 0 : 2)} €
+                      </div>
+                    </div>
+
+                    <div className="p-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25">
+                      <div className="text-[10px] text-emerald-400 uppercase tracking-wider font-mono font-semibold truncate">
+                        Noch offen
+                      </div>
+                      <div className="text-sm sm:text-base font-bold text-emerald-300 font-mono mt-0.5">
+                        {remainingWeeklyBudget.toFixed(remainingWeeklyBudget % 1 === 0 ? 0 : 2)} €
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Budget Progress Bar */}
+                  <div className="space-y-1.5 pt-1">
+                    <div className="w-full h-2 bg-surface-elevated rounded-full overflow-hidden border border-white/5">
+                      <div
+                        className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-300 shadow-sm"
+                        style={{ width: `${percentWeeklySpent}%` }}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono">
+                      <span>{percentWeeklySpent}% verbraucht</span>
+                      <span>{isWeeklyReceiptRecorded ? '✓ Kassenbon abgerechnet' : 'Zutaten-Kalkulation'}</span>
+                    </div>
                   </div>
                 </div>
               </div>
-              <div className="text-right shrink-0">
-                <span className="text-xs text-slate-400 font-sans">
-                  von {(budgetSummary?.weeklyBudget ?? activeLocation?.weeklyBudget ?? 350).toFixed(0)} €
-                </span>
+
+              <div className="pt-5">
+                <button
+                  type="button"
+                  onClick={() => setCurrentTab('shopping')}
+                  className="w-full py-2.5 sm:py-3 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer font-sans"
+                >
+                  <span>Einkaufsliste öffnen</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-emerald-400" />
+                </button>
               </div>
             </div>
-
-            {/* Quick Preview Items */}
-            {shoppingSummary?.items && shoppingSummary.items.length > 0 ? (
-              <div className="space-y-2 mb-4">
-                {shoppingSummary.items.slice(0, 3).map((item: any, idx: number) => {
-                  const itemName = item.name || item.title || 'Artikel';
-                  const itemAmount = item.totalAmount ?? item.amount;
-                  return (
-                    <div
-                      key={item.ingredientId || item.id || idx}
-                      className="flex items-center justify-between p-2.5 rounded-2xl bg-surface-elevated/70 border border-surface-border text-xs"
-                    >
-                      <span className="flex items-center gap-2 text-slate-200 font-medium truncate">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />
-                        <span className="truncate">
-                          {itemName}
-                          {itemAmount !== undefined && itemAmount !== null && itemAmount !== '' ? (
-                            <span className="text-slate-400 font-normal ml-1.5">
-                              ({[itemAmount, item.unit].filter(Boolean).join(' ')})
-                            </span>
-                          ) : item.unit ? (
-                            <span className="text-slate-400 font-normal ml-1.5">
-                              ({item.unit})
-                            </span>
-                          ) : null}
-                        </span>
-                      </span>
-                      <span className="text-slate-400 font-mono flex-shrink-0 ml-2">
-                        {item.estimatedPrice != null ? `${item.estimatedPrice.toFixed(2)} €` : '—'}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : !isResident ? (
-              <div className="space-y-2 mb-4">
-                <div className="p-3.5 rounded-2xl bg-surface-elevated/50 border border-surface-border text-xs text-slate-400 text-center font-medium">
-                  Alle Einkäufe erledigt! 🎉
-                </div>
-              </div>
-            ) : null}
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setCurrentTab('shopping')}
-            className="w-full py-2.5 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer font-sans"
-          >
-            <span>Einkaufsliste öffnen</span>
-            <ArrowRight className="w-3.5 h-3.5 text-emerald-400" />
-          </button>
-        </div>
+          );
+        })()}
 
         {/* Bento 3 & 4: Flurfunk and Waste Radar (Flurfunk is placed above Waste Radar for residents) */}
         {user?.role === 'BEWOHNER' ? (
