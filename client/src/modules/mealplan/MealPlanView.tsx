@@ -403,9 +403,9 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
       {configuredCookingDays.length < 7 && (
         <div className="hidden sm:flex sm:flex-row sm:items-center justify-between gap-2 px-2 text-xs">
           <div className="text-slate-400 font-medium">
-            Geplante Kochtage{isStaff && activeLocation?.name ? ` für ${activeLocation.name}` : ''}:{' '}
+            Gemeinschaftsverpflegung:{' '}
             <strong className="text-slate-200 font-semibold">
-              {formatCookingDays(activeLocation?.cookingDays)}
+              {formatCookingDaysRange(activeLocation?.cookingDays)}
             </strong>
           </div>
           <button

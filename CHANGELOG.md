@@ -3,6 +3,14 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.30] - 2026-09-23
+
+### Polished & UI
+- **Aufgabenplan (`ChorePlannerView.tsx`)**:
+  - Die untere Tageskarte in der Desktop-Fokusansicht wurde auf volle Breite (`w-full`) angepasst, sodass sie exakt mit der Breite der darüberliegenden Karten (Header, Kalenderwochen-Navigator, Wochentagsleiste) bündig abschließt.
+- **Kochplan (`MealPlanView.tsx`)**:
+  - Die Zeile *„Geplante Kochtage: Mo - Do (4 Tage)“* wurde präzise und einheitlich durch *„Gemeinschaftsverpflegung: Mo - Do“* ersetzt.
+
 ## [0.1.29] - 2026-09-23
 
 ### Neu & Verbessert

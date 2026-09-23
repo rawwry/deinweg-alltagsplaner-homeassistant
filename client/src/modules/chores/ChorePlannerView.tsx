@@ -1064,7 +1064,7 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
               </div>
             ) : (
               /* Single-Day Focused View on Desktop */
-              <div className="max-w-4xl mx-auto space-y-4">
+              <div className="w-full space-y-4">
                 {(() => {
                   const targetDay = weekData.days.find(
                     (d: any) => d.dayOfWeek === desktopDayFilter
