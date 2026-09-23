@@ -514,7 +514,7 @@ export const CaregiverNotesView: React.FC = () => {
       {/* Tabs: Active vs Hidden vs Archive - Centered Modern Segmented Control */}
       <div className="flex items-center justify-center w-full border-b border-surface-border/70 pb-4">
         <div className="bg-surface-card/95 p-1.5 rounded-2xl border border-surface-border/80 flex items-center justify-center gap-1 sm:gap-2 w-full sm:w-auto shadow-sm">
-          {/* 1. Aktuelle */}
+          {/* 1. Aktiv */}
           <button
             type="button"
             onClick={() => setActiveTab('ACTIVE')}
@@ -525,7 +525,7 @@ export const CaregiverNotesView: React.FC = () => {
             }`}
           >
             <Pin className="w-4 h-4 shrink-0" />
-            <span>Aktuelle</span>
+            <span>Aktiv</span>
             {activeNotes.length > 0 && (
               <span
                 className={`px-2 py-0.5 rounded-full text-[10px] font-black font-mono transition-colors ${

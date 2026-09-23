@@ -325,7 +325,7 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
                 Kasse & Budget
               </h1>
               <p className="text-xs sm:text-sm text-slate-400">
-                Wöchentliche Lebensmittelbudgets, Kassenbon-Abrechnung & WG-Sonderkasse
+                Wöchentliche Lebensmittelbudgets, Kassenbon-Abrechnung & Sonderkasse
               </p>
             </div>
           </div>
@@ -529,7 +529,7 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
           <div className="flex items-center justify-between text-xs mb-3">
             <span className="font-semibold text-emerald-300 font-display flex items-center gap-1.5">
               <PiggyBank className="w-4 h-4 text-emerald-400" />
-              <span>WG-Sonderkasse (Spartopf)</span>
+              <span>Sonderkasse (Spartopf)</span>
             </span>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 border border-emerald-500/30 font-mono">
               Gemeinschaftskasse
@@ -586,7 +586,7 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
           }`}
         >
           <PiggyBank className="w-4 h-4" />
-          <span>WG-Sonderkasse & Kassenbuch</span>
+          <span>Sonderkasse & Kassenbuch</span>
           {budgetData && budgetData.recentTransactions.length > 0 && (
             <span className="ml-1.5 px-2 py-0.5 text-[10px] font-mono bg-surface-elevated rounded-full border border-surface-border text-slate-300">
               {budgetData.recentTransactions.length}
@@ -735,7 +735,7 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
                         Woche endgültig abschließen & als abgerechnet markieren
                       </span>
                       <p className="text-[11px] text-slate-300 mt-0.5 leading-relaxed">
-                        Wenn aktiviert, wird der verbleibende Restbetrag ({budgetData ? Math.max(0, budgetData.weeklyBudget - (parseFloat(actualSpentInput || '0') || 0)).toFixed(2) : '0.00'} €) fest als Sparbetrag verbucht und fließt in die WG-Sonderkasse.
+                        Wenn aktiviert, wird der verbleibende Restbetrag ({budgetData ? Math.max(0, budgetData.weeklyBudget - (parseFloat(actualSpentInput || '0') || 0)).toFixed(2) : '0.00'} €) fest als Sparbetrag verbucht und fließt in die Sonderkasse.
                       </p>
                     </div>
                   </label>
@@ -828,7 +828,7 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
                   2. Nach dem Einkauf trägt der Betreuer den Kassenbon ein.
                 </p>
                 <p className="text-[11px] text-slate-400">
-                  3. Wird die Woche abgeschlossen, fließt jeder gesparte Euro direkt in die WG-Sonderkasse für gemeinsame WG-Freizeitaktivitäten!
+                  3. Wird die Woche abgeschlossen, fließt jeder gesparte Euro direkt in die Sonderkasse für gemeinsame WG-Freizeitaktivitäten!
                 </p>
               </div>
             </div>
@@ -836,7 +836,7 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
         </div>
       )}
 
-      {/* TAB CONTENT 2: WG-SONDERKASSE & KASSENBUCH */}
+      {/* TAB CONTENT 2: SONDERKASSE & KASSENBUCH */}
       {activeSection === 'SAVINGS' && (
         <div className="space-y-6 animate-in fade-in duration-150">
           {/* Sonderkasse Highlight Card */}
@@ -847,7 +847,7 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
                   <PiggyBank className="w-5 h-5" />
                 </span>
                 <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider font-mono">
-                  WG-Sonderkasse · Standort {activeLocation?.name}
+                  Sonderkasse · Standort {activeLocation?.name}
                 </span>
               </div>
               <div className="text-4xl sm:text-5xl font-extrabold font-display font-mono text-white tracking-tight">
@@ -892,7 +892,7 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
                     <span className="px-2 py-0.5 rounded-full text-[10px] bg-amber-500/20 text-amber-300 font-mono">Für Betreuer</span>
                   </h4>
                   <p className="text-xs text-slate-300 mt-1 leading-relaxed max-w-2xl">
-                    Du startest hier nicht bei 0 €: Wenn deine Wohngruppe vor der Nutzung dieser App bereits Kassenbestände oder Ersparnisse hatte, trage diese hier als Startguthaben ein, damit sie im Gesamtsaldo der WG-Sonderkasse berücksichtigt werden.
+                    Du startest hier nicht bei 0 €: Wenn deine Wohngruppe vor der Nutzung dieser App bereits Kassenbestände oder Ersparnisse hatte, trage diese hier als Startguthaben ein, damit sie im Gesamtsaldo der Sonderkasse berücksichtigt werden.
                   </p>
                 </div>
               </div>
@@ -966,7 +966,7 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
                       <span>Wie funktioniert das Startguthaben?</span>
                     </div>
                     <p className="text-[11px] text-slate-300">
-                      Hier kannst du den Geldbetrag eintragen, den die Wohngruppe bereits vor der Einführung dieser App angespart oder in der Barkasse hatte. Der Betrag wird als Anfangsbestand im Kassenbuch hinterlegt und dem Guthaben der WG-Sonderkasse gutgeschrieben.
+                      Hier kannst du den Geldbetrag eintragen, den die Wohngruppe bereits vor der Einführung dieser App angespart oder in der Barkasse hatte. Der Betrag wird als Anfangsbestand im Kassenbuch hinterlegt und dem Guthaben der Sonderkasse gutgeschrieben.
                     </p>
                   </div>
 

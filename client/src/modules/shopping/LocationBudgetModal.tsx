@@ -251,7 +251,7 @@ export const LocationBudgetModal: React.FC<LocationBudgetModalProps> = ({
               }`}
             >
               <PiggyBank className="w-3.5 h-3.5" />
-              <span>WG-Sonderkasse (Spartopf)</span>
+              <span>Sonderkasse (Spartopf)</span>
             </button>
           </div>
         </div>
@@ -357,7 +357,7 @@ export const LocationBudgetModal: React.FC<LocationBudgetModalProps> = ({
                       )} € wurde erfasst. Übrig gebliebene ${Math.max(
                         0,
                         budgetData.weeklyBudget - (budgetData.actualSpent ?? 0)
-                      ).toFixed(2)} € fließen in die WG-Sonderkasse.`
+                      ).toFixed(2)} € fließen in die Sonderkasse.`
                     : `Aktuell basiert die Berechnung auf dem geschätzten Zutatenpreis (${budgetData.estimatedShoppingCost.toFixed(
                         2
                       )} €). Sobald der Bon vorliegt, können Betreuer den Betrag final abrechnen.`}
@@ -454,14 +454,14 @@ export const LocationBudgetModal: React.FC<LocationBudgetModalProps> = ({
               )}
             </div>
           ) : (
-            /* TAB 2: WG-SONDERKASSE */
+            /* TAB 2: SONDERKASSE */
             <div className="space-y-4 animate-in fade-in duration-150">
               {/* Savings Pot Highlight Card */}
               <div className="bg-gradient-to-br from-emerald-500/15 via-surface-elevated to-surface-card border border-emerald-500/40 rounded-2xl p-5 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-emerald-300 font-display flex items-center gap-1.5">
                     <PiggyBank className="w-4 h-4 text-emerald-400" />
-                    <span>Aktueller Stand der WG-Sonderkasse</span>
+                    <span>Aktueller Stand der Sonderkasse</span>
                   </span>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200">
                     Gemeinschaftstopf

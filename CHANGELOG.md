@@ -3,6 +3,16 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.23] - 2026-09-23
+
+### Polished & Umbenennungen
+- **Flurfunk Reiter**:
+  - Der aktive Reiter wurde umbenannt von *„Aktuelle“* zu *„Aktiv“* (`CaregiverNotesView.tsx`).
+- **Einkauf - Wochenbudget-Kachel**:
+  - Die Titelzeile der Budget-Box unter „Einkauf“ lautet nun einheitlich und schlank *„Wochenbudget“* (statt *„WG-Wochenbudget“*) (`ShoppingListView.tsx`).
+- **Kasse & Budget - Sonderkasse**:
+  - Alle Erwähnungen und Reiter von *„WG-Sonderkasse“* wurden prägnant in *„Sonderkasse“* umbenannt (`BudgetManagementView.tsx`, `LocationBudgetModal.tsx`).
+
 ## [0.1.22] - 2026-09-23
 
 ### Polished & Mobile-Optimiert
