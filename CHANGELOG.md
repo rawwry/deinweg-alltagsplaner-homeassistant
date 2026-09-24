@@ -3,6 +3,17 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.41] - 2026-09-24
+
+### Neu & Verbessert
+- **Home Dashboard – Bewohner-Aufgabenkarten (`DashboardHub.tsx`)**:
+  - **Feste Position für Status-Badge**: Die Status-Pille (*„Offen“* bzw. *„Erledigt“*) ist nun dauerhaft fest in der oberen rechten Kartenecke verankert (`shrink-0`). Sie springt und wandert nicht mehr abhängig von der Länge des Aufgabentitels oder bei Zeilenumbrüchen.
+  - **Entfernung des verwirrenden Abhak-Punkts**: Der isolierte Radio-Punkt in der rechten unteren Ecke wurde vollständig entfernt.
+  - **Selbsterklärende Aktionsleiste für alle Nutzer**: Am unteren Rand jeder Aufgabenkarte befindet sich nun eine intuitive, klare Aktionszeile mit integriertem Checkbox-Icon:
+    - Im offenen Zustand: *„Antippen zum Erledigen“* mit hellem Klick-Hinweis.
+    - Im erledigten Zustand: Grünes Häkchen und *„Aufgabe als erledigt markiert · Tippen zum Zurücksetzen“*.
+  - **Einheitliches, harmonisches Layout**: Ob ein Bewohner heute 1 Aufgabe oder mehrere Aufgaben hat – die Kacheln nutzen dieselbe klare, saubere Struktur mit großem Aufgaben-Icon, hervorgehobenem Titel und gut lesbarer Beschreibung.
+
 ## [0.1.40] - 2026-09-24
 
 ### Neu & Verbessert

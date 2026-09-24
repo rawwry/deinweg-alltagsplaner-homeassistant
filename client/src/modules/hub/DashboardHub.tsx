@@ -1335,118 +1335,99 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                       ? Boolean(task.isCompletedForMe)
                       : (Boolean(task.isCompleted) || personalDoneChores.includes(choreKey));
 
-                    if (residentTasksList.length === 1) {
-                      return (
-                        <div
-                          key={task.templateId}
-                          onClick={() => handleToggleChore(task, user?.id)}
-                          className={`p-4 sm:p-5 rounded-2xl sm:rounded-3xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 select-none cursor-pointer group/task ${
-                            isDone
-                              ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-100 shadow-sm'
-                              : 'bg-surface-elevated/70 hover:bg-surface-elevated border-surface-border hover:border-indigo-500/40 text-slate-100'
-                          }`}
-                        >
-                          <div className="flex items-start sm:items-center gap-3.5 min-w-0 flex-1">
+                    return (
+                      <div
+                        key={task.templateId}
+                        onClick={() => handleToggleChore(task, user?.id)}
+                        className={`p-4 sm:p-5 rounded-2xl sm:rounded-3xl border transition-all flex flex-col justify-between gap-3.5 select-none cursor-pointer group/task ${
+                          isDone
+                            ? 'bg-emerald-500/10 border-emerald-500/35 text-emerald-100 shadow-sm'
+                            : 'bg-surface-elevated/70 hover:bg-surface-elevated border-surface-border hover:border-theme/40 text-slate-100'
+                        }`}
+                      >
+                        {/* Header: Icon + Title & Description + FIXED Status Badge Top-Right */}
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start gap-3.5 min-w-0 flex-1">
                             <div
-                              className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-xs ${
+                              className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-xs transition-colors ${
                                 isDone
                                   ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                                  : 'bg-surface-card border border-surface-border text-indigo-400'
+                                  : 'bg-surface-card border border-surface-border text-theme'
                               }`}
                             >
                               {getChoreOutlineIcon(task, 'w-6 h-6')}
                             </div>
+
                             <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-2.5 flex-wrap">
-                                <span
-                                  className={`text-sm sm:text-base font-semibold leading-snug break-words ${
-                                    isDone ? 'line-through text-slate-400' : 'text-white'
-                                  }`}
-                                >
-                                  {task.title}
-                                </span>
-                                <span
-                                  className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
-                                    isDone
-                                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                                      : 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
-                                  }`}
-                                >
-                                  {isDone ? '✓ Erledigt' : 'Offen'}
-                                </span>
-                              </div>
+                              <h4
+                                className={`text-sm sm:text-base font-bold leading-snug break-words ${
+                                  isDone ? 'line-through text-slate-400' : 'text-white'
+                                }`}
+                              >
+                                {task.title}
+                              </h4>
                               {task.description && (
-                                <p className="text-xs text-slate-300 mt-1 leading-relaxed break-words font-sans max-w-2xl">
+                                <p className="text-xs text-slate-300 mt-1 leading-relaxed break-words font-sans">
                                   {task.description}
                                 </p>
                               )}
                             </div>
                           </div>
 
-                          <div className="shrink-0 flex items-center sm:self-center self-end">
+                          {/* Fixed Status Badge in Top-Right Corner */}
+                          <div className="shrink-0">
                             <div
-                              className={`w-7 h-7 rounded-xl flex items-center justify-center border transition-all ${
+                              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold border transition-colors shadow-xs ${
                                 isDone
-                                  ? 'bg-emerald-500 border-emerald-500 text-slate-950 shadow-xs'
-                                  : 'border-slate-500 bg-surface-card/60 group-hover/task:border-indigo-400'
+                                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                                  : 'bg-surface-card border-surface-border text-slate-400 group-hover/task:border-theme/40 group-hover/task:text-slate-200'
                               }`}
                             >
                               {isDone ? (
-                                <Check className="w-4 h-4 stroke-[3]" />
+                                <>
+                                  <Check className="w-3.5 h-3.5 stroke-[3] text-emerald-400" />
+                                  <span>Erledigt</span>
+                                </>
                               ) : (
-                                <span className="w-2.5 h-2.5 rounded-full bg-slate-400 group-hover/task:bg-indigo-400 transition-colors" />
+                                <>
+                                  <span className="w-2 h-2 rounded-full bg-amber-400" />
+                                  <span>Offen</span>
+                                </>
                               )}
                             </div>
                           </div>
                         </div>
-                      );
-                    }
 
-                    return (
-                      <div
-                        key={task.templateId}
-                        onClick={() => handleToggleChore(task, user?.id)}
-                        className={`p-4 rounded-2xl border transition-all flex items-start justify-between gap-3.5 select-none cursor-pointer group/task ${
-                          isDone
-                            ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-100 shadow-xs'
-                            : 'bg-surface-elevated/70 hover:bg-surface-elevated border-surface-border hover:border-indigo-500/40 text-slate-100'
-                        }`}
-                      >
-                        <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                          <div className="w-10 h-10 rounded-2xl bg-surface-card border border-surface-border flex items-center justify-center shrink-0 shadow-xs mt-0.5">
-                            {getChoreOutlineIcon(task, 'w-5 h-5')}
-                          </div>
-                          <div className="min-w-0 flex-1">
+                        {/* Bottom Action Row: Clear instruction for any user */}
+                        <div
+                          className={`pt-3 border-t flex items-center justify-between text-xs transition-colors ${
+                            isDone
+                              ? 'border-emerald-500/20 text-emerald-400/90'
+                              : 'border-surface-border/50 text-slate-400 group-hover/task:text-theme'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 font-medium">
                             <div
-                              className={`text-sm font-semibold leading-snug break-words ${
-                                isDone ? 'line-through text-slate-400' : 'text-white'
+                              className={`w-5 h-5 rounded-lg flex items-center justify-center border transition-all ${
+                                isDone
+                                  ? 'bg-emerald-500 border-emerald-500 text-slate-950 shadow-xs'
+                                  : 'border-slate-500 bg-surface-card/60 group-hover/task:border-theme'
                               }`}
                             >
-                              {task.title}
+                              {isDone ? (
+                                <Check className="w-3.5 h-3.5 stroke-[3]" />
+                              ) : (
+                                <Check className="w-3.5 h-3.5 text-slate-500 group-hover/task:text-theme opacity-0 group-hover/task:opacity-60 transition-opacity" />
+                              )}
                             </div>
-                            {task.description && (
-                              <p className="text-xs text-slate-300 mt-1.5 leading-relaxed break-words whitespace-normal font-sans">
-                                {task.description}
-                              </p>
-                            )}
+                            <span className={isDone ? 'font-semibold text-emerald-200' : 'text-slate-300 group-hover/task:text-white'}>
+                              {isDone ? 'Aufgabe als erledigt markiert' : 'Antippen zum Erledigen'}
+                            </span>
                           </div>
-                        </div>
 
-                        <div className="shrink-0 mt-0.5">
-                          <div
-                            className={`w-6 h-6 rounded-lg flex items-center justify-center border transition-all ${
-                              isDone
-                                ? 'bg-emerald-500 border-emerald-500 text-slate-950'
-                                : 'border-slate-500 bg-surface-card/60 group-hover/task:border-indigo-400'
-                            }`}
-                            title={isDone ? 'Als unerledigt markieren' : 'Als erledigt abhaken'}
-                          >
-                            {isDone ? (
-                              <Check className="w-4 h-4 stroke-[3]" />
-                            ) : (
-                              <span className="w-2 h-2 rounded-full bg-slate-500 group-hover/task:bg-indigo-400 transition-colors" />
-                            )}
-                          </div>
+                          <span className="text-[11px] font-medium text-slate-500">
+                            {isDone ? 'Tippen zum Zurücksetzen' : 'Klick mich'}
+                          </span>
                         </div>
                       </div>
                     );
