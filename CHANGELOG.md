@@ -3,6 +3,16 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.42] - 2026-09-24
+
+### Neu & Verbessert
+- **Erscheinungsbild & Theme-Auswahl radikal simplifiziert (`AdminManagementView.tsx`, `UserProfileModal.tsx`)**:
+  - **Direkte Farbschaltflächen statt überladener Infokarten**: Alle überflüssigen Beschreibungs- und Erklärungstexte, verschachtelte Innenrahmen, Dummy-Beschriftungen (*„Schaltfläche“*, *„Akzent“*) und doppelten Titel wurden komplett entfernt.
+  - **Farbvariante direkt auf der Schaltfläche**: Jede Farbpalette wird jetzt unmittelbar als vollwertige Aktions-Schaltfläche im exakten Theme-Farbverlauf mit Glüheffekt dargestellt. Der Name der Farbvariante steht direkt in der Schaltfläche geschrieben.
+  - **Aktiver Zustand mit deutlichem Ring**: Die aktuell gewählte Farbvariante wird durch einen klaren weißen Ring und ein weißes Häkchen sofort unmissverständlich hervorgehoben.
+  - **Super übersichtlich & selbsterklärend**: Aufgeräumtes Grid (unterteilt in *„Dezente Farbtöne“* und *„Kräftige & Klassische Farbtöne“*), das jeder Nutzer auf einen Blick versteht.
+  - **Profil-Modal**: Die Themenauswahl im Benutzerprofil wurde identisch vereinfacht.
+
 ## [0.1.41] - 2026-09-24
 
 ### Neu & Verbessert

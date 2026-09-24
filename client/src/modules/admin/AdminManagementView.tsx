@@ -3122,7 +3122,7 @@ export const AdminManagementView: React.FC = () => {
       {/* SUBTAB: APPEARANCE (ERSCHEINUNGSBILD) */}
       {activeSubTab === 'appearance' && (
         <div className="space-y-6">
-          <div className="bento-card rounded-3xl p-6 sm:p-7 border border-surface-border shadow-xl space-y-7">
+          <div className="bento-card rounded-3xl p-6 sm:p-7 border border-surface-border shadow-xl space-y-6">
             <div className="flex items-center justify-between flex-wrap gap-4 pb-4 border-b border-surface-border/60">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-theme-subtle border border-theme-border rounded-2xl text-theme">
@@ -3133,7 +3133,7 @@ export const AdminManagementView: React.FC = () => {
                     Erscheinungsbild & Farbschema
                   </h3>
                   <p className="text-xs text-surface-muted mt-0.5 font-sans">
-                    Wähle ein harmonisches Farbkonzept für Buttons, Akzente und Highlights in der gesamten Benutzeroberfläche.
+                    Wähle dein bevorzugtes Farbschema für Buttons und Akzente.
                   </p>
                 </div>
               </div>
@@ -3148,20 +3148,12 @@ export const AdminManagementView: React.FC = () => {
               </div>
             </div>
 
-            {/* 1. Dezente & Ruhige Farbtöne */}
-            <div className="space-y-3.5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-                    Dezente & Ruhige Farbtöne
-                  </h4>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-surface-elevated text-slate-400 border border-surface-border">
-                    Minimalistisch & unaufdringlich
-                  </span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
+            {/* Dezente Farbtöne */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                Dezente Farbtöne
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {availableThemes
                   .filter((t) => t.category === 'subtle')
                   .map((config) => {
@@ -3171,86 +3163,34 @@ export const AdminManagementView: React.FC = () => {
                         key={config.id}
                         type="button"
                         onClick={() => setThemeId(config.id)}
-                        className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3.5 relative overflow-hidden group ${
+                        className={`w-full py-4 px-5 rounded-2xl font-bold text-sm text-white flex items-center justify-between transition-all cursor-pointer shadow-md hover:scale-[1.02] active:scale-[0.98] ${
                           isActive
-                            ? 'bg-surface-elevated/90 ring-2'
-                            : 'bg-surface-elevated/40 border-surface-border hover:bg-surface-elevated hover:border-surface-border/80'
+                            ? 'ring-2 ring-white ring-offset-2 ring-offset-[#0c0b10] shadow-xl'
+                            : 'opacity-90 hover:opacity-100 hover:shadow-lg'
                         }`}
                         style={{
-                          borderColor: isActive ? config.previewColor : undefined,
-                          boxShadow: isActive ? `0 10px 28px -4px ${config.glowColor}` : undefined,
+                          background: `linear-gradient(135deg, ${config.fromColor} 0%, ${config.toColor} 100%)`,
+                          boxShadow: `0 8px 24px -4px ${config.glowColor}`,
                         }}
                       >
-                        {/* Live Mini Preview: Theme Button & Badge */}
-                        <div className="p-3 rounded-xl bg-slate-950/80 border border-white/5 flex items-center justify-between gap-3">
-                          <div
-                            className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white shadow-sm flex items-center gap-1.5 transition-transform group-hover:scale-[1.02]"
-                            style={{
-                              background: `linear-gradient(135deg, ${config.fromColor} 0%, ${config.toColor} 100%)`,
-                              boxShadow: `0 4px 12px ${config.glowColor}`,
-                            }}
-                          >
-                            <span>Schaltfläche</span>
-                          </div>
-
-                          <div
-                            className="px-2.5 py-1 rounded-lg text-[10px] font-semibold tracking-wide"
-                            style={{
-                              backgroundColor: config.subtleColor,
-                              color: config.textColor,
-                              border: `1px solid ${config.borderColor}`,
-                            }}
-                          >
-                            Akzent
-                          </div>
-                        </div>
-
-                        {/* Title, Description & Selected State */}
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="space-y-0.5 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span
-                                className="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs"
-                                style={{ backgroundColor: config.previewColor }}
-                              />
-                              <h5 className="text-xs font-bold text-surface-cream truncate">
-                                {config.name}
-                              </h5>
-                            </div>
-                            <p className="text-[11px] text-surface-muted leading-relaxed font-sans">
-                              {config.description}
-                            </p>
-                          </div>
-
-                          {isActive && (
-                            <span
-                              className="w-5 h-5 rounded-full text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5"
-                              style={{ backgroundColor: config.previewColor }}
-                            >
-                              <Check className="w-3 h-3 stroke-[3]" />
-                            </span>
-                          )}
-                        </div>
+                        <span className="truncate">{config.name}</span>
+                        {isActive && (
+                          <span className="w-6 h-6 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center shrink-0 ml-2">
+                            <Check className="w-4 h-4 text-white stroke-[3]" />
+                          </span>
+                        )}
                       </button>
                     );
                   })}
               </div>
             </div>
 
-            {/* 2. Klassische & Lebendige Farbtöne */}
-            <div className="space-y-3.5 pt-4 border-t border-surface-border/60">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-                    Klassische & Lebendige Farbtöne
-                  </h4>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-surface-elevated text-slate-400 border border-surface-border">
-                    Inkl. offizielles Dein Weg Design
-                  </span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Kräftige / Klassische Farbtöne */}
+            <div className="space-y-3 pt-4 border-t border-surface-border/60">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                Kräftige & Klassische Farbtöne
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {availableThemes
                   .filter((t) => t.category !== 'subtle')
                   .map((config) => {
@@ -3260,66 +3200,22 @@ export const AdminManagementView: React.FC = () => {
                         key={config.id}
                         type="button"
                         onClick={() => setThemeId(config.id)}
-                        className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3.5 relative overflow-hidden group ${
+                        className={`w-full py-4 px-5 rounded-2xl font-bold text-sm text-white flex items-center justify-between transition-all cursor-pointer shadow-md hover:scale-[1.02] active:scale-[0.98] ${
                           isActive
-                            ? 'bg-surface-elevated/90 ring-2'
-                            : 'bg-surface-elevated/40 border-surface-border hover:bg-surface-elevated hover:border-surface-border/80'
+                            ? 'ring-2 ring-white ring-offset-2 ring-offset-[#0c0b10] shadow-xl'
+                            : 'opacity-90 hover:opacity-100 hover:shadow-lg'
                         }`}
                         style={{
-                          borderColor: isActive ? config.previewColor : undefined,
-                          boxShadow: isActive ? `0 10px 28px -4px ${config.glowColor}` : undefined,
+                          background: `linear-gradient(135deg, ${config.fromColor} 0%, ${config.toColor} 100%)`,
+                          boxShadow: `0 8px 24px -4px ${config.glowColor}`,
                         }}
                       >
-                        {/* Live Mini Preview: Theme Button & Badge */}
-                        <div className="p-3 rounded-xl bg-slate-950/80 border border-white/5 flex items-center justify-between gap-3">
-                          <div
-                            className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white shadow-sm flex items-center gap-1.5 transition-transform group-hover:scale-[1.02]"
-                            style={{
-                              background: `linear-gradient(135deg, ${config.fromColor} 0%, ${config.toColor} 100%)`,
-                              boxShadow: `0 4px 12px ${config.glowColor}`,
-                            }}
-                          >
-                            <span>Schaltfläche</span>
-                          </div>
-
-                          <div
-                            className="px-2.5 py-1 rounded-lg text-[10px] font-semibold tracking-wide"
-                            style={{
-                              backgroundColor: config.subtleColor,
-                              color: config.textColor,
-                              border: `1px solid ${config.borderColor}`,
-                            }}
-                          >
-                            Akzent
-                          </div>
-                        </div>
-
-                        {/* Title, Description & Selected State */}
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="space-y-0.5 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span
-                                className="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs"
-                                style={{ backgroundColor: config.previewColor }}
-                              />
-                              <h5 className="text-xs font-bold text-surface-cream truncate">
-                                {config.name}
-                              </h5>
-                            </div>
-                            <p className="text-[11px] text-surface-muted leading-relaxed font-sans">
-                              {config.description}
-                            </p>
-                          </div>
-
-                          {isActive && (
-                            <span
-                              className="w-5 h-5 rounded-full text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5"
-                              style={{ backgroundColor: config.previewColor }}
-                            >
-                              <Check className="w-3 h-3 stroke-[3]" />
-                            </span>
-                          )}
-                        </div>
+                        <span className="truncate">{config.name}</span>
+                        {isActive && (
+                          <span className="w-6 h-6 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center shrink-0 ml-2">
+                            <Check className="w-4 h-4 text-white stroke-[3]" />
+                          </span>
+                        )}
                       </button>
                     );
                   })}
