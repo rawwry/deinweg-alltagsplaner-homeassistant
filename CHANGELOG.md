@@ -3,6 +3,15 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.44] - 2026-09-25
+
+### Neu & Verbessert
+- **Home Dashboard – Bewohner-Aufgabenkarten weiter veredelt & intuitiver (`DashboardHub.tsx`)**:
+  - **Klare, handlungsorientierte Unterzeile**: Die redundante Formulierung (*„Hier siehst du deine eingeteilten Haushalts- und Alltagsdienste für den heutigen Tag.“*) wurde durch eine einfache Handlungsaufforderung ersetzt: *„Tippe auf eine Aufgabe, um sie als erledigt zu markieren.“*
+  - **Keine verschachtelten Kasten-Optiken mehr**: Das Icon-Kästchen wirkt durch leichtere themenspezifische Tönung (`bg-theme/10 border-theme/20`) modern, luftig und harmonisch statt wie ein dunkler Kasten im Kasten.
+  - **Warme, farblich stimmige Status-Pille für „Offen“**: Der Status *„Offen“* erhält eine angenehme, bernsteinfarbene Pille mit sanftem Glow, die sich nahtlos an die smaragdgrüne *„Erledigt“*-Pille anfügt.
+  - **Haptisches Feedback**: Sanfter Tap-Effekt (`active:scale-[0.99]`) bei Klick oder Touch auf die Aufgabe.
+
 ## [0.1.43] - 2026-09-24
 
 ### Neu & Verbessert

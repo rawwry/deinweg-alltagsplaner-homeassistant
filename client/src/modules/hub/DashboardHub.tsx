@@ -1316,7 +1316,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
               <p className="text-xs text-slate-300 mb-4 leading-relaxed font-sans">
                 {residentTasksList.length === 0
                   ? 'Heute stehen keine anstehenden Aufgaben für dich an.'
-                  : 'Hier siehst du deine eingeteilten Haushalts- und Alltagsdienste für den heutigen Tag.'}
+                  : 'Tippe auf eine Aufgabe, um sie als erledigt zu markieren.'}
               </p>
 
               {residentTasksList.length > 0 ? (
@@ -1339,7 +1339,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                       <div
                         key={task.templateId}
                         onClick={() => handleToggleChore(task, user?.id)}
-                        className={`p-4 sm:p-5 rounded-2xl border transition-all flex items-start justify-between gap-4 select-none cursor-pointer group/task ${
+                        className={`p-4 sm:p-5 rounded-2xl border transition-all flex items-start justify-between gap-4 select-none cursor-pointer group/task active:scale-[0.99] ${
                           isDone
                             ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-100'
                             : 'bg-surface-elevated/70 hover:bg-surface-elevated border-surface-border hover:border-theme/40 text-slate-100'
@@ -1350,7 +1350,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                             className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 transition-colors shadow-xs ${
                               isDone
                                 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                                : 'bg-surface-card border border-surface-border text-theme'
+                                : 'bg-theme/10 border border-theme/20 text-theme'
                             }`}
                           >
                             {getChoreOutlineIcon(task, 'w-6 h-6')}
@@ -1378,7 +1378,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                             className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all shadow-xs ${
                               isDone
                                 ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 font-bold'
-                                : 'bg-surface-card border border-surface-border text-slate-300 group-hover/task:border-theme/50 group-hover/task:text-white'
+                                : 'bg-amber-500/10 border border-amber-500/25 text-amber-300 font-medium group-hover/task:border-amber-400/40'
                             }`}
                           >
                             {isDone ? (
