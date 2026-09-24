@@ -283,7 +283,6 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
     : 0;
 
   const totalBudget = budgetData?.weeklyBudget || 350;
-  const spentPercent = totalBudget > 0 ? Math.min(100, Math.round((spentAmount / totalBudget) * 100)) : 0;
   const isOverBudget = spentAmount > totalBudget;
   const hasReceipt = budgetData?.actualSpent !== null && budgetData?.actualSpent !== undefined;
 
@@ -493,7 +492,7 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
                     isOverBudget ? 'text-rose-400' : 'text-emerald-400'
                   }`}
                 >
-                  {isOverBudget ? 'Überschreitung' : 'Verbleibend / Ersparnis'}
+                  {isOverBudget ? 'Überschreitung' : 'Verbleibend'}
                 </div>
                 <div
                   className={`text-2xl sm:text-3xl font-display font-bold font-mono ${
@@ -508,33 +507,6 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
                     : budgetData?.isConfirmed
                     ? 'In Sonderkasse verbucht'
                     : 'Möglicher Sparbetrag'}
-                </div>
-              </div>
-            </div>
-
-            {/* Progress bar */}
-            <div className="mt-5 space-y-1.5">
-              <div className="w-full h-2.5 bg-surface-elevated rounded-full overflow-hidden border border-white/5">
-                <div
-                  className={`h-full rounded-full transition-all duration-300 ${
-                    isOverBudget
-                      ? 'bg-rose-500'
-                      : 'bg-gradient-to-r from-emerald-500 to-teal-400'
-                  }`}
-                  style={{ width: `${spentPercent}%` }}
-                />
-              </div>
-              <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono">
-                <span>{spentPercent}% verbraucht</span>
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setCurrentTab('shopping')}
-                    className="hover:text-emerald-300 transition-colors cursor-pointer flex items-center gap-1"
-                  >
-                    <span>Einkaufsliste</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </button>
                 </div>
               </div>
             </div>

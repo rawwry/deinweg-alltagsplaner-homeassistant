@@ -3,6 +3,15 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.39] - 2026-09-24
+
+### Neu & Verbessert
+- **Flurfunk & Gesamtlänge (`index.css`)**:
+  - **Kein Layout-Springen beim Umschalten**: Durch `scrollbar-gutter: stable;` und `overflow-y: scroll;` auf dem Root-HTML-Element bleibt die nutzbare Inhaltsbreite beim Umschalten zwischen kurzen Tabs (z. B. *„Aktiv“*) und langen Listen (z. B. *„Erledigt“*) absolut stabil. Die Bedienelemente und die zentrierte Seite springen nicht mehr zur Seite.
+- **Kasse & Budget (`BudgetManagementView.tsx`)**:
+  - **Fortschrittsanzeige entfernt**: Der Fortschrittsbalken und der Text *„x% verbraucht“* wurden entfernt, was die Budget-Karte deutlich ruhiger und reduzierter macht.
+  - **Label vereinheitlicht**: Die Kachel *„Verbleibend / Ersparnis“* wurde in *„Verbleibend“* umbenannt.
+
 ## [0.1.38] - 2026-09-24
 
 ### Neu & Verbessert
