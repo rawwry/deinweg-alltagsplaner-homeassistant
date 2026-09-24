@@ -3,6 +3,13 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.37] - 2026-09-24
+
+### Neu & Verbessert
+- **Home Dashboard (`DashboardHub.tsx`)**:
+  - **Bewohner-Aufgabenplan-Button**: Der Button *„Aufgabenplan öffnen“* in der Karte *„Heutige Aufgaben“* ist nun auch in der Bewohner-Ansicht vollflächig (`w-full`) und zentriert, passend zu den anderen Bento-Karten und zur Betreuer-Ansicht.
+  - **Einheitlich gefärbte Modul-Buttons**: Alle Bento-Aktionsbuttons (*„Aufgabenplan öffnen/verwalten“*, *„Kochplan & Rezepte“*, *„Einkaufsliste öffnen“*, *„Zum Flurfunk“*, *„Abfallkalender öffnen“*) besitzen nun durchgängig und einheitlich den markanten App-Theme-Farbverlauf (`btn-theme-gradient`) mit Icon, Modulname und Navigationspfeil.
+
 ## [0.1.36] - 2026-09-24
 
 ### Neu & Verbessert

@@ -998,11 +998,11 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
       <button
         type="button"
         onClick={() => setCurrentTab('waste')}
-        className="w-full py-2.5 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer font-sans"
+        className="btn-theme-gradient w-full py-2.5 sm:py-3 rounded-2xl text-white font-semibold text-xs shadow-lg hover:scale-[1.01] active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2 font-sans"
       >
-        <Trash2 className="w-3.5 h-3.5 text-yellow-400" />
+        <Trash2 className="w-3.5 h-3.5" />
         <span>Abfallkalender öffnen</span>
-        <ArrowRight className="w-3.5 h-3.5 text-yellow-400" />
+        <ArrowRight className="w-3.5 h-3.5" />
       </button>
     </div>
   );
@@ -1091,11 +1091,11 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
       <button
         type="button"
         onClick={() => setCurrentTab('notes')}
-        className="w-full py-2.5 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer font-sans"
+        className="btn-theme-gradient w-full py-2.5 sm:py-3 rounded-2xl text-white font-semibold text-xs shadow-lg hover:scale-[1.01] active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2 font-sans"
       >
-        <MessageSquare className="w-3.5 h-3.5 text-rose-400" />
+        <MessageSquare className="w-3.5 h-3.5" />
         <span>Zum Flurfunk</span>
-        <ArrowRight className="w-3.5 h-3.5 text-rose-400" />
+        <ArrowRight className="w-3.5 h-3.5" />
       </button>
     </div>
   );
@@ -1460,15 +1460,15 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             </div>
 
             {/* Resident Footer Action */}
-            <div className="mt-5 pt-4 border-t border-surface-border/50 flex items-center justify-end">
+            <div className="mt-5 pt-4 border-t border-surface-border/50">
               <button
                 type="button"
                 onClick={() => setCurrentTab('chores')}
-                className="w-full sm:w-auto px-4 py-2.5 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border hover:border-indigo-500/40 text-slate-200 hover:text-white text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 font-sans shadow-xs group"
+                className="btn-theme-gradient w-full py-2.5 sm:py-3 rounded-2xl text-white font-semibold text-xs shadow-lg hover:scale-[1.01] active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2 font-sans"
               >
-                <Calendar className="w-3.5 h-3.5 text-indigo-400 group-hover:text-indigo-300 transition-colors" />
+                <Calendar className="w-3.5 h-3.5" />
                 <span>Aufgabenplan öffnen</span>
-                <ArrowRight className="w-3.5 h-3.5 text-indigo-400 group-hover:translate-x-0.5 transition-transform" />
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
@@ -1603,11 +1603,11 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             <button
               type="button"
               onClick={() => setCurrentTab('chores')}
-              className="w-full py-2.5 sm:py-3 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border hover:border-indigo-500/40 text-slate-200 hover:text-white text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 font-sans shadow-xs group"
+              className="btn-theme-gradient w-full py-2.5 sm:py-3 rounded-2xl text-white font-semibold text-xs shadow-lg hover:scale-[1.01] active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2 font-sans"
             >
-              <Calendar className="w-3.5 h-3.5 text-indigo-400 group-hover:text-indigo-300 transition-colors" />
+              <Calendar className="w-3.5 h-3.5" />
               <span>Aufgabenplan verwalten</span>
-              <ArrowRight className="w-3.5 h-3.5 text-indigo-400 group-hover:translate-x-0.5 transition-transform" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
@@ -1691,7 +1691,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             <button
               type="button"
               onClick={() => setCurrentTab('mealplan')}
-              className="btn-theme-gradient w-full py-2.5 rounded-2xl text-white font-semibold text-xs shadow-lg hover:scale-[1.01] active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2 font-sans"
+              className="btn-theme-gradient w-full py-2.5 sm:py-3 rounded-2xl text-white font-semibold text-xs shadow-lg hover:scale-[1.01] active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2 font-sans"
             >
               <UtensilsCrossed className="w-3.5 h-3.5" />
               <span>Kochplan & Rezepte</span>
@@ -1797,11 +1797,11 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                 <button
                   type="button"
                   onClick={() => setCurrentTab('shopping')}
-                  className="w-full py-2.5 sm:py-3 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer font-sans"
+                  className="btn-theme-gradient w-full py-2.5 sm:py-3 rounded-2xl text-white font-semibold text-xs shadow-lg hover:scale-[1.01] active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2 font-sans"
                 >
-                  <ShoppingCart className="w-3.5 h-3.5 text-emerald-400" />
+                  <ShoppingCart className="w-3.5 h-3.5" />
                   <span>Einkaufsliste öffnen</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-emerald-400" />
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
