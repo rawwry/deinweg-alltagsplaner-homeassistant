@@ -387,21 +387,38 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                       key={config.id}
                       type="button"
                       onClick={() => handleThemeChange(config.id)}
-                      className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-1.5 ${
+                      className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-2 ${
                         isSelected
-                          ? 'bg-surface-elevated border-theme-border ring-2 ring-theme-primary shadow-lg shadow-theme'
+                          ? 'bg-surface-elevated ring-2'
                           : 'bg-surface-elevated/40 border-surface-border hover:bg-surface-elevated hover:border-surface-border/80'
                       }`}
+                      style={{
+                        borderColor: isSelected ? config.previewColor : undefined,
+                        boxShadow: isSelected ? `0 6px 20px -4px ${config.glowColor}` : undefined,
+                      }}
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="text-base">{config.icon}</span>
-                        <span
-                          className="w-3.5 h-3.5 rounded-full border border-black/40 shadow-xs"
-                          style={{ backgroundColor: config.previewColor }}
-                        />
+                      {/* Mini colored preview button */}
+                      <div
+                        className="w-full py-1.5 px-2 rounded-xl text-[11px] font-bold text-white text-center shadow-xs flex items-center justify-center gap-1.5"
+                        style={{
+                          background: `linear-gradient(135deg, ${config.fromColor} 0%, ${config.toColor} 100%)`,
+                          boxShadow: `0 2px 8px ${config.glowColor}`,
+                        }}
+                      >
+                        <span>{config.shortName}</span>
                       </div>
-                      <div className="text-xs font-bold text-white truncate">
-                        {config.shortName}
+                      <div className="flex items-center justify-between px-0.5">
+                        <span className="text-[10px] font-medium text-slate-400">
+                          {config.category === 'subtle' ? 'Dezent' : 'Klassisch'}
+                        </span>
+                        {isSelected && (
+                          <span
+                            className="w-4 h-4 rounded-full text-white flex items-center justify-center shrink-0"
+                            style={{ backgroundColor: config.previewColor }}
+                          >
+                            <Check className="w-2.5 h-2.5 stroke-[3]" />
+                          </span>
+                        )}
                       </div>
                     </button>
                   );

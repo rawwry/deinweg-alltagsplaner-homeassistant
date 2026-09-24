@@ -58,12 +58,23 @@ export const formatCookingDays = (daysStr?: string | null): string => {
   return `${days.map((d) => shortNames[d - 1]).join(', ')} (${days.length} Tage)`;
 };
 
+const ADMIN_TABS = [
+  { id: 'users', label: 'Benutzer', icon: Users },
+  { id: 'locations', label: 'Standorte', icon: Building2 },
+  { id: 'chores', label: 'Aufgaben-Vorlagen', icon: ListTodo },
+  { id: 'categories', label: 'Rezept-Kategorien', icon: BookOpen },
+  { id: 'prices', label: 'Preise', icon: Tag },
+  { id: 'smtp', label: 'E-Mail / SMTP', icon: Mail },
+  { id: 'appearance', label: 'Erscheinungsbild', icon: Palette },
+  { id: 'system', label: 'System', icon: Server },
+] as const;
+
+type AdminSubTab = (typeof ADMIN_TABS)[number]['id'];
+
 export const AdminManagementView: React.FC = () => {
   const { user, locations, refreshLocations, logout } = useAuth();
   const { themeId, setThemeId, availableThemes } = useTheme();
-  const [activeSubTab, setActiveSubTab] = useState<
-    'users' | 'locations' | 'chores' | 'categories' | 'prices' | 'smtp' | 'appearance' | 'system'
-  >('users');
+  const [activeSubTab, setActiveSubTab] = useState<AdminSubTab>('users');
   const [avatarModalUserId, setAvatarModalUserId] = useState<string | null>(null);
   const [avatarModalCurrentUrl, setAvatarModalCurrentUrl] = useState<string | null>(null);
 
@@ -773,18 +784,19 @@ export const AdminManagementView: React.FC = () => {
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-24 md:pb-8 animate-in fade-in duration-300">
       {/* Header */}
-      <div className="bento-card rounded-[2.5rem] p-6 sm:p-8 border border-surface-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 relative overflow-hidden">
-        <div className="space-y-1.5 min-w-0">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-theme-subtle border border-theme-border rounded-full text-xs font-semibold text-theme">
-            <LayoutGrid className="w-3.5 h-3.5" />
-            <span>Admin-Bereich</span>
+      <div className="bento-card rounded-3xl p-5 sm:p-6 border border-surface-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden">
+        <div className="space-y-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-0.5 bg-theme-subtle border border-theme-border rounded-full text-[11px] font-semibold text-theme">
+              <Shield className="w-3.5 h-3.5 text-theme-primary" />
+              <span>Administration & Konfiguration</span>
+            </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-display font-bold text-surface-cream tracking-tight flex items-center gap-3">
-            <Shield className="w-7 h-7 text-theme" />
-            <span>Verwaltung & Konfiguration</span>
+          <h1 className="text-xl sm:text-2xl font-display font-bold text-surface-cream tracking-tight">
+            Systemverwaltung
           </h1>
           <p className="text-xs sm:text-sm text-surface-muted font-sans max-w-2xl leading-relaxed">
-            Zentrale Administration von Betreuern, Bewohnern, Standorten, Preisen und E-Mail / SMTP.
+            Zentrale Verwaltung von Benutzern, Standorten, Aufgaben-Vorlagen, Rezepten, E-Mail und Erscheinungsbild.
           </p>
         </div>
 
@@ -797,7 +809,7 @@ export const AdminManagementView: React.FC = () => {
                 logout();
               }
             }}
-            className="px-4 py-2.5 rounded-2xl bg-surface-elevated/80 hover:bg-rose-500/15 border border-surface-border hover:border-rose-500/30 text-slate-300 hover:text-rose-300 text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shadow-xs"
+            className="px-3.5 py-2 rounded-xl bg-surface-elevated hover:bg-rose-500/15 border border-surface-border hover:border-rose-500/30 text-slate-300 hover:text-rose-300 text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shadow-xs"
             title="Abmelden"
           >
             <LogOut className="w-4 h-4" />
@@ -807,111 +819,27 @@ export const AdminManagementView: React.FC = () => {
       </div>
 
       {/* Subtab Navigation Bar */}
-      <div className="p-1.5 bg-surface-card/90 border border-surface-border rounded-2xl backdrop-blur-md shadow-lg shadow-black/20 overflow-x-auto no-scrollbar scroll-smooth">
-        <div className="flex items-center gap-1.5 min-w-max">
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('users')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
-              activeSubTab === 'users'
-                ? 'btn-theme-gradient text-white shadow-md'
-                : 'text-surface-muted hover:text-surface-cream hover:bg-surface-elevated/60'
-            }`}
-          >
-            <Users className="w-4 h-4" />
-            <span>Benutzer</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('locations')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
-              activeSubTab === 'locations'
-                ? 'btn-theme-gradient text-white shadow-md'
-                : 'text-surface-muted hover:text-surface-cream hover:bg-surface-elevated/60'
-            }`}
-          >
-            <Building2 className="w-4 h-4" />
-            <span>Standorte</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('chores')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
-              activeSubTab === 'chores'
-                ? 'btn-theme-gradient text-white shadow-md'
-                : 'text-surface-muted hover:text-surface-cream hover:bg-surface-elevated/60'
-            }`}
-          >
-            <ListTodo className="w-4 h-4" />
-            <span>Aufgaben-Vorlagen</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('categories')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
-              activeSubTab === 'categories'
-                ? 'btn-theme-gradient text-white shadow-md'
-                : 'text-surface-muted hover:text-surface-cream hover:bg-surface-elevated/60'
-            }`}
-          >
-            <BookOpen className="w-4 h-4" />
-            <span>Rezept-Kategorien</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('prices')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
-              activeSubTab === 'prices'
-                ? 'btn-theme-gradient text-white shadow-md'
-                : 'text-surface-muted hover:text-surface-cream hover:bg-surface-elevated/60'
-            }`}
-          >
-            <Tag className="w-4 h-4" />
-            <span>Preise</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('smtp')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
-              activeSubTab === 'smtp'
-                ? 'btn-theme-gradient text-white shadow-md'
-                : 'text-surface-muted hover:text-surface-cream hover:bg-surface-elevated/60'
-            }`}
-          >
-            <Mail className="w-4 h-4" />
-            <span>E-Mail / SMTP</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('appearance')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
-              activeSubTab === 'appearance'
-                ? 'btn-theme-gradient text-white shadow-md'
-                : 'text-surface-muted hover:text-surface-cream hover:bg-surface-elevated/60'
-            }`}
-          >
-            <Palette className="w-4 h-4" />
-            <span>Erscheinungsbild</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('system')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
-              activeSubTab === 'system'
-                ? 'btn-theme-gradient text-white shadow-md'
-                : 'text-surface-muted hover:text-surface-cream hover:bg-surface-elevated/60'
-            }`}
-          >
-            <Server className="w-4 h-4" />
-            <span>System</span>
-          </button>
+      <div className="p-1.5 bg-surface-card/90 border border-surface-border rounded-2xl backdrop-blur-md shadow-sm">
+        <div className="flex flex-wrap items-center gap-1.5">
+          {ADMIN_TABS.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeSubTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveSubTab(tab.id)}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+                  isActive
+                    ? 'bg-theme-subtle text-white border border-theme-border shadow-xs'
+                    : 'text-surface-muted hover:text-surface-cream hover:bg-surface-elevated/60 border border-transparent'
+                }`}
+              >
+                <Icon className={`w-4 h-4 ${isActive ? 'text-theme-primary' : 'text-slate-400'}`} />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -3194,65 +3122,208 @@ export const AdminManagementView: React.FC = () => {
       {/* SUBTAB: APPEARANCE (ERSCHEINUNGSBILD) */}
       {activeSubTab === 'appearance' && (
         <div className="space-y-6">
-          <div className="bento-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border shadow-xl space-y-5">
-            <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="bento-card rounded-3xl p-6 sm:p-7 border border-surface-border shadow-xl space-y-7">
+            <div className="flex items-center justify-between flex-wrap gap-4 pb-4 border-b border-surface-border/60">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-pink-500/15 border border-pink-500/30 rounded-2xl text-pink-400">
-                  <Palette className="w-5 h-5" />
+                <div className="p-2.5 bg-theme-subtle border border-theme-border rounded-2xl text-theme">
+                  <Palette className="w-5 h-5 text-theme-primary" />
                 </div>
                 <div>
                   <h3 className="text-base font-display font-semibold text-surface-cream">
                     Erscheinungsbild & Farbschema
                   </h3>
                   <p className="text-xs text-surface-muted mt-0.5 font-sans">
-                    Wähle dein bevorzugtes Farbkonzept für Buttons, Akzente und Highlights (gespeichert im Browser).
+                    Wähle ein harmonisches Farbkonzept für Buttons, Akzente und Highlights in der gesamten Benutzeroberfläche.
                   </p>
                 </div>
               </div>
-              <span className="text-xs font-mono font-semibold px-3 py-1 bg-surface-elevated text-surface-cream border border-surface-border rounded-full">
-                Aktiv: {availableThemes.find((t) => t.id === themeId)?.name}
-              </span>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-surface-elevated rounded-full border border-surface-border shadow-xs">
+                <span
+                  className="w-2.5 h-2.5 rounded-full"
+                  style={{ backgroundColor: availableThemes.find((t) => t.id === themeId)?.previewColor }}
+                />
+                <span className="text-xs font-medium text-surface-cream">
+                  Aktiv: <strong className="font-semibold">{availableThemes.find((t) => t.id === themeId)?.name}</strong>
+                </span>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 pt-1">
-              {availableThemes.map((config) => {
-                const isActive = themeId === config.id;
-                return (
-                  <button
-                    key={config.id}
-                    type="button"
-                    onClick={() => setThemeId(config.id)}
-                    className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3 ${
-                      isActive
-                        ? 'bg-surface-elevated border-theme-border shadow-lg shadow-theme ring-2 ring-theme-primary'
-                        : 'bg-surface-elevated/50 border-surface-border hover:bg-surface-elevated hover:border-surface-border/80'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between w-full">
-                      <div className="flex items-center gap-2.5">
-                        <span className="text-lg">{config.icon}</span>
-                        <div className="flex items-center gap-2">
-                          <span
-                            className="w-3.5 h-3.5 rounded-full border border-black/40 shadow-xs"
-                            style={{ backgroundColor: config.previewColor }}
-                          />
-                          <span className="text-xs font-bold text-surface-cream">
-                            {config.name}
-                          </span>
+            {/* 1. Dezente & Ruhige Farbtöne */}
+            <div className="space-y-3.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                    Dezente & Ruhige Farbtöne
+                  </h4>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-surface-elevated text-slate-400 border border-surface-border">
+                    Minimalistisch & unaufdringlich
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
+                {availableThemes
+                  .filter((t) => t.category === 'subtle')
+                  .map((config) => {
+                    const isActive = themeId === config.id;
+                    return (
+                      <button
+                        key={config.id}
+                        type="button"
+                        onClick={() => setThemeId(config.id)}
+                        className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3.5 relative overflow-hidden group ${
+                          isActive
+                            ? 'bg-surface-elevated/90 ring-2'
+                            : 'bg-surface-elevated/40 border-surface-border hover:bg-surface-elevated hover:border-surface-border/80'
+                        }`}
+                        style={{
+                          borderColor: isActive ? config.previewColor : undefined,
+                          boxShadow: isActive ? `0 10px 28px -4px ${config.glowColor}` : undefined,
+                        }}
+                      >
+                        {/* Live Mini Preview: Theme Button & Badge */}
+                        <div className="p-3 rounded-xl bg-slate-950/80 border border-white/5 flex items-center justify-between gap-3">
+                          <div
+                            className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white shadow-sm flex items-center gap-1.5 transition-transform group-hover:scale-[1.02]"
+                            style={{
+                              background: `linear-gradient(135deg, ${config.fromColor} 0%, ${config.toColor} 100%)`,
+                              boxShadow: `0 4px 12px ${config.glowColor}`,
+                            }}
+                          >
+                            <span>Schaltfläche</span>
+                          </div>
+
+                          <div
+                            className="px-2.5 py-1 rounded-lg text-[10px] font-semibold tracking-wide"
+                            style={{
+                              backgroundColor: config.subtleColor,
+                              color: config.textColor,
+                              border: `1px solid ${config.borderColor}`,
+                            }}
+                          >
+                            Akzent
+                          </div>
                         </div>
-                      </div>
-                      {isActive && (
-                        <span className="w-5 h-5 rounded-full bg-theme-primary text-white flex items-center justify-center shrink-0 shadow-sm">
-                          <Check className="w-3 h-3 stroke-[3]" />
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-[11px] text-surface-muted leading-relaxed font-sans">
-                      {config.description}
-                    </p>
-                  </button>
-                );
-              })}
+
+                        {/* Title, Description & Selected State */}
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="space-y-0.5 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs"
+                                style={{ backgroundColor: config.previewColor }}
+                              />
+                              <h5 className="text-xs font-bold text-surface-cream truncate">
+                                {config.name}
+                              </h5>
+                            </div>
+                            <p className="text-[11px] text-surface-muted leading-relaxed font-sans">
+                              {config.description}
+                            </p>
+                          </div>
+
+                          {isActive && (
+                            <span
+                              className="w-5 h-5 rounded-full text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5"
+                              style={{ backgroundColor: config.previewColor }}
+                            >
+                              <Check className="w-3 h-3 stroke-[3]" />
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+              </div>
+            </div>
+
+            {/* 2. Klassische & Lebendige Farbtöne */}
+            <div className="space-y-3.5 pt-4 border-t border-surface-border/60">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                    Klassische & Lebendige Farbtöne
+                  </h4>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-surface-elevated text-slate-400 border border-surface-border">
+                    Inkl. offizielles Dein Weg Design
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {availableThemes
+                  .filter((t) => t.category !== 'subtle')
+                  .map((config) => {
+                    const isActive = themeId === config.id;
+                    return (
+                      <button
+                        key={config.id}
+                        type="button"
+                        onClick={() => setThemeId(config.id)}
+                        className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3.5 relative overflow-hidden group ${
+                          isActive
+                            ? 'bg-surface-elevated/90 ring-2'
+                            : 'bg-surface-elevated/40 border-surface-border hover:bg-surface-elevated hover:border-surface-border/80'
+                        }`}
+                        style={{
+                          borderColor: isActive ? config.previewColor : undefined,
+                          boxShadow: isActive ? `0 10px 28px -4px ${config.glowColor}` : undefined,
+                        }}
+                      >
+                        {/* Live Mini Preview: Theme Button & Badge */}
+                        <div className="p-3 rounded-xl bg-slate-950/80 border border-white/5 flex items-center justify-between gap-3">
+                          <div
+                            className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white shadow-sm flex items-center gap-1.5 transition-transform group-hover:scale-[1.02]"
+                            style={{
+                              background: `linear-gradient(135deg, ${config.fromColor} 0%, ${config.toColor} 100%)`,
+                              boxShadow: `0 4px 12px ${config.glowColor}`,
+                            }}
+                          >
+                            <span>Schaltfläche</span>
+                          </div>
+
+                          <div
+                            className="px-2.5 py-1 rounded-lg text-[10px] font-semibold tracking-wide"
+                            style={{
+                              backgroundColor: config.subtleColor,
+                              color: config.textColor,
+                              border: `1px solid ${config.borderColor}`,
+                            }}
+                          >
+                            Akzent
+                          </div>
+                        </div>
+
+                        {/* Title, Description & Selected State */}
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="space-y-0.5 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs"
+                                style={{ backgroundColor: config.previewColor }}
+                              />
+                              <h5 className="text-xs font-bold text-surface-cream truncate">
+                                {config.name}
+                              </h5>
+                            </div>
+                            <p className="text-[11px] text-surface-muted leading-relaxed font-sans">
+                              {config.description}
+                            </p>
+                          </div>
+
+                          {isActive && (
+                            <span
+                              className="w-5 h-5 rounded-full text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5"
+                              style={{ backgroundColor: config.previewColor }}
+                            >
+                              <Check className="w-3 h-3 stroke-[3]" />
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+              </div>
             </div>
           </div>
         </div>

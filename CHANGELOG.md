@@ -3,6 +3,24 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.40] - 2026-09-24
+
+### Neu & Verbessert
+- **Admin-Bereich & Navigation (`AdminManagementView.tsx`)**:
+  - **Aufgeräumter Header**: Reduziertes, elegantes Header-Design mit klarer Hierarchie, dezentem Badge und aufgeräumter Typografie.
+  - **Umfassendes Subtab-Menü ohne Horizontales Scrollen**: Die Subtab-Leiste schneidet Tabs auf Desktop- und Tablet-Bildschirmen nicht mehr ab. Dank des responsiven, umbrechenden Segment-Layouts sind alle 8 Bereiche (*Benutzer*, *Standorte*, *Aufgaben-Vorlagen*, *Rezept-Kategorien*, *Preise*, *E-Mail / SMTP*, *Erscheinungsbild*, *System*) direkt und übersichtlich erreichbar.
+  - **Dezente aktive Tab-Zustände**: Die vorher grell pinke Schaltfläche für den aktiven Tab wurde durch einen edlen, integrierten Zustand ersetzt (`bg-theme-subtle` mit feinem Rand und themenfarbigem Icon), der sich harmonisch in jedes Farbschema einfügt.
+- **Erscheinungsbild & Themes (`ThemeContext.tsx`, `index.css`, `AdminManagementView.tsx`, `UserProfileModal.tsx`)**:
+  - **Keine Emojis mehr**: Alle seltsamen Emoji-Icons (🌸, 🍯, 🌿, etc.) wurden vollständig entfernt.
+  - **Realistische Vorschau-Karten**: Statt bloßer kleiner Farbpunkte besitzt jede Farbpalette nun interaktive Vorschau-Karten, die eine echte Miniatur-Schaltfläche mit Farbverlauf, Glüheffekt und Akzent-Badge anzeigen – genau so, wie die UI in diesem Theme aussieht.
+  - **4 neue dezente Farbschemata**:
+    - **Nordic Slate**: Zeitloses, minimalistisches Schiefergrau & Graphit.
+    - **Sanftes Salbei**: Beruhigendes, unaufdringliches Salbei- und Eukalyptusgrün.
+    - **Warmes Kaschmir**: Wohliges Sandstein-, Kaschmir- und sanftes Terrakotta.
+    - **Midnight Indigo**: Tiefgründiges, edles Nachtblau & Schiefer-Indigo.
+  - **Klare Strukturierung**: Unterteilung in *„Dezente & Ruhige Farbtöne“* (ideal für ermüdungsfreies Arbeiten) und *„Klassische & Lebendige Farbtöne“* (inkl. offiziellem *Dein Weg Magenta*).
+  - **Profil-Modal aktualisiert**: Auch im Benutzerprofil-Modal werden die neuen Themes als stilisierte Mini-Buttons ohne Emojis dargestellt.
+
 ## [0.1.39] - 2026-09-24
 
 ### Neu & Verbessert

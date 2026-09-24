@@ -48,6 +48,66 @@
     --radial-secondary: rgba(6, 182, 212, 0.08);
   }
 
+  [data-theme="slate"] {
+    --theme-primary: #64748b;
+    --theme-primary-hover: #94a3b8;
+    --theme-accent: #475569;
+    --theme-glow: rgba(148, 163, 184, 0.20);
+    --theme-glow-hover: rgba(203, 213, 225, 0.32);
+    --theme-subtle: rgba(148, 163, 184, 0.12);
+    --theme-border: rgba(148, 163, 184, 0.25);
+    --theme-text: #cbd5e1;
+    --theme-from: #64748b;
+    --theme-to: #475569;
+    --radial-primary: rgba(148, 163, 184, 0.10);
+    --radial-secondary: rgba(100, 116, 139, 0.05);
+  }
+
+  [data-theme="sage"] {
+    --theme-primary: #52796f;
+    --theme-primary-hover: #6b9080;
+    --theme-accent: #354f52;
+    --theme-glow: rgba(107, 144, 128, 0.22);
+    --theme-glow-hover: rgba(132, 169, 140, 0.35);
+    --theme-subtle: rgba(82, 121, 111, 0.14);
+    --theme-border: rgba(107, 144, 128, 0.28);
+    --theme-text: #a3b18a;
+    --theme-from: #52796f;
+    --theme-to: #354f52;
+    --radial-primary: rgba(82, 121, 111, 0.12);
+    --radial-secondary: rgba(132, 169, 140, 0.06);
+  }
+
+  [data-theme="sand"] {
+    --theme-primary: #b5835a;
+    --theme-primary-hover: #c99368;
+    --theme-accent: #8b5a3e;
+    --theme-glow: rgba(181, 131, 90, 0.22);
+    --theme-glow-hover: rgba(201, 147, 104, 0.35);
+    --theme-subtle: rgba(181, 131, 90, 0.14);
+    --theme-border: rgba(181, 131, 90, 0.28);
+    --theme-text: #ddb892;
+    --theme-from: #b5835a;
+    --theme-to: #8b5a3e;
+    --radial-primary: rgba(181, 131, 90, 0.12);
+    --radial-secondary: rgba(156, 102, 68, 0.06);
+  }
+
+  [data-theme="midnight"] {
+    --theme-primary: #6366f1;
+    --theme-primary-hover: #818cf8;
+    --theme-accent: #4338ca;
+    --theme-glow: rgba(99, 102, 241, 0.22);
+    --theme-glow-hover: rgba(129, 140, 248, 0.35);
+    --theme-subtle: rgba(99, 102, 241, 0.14);
+    --theme-border: rgba(99, 102, 241, 0.28);
+    --theme-text: #c7d2fe;
+    --theme-from: #6366f1;
+    --theme-to: #4338ca;
+    --radial-primary: rgba(99, 102, 241, 0.12);
+    --radial-secondary: rgba(67, 56, 202, 0.06);
+  }
+
   [data-theme="ocean"] {
     --theme-primary: #0ea5e9;
     --theme-primary-hover: #38bdf8;
