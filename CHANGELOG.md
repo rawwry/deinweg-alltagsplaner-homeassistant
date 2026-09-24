@@ -3,6 +3,14 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.35] - 2026-09-24
+
+### Behoben
+- **Flurfunk – Tab-Filterung & Badge-Stabilität (`CaregiverNotesView.tsx`, `client.ts`)**:
+  - **Behebung der Geister-Eins auf „Aktiv“**: Zuvor wurden beim Klick auf *„Erledigt“* nur die archivierten Beiträge vom Server geladen und fälschlicherweise in `activeNotes` mitgezählt, wodurch auf dem Button *„Aktiv“* plötzlich eine „1“ erschien, obwohl 0 aktive Beiträge existierten. Nun werden alle Beiträge im Gesamtzusammenhang geladen und strikt nach `isArchived` getrennt.
+  - **Kein Layout-Springen der Buttonzeile**: Die Zähler für *„Aktiv“*, *„Ausgeblendet“* und *„Erledigt“* sind nun von Anfang an stabil vorhanden und ändern beim Wechseln der Tabs weder ihre Breite noch ihren Schriftstil. Das Springen der Leiste gehört der Vergangenheit an.
+  - **Sofortiges, flackerfreies Umschalten**: Tab-Wechsel greifen nun sofort lokal auf den Datensatz zu, ohne unnötige Netzwerk-Reloads oder Ladespinner auszulösen.
+
 ## [0.1.34] - 2026-09-24
 
 ### Neu & Verbessert

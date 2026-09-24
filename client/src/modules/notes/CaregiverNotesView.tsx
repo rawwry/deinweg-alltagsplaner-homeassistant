@@ -126,14 +126,13 @@ export const CaregiverNotesView: React.FC = () => {
   const fetchNotes = async () => {
     try {
       setIsLoading(true);
-      const isArchived = activeTab === 'ARCHIVE';
-      const data = await api.notes.list(activeLocationId, isArchived);
+      const data = await api.notes.list(activeLocationId, 'all');
       const sorted = sortNotes(data);
       setNotes(sorted);
 
-      // Auto-mark unread notes as read
+      // Auto-mark unread notes as read (only active notes)
       data
-        .filter((n) => n.hasUnreadResponse && (!n.respondedByUserId || n.respondedByUserId !== user?.id))
+        .filter((n) => !n.isArchived && n.status !== 'DONE' && n.hasUnreadResponse && (!n.respondedByUserId || n.respondedByUserId !== user?.id))
         .forEach((n) => {
           api.notes.markRead(n.id).catch(() => {});
         });
@@ -196,7 +195,7 @@ export const CaregiverNotesView: React.FC = () => {
 
   useEffect(() => {
     fetchNotes();
-  }, [activeLocationId, activeTab]);
+  }, [activeLocationId]);
 
   const toggleExpand = (id: string) => {
     setExpandedNoteIds((prev) => {
@@ -370,7 +369,7 @@ export const CaregiverNotesView: React.FC = () => {
   const handleResolveTicket = async (id: string) => {
     try {
       await api.notes.resolve(id);
-      setNotes((prev) => prev.filter((n) => n.id !== id));
+      setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, isArchived: true, status: 'DONE' as const } : n)));
     } catch (err: any) {
       alert(`Fehler beim Lösen des Tickets: ${err.message || err}`);
     }
@@ -379,7 +378,7 @@ export const CaregiverNotesView: React.FC = () => {
   const handleReopenTicket = async (id: string) => {
     try {
       await api.notes.reopen(id);
-      setNotes((prev) => prev.filter((n) => n.id !== id));
+      setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, isArchived: false, status: 'OPEN' as const } : n)));
     } catch (err: any) {
       alert(`Fehler beim Wiedereröffnen: ${err.message || err}`);
     }
@@ -421,9 +420,10 @@ export const CaregiverNotesView: React.FC = () => {
     }
   };
 
-  const activeNotes = notes.filter((n) => !n.isHiddenForMe);
-  const hiddenNotes = notes.filter((n) => Boolean(n.isHiddenForMe));
-  const displayedNotes = activeTab === 'HIDDEN' ? hiddenNotes : (activeTab === 'ACTIVE' ? activeNotes : notes);
+  const activeNotes = notes.filter((n) => !n.isArchived && n.status !== 'DONE' && !n.isHiddenForMe);
+  const hiddenNotes = notes.filter((n) => !n.isArchived && n.status !== 'DONE' && Boolean(n.isHiddenForMe));
+  const archivedNotes = notes.filter((n) => Boolean(n.isArchived || n.status === 'DONE'));
+  const displayedNotes = activeTab === 'HIDDEN' ? hiddenNotes : (activeTab === 'ARCHIVE' ? archivedNotes : activeNotes);
 
   const isAwaitingCaregiverResponse = (n: CaregiverNoteSummary): boolean => {
     if (n.isArchived || n.status === 'DONE' || n.isHiddenForMe) return false;
@@ -504,7 +504,7 @@ export const CaregiverNotesView: React.FC = () => {
               onClick={() => setActiveTab('ACTIVE')}
               className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer select-none whitespace-nowrap ${
                 activeTab === 'ACTIVE'
-                  ? 'bg-surface-card text-white shadow-sm border border-surface-border font-bold'
+                  ? 'bg-surface-card text-white shadow-sm border border-surface-border'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent'
               }`}
             >
@@ -528,7 +528,7 @@ export const CaregiverNotesView: React.FC = () => {
                 onClick={() => setActiveTab('HIDDEN')}
                 className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer select-none whitespace-nowrap ${
                   activeTab === 'HIDDEN'
-                    ? 'bg-surface-card text-white shadow-sm border border-surface-border font-bold'
+                    ? 'bg-surface-card text-white shadow-sm border border-surface-border'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent'
                 }`}
               >
@@ -552,15 +552,19 @@ export const CaregiverNotesView: React.FC = () => {
               onClick={() => setActiveTab('ARCHIVE')}
               className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer select-none whitespace-nowrap ${
                 activeTab === 'ARCHIVE'
-                  ? 'bg-surface-card text-white shadow-sm border border-surface-border font-bold'
+                  ? 'bg-surface-card text-white shadow-sm border border-surface-border'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent'
               }`}
             >
               <Archive className={`w-4 h-4 shrink-0 transition-colors ${activeTab === 'ARCHIVE' ? 'text-slate-200' : 'text-slate-400'}`} />
               <span>Erledigt</span>
-              {activeTab === 'ARCHIVE' && notes.length > 0 && (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-black font-mono bg-white/10 text-white">
-                  {notes.length}
+              {archivedNotes.length > 0 && (
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-black font-mono transition-colors ${
+                    activeTab === 'ARCHIVE' ? 'bg-white/10 text-white' : 'bg-surface-elevated text-slate-400'
+                  }`}
+                >
+                  {archivedNotes.length}
                 </span>
               )}
             </button>

@@ -202,7 +202,7 @@ export const api = {
   },
 
   notes: {
-    list: (locationId?: string, archived: boolean = false) =>
+    list: (locationId?: string, archived: boolean | 'all' = false) =>
       request<any[]>(`notes?${locationId ? `locationId=${locationId}&` : ''}archived=${archived}`),
     countOpen: (locationId?: string) =>
       request<{ count: number }>(`notes/count-open${locationId ? `?locationId=${locationId}` : ''}`),
