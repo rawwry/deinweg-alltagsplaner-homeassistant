@@ -3,6 +3,13 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.38] - 2026-09-24
+
+### Neu & Verbessert
+- **Kasse & Budget (`BudgetManagementView.tsx`, `index.css`)**:
+  - **Keine störenden Zahlendrehpfeile (Spin-Buttons)**: Die hässlichen Browser-Pfeile beim Überfahren von Betrags- und Zahlenfeldern wurden app-weit in `index.css` sowie direkt auf den Input-Feldern unterbunden. Der Betrag und das Euro-Symbol überlappen sich nicht mehr.
+  - **Startguthaben-Button bereinigt**: Der redundante Button *„Startguthaben“* in der Karte *„Aktueller Spartopf“* wurde entfernt. Die Buchungsart *„Startguthaben“* ist wie gewohnt direkt im Formular *„Buchung erfassen“* wählbar.
+
 ## [0.1.37] - 2026-09-24
 
 ### Neu & Verbessert

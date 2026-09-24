@@ -22,7 +22,6 @@ import {
   ShieldCheck,
   Search,
   Landmark,
-  Coins,
   Edit2,
   Wallet,
 } from 'lucide-react';
@@ -571,7 +570,7 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
                       required
                       value={weeklyBudgetInput}
                       onChange={(e) => setWeeklyBudgetInput(e.target.value)}
-                      className="w-full px-3 py-2 bg-surface-elevated border border-surface-border rounded-xl text-sm font-bold text-white font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                      className="w-full px-3 py-2 bg-surface-elevated border border-surface-border rounded-xl text-sm font-bold text-white font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/40 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                   </div>
 
@@ -643,9 +642,9 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
                           ? budgetData.estimatedShoppingCost.toFixed(2)
                           : 'z.B. 312.45'
                       }
-                      className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-sm font-bold text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 font-mono"
+                      className="w-full pl-3.5 pr-8 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-sm font-bold text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 font-mono [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
-                    <span className="absolute right-3.5 top-2.5 text-xs text-slate-400 font-mono">€</span>
+                    <span className="absolute right-3.5 top-2.5 text-xs text-slate-400 font-mono pointer-events-none">€</span>
                   </div>
                 </div>
 
@@ -736,19 +735,6 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
                 >
                   <Plus className="w-4 h-4" />
                   <span>Buchung erfassen</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setTransType('STARTGUTHABEN');
-                    setTransPurpose('Bestehende Rücklagen aus Zeit vor der App');
-                    setShowAddTransaction(true);
-                  }}
-                  className="px-4 py-2 bg-surface-elevated hover:bg-surface-card border border-surface-border text-slate-300 hover:text-white rounded-2xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  <Coins className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Startguthaben</span>
                 </button>
               </div>
             </div>
@@ -851,9 +837,9 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
                         value={transAmount}
                         onChange={(e) => setTransAmount(e.target.value)}
                         placeholder="25.00"
-                        className="w-full px-3 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                        className="w-full pl-3 pr-8 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/40 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
-                      <span className="absolute right-3 top-2 text-xs text-slate-400 font-mono">€</span>
+                      <span className="absolute right-3 top-2 text-xs text-slate-400 font-mono pointer-events-none">€</span>
                     </div>
                   </div>
 
