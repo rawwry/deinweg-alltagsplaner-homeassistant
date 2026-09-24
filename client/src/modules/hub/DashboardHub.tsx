@@ -1000,8 +1000,9 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
         onClick={() => setCurrentTab('waste')}
         className="w-full py-2.5 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer font-sans"
       >
+        <Trash2 className="w-3.5 h-3.5 text-yellow-400" />
         <span>Abfallkalender öffnen</span>
-        <ArrowRight className="w-3.5 h-3.5 text-rose-400" />
+        <ArrowRight className="w-3.5 h-3.5 text-yellow-400" />
       </button>
     </div>
   );
@@ -1092,6 +1093,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
         onClick={() => setCurrentTab('notes')}
         className="w-full py-2.5 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer font-sans"
       >
+        <MessageSquare className="w-3.5 h-3.5 text-rose-400" />
         <span>Zum Flurfunk</span>
         <ArrowRight className="w-3.5 h-3.5 text-rose-400" />
       </button>
@@ -1160,10 +1162,11 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
               <button
                 type="button"
                 onClick={() => setCurrentTab('notes')}
-                className="px-3.5 py-1.5 rounded-2xl bg-surface-card border border-rose-500/30 text-xs text-rose-300 font-medium hover:bg-surface-elevated transition-colors flex items-center gap-2 cursor-pointer shadow-sm"
+                className="px-3.5 py-1.5 rounded-2xl bg-surface-card border border-rose-500/30 text-xs text-rose-300 font-medium hover:bg-surface-elevated transition-colors flex items-center gap-2 cursor-pointer shadow-sm group"
               >
                 <MessageSquare className="w-4 h-4 stroke-[2]" />
                 <span>{openNotes.length} {openNotes.length === 1 ? 'Eintrag' : 'Einträge'} im Flurfunk</span>
+                <ArrowRight className="w-3.5 h-3.5 text-rose-400 group-hover:translate-x-0.5 transition-transform ml-0.5" />
               </button>
             )}
           </div>
@@ -1465,6 +1468,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
               >
                 <Calendar className="w-3.5 h-3.5 text-indigo-400 group-hover:text-indigo-300 transition-colors" />
                 <span>Aufgabenplan öffnen</span>
+                <ArrowRight className="w-3.5 h-3.5 text-indigo-400 group-hover:translate-x-0.5 transition-transform" />
               </button>
             </div>
           </div>
@@ -1603,6 +1607,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             >
               <Calendar className="w-3.5 h-3.5 text-indigo-400 group-hover:text-indigo-300 transition-colors" />
               <span>Aufgabenplan verwalten</span>
+              <ArrowRight className="w-3.5 h-3.5 text-indigo-400 group-hover:translate-x-0.5 transition-transform" />
             </button>
           </div>
         </div>
@@ -1688,6 +1693,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
               onClick={() => setCurrentTab('mealplan')}
               className="btn-theme-gradient w-full py-2.5 rounded-2xl text-white font-semibold text-xs shadow-lg hover:scale-[1.01] active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2 font-sans"
             >
+              <UtensilsCrossed className="w-3.5 h-3.5" />
               <span>Kochplan & Rezepte</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
@@ -1793,6 +1799,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                   onClick={() => setCurrentTab('shopping')}
                   className="w-full py-2.5 sm:py-3 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border text-slate-200 hover:text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer font-sans"
                 >
+                  <ShoppingCart className="w-3.5 h-3.5 text-emerald-400" />
                   <span>Einkaufsliste öffnen</span>
                   <ArrowRight className="w-3.5 h-3.5 text-emerald-400" />
                 </button>

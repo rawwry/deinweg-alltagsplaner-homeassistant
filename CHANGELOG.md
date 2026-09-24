@@ -3,6 +3,18 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.33] - 2026-09-24
+
+### Einheitliches Button-Design
+- **Home Dashboard (`DashboardHub.tsx`)**:
+  - Alle Modul-Aktionsbuttons in den Bento-Karten besitzen nun eine konsistente Kombination aus thematischem Icon am Anfang und Navigationspfeil (`ArrowRight`) am Ende:
+    - **Aufgabenplan** (*„Aufgabenplan öffnen“* / *„Aufgabenplan verwalten“*): Kalender-Icon (`Calendar`) + Text + Pfeil (`ArrowRight`).
+    - **Heutiges Gericht / Kochplan** (*„Kochplan & Rezepte“*): Besteck-Icon (`UtensilsCrossed`) + Text + Pfeil (`ArrowRight`).
+    - **Einkaufskorb** (*„Einkaufsliste öffnen“*): Einkaufswagen-Icon (`ShoppingCart`) + Text + Pfeil (`ArrowRight`).
+    - **Flurfunk** (*„Zum Flurfunk“*): Sprechblasen-Icon (`MessageSquare`) + Text + Pfeil (`ArrowRight`).
+    - **Abfall-Radar** (*„Abfallkalender öffnen“*): Mülltonnen-Icon (`Trash2`) + Text + Pfeil (`ArrowRight`).
+  - Auch die Flurfunk-Zusammenfassungs-Pill im Header wurde einheitlich mit Sprechblasen-Icon und Pfeil ausgestattet.
+
 ## [0.1.32] - 2026-09-24
 
 ### Neu & Verbessert
