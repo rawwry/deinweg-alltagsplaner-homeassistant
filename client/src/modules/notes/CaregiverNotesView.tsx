@@ -497,23 +497,23 @@ export const CaregiverNotesView: React.FC = () => {
 
         {/* Tabs: Active vs Hidden vs Archive - Seamlessly integrated */}
         <div className="pt-4 border-t border-surface-border/60 flex items-center justify-start">
-          <div className="bg-surface-elevated/80 p-1.5 rounded-2xl border border-surface-border/80 flex items-center gap-1.5 w-full sm:w-auto shadow-inner">
+          <div className="bg-surface-elevated/90 p-1 rounded-2xl border border-surface-border/80 flex items-center gap-1 w-full sm:w-auto shadow-inner">
             {/* 1. Aktiv */}
             <button
               type="button"
               onClick={() => setActiveTab('ACTIVE')}
-              className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer select-none whitespace-nowrap ${
+              className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer select-none whitespace-nowrap ${
                 activeTab === 'ACTIVE'
-                  ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md shadow-rose-500/25 font-bold'
-                  : 'text-slate-400 hover:text-white hover:bg-surface-card/60'
+                  ? 'bg-surface-card text-white shadow-sm border border-surface-border font-bold'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent'
               }`}
             >
-              <Pin className="w-4 h-4 shrink-0" />
+              <Pin className={`w-4 h-4 shrink-0 transition-colors ${activeTab === 'ACTIVE' ? 'text-rose-400' : 'text-slate-400'}`} />
               <span>Aktiv</span>
               {activeNotes.length > 0 && (
                 <span
                   className={`px-2 py-0.5 rounded-full text-[10px] font-black font-mono transition-colors ${
-                    activeTab === 'ACTIVE' ? 'bg-black/25 text-white' : 'bg-surface-card text-slate-300'
+                    activeTab === 'ACTIVE' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' : 'bg-surface-elevated text-slate-400'
                   }`}
                 >
                   {activeNotes.length}
@@ -526,18 +526,18 @@ export const CaregiverNotesView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab('HIDDEN')}
-                className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer select-none whitespace-nowrap ${
+                className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer select-none whitespace-nowrap ${
                   activeTab === 'HIDDEN'
-                    ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md shadow-rose-500/25 font-bold'
-                    : 'text-slate-400 hover:text-white hover:bg-surface-card/60'
+                    ? 'bg-surface-card text-white shadow-sm border border-surface-border font-bold'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent'
                 }`}
               >
-                <EyeOff className="w-4 h-4 shrink-0" />
+                <EyeOff className={`w-4 h-4 shrink-0 transition-colors ${activeTab === 'HIDDEN' ? 'text-amber-400' : 'text-slate-400'}`} />
                 <span>Ausgeblendet</span>
                 {hiddenNotes.length > 0 && (
                   <span
                     className={`px-2 py-0.5 rounded-full text-[10px] font-black font-mono transition-colors ${
-                      activeTab === 'HIDDEN' ? 'bg-black/25 text-white' : 'bg-surface-card text-slate-300'
+                      activeTab === 'HIDDEN' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-surface-elevated text-slate-400'
                     }`}
                   >
                     {hiddenNotes.length}
@@ -550,16 +550,16 @@ export const CaregiverNotesView: React.FC = () => {
             <button
               type="button"
               onClick={() => setActiveTab('ARCHIVE')}
-              className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer select-none whitespace-nowrap ${
+              className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer select-none whitespace-nowrap ${
                 activeTab === 'ARCHIVE'
-                  ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md shadow-rose-500/25 font-bold'
-                  : 'text-slate-400 hover:text-white hover:bg-surface-card/60'
+                  ? 'bg-surface-card text-white shadow-sm border border-surface-border font-bold'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent'
               }`}
             >
-              <Archive className="w-4 h-4 shrink-0" />
+              <Archive className={`w-4 h-4 shrink-0 transition-colors ${activeTab === 'ARCHIVE' ? 'text-slate-200' : 'text-slate-400'}`} />
               <span>Erledigt</span>
               {activeTab === 'ARCHIVE' && notes.length > 0 && (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-black font-mono bg-black/25 text-white">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-black font-mono bg-white/10 text-white">
                   {notes.length}
                 </span>
               )}

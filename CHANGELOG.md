@@ -3,6 +3,21 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.34] - 2026-09-24
+
+### Neu & Verbessert
+- **Flurfunk (`CaregiverNotesView.tsx`)**:
+  - **Subtiler Tabs-Switch**: Die Tabs *„Aktiv“* und *„Erledigt“* (sowie *„Ausgeblendet“*) nutzen nun einen eleganten, dunklen Karten-Hintergrund mit dezentem Rand und farbigen Status-Icons (Rose, Amber, Slate), statt der lauten pinken Farbfläche. Dadurch behält der primäre Aktionsbutton *„+ Neuen Beitrag verfassen“* seine klare visuelle Führungsrolle.
+  - **Perfekt harmonisierte Kantenradien**: Der Tab-Container (`rounded-2xl p-1`) und die Schaltflächen (`rounded-xl py-2.5`) sind nun geometrisch konzentrisch abgestimmt ($16\text{px} - 4\text{px} = 12\text{px}$), sodass alle Ecken gleichmäßig und organisch fluchten.
+- **Einkaufsliste (`ShoppingListView.tsx`)**:
+  - **Neuer Bento-Header**: Die Kopfzeile ist nun als harmonische Bento-Card im Stil der Kochplanung gestaltet.
+  - **Bereinigte Subline**: Der Standortverweis wurde entfernt und durch die einheitliche Subline *„Eure Einkaufsliste für diese Woche“* ersetzt.
+  - **Aufgeräumter KW-Switch**: Der Wochenwechsler wurde parallel zum Speiseplan als eleganter Pill-Navigator mit Zurücksetzen-Funktion auf die aktuelle Kalenderwoche integriert.
+- **Aufgabenplan (`ChorePlannerView.tsx`)**:
+  - **Vollflächig klickbare Aufgaben**: Genau wie auf dem Home-Dashboard können Bewohner ihre Aufgaben (sowohl reguläre WG-Aufgaben als auch Kochdienste) nun direkt durch Antippen der gesamten Aufgabenkarte als erledigt oder offen markieren.
+  - Der Abhake-Indikator reagiert mit konsistentem Hover- und Checkmark-Feedback.
+  - Bei Betreuern verhindern Event-Stopps versehentliche Statuswechsel beim Bedienen der Zuweisungs-Modale.
+
 ## [0.1.33] - 2026-09-24
 
 ### Einheitliches Button-Design

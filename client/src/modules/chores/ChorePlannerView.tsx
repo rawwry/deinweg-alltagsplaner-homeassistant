@@ -394,15 +394,22 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
               const choreKey = `${day.date}_${tmpl.id}`;
               const isPersonalDone = personalDoneChores.includes(choreKey);
 
+              const isResidentChef = user?.role === 'BEWOHNER' && isCookMe;
+
               if (tmpl.isChefkoch) {
                 return (
                   <div
                     key={tmpl.id}
+                    onClick={() => {
+                      if (isResidentChef) {
+                        togglePersonalChore(choreKey);
+                      }
+                    }}
                     className={`rounded-2xl border p-4 sm:p-5 transition-all flex flex-col gap-3 ${
                       isPersonalDone
                         ? 'bg-emerald-950/20 border-emerald-500/30'
                         : 'bg-surface-elevated/70 hover:bg-surface-elevated border-rose-500/30 shadow-xs'
-                    }`}
+                    } ${isResidentChef ? 'cursor-pointer select-none group/chore' : ''}`}
                   >
                     {/* Top Tier: Icon + Title & Kochplan badge + Personal Check-off Top-Right */}
                     <div className="flex items-center justify-between gap-3 min-w-0">
@@ -421,14 +428,12 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                         </div>
                       </div>
 
-                      {user?.role === 'BEWOHNER' && isCookMe && (
-                        <button
-                          type="button"
-                          onClick={() => togglePersonalChore(choreKey)}
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer shrink-0 ${
+                      {isResidentChef && (
+                        <div
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all shrink-0 select-none ${
                             isPersonalDone
-                              ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30'
-                              : 'bg-surface-card hover:bg-surface-elevated border-surface-border text-slate-300 hover:text-white'
+                              ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+                              : 'bg-surface-card border-surface-border text-slate-300 group-hover/chore:border-rose-400 group-hover/chore:text-white'
                           }`}
                           title={isPersonalDone ? 'Als unerledigt markieren' : 'Als erledigt abhaken'}
                         >
@@ -436,13 +441,13 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                             className={`w-4 h-4 rounded-md flex items-center justify-center border transition-colors ${
                               isPersonalDone
                                 ? 'bg-emerald-500 border-emerald-500 text-slate-950'
-                                : 'border-slate-500 bg-transparent'
+                                : 'border-slate-500 bg-transparent group-hover/chore:border-rose-400'
                             }`}
                           >
                             {isPersonalDone && <Check className="w-3 h-3 stroke-[3]" />}
                           </div>
                           <span>{isPersonalDone ? 'Erledigt' : 'Abhaken'}</span>
-                        </button>
+                        </div>
                       )}
                     </div>
 
@@ -495,9 +500,16 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                 ? (assignment.isAllResidents ? ['ALL'] : (assignment.assignedResidentIdsList || (assignment.residentId ? [assignment.residentId] : [])))
                 : (tmpl.isAllResidents ? ['ALL'] : (tmpl.assignedResidentIdsList || []));
 
+              const isResidentTask = user?.role === 'BEWOHNER' && isMyTask;
+
               return (
                 <div
                   key={tmpl.id}
+                  onClick={() => {
+                    if (isResidentTask) {
+                      handleToggleChoreInPlan(tmpl, day, assignment, user?.id);
+                    }
+                  }}
                   className={`rounded-2xl border p-4 sm:p-5 transition-all flex flex-col gap-3 ${
                     (user?.role === 'BEWOHNER' ? isMyDone : isAllDone)
                       ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-100 shadow-xs'
@@ -506,7 +518,7 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                       : isAssigned
                       ? 'bg-surface-elevated/70 hover:bg-surface-elevated border-surface-border hover:border-indigo-500/40 shadow-xs'
                       : 'bg-surface-elevated/30 border-surface-border/60 border-dashed hover:border-surface-border'
-                  }`}
+                  } ${isResidentTask ? 'cursor-pointer select-none group/chore' : ''}`}
                 >
                   {/* Top Tier: Icon + Title + Personal Check-off Top-Right */}
                   <div className="flex items-center justify-between gap-3 min-w-0">
@@ -528,14 +540,12 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                     </div>
 
                     {/* Personal check-off button for residents / Status badge & toggle for staff */}
-                    {user?.role === 'BEWOHNER' && isMyTask ? (
-                      <button
-                        type="button"
-                        onClick={() => handleToggleChoreInPlan(tmpl, day, assignment, user?.id)}
-                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer shrink-0 ${
+                    {isResidentTask ? (
+                      <div
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all shrink-0 select-none ${
                           isMyDone
-                            ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30'
-                            : 'bg-surface-card hover:bg-surface-elevated border-surface-border text-slate-300 hover:text-white'
+                            ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+                            : 'bg-surface-card border-surface-border text-slate-300 group-hover/chore:border-indigo-400 group-hover/chore:text-white'
                         }`}
                         title={isMyDone ? 'Als unerledigt markieren' : 'Als erledigt abhaken'}
                       >
@@ -543,17 +553,20 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                           className={`w-4 h-4 rounded-md flex items-center justify-center border transition-colors ${
                             isMyDone
                               ? 'bg-emerald-500 border-emerald-500 text-slate-950'
-                              : 'border-slate-500 bg-transparent'
+                              : 'border-slate-500 bg-transparent group-hover/chore:border-indigo-400'
                           }`}
                         >
                           {isMyDone && <Check className="w-3 h-3 stroke-[3]" />}
                         </div>
                         <span>{isMyDone ? 'Erledigt' : 'Abhaken'}</span>
-                      </button>
+                      </div>
                     ) : isStaff ? (
                       <button
                         type="button"
-                        onClick={() => handleToggleChoreInPlan(tmpl, day, assignment)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleChoreInPlan(tmpl, day, assignment);
+                        }}
                         className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl border text-xs font-bold transition-all cursor-pointer shrink-0 ${
                           isAllDone
                             ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30'
@@ -615,7 +628,8 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                       {isAllResidents ? (
                         <button
                           type="button"
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             if (isStaff) {
                               setAssignModal({
                                 isOpen: true,
@@ -645,7 +659,8 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                         isStaff ? (
                           <button
                             type="button"
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation();
                               setAssignModal({
                                 isOpen: true,
                                 template: tmpl,
@@ -695,7 +710,8 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                           return (
                             <button
                               type="button"
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 if (isStaff) {
                                   setAssignModal({
                                     isOpen: true,
@@ -743,14 +759,15 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                       ) : isStaff ? (
                         <button
                           type="button"
-                          onClick={() =>
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setAssignModal({
                               isOpen: true,
                               template: tmpl,
                               day,
                               selectedResidentIds: modalInitialIds,
-                            })
-                          }
+                            });
+                          }}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-dashed border-indigo-500/40 text-indigo-300 hover:text-white hover:bg-indigo-500/15 hover:border-indigo-500/60 text-xs font-semibold transition-all cursor-pointer"
                         >
                           <User className="w-3.5 h-3.5 text-indigo-400" />
@@ -787,7 +804,8 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                             <button
                               key={r.id}
                               type="button"
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 handleToggleChoreInPlan(tmpl, day, assignment, r.id);
                               }}
                               title={

@@ -52,6 +52,11 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
   const initial = getInitialWeek();
   const [year, setYear] = useState(initial.year);
   const [weekNumber, setWeekNumber] = useState(initial.week);
+  const isCurrentWeek = weekNumber === initial.week && year === initial.year;
+  const handleResetToCurrent = () => {
+    setYear(initial.year);
+    setWeekNumber(initial.week);
+  };
 
   const [shoppingData, setShoppingData] = useState<any>(null);
   const [budgetData, setBudgetData] = useState<any>(null);
@@ -318,42 +323,50 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-24 md:pb-8">
-      {/* Top Header Row: Title & Controls */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/15 border border-emerald-500/30 rounded-full text-xs font-semibold text-emerald-300 mb-2 font-display">
+      {/* Top Bento Header & Controls Bar */}
+      <div className="bg-surface-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 relative overflow-hidden">
+        <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="space-y-1.5 z-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/15 border border-emerald-500/30 rounded-full text-xs font-semibold text-emerald-300 mb-1 font-display">
             <ShoppingCart className="w-3.5 h-3.5" />
             <span>Gemeinsame Einkaufsliste</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-display font-bold text-white tracking-tight">
             Einkauf & Vorräte
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1 font-normal">
-            Alle Zutaten und Haushaltsartikel für{' '}
-            <span className="text-slate-200 font-medium">
-              {activeLocation?.name || user?.locationName || 'unsere WG'}
-            </span>
+          <p className="text-xs sm:text-sm text-slate-400 font-normal">
+            Eure Einkaufsliste für diese Woche
           </p>
         </div>
 
         {/* Week Switcher & Navigation */}
-        <div className="flex items-center gap-2 self-stretch sm:self-auto justify-between sm:justify-end">
-          <div className="inline-flex items-center bg-surface-card border border-surface-border rounded-2xl p-1 shadow-sm">
+        <div className="flex items-center gap-2.5 w-full sm:w-auto justify-between sm:justify-end z-10">
+          <div className="inline-flex items-center bg-surface-elevated border border-surface-border rounded-2xl p-1 shadow-inner flex-1 sm:flex-initial justify-between sm:justify-center">
             <button
               type="button"
               onClick={handlePrevWeek}
-              className="p-2 hover:bg-surface-elevated rounded-xl text-slate-400 hover:text-white transition-colors cursor-pointer"
+              className="p-2 hover:bg-surface-card rounded-xl text-slate-300 hover:text-white transition-colors cursor-pointer"
               title="Vorherige Woche"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="px-3 text-xs font-bold text-white font-mono tracking-wide">
-              KW {weekNumber} <span className="text-slate-500 font-normal">({year})</span>
-            </span>
+            <button
+              type="button"
+              onClick={handleResetToCurrent}
+              className={`px-4 sm:px-6 py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all cursor-pointer flex-1 sm:flex-initial text-center ${
+                isCurrentWeek
+                  ? 'bg-emerald-500/20 text-white border border-emerald-500/40 shadow-xs font-bold'
+                  : 'text-slate-300 hover:bg-surface-card hover:text-white'
+              }`}
+              title={isCurrentWeek ? 'Aktuelle Woche wird angezeigt' : 'Zur aktuellen Woche springen'}
+            >
+              KW {weekNumber} · {year}
+            </button>
             <button
               type="button"
               onClick={handleNextWeek}
-              className="p-2 hover:bg-surface-elevated rounded-xl text-slate-400 hover:text-white transition-colors cursor-pointer"
+              className="p-2 hover:bg-surface-card rounded-xl text-slate-300 hover:text-white transition-colors cursor-pointer"
               title="Nächste Woche"
             >
               <ChevronRight className="w-4 h-4" />
