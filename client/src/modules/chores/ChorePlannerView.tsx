@@ -990,9 +990,6 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
               }`}
             >
               <span>{day.name}</span>
-              <span className="font-mono text-[11px] opacity-75">
-                {day.date ? day.date.slice(8, 10) + '.' + day.date.slice(5, 7) : ''}
-              </span>
               {isToday && (
                 <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse shrink-0" />
               )}
@@ -1026,12 +1023,9 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                   : 'bg-surface-card border-surface-border text-slate-300 hover:bg-surface-elevated'
               }`}
             >
-              <span className="text-[11px] sm:text-xs font-semibold">{day.name.slice(0, 2)}</span>
-              <span className="text-[9px] sm:text-[10px] opacity-75 font-mono">
-                {day.date ? day.date.slice(8, 10) + '.' + day.date.slice(5, 7) : ''}
-              </span>
+              <span className="text-xs font-semibold">{day.name.slice(0, 2)}</span>
               {isToday && (
-                <span className="w-1 h-1 rounded-full bg-indigo-400 mt-0.5" />
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 mt-1" />
               )}
             </button>
           );

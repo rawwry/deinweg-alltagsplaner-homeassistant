@@ -246,21 +246,36 @@ export const RecipeCatalogView: React.FC = () => {
           />
         </div>
 
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              type="button"
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-3.5 py-1.5 rounded-xl font-semibold whitespace-nowrap transition-colors cursor-pointer ${
-                selectedCategory === cat
-                  ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-sm'
-                  : 'bg-surface-elevated text-slate-400 hover:bg-surface-card hover:text-white border border-surface-border'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
+          {categories.map((cat) => {
+            const count =
+              cat === 'ALLE'
+                ? recipes.length
+                : recipes.filter((r) => r.category === cat).length;
+            const isSelected = selectedCategory === cat;
+
+            return (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-3 py-1.5 rounded-xl font-semibold transition-all cursor-pointer inline-flex items-center gap-1.5 text-xs select-none ${
+                  isSelected
+                    ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-sm ring-1 ring-white/20'
+                    : 'bg-surface-elevated text-slate-300 hover:bg-surface-card hover:text-white border border-surface-border'
+                }`}
+              >
+                <span>{cat}</span>
+                <span
+                  className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
+                    isSelected ? 'bg-black/25 text-white' : 'bg-surface-card text-slate-400'
+                  }`}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 

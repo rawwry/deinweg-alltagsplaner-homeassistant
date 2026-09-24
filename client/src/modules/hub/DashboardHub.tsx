@@ -1599,11 +1599,11 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           </div>
 
           {/* Staff Footer Action */}
-          <div className="mt-5 pt-4 border-t border-surface-border/50 flex items-center justify-end">
+          <div className="mt-5 pt-4 border-t border-surface-border/50">
             <button
               type="button"
               onClick={() => setCurrentTab('chores')}
-              className="w-full sm:w-auto px-4 py-2.5 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border hover:border-indigo-500/40 text-slate-200 hover:text-white text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 font-sans shadow-xs group"
+              className="w-full py-2.5 sm:py-3 rounded-2xl bg-surface-elevated hover:bg-white/10 border border-surface-border hover:border-indigo-500/40 text-slate-200 hover:text-white text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 font-sans shadow-xs group"
             >
               <Calendar className="w-3.5 h-3.5 text-indigo-400 group-hover:text-indigo-300 transition-colors" />
               <span>Aufgabenplan verwalten</span>

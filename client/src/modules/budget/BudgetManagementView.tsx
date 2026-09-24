@@ -14,13 +14,11 @@ import {
   Clock,
   ChevronLeft,
   ChevronRight,
-  RotateCcw,
   Sparkles,
   ArrowRight,
   ShoppingCart,
   ChefHat,
   AlertCircle,
-  Building2,
   ShieldCheck,
   Search,
   Landmark,
@@ -34,7 +32,7 @@ interface BudgetManagementViewProps {
 }
 
 export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setCurrentTab }) => {
-  const { user, activeLocationId, activeLocation, locations, setActiveLocationId } = useAuth();
+  const { user, activeLocationId, activeLocation } = useAuth();
   const isStaff = user?.role?.toUpperCase() === 'ADMIN' || user?.role?.toUpperCase() === 'BETREUER';
 
   // Current ISO week calculation
@@ -321,59 +319,36 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
           </p>
         </div>
 
-        {/* Location & Week Controls */}
-        <div className="flex flex-wrap items-center gap-2 self-stretch sm:self-auto justify-between sm:justify-end">
-          {locations.length > 1 && (
-            <div className="flex items-center gap-1.5 bg-surface-card border border-surface-border rounded-2xl px-3 py-1.5 text-xs text-slate-300">
-              <Building2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-              <select
-                value={activeLocationId}
-                onChange={(e) => setActiveLocationId(e.target.value)}
-                className="bg-transparent font-semibold text-white focus:outline-none cursor-pointer"
-              >
-                {locations.map((loc) => (
-                  <option key={loc.id} value={loc.id} className="bg-surface-card text-white">
-                    {loc.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* Week Switcher */}
-          <div className="inline-flex items-center bg-surface-card border border-surface-border rounded-2xl p-1 shadow-sm">
-            <button
-              type="button"
-              onClick={handlePrevWeek}
-              className="p-2 hover:bg-surface-elevated rounded-xl text-slate-400 hover:text-white transition-colors cursor-pointer"
-              title="Vorherige Woche"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <span className="px-3 text-xs font-bold text-white font-mono tracking-wide">
-              KW {weekNumber} <span className="text-slate-500 font-normal">({year})</span>
-            </span>
-            <button
-              type="button"
-              onClick={handleNextWeek}
-              className="p-2 hover:bg-surface-elevated rounded-xl text-slate-400 hover:text-white transition-colors cursor-pointer"
-              title="Nächste Woche"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-
-          {!isCurrentWeek && (
-            <button
-              type="button"
-              onClick={handleResetToCurrentWeek}
-              className="px-3 py-2 rounded-2xl bg-surface-card hover:bg-surface-elevated border border-surface-border text-slate-300 hover:text-white text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 shadow-sm"
-              title="Zur aktuellen Woche"
-            >
-              <RotateCcw className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="hidden sm:inline">Heute</span>
-            </button>
-          )}
+        {/* Week Switcher (matching modern pill design) */}
+        <div className="inline-flex items-center bg-surface-elevated border border-surface-border rounded-2xl p-1 shadow-inner flex-1 sm:flex-initial justify-between sm:justify-center">
+          <button
+            type="button"
+            onClick={handlePrevWeek}
+            className="p-2 hover:bg-surface-card rounded-xl text-slate-300 hover:text-white transition-colors cursor-pointer"
+            title="Vorherige Woche"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={handleResetToCurrentWeek}
+            className={`px-4 sm:px-6 py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all cursor-pointer flex-1 sm:flex-initial text-center ${
+              isCurrentWeek
+                ? 'bg-emerald-500/20 text-white border border-emerald-500/40 shadow-xs font-bold'
+                : 'text-slate-300 hover:bg-surface-card hover:text-white'
+            }`}
+            title={isCurrentWeek ? 'Aktuelle Woche wird angezeigt' : 'Zur aktuellen Woche springen'}
+          >
+            KW {weekNumber} · {year}
+          </button>
+          <button
+            type="button"
+            onClick={handleNextWeek}
+            className="p-2 hover:bg-surface-card rounded-xl text-slate-300 hover:text-white transition-colors cursor-pointer"
+            title="Nächste Woche"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
@@ -735,15 +710,17 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <div className="flex items-center gap-2 text-xs font-semibold text-amber-300 font-display mb-1.5">
-                  <PiggyBank className="w-4 h-4" />
-                  <span>Sonderkasse ({activeLocation?.name || 'WG'})</span>
+                <div className="flex items-center gap-2.5 text-sm sm:text-base font-bold text-amber-300 font-display mb-3 tracking-wide">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-300 shadow-xs">
+                    <PiggyBank className="w-4 h-4" />
+                  </div>
+                  <span>Aktueller Spartopf</span>
                 </div>
-                <div className="text-3xl sm:text-4xl font-display font-extrabold font-mono text-white tracking-tight">
+                <div className="text-3xl sm:text-4xl font-display font-extrabold font-mono text-white tracking-tight mb-2">
                   {budgetData ? `${budgetData.totalSavingsBalance.toFixed(2)} €` : '...'}
                 </div>
-                <p className="text-xs text-slate-400 mt-1 max-w-md">
-                  Rücklagen aus Wocheneinkäufen und Startguthaben für WG-Aktivitäten & Ausflüge.
+                <p className="text-xs sm:text-sm text-slate-400 max-w-md leading-relaxed">
+                  Rücklagen aus nicht verwendeter Gemeinschaftsverpflegung
                 </p>
               </div>
 
@@ -845,9 +822,23 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {/* Amount */}
-                  <div>
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-start">
+                  {/* 1. Datum (leicht reduzierte Breite) */}
+                  <div className="md:col-span-3">
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      Datum *
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={transDate}
+                      onChange={(e) => setTransDate(e.target.value)}
+                      className="w-full px-3 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                    />
+                  </div>
+
+                  {/* 2. Betrag (leicht reduzierte Breite) */}
+                  <div className="md:col-span-3">
                     <label className="block text-xs font-semibold text-slate-300 mb-1">
                       Betrag (€) *
                     </label>
@@ -866,8 +857,8 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
                     </div>
                   </div>
 
-                  {/* Purpose */}
-                  <div className="sm:col-span-2">
+                  {/* 3. Zweck */}
+                  <div className="md:col-span-6">
                     <label className="block text-xs font-semibold text-slate-300 mb-1">
                       Verwendungszweck *
                     </label>
@@ -884,17 +875,6 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
                       className="w-full px-3 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
                     />
                   </div>
-                </div>
-
-                {/* Date */}
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Datum</label>
-                  <input
-                    type="date"
-                    value={transDate}
-                    onChange={(e) => setTransDate(e.target.value)}
-                    className="w-full sm:w-48 px-3 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
-                  />
                 </div>
 
                 {/* Actions */}

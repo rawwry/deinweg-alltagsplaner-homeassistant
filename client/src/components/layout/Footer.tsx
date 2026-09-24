@@ -10,7 +10,7 @@ export const Footer: React.FC = () => {
       <footer className="hidden sm:block w-full border-t border-surface-border/50 bg-transparent mt-10 pt-4 pb-4 px-4 text-xs text-slate-400 flex-shrink-0">
         <div className="max-w-7xl mx-auto flex flex-row items-center justify-between gap-3 text-left">
           <div className="flex items-center gap-1.5 flex-wrap justify-start text-xs">
-            <span className="text-slate-300">© 2026 Deine WG: Alltagsplaner</span>
+            <span className="text-slate-300">© 2026 •︎ Deine WG: Alltagsplaner</span>
             <button
               type="button"
               onClick={() => setIsChangelogOpen(true)}
@@ -36,8 +36,6 @@ export const Footer: React.FC = () => {
             >
               Changelog
             </button>
-            <span className="text-slate-600">·</span>
-            <span className="text-slate-400">Alle Rechte vorbehalten.</span>
           </div>
 
           <div className="flex items-center gap-1.5 text-slate-500 hover:text-theme transition-colors text-[11px] font-mono tracking-wider font-semibold">

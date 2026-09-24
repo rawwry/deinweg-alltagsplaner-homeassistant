@@ -3,6 +3,26 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.36] - 2026-09-24
+
+### Neu & Verbessert
+- **Kasse & Budget (`BudgetManagementView.tsx`)**:
+  - **Standort-Dropdown entfernt**: Betreuer wechseln den Standort bereits global über die obere Navigationsleiste; das doppelte Dropdown im Kopfbereich wurde entfernt.
+  - **Moderner KW-Switch**: Der alte Wochen-Umschalter wurde durch das zentrierte Pill-Design (`< [ KW 39 · 2026 ] >`) ersetzt, passend zum Einkaufskorb und Speiseplan.
+  - **Neuer Spartopf-Hero**: Die gelbe Überschrift lautet nun markant und aufgeräumt *„Aktueller Spartopf“* (ohne Standortklammer), mit eleganter Typografie und optimiertem Abstand zum Guthabenbetrag.
+  - **Neue Spartopf-Subline**: Umbenannt in *„Rücklagen aus nicht verwendeter Gemeinschaftsverpflegung“*.
+  - **Optimiertes Buchungsformular**: Die Eingabefelder für neue Sonderkassen-Buchungen sind auf dem Desktop in einer einzigen Zeile angeordnet: 1. Datum (kompakt), 2. Betrag (kompakt), 3. Zweck (volle Restbreite).
+- **Rezepte (`RecipeCatalogView.tsx`)**:
+  - **Responsives Kategorie-Menü**: Die horizontale Scrollleiste wurde durch moderne, umbrechende Filter-Chips mit dynamischer Rezeptanzahl-Pille ersetzt.
+- **Einkaufsliste (`ShoppingListView.tsx`)**:
+  - **Erledigte Artikel**: Titel von *„Abgehakte Artikel“* in *„Erledigte Artikel“* umbenannt, mit vergrößertem Zeilenabstand zur Subline *„x von x Artikeln im Einkaufswagen“*.
+- **Aufgabenplan (`ChorePlannerView.tsx`)**:
+  - **Bereinigte Wochentagsleiste**: Die Datumsangaben in den Wochentagstasten wurden entfernt, sodass nur noch die sauberen Wochentagsnamen angezeigt werden.
+- **Home Dashboard (`DashboardHub.tsx`)**:
+  - **Aufgabenplan-Button zentriert**: Der Button *„Aufgabenplan verwalten“* in der Karte *„Heutige Aufgaben der WG“* ist nun zentriert und vollflächig (`w-full`), identisch zu allen anderen Bento-Karten.
+- **Footer (`Footer.tsx`)**:
+  - Copyright-Text auf *„© 2026 •︎ Deine WG: Alltagsplaner“* angepasst und der Text *„Alle Rechte vorbehalten.“* entfernt.
+
 ## [0.1.35] - 2026-09-24
 
 ### Behoben

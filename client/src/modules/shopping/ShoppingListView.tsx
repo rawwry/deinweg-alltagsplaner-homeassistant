@@ -384,8 +384,8 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
               🧺
             </div>
             <div className="min-w-0">
-              <div className="font-bold text-sm text-white truncate">Abgehakte Artikel</div>
-              <div className="text-[11px] text-slate-400 font-sans truncate">
+              <div className="font-bold text-sm text-white truncate">Erledigte Artikel</div>
+              <div className="text-[11px] text-slate-400 font-sans truncate mt-1">
                 {checkedCount} von {totalCount} Artikeln im Einkaufswagen
               </div>
             </div>
@@ -634,14 +634,14 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
             </div>
           )}
 
-          {/* Abgehakte Artikel (Visuell reduziert, wiederherstellbar bei Klick) */}
+          {/* Erledigte Artikel (Visuell reduziert, wiederherstellbar bei Klick) */}
           {totalCompletedCount > 0 && (
             <div className="bento-card rounded-[2rem] p-5 sm:p-6 border border-white/5 bg-surface-card/40 opacity-80 hover:opacity-100 transition-opacity">
               <div className="flex items-center justify-between mb-3 border-b border-white/5 pb-2.5">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                   <h3 className="text-xs sm:text-sm font-display font-semibold text-slate-300">
-                    Abgehakte Artikel ({totalCompletedCount})
+                    Erledigte Artikel ({totalCompletedCount})
                   </h3>
                 </div>
                 <span className="text-[11px] text-slate-400 font-sans">
