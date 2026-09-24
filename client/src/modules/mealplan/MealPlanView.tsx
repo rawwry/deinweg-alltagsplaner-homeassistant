@@ -308,7 +308,7 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
               <span>Speiseplan & Kochtraining</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white font-sans">
-              Unser Kochplan
+              Wöchentliche Kochplanung
             </h1>
             {isStaff && (
               <p className="text-xs text-slate-400 mt-1 font-medium font-sans">
@@ -332,18 +332,12 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
               <CalendarDays className="w-3.5 h-3.5 text-rose-400 shrink-0" />
               <span>Gemeinschaftsverpflegung: {formatCookingDaysRange(activeLocation?.cookingDays)}</span>
             </div>
-
-            {/* Portions Chip */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-elevated border border-surface-border text-slate-300 text-xs font-medium">
-              <Users className="w-3.5 h-3.5 text-rose-400 shrink-0" />
-              <span>{activeLocation?.defaultServings || 6} Portionen</span>
-            </div>
           </div>
         </div>
 
         {/* Week Navigator & Actions */}
-        <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto justify-between lg:justify-end z-10">
-          <div className="inline-flex items-center bg-surface-elevated border border-surface-border rounded-2xl p-1 shadow-inner">
+        <div className="flex items-center gap-2.5 w-full lg:w-auto justify-between lg:justify-end z-10">
+          <div className="inline-flex items-center bg-surface-elevated border border-surface-border rounded-2xl p-1 shadow-inner flex-1 sm:flex-initial justify-between sm:justify-center">
             <button
               type="button"
               onClick={handlePrevWeek}
@@ -355,7 +349,7 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
             <button
               type="button"
               onClick={handleResetToCurrent}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
+              className={`px-4 sm:px-6 py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all cursor-pointer flex-1 sm:flex-initial text-center ${
                 isCurrentWeek
                   ? 'bg-rose-500/20 text-white border border-rose-500/40 shadow-xs'
                   : 'text-slate-300 hover:bg-surface-card hover:text-white'
@@ -375,27 +369,16 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
           </div>
 
           {(user?.role?.toUpperCase() === 'BETREUER' || user?.role?.toUpperCase() === 'ADMIN') && activeLocation && (
-            <>
-              <button
-                type="button"
-                onClick={handleOpenLocationSettings}
-                className="p-2.5 bg-surface-elevated hover:bg-surface-card border border-surface-border rounded-2xl text-slate-300 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer shadow-xs"
-                title="Kochtage, Standard-Portionen & Budget für diesen Standort anpassen"
-              >
-                <Settings className="w-4 h-4 text-rose-400" />
-                <span className="hidden sm:inline">Plan-Tage</span>
-              </button>
-            </>
+            <button
+              type="button"
+              onClick={handleOpenLocationSettings}
+              className="p-2.5 bg-surface-elevated hover:bg-surface-card border border-surface-border rounded-2xl text-slate-300 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer shadow-xs"
+              title="Kochtage, Standard-Portionen & Budget für diesen Standort anpassen"
+            >
+              <Settings className="w-4 h-4 text-rose-400" />
+              <span className="hidden sm:inline">Plan-Tage</span>
+            </button>
           )}
-
-          <button
-            type="button"
-            onClick={() => setCurrentTab('shopping')}
-            className="px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 active:scale-95 text-white text-xs font-semibold rounded-2xl shadow-lg shadow-emerald-600/25 flex items-center gap-1.5 transition-all cursor-pointer font-sans"
-          >
-            <ShoppingCart className="w-4 h-4" />
-            <span className="hidden sm:inline">Einkaufsliste</span>
-          </button>
         </div>
       </div>
 
@@ -638,7 +621,7 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
                             onChange={(e) => handleUpdateCook(dayOfWeek, e.target.value || null)}
                             className="w-full bg-transparent text-slate-200 font-semibold focus:outline-none cursor-pointer pr-1 font-sans truncate text-xs"
                           >
-                            <option value="" className="bg-surface-card text-slate-200">Koch: Offen / Team</option>
+                            <option value="" className="bg-surface-card text-slate-200">Koch: Offen</option>
                             {residents.map((r) => (
                               <option key={r.id} value={r.id} className="bg-surface-card text-slate-200">
                                 Koch: {r.name}

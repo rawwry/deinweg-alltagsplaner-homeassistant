@@ -1030,7 +1030,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           Mitteilungen & Notizen
         </h3>
         <p className="text-xs text-slate-300 mb-4 leading-relaxed font-sans">
-          Wichtige Absprachen, Termine und Wünsche für alle WG-Mitglieder.
+          Versende Nachrichten an andere Bewohner oder Betreuer
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
@@ -1104,8 +1104,12 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
       <div className="text-center flex flex-col items-center justify-center pt-2 pb-1">
         <div className="inline-flex items-center gap-2 text-rose-400 text-xs font-semibold tracking-wider uppercase mb-2 font-sans">
           <span className="w-2 h-2 rounded-full bg-theme-primary animate-pulse" />
-          <span className="text-slate-300 font-medium">WG {activeLocation?.name || user?.locationName || 'Emsdetten'}</span>
-          <span className="text-slate-600">•</span>
+          {!isResident && (
+            <>
+              <span className="text-slate-300 font-medium">WG {activeLocation?.name || user?.locationName || 'Emsdetten'}</span>
+              <span className="text-slate-600">•</span>
+            </>
+          )}
           <span className="text-slate-400 font-medium">Kalenderwoche {currentWeek}</span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white font-sans flex items-center justify-center gap-2.5">
@@ -1378,22 +1382,16 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
 
                           <div className="shrink-0 flex items-center sm:self-center self-end">
                             <div
-                              className={`px-3.5 py-2 rounded-xl flex items-center gap-2 border font-semibold text-xs transition-all ${
+                              className={`w-7 h-7 rounded-xl flex items-center justify-center border transition-all ${
                                 isDone
                                   ? 'bg-emerald-500 border-emerald-500 text-slate-950 shadow-xs'
-                                  : 'border-slate-500 bg-surface-card/60 group-hover/task:border-indigo-400 text-slate-200'
+                                  : 'border-slate-500 bg-surface-card/60 group-hover/task:border-indigo-400'
                               }`}
                             >
                               {isDone ? (
-                                <>
-                                  <Check className="w-4 h-4 stroke-[3]" />
-                                  <span>Erledigt</span>
-                                </>
+                                <Check className="w-4 h-4 stroke-[3]" />
                               ) : (
-                                <>
-                                  <span className="w-2 h-2 rounded-full bg-slate-400 group-hover/task:bg-indigo-400 transition-colors" />
-                                  <span>Als erledigt abhaken</span>
-                                </>
+                                <span className="w-2.5 h-2.5 rounded-full bg-slate-400 group-hover/task:bg-indigo-400 transition-colors" />
                               )}
                             </div>
                           </div>
@@ -1621,7 +1619,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             <div className="flex items-center justify-between gap-3 mb-4">
               <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-semibold uppercase tracking-wider font-sans whitespace-nowrap">
                 <UtensilsCrossed className="w-3.5 h-3.5 stroke-[2]" />
-                <span>Heute frisch auf den Tisch</span>
+                <span>Heutiges Gericht</span>
               </div>
             </div>
 
@@ -1637,26 +1635,21 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             </p>
 
             {/* Culinary Tags */}
-            <div className="flex flex-wrap gap-2 mb-4">
-              {todayMeal?.recipe?.prepTimeMinutes ? (
-                <span className="px-3 py-1 rounded-xl bg-surface-elevated/80 border border-surface-border text-xs text-slate-300 font-medium flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-rose-400" />
-                  <span>ca. {todayMeal.recipe.prepTimeMinutes} Min.</span>
-                </span>
-              ) : null}
+            {(todayMeal?.recipe?.isVegetarian || todayMeal?.recipe?.isVegan) && (
+              <div className="flex flex-wrap gap-2 mb-4">
+                {todayMeal?.recipe?.isVegetarian ? (
+                  <span className="px-3 py-1 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-xs text-emerald-300 font-medium">
+                    🌿 Vegetarisch
+                  </span>
+                ) : null}
 
-              {todayMeal?.recipe?.isVegetarian ? (
-                <span className="px-3 py-1 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-xs text-emerald-300 font-medium">
-                  🌿 Vegetarisch
-                </span>
-              ) : null}
-
-              {todayMeal?.recipe?.isVegan ? (
-                <span className="px-3 py-1 rounded-xl bg-teal-500/15 border border-teal-500/30 text-xs text-teal-300 font-medium">
-                  🌱 Vegan
-                </span>
-              ) : null}
-            </div>
+                {todayMeal?.recipe?.isVegan ? (
+                  <span className="px-3 py-1 rounded-xl bg-teal-500/15 border border-teal-500/30 text-xs text-teal-300 font-medium">
+                    🌱 Vegan
+                  </span>
+                ) : null}
+              </div>
+            )}
 
             {/* Chefkoch & Servings Info moved into the card body */}
             <div className="p-3.5 mb-4 rounded-2xl bg-surface-elevated/70 border border-surface-border flex items-center justify-between gap-4">
@@ -1733,13 +1726,10 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                   </span>
                 </div>
 
-                <h3 className="text-xl font-semibold text-white mb-1.5 font-sans tracking-tight">
+                <h3 className="text-xl font-semibold text-white mb-4 font-sans tracking-tight">
                   {shoppingSummary?.items?.length || 0}{' '}
                   {shoppingSummary?.items?.length === 1 ? 'Artikel auf der Einkaufsliste' : 'Artikel auf der Einkaufsliste'}
                 </h3>
-                <p className="text-xs text-slate-300 mb-5 leading-relaxed font-sans">
-                  Geplant bei <strong className="text-white font-semibold">{shoppingSummary?.supermarketName || 'Supermarkt'}</strong> für diese Woche.
-                </p>
 
                 {/* Harmoniously Integrated Weekly Budget (No box in a box, clear key metrics) */}
                 <div
@@ -1792,20 +1782,6 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                       <div className="text-sm sm:text-base font-bold text-emerald-300 font-mono mt-0.5">
                         {remainingWeeklyBudget.toFixed(remainingWeeklyBudget % 1 === 0 ? 0 : 2)} €
                       </div>
-                    </div>
-                  </div>
-
-                  {/* Budget Progress Bar */}
-                  <div className="space-y-1.5 pt-1">
-                    <div className="w-full h-2 bg-surface-elevated rounded-full overflow-hidden border border-white/5">
-                      <div
-                        className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-300 shadow-sm"
-                        style={{ width: `${percentWeeklySpent}%` }}
-                      />
-                    </div>
-                    <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono">
-                      <span>{percentWeeklySpent}% verbraucht</span>
-                      {isWeeklyReceiptRecorded && <span>✓ Kassenbon abgerechnet</span>}
                     </div>
                   </div>
                 </div>

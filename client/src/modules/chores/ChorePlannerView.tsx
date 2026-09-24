@@ -367,12 +367,8 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
             )}
           </div>
 
-          <div className="flex items-center gap-2.5">
-            <span className="text-xs text-slate-400 font-medium px-3 py-1 rounded-full bg-surface-elevated border border-surface-border">
-              {totalDayTasks} {totalDayTasks === 1 ? 'Aufgabe' : 'Aufgaben'}
-            </span>
-
-            {isSingleFocus && (
+          {isSingleFocus && (
+            <div className="flex items-center gap-2.5">
               <button
                 type="button"
                 onClick={() => setDesktopDayFilter('ALL')}
@@ -381,8 +377,8 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                 <ChevronLeft className="w-3.5 h-3.5" />
                 <span>Woche zeigen</span>
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Tasks List */}
@@ -842,10 +838,10 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
             )}
           </div>
           <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white font-sans">
-            Aufgabenübersicht
+            Deine Aufgaben
           </h1>
           <p className="text-xs text-slate-400 mt-1 font-medium">
-            Alle Haushalts- und WG-Dienste der Woche im transparenten Überblick.
+            Liste deiner Jobs für diese Woche
           </p>
         </div>
 

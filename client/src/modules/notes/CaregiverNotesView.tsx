@@ -468,30 +468,104 @@ export const CaregiverNotesView: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-24 md:pb-8">
-      {/* Header */}
-      <div className="bg-surface-card rounded-[2.5rem] p-6 border border-surface-border shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-rose-500/15 border border-rose-500/30 rounded-full text-xs font-semibold text-rose-300 mb-2 font-display">
-            <Radio className="w-3.5 h-3.5 text-rose-400" />
-            <span>Flurfunk & Mitteilungen</span>
+      {/* Header with integrated tabs */}
+      <div className="bg-surface-card rounded-[2.5rem] p-6 border border-surface-border shadow-xl space-y-5">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-rose-500/15 border border-rose-500/30 rounded-full text-xs font-semibold text-rose-300 mb-2 font-display">
+              <Radio className="w-3.5 h-3.5 text-rose-400" />
+              <span>Flurfunk & Mitteilungen</span>
+            </div>
+            <h1 className="text-xl sm:text-2xl font-display font-semibold text-white tracking-tight flex items-center gap-2">
+              <MessageSquareText className="w-6 h-6 text-rose-400" />
+              <span>Unser Flurfunk</span>
+            </h1>
+            <p className="text-xs text-slate-400 mt-1">
+              Fragen, Notizen, Wünsche und Absprachen für Bewohner und Betreuer{isStaff ? ` (${activeLocation?.name || user?.locationName || 'Emsdetten'})` : ''}
+            </p>
           </div>
-          <h1 className="text-xl sm:text-2xl font-display font-semibold text-white tracking-tight flex items-center gap-2">
-            <MessageSquareText className="w-6 h-6 text-rose-400" />
-            <span>Unser Flurfunk</span>
-          </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Fragen, Notizen, Wünsche und Absprachen für Bewohner und Betreuer{isStaff ? ` (${activeLocation?.name || user?.locationName || 'Emsdetten'})` : ''}
-          </p>
+
+          <button
+            type="button"
+            onClick={() => setShowAddForm(!showAddForm)}
+            className="px-4 py-2.5 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white rounded-2xl text-xs font-semibold flex items-center gap-1.5 shadow-lg shadow-rose-500/25 transition-all self-stretch sm:self-auto justify-center cursor-pointer shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Neuen Beitrag verfassen</span>
+          </button>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setShowAddForm(!showAddForm)}
-          className="px-4 py-2.5 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white rounded-2xl text-xs font-semibold flex items-center gap-1.5 shadow-lg shadow-rose-500/25 transition-all self-stretch sm:self-auto justify-center cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Neuen Beitrag verfassen</span>
-        </button>
+        {/* Tabs: Active vs Hidden vs Archive - Seamlessly integrated */}
+        <div className="pt-4 border-t border-surface-border/60 flex items-center justify-start">
+          <div className="bg-surface-elevated/80 p-1.5 rounded-2xl border border-surface-border/80 flex items-center gap-1.5 w-full sm:w-auto shadow-inner">
+            {/* 1. Aktiv */}
+            <button
+              type="button"
+              onClick={() => setActiveTab('ACTIVE')}
+              className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer select-none whitespace-nowrap ${
+                activeTab === 'ACTIVE'
+                  ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md shadow-rose-500/25 font-bold'
+                  : 'text-slate-400 hover:text-white hover:bg-surface-card/60'
+              }`}
+            >
+              <Pin className="w-4 h-4 shrink-0" />
+              <span>Aktiv</span>
+              {activeNotes.length > 0 && (
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-black font-mono transition-colors ${
+                    activeTab === 'ACTIVE' ? 'bg-black/25 text-white' : 'bg-surface-card text-slate-300'
+                  }`}
+                >
+                  {activeNotes.length}
+                </span>
+              )}
+            </button>
+
+            {/* 2. Ausgeblendet (Nur für Betreuer/Admin) */}
+            {isStaff && (
+              <button
+                type="button"
+                onClick={() => setActiveTab('HIDDEN')}
+                className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer select-none whitespace-nowrap ${
+                  activeTab === 'HIDDEN'
+                    ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md shadow-rose-500/25 font-bold'
+                    : 'text-slate-400 hover:text-white hover:bg-surface-card/60'
+                }`}
+              >
+                <EyeOff className="w-4 h-4 shrink-0" />
+                <span>Ausgeblendet</span>
+                {hiddenNotes.length > 0 && (
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-black font-mono transition-colors ${
+                      activeTab === 'HIDDEN' ? 'bg-black/25 text-white' : 'bg-surface-card text-slate-300'
+                    }`}
+                  >
+                    {hiddenNotes.length}
+                  </span>
+                )}
+              </button>
+            )}
+
+            {/* 3. Erledigt */}
+            <button
+              type="button"
+              onClick={() => setActiveTab('ARCHIVE')}
+              className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer select-none whitespace-nowrap ${
+                activeTab === 'ARCHIVE'
+                  ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md shadow-rose-500/25 font-bold'
+                  : 'text-slate-400 hover:text-white hover:bg-surface-card/60'
+              }`}
+            >
+              <Archive className="w-4 h-4 shrink-0" />
+              <span>Erledigt</span>
+              {activeTab === 'ARCHIVE' && notes.length > 0 && (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-black font-mono bg-black/25 text-white">
+                  {notes.length}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Staff Alert Banner when there are open notes */}
@@ -510,78 +584,6 @@ export const CaregiverNotesView: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* Tabs: Active vs Hidden vs Archive - Centered Modern Segmented Control */}
-      <div className="flex items-center justify-center w-full border-b border-surface-border/70 pb-4">
-        <div className="bg-surface-card/95 p-1.5 rounded-2xl border border-surface-border/80 flex items-center justify-center gap-1 sm:gap-2 w-full sm:w-auto shadow-sm">
-          {/* 1. Aktiv */}
-          <button
-            type="button"
-            onClick={() => setActiveTab('ACTIVE')}
-            className={`flex-1 sm:flex-initial px-2.5 sm:px-6 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer select-none whitespace-nowrap ${
-              activeTab === 'ACTIVE'
-                ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md shadow-rose-500/25 font-bold'
-                : 'text-slate-400 hover:text-white hover:bg-surface-elevated/70'
-            }`}
-          >
-            <Pin className="w-4 h-4 shrink-0" />
-            <span>Aktiv</span>
-            {activeNotes.length > 0 && (
-              <span
-                className={`px-2 py-0.5 rounded-full text-[10px] font-black font-mono transition-colors ${
-                  activeTab === 'ACTIVE' ? 'bg-black/25 text-white' : 'bg-surface-elevated text-slate-300'
-                }`}
-              >
-                {activeNotes.length}
-              </span>
-            )}
-          </button>
-
-          {/* 2. Ausgeblendet (Nur für Betreuer/Admin) */}
-          {isStaff && (
-            <button
-              type="button"
-              onClick={() => setActiveTab('HIDDEN')}
-              className={`flex-1 sm:flex-initial px-2.5 sm:px-6 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer select-none whitespace-nowrap ${
-                activeTab === 'HIDDEN'
-                  ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md shadow-rose-500/25 font-bold'
-                  : 'text-slate-400 hover:text-white hover:bg-surface-elevated/70'
-              }`}
-            >
-              <EyeOff className="w-4 h-4 shrink-0" />
-              <span>Ausgeblendet</span>
-              {hiddenNotes.length > 0 && (
-                <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-black font-mono transition-colors ${
-                    activeTab === 'HIDDEN' ? 'bg-black/25 text-white' : 'bg-slate-700/80 text-slate-300'
-                  }`}
-                >
-                  {hiddenNotes.length}
-                </span>
-              )}
-            </button>
-          )}
-
-          {/* 3. Erledigt */}
-          <button
-            type="button"
-            onClick={() => setActiveTab('ARCHIVE')}
-            className={`flex-1 sm:flex-initial px-2.5 sm:px-6 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer select-none whitespace-nowrap ${
-              activeTab === 'ARCHIVE'
-                ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md shadow-rose-500/25 font-bold'
-                : 'text-slate-400 hover:text-white hover:bg-surface-elevated/70'
-            }`}
-          >
-            <Archive className="w-4 h-4 shrink-0" />
-            <span>Erledigt</span>
-            {activeTab === 'ARCHIVE' && notes.length > 0 && (
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-black font-mono bg-black/25 text-white">
-                {notes.length}
-              </span>
-            )}
-          </button>
-        </div>
-      </div>
 
       {/* Add Note Form */}
       {showAddForm && (

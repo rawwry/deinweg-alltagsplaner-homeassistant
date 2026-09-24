@@ -359,15 +359,6 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
-
-          <button
-            type="button"
-            onClick={() => setCurrentTab('mealplan')}
-            className="px-3.5 py-2 bg-surface-card hover:bg-surface-elevated border border-surface-border text-slate-300 hover:text-white rounded-2xl text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 shadow-sm"
-          >
-            <span>Kochplan</span>
-            <ArrowRight className="w-3.5 h-3.5 text-rose-400" />
-          </button>
         </div>
       </div>
 

@@ -3,6 +3,28 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.32] - 2026-09-24
+
+### Neu & Verbessert
+- **Home Dashboard (`DashboardHub.tsx`)**:
+  - **Bewohner-Header**: Standortname (z. B. *„WG Emsdetten“*) wird bei Bewohnern in der Begrüßung nicht mehr angezeigt.
+  - **Aufgaben-Spotlight**: Der Text-Button *„Als erledigt markieren“* wurde entfernt, da die gesamte Karte klickbar ist; anstelle dessen zeigt ein runder Toggle-Indikator den Status an.
+  - **Einkaufskorb**: Die überflüssige Fortschrittsanzeige *„x% verbraucht“* sowie der Satz *„Geplant bei Netto für diese Woche.“* wurden entfernt.
+  - **Heutiges Gericht**: Badge von *„Heute frisch auf den Tisch“* in *„Heutiges Gericht“* umbenannt und die störende Minutenvorschau (*„ca. 35 Min.“*) entfernt.
+  - **Flurfunk-Widget**: Untertitel in *„Versende Nachrichten an andere Bewohner oder Betreuer“* geändert.
+- **Aufgaben (`ChorePlannerView.tsx`)**:
+  - Titel in *„Deine Aufgaben“* und Untertitel in *„Liste deiner Jobs für diese Woche“* geändert.
+  - Das Badge *„x Aufgaben“* im Tagesheader auf Mobilgeräten entfernt.
+- **Kochplan (`MealPlanView.tsx`)**:
+  - Titel in *„Wöchentliche Kochplanung“* geändert.
+  - Portionen-Chip (*„x Portionen“*) und Einkaufswagen-Button aus der Kopfzeile entfernt.
+  - Breiterer, markanter Kalenderwochen-Navigator.
+  - Koch-Auswahl standardmäßig auf *„Koch: Offen“* (statt *„Koch: Offen / Team“*) vereinheitlicht.
+- **Einkaufsliste (`ShoppingListView.tsx`)**:
+  - Den Button *„Kochplan →“* oben rechts entfernt.
+- **Flurfunk (`CaregiverNotesView.tsx`)**:
+  - Die Tabs *„Aktiv“* und *„Erledigt“* (sowie *„Ausgeblendet“* für Betreuer) direkt und bündig in die Kopfkarte integriert, sodass sie im mobilen Raster exakt mit den Inhaltskarten fluchten.
+
 ## [0.1.31] - 2026-09-24
 
 ### Neu & Verbessert
