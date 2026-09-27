@@ -3,6 +3,13 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.55] - 2026-09-27
+
+### Neu & Verbessert
+- **Übersichtsseite – Entfernung des „Offen“-Badges (`DashboardHub.tsx`)**:
+  - **Aufgeräumte Aufgabenansicht**: Der unruhige und insbesondere auf Smartphones deplatzierte „Offen“-Badge wurde auf der Übersichtsseite für alle Benutzergruppen (Betreuer, Bewohner und Haushaltskraft) vollständig entfernt.
+  - **Fokus auf Erledigtes**: Offene Aufgaben werden klar und übersichtlich ohne überflüssigen Indikator aufgeführt. Der grüne „Erledigt“-Badge sowie die Teilfortschritts-Anzeige („X/Y erledigt“) bleiben als klares Feedback weiterhin erhalten.
+
 ## [0.1.54] - 2026-09-27
 
 ### Neu & Verbessert

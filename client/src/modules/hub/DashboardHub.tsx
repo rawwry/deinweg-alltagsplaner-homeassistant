@@ -1526,28 +1526,15 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                           </div>
                         </div>
 
-                        {/* Fixed Status Badge in Top-Right Corner */}
-                        <div className="shrink-0 pt-0.5 self-start sm:self-center">
-                          <span
-                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all shadow-xs ${
-                              isDone
-                                ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 font-bold'
-                                : 'bg-amber-500/10 border border-amber-500/25 text-amber-300 font-medium group-hover/task:border-amber-400/40'
-                            }`}
-                          >
-                            {isDone ? (
-                              <>
-                                <Check className="w-3.5 h-3.5 stroke-[3] text-emerald-400" />
-                                <span>Erledigt</span>
-                              </>
-                            ) : (
-                              <>
-                                <span className="w-2 h-2 rounded-full bg-amber-400" />
-                                <span>Offen</span>
-                              </>
-                            )}
-                          </span>
-                        </div>
+                        {/* Status Badge: only shown when Erledigt (Offen badge removed) */}
+                        {isDone && (
+                          <div className="shrink-0 pt-0.5 self-start sm:self-center">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border bg-emerald-500/20 border-emerald-500/40 text-emerald-300 shadow-xs">
+                              <Check className="w-3.5 h-3.5 stroke-[3] text-emerald-400" />
+                              <span>Erledigt</span>
+                            </span>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -1731,23 +1718,20 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                           </div>
                         )}
 
-                        <div className="shrink-0">
-                          {isAllDone ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/25 text-emerald-200 border border-emerald-500/40 text-xs font-bold font-sans shadow-xs">
-                              <Check className="w-3.5 h-3.5 text-emerald-300 stroke-[3]" />
-                              <span>Erledigt</span>
-                            </span>
-                          ) : isPartiallyDone ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 text-xs font-bold font-sans shadow-xs">
-                              <span>{completedCount}/{totalAssignedCount} erledigt</span>
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs font-medium font-sans">
-                              <span className="w-2 h-2 rounded-full bg-amber-400" />
-                              <span>Offen</span>
-                            </span>
-                          )}
-                        </div>
+                        {(isAllDone || isPartiallyDone) && (
+                          <div className="shrink-0">
+                            {isAllDone ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/25 text-emerald-200 border border-emerald-500/40 text-xs font-bold font-sans shadow-xs">
+                                <Check className="w-3.5 h-3.5 text-emerald-300 stroke-[3]" />
+                                <span>Erledigt</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 text-xs font-bold font-sans shadow-xs">
+                                <span>{completedCount}/{totalAssignedCount} erledigt</span>
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
