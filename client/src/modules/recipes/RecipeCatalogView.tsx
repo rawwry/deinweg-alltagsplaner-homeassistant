@@ -1,9 +1,9 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.js';
 import { api } from '../../api/client.js';
 import { RecipeSummary } from '../../../../shared/types.js';
 import { RecipeModal } from './RecipeModal.js';
+import { RecipeEditModal } from './RecipeEditModal.js';
 import {
   BookOpen,
   Search,
@@ -54,15 +54,6 @@ export const RecipeCatalogView: React.FC = () => {
 
   // Add Recipe Modal State (Staff only)
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-  const [newCategory, setNewCategory] = useState('Alltagsküche');
-  const [newDescription, setNewDescription] = useState('');
-  const [newInstructions, setNewInstructions] = useState('');
-  const [newPrepTime, setNewPrepTime] = useState('30');
-  const [newServings, setNewServings] = useState('4');
-  const [newImageUrl, setNewImageUrl] = useState<string>('');
-  const addFileInputRef = useRef<HTMLInputElement>(null);
-
   const [dbCategories, setDbCategories] = useState<any[]>([]);
 
   const fetchRecipes = async () => {
@@ -81,9 +72,6 @@ export const RecipeCatalogView: React.FC = () => {
     try {
       const cats = await api.food.categories();
       setDbCategories(cats);
-      if (cats.length > 0 && !newCategory) {
-        setNewCategory(cats[0].name);
-      }
     } catch (err) {
       console.error('Fehler beim Laden der Kategorien:', err);
     }
@@ -112,66 +100,6 @@ export const RecipeCatalogView: React.FC = () => {
     return matchesSearch && matchesCat;
   });
 
-  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const maxW = 800;
-        const maxH = 500;
-        let w = img.width;
-        let h = img.height;
-        if (w > maxW) {
-          h = Math.round((h * maxW) / w);
-          w = maxW;
-        }
-        if (h > maxH) {
-          w = Math.round((w * maxH) / h);
-          h = maxH;
-        }
-        canvas.width = w;
-        canvas.height = h;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-        ctx.drawImage(img, 0, 0, w, h);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
-        setNewImageUrl(dataUrl);
-      };
-      img.src = event.target?.result as string;
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleCreateRecipe = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTitle.trim()) return;
-
-    try {
-      await api.food.createRecipe({
-        title: newTitle.trim(),
-        category: newCategory,
-        description: newDescription.trim() || undefined,
-        instructions: newInstructions.trim() || undefined,
-        prepTimeMinutes: Number(newPrepTime) || 30,
-        defaultServings: Number(newServings) || 4,
-        imageUrl: newImageUrl || undefined,
-        ingredients: [],
-      });
-
-      setShowAddModal(false);
-      setNewTitle('');
-      setNewDescription('');
-      setNewInstructions('');
-      setNewImageUrl('');
-      fetchRecipes();
-    } catch (err) {
-      console.error('Fehler beim Anlegen des Rezepts:', err);
-    }
-  };
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-24 md:pb-8">
@@ -460,174 +388,15 @@ export const RecipeCatalogView: React.FC = () => {
       )}
 
       {/* Add Recipe Modal (Staff) */}
-      {showAddModal &&
-        createPortal(
-          <div
-            onClick={(e) => {
-              if (e.target === e.currentTarget) setShowAddModal(false);
-            }}
-            className="fixed inset-0 z-[100] min-h-screen min-h-[100dvh] bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4"
-          >
-            <div className="bg-surface-card rounded-[2.5rem] max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-surface-border space-y-4 text-slate-100 animate-in fade-in zoom-in-95 duration-150">
-              <div className="flex items-center justify-between border-b border-surface-border pb-3.5">
-                <h3 className="text-base font-display font-semibold text-white">Neues Rezept anlegen</h3>
-              <button
-                type="button"
-                onClick={() => setShowAddModal(false)}
-                className="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-surface-elevated transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateRecipe} className="space-y-3.5 text-xs">
-              <div>
-                <label className="block font-semibold text-slate-300 mb-1 font-display">Titel des Gerichts</label>
-                <input
-                  type="text"
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  placeholder="z.B. Lasagne al Forno"
-                  className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40"
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-2.5">
-                <div>
-                  <label className="block font-semibold text-slate-300 mb-1 font-display">Kategorie</label>
-                  <select
-                    value={newCategory}
-                    onChange={(e) => setNewCategory(e.target.value)}
-                    className="w-full px-3 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-rose-500/40 cursor-pointer"
-                  >
-                    {dbCategories.length > 0 ? (
-                      dbCategories.map((cat: any) => (
-                        <option key={cat.id} value={cat.name} className="bg-surface-card text-white">
-                          {cat.name}
-                        </option>
-                      ))
-                    ) : (
-                      <option value="Alltagsküche" className="bg-surface-card text-white">
-                        Alltagsküche
-                      </option>
-                    )}
-                  </select>
-                </div>
-                <div>
-                  <label className="block font-semibold text-slate-300 mb-1 font-display">Zeit (Min)</label>
-                  <input
-                    type="number"
-                    value={newPrepTime}
-                    onChange={(e) => setNewPrepTime(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold text-slate-300 mb-1 font-display">Basis-Port.</label>
-                  <input
-                    type="number"
-                    value={newServings}
-                    onChange={(e) => setNewServings(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-rose-500/40 font-mono"
-                  />
-                </div>
-              </div>
-
-              {/* Recipe Image Picker */}
-              <div>
-                <label className="block font-semibold text-slate-300 mb-1 font-display">
-                  Rezeptbild (Foto oder URL)
-                </label>
-                <div className="flex items-center gap-3">
-                  <input
-                    ref={addFileInputRef}
-                    type="file"
-                    accept="image/png, image/jpeg, image/webp"
-                    onChange={handleImageFileChange}
-                    className="hidden"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => addFileInputRef.current?.click()}
-                    className="px-3.5 py-2 bg-surface-elevated hover:bg-surface-elevated/80 border border-surface-border text-slate-200 text-xs font-semibold rounded-xl flex items-center gap-2 cursor-pointer transition-colors"
-                  >
-                    <Camera className="w-4 h-4 text-theme-primary" />
-                    <span>Foto hochladen</span>
-                  </button>
-
-                  <input
-                    type="url"
-                    value={newImageUrl.startsWith('data:') ? '(Lokales Foto ausgewählt)' : newImageUrl}
-                    onChange={(e) => setNewImageUrl(e.target.value)}
-                    placeholder="Oder Bild-URL einfügen (https://...)"
-                    className="flex-1 px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-theme-primary"
-                  />
-
-                  {newImageUrl && (
-                    <button
-                      type="button"
-                      onClick={() => setNewImageUrl('')}
-                      className="p-2 text-slate-400 hover:text-rose-300 rounded-xl hover:bg-rose-500/15 transition-colors cursor-pointer"
-                      title="Bild entfernen"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-
-                {newImageUrl && (
-                  <div className="mt-2.5 w-full h-32 rounded-2xl overflow-hidden border border-surface-border bg-black/40 relative">
-                    <img
-                      src={newImageUrl}
-                      alt="Vorschau"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-300 mb-1 font-display">Kurzbeschreibung</label>
-                <input
-                  type="text"
-                  value={newDescription}
-                  onChange={(e) => setNewDescription(e.target.value)}
-                  placeholder="Leckere Lasagne mit Béchamelsauce..."
-                  className="w-full px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-theme-primary"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-300 mb-1 font-display">Zubereitungsschritte</label>
-                <textarea
-                  rows={4}
-                  value={newInstructions}
-                  onChange={(e) => setNewInstructions(e.target.value)}
-                  placeholder="1. Hackfleisch anbraten...&#10;2. Schichten..."
-                  className="w-full px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-theme-primary font-sans"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2.5 pt-2.5 border-t border-surface-border">
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 bg-surface-elevated hover:bg-surface-card text-slate-300 rounded-xl font-semibold cursor-pointer transition-colors"
-                >
-                  Abbrechen
-                </button>
-                <button
-                  type="submit"
-                  className="btn-theme-gradient px-5 py-2 rounded-xl text-xs font-semibold shadow-md transition-all cursor-pointer"
-                >
-                  Speichern
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>,
-        document.body
+      {showAddModal && (
+        <RecipeEditModal
+          recipe={null}
+          onClose={() => setShowAddModal(false)}
+          onSaved={() => {
+            setShowAddModal(false);
+            fetchRecipes();
+          }}
+        />
       )}
     </div>
   );

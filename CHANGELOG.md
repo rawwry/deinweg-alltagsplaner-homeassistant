@@ -3,6 +3,23 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.51] - 2026-09-27
+
+### Neu & Verbessert
+- **Kochplan – Bündige Datumsanzeige (`MealPlanView.tsx`)**:
+  - **Perfekte vertikale Ausrichtung**: Der vertikale Versatz zwischen Wochentag und Datum im Kochplan wurde behoben. Das Datum wird nun wie im Aufgabenplan als bündige, elegante Pille in Sans-Serif-Schrift dargestellt (`px-2.5 py-1 rounded-xl bg-surface-elevated font-sans font-medium`), die harmonisch neben dem Wochentagsnamen zentriert ist.
+- **Rezeptverwaltung & Erstellung (`RecipeEditModal.tsx`, `RecipeCatalogView.tsx`)**:
+  - **Einheitliche Maske für Erstellung & Bearbeitung**: Die bisherige rudimentäre Erstellungsmaske wurde durch das voll ausgestattete `RecipeEditModal` ersetzt. Das Anlegen und Editieren von Rezepten bietet nun exakt denselben modernen Funktionsumfang.
+  - **Lebensmittel-Auswahl aus der Datenbank**:
+    - **Live-Autocomplete in jeder Zeile**: Beim Tippen des Zutatennamens werden passende Vorschläge aus dem Lebensmittel-Katalog der Datenbank angezeigt. Bei Auswahl werden Name, Standardeinheit und interne ID automatisch verknüpft (gekennzeichnet durch ein grünes Katalog-Icon).
+    - **Katalog-Picker-Dialog**: Über den Button *„Aus Lebensmittel-Katalog wählen“* können Zutaten nach Kategorien durchsucht und blitzschnell mit einem Klick zur Zutatenliste hinzugefügt werden.
+  - **Zutatenmengen als Basis für 1 Portion**:
+    - Neue Rezepte starten nun standardmäßig mit **1 Basis-Portion**.
+    - Ein hervorgehobener Hinweiskasten erklärt die Logik: Alle Zutatenmengen sind für 1 Person einzutragen, da sie in der Kochplanung über die Portions-Buttons (+ / −) automatisch auf die gewünschte Personenanzahl der WG hochgerechnet werden.
+  - **Foto-Upload & Bildverwaltung**:
+    - Direkter Foto-Upload via Kamera/Dateiauswahl mit automatischer Bildkompression für Mobilgeräte.
+    - Unterstützung für Bild-URLs sowie ansprechende 16:9 Vorschau mit Hover-Aktionen (Foto austauschen, entfernen).
+
 ## [0.1.50] - 2026-09-27
 
 ### Neu & Verbessert

@@ -428,10 +428,12 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
                   >
                     <div>
                       <div className="flex items-center gap-2.5 mb-1.5 flex-wrap">
-                        <span className="text-base font-display font-semibold text-slate-300 font-sans">
+                        <span className="text-base font-display font-semibold text-slate-300">
                           {dayName}
                         </span>
-                        <span className="text-xs text-slate-500 font-mono">{dateStr}</span>
+                        <span className="px-2.5 py-1 rounded-xl bg-surface-elevated border border-surface-border text-xs text-slate-400 font-sans font-medium shrink-0">
+                          {dateStr}
+                        </span>
                         {isToday && (
                           <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 tracking-wide uppercase">
                             Heute
@@ -478,7 +480,7 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
                       <span className="text-base sm:text-lg font-display font-bold text-white tracking-tight">
                         {dayName}
                       </span>
-                      <span className="text-xs text-slate-400 font-mono font-medium">
+                      <span className="px-2.5 py-1 rounded-xl bg-surface-elevated border border-surface-border text-xs text-slate-300 font-sans font-medium shrink-0">
                         {dateStr}
                       </span>
                       {isToday && (
