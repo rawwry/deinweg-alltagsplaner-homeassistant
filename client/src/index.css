@@ -243,6 +243,14 @@
   background-color: var(--theme-border, rgba(225, 29, 72, 0.45));
 }
 
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Theme Utility Helpers using dynamic CSS variables */
 .bg-theme-primary {
   background-color: var(--theme-primary);

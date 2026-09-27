@@ -442,24 +442,25 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
         } ${isLastSunday && !isSingleFocus ? 'xl:col-span-2' : ''}`}
       >
         {/* Day Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-surface-border">
-          <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="flex items-center justify-between gap-3 pb-4 border-b border-surface-border">
+          <div className="flex items-center gap-2.5">
             <h3 className="text-lg sm:text-xl font-bold text-white font-display tracking-tight">
               {day.name}
             </h3>
-            <span className="px-2.5 py-1 rounded-xl bg-surface-elevated border border-surface-border text-xs text-slate-300 font-sans font-medium">
+            <span className="px-2.5 py-1 rounded-xl bg-surface-elevated border border-surface-border text-xs text-slate-300 font-sans font-medium shrink-0">
               {formatGermanDate(day.date)}
             </span>
+          </div>
+
+          <div className="flex items-center gap-2.5 ml-auto">
             {isToday && (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 text-[10px] font-bold uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 text-[10px] font-bold uppercase tracking-wider shrink-0">
                 <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
                 Heute
               </span>
             )}
-          </div>
 
-          {isSingleFocus && (
-            <div className="flex items-center gap-2.5">
+            {isSingleFocus && (
               <button
                 type="button"
                 onClick={() => setDesktopDayFilter('ALL')}
@@ -468,8 +469,8 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                 <ChevronLeft className="w-3.5 h-3.5" />
                 <span>Woche zeigen</span>
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Tasks List */}
@@ -1041,8 +1042,8 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
           )}
         </div>
 
-        {/* Filter Switch (All vs Mine) - Hidden for Haushaltskraft */}
-        {!isHousekeeping && (
+        {/* Filter Switch (All vs Mine) - Only visible for Staff */}
+        {isStaff && (
           <div className="w-full sm:w-auto grid grid-cols-2 gap-1 p-1 bg-surface-elevated rounded-2xl border border-surface-border">
             <button
               type="button"

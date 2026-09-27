@@ -1,2 +1,2 @@
-export const APP_VERSION = '0.1.48';
+export const APP_VERSION = '0.1.49';
 export const APP_NAME = 'Deine WG: Alltagsplaner';

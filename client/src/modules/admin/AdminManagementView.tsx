@@ -39,6 +39,8 @@ import {
   Info,
   ArrowRight,
   User,
+  Cake,
+  ChevronDown,
 } from 'lucide-react';
 import { AvatarUploadModal } from '../../components/profile/AvatarUploadModal.js';
 import { formatGermanDate } from '../../utils/formatters.js';
@@ -193,6 +195,7 @@ export const AdminManagementView: React.FC = () => {
   const [smtpFromName, setSmtpFromName] = useState('Deine WG: Alltagsplaner');
   const [smtpConfigured, setSmtpConfigured] = useState(false);
   const [showSmtpPassword, setShowSmtpPassword] = useState(false);
+  const [isSmtpConfigOpen, setIsSmtpConfigOpen] = useState(false);
 
   // Email Notification Templates
   const [residentReplyTemplateSubject, setResidentReplyTemplateSubject] = useState('Neue Antwort im Flurfunk: {noteTitle}');
@@ -1068,7 +1071,7 @@ export const AdminManagementView: React.FC = () => {
                 <thead className="bg-surface-elevated/80 text-surface-muted font-semibold">
                   <tr>
                     <th className="px-5 py-3.5">Benutzer</th>
-                    <th className="px-5 py-3.5">E-Mail</th>
+                    <th className="px-5 py-3.5">Info</th>
                     <th className="px-5 py-3.5">Rolle</th>
                     <th className="px-5 py-3.5">Standort</th>
                     <th className="px-5 py-3.5 text-right">Aktionen</th>
@@ -1110,39 +1113,82 @@ export const AdminManagementView: React.FC = () => {
                             <div className="font-bold text-slate-100">{u.name}</div>
                             <div className="text-slate-400 font-mono text-[10px]">
                               @{u.username}
-                              {u.birthday ? ` · 🎂 ${formatGermanDate(u.birthday)}` : ''}
                             </div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-5 py-3.5 text-slate-400 font-mono text-[11px]">
-                        {u.email || '-'}
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-1.5">
+                          {u.email ? (
+                            <a
+                              href={`mailto:${u.email}`}
+                              title={`E-Mail: ${u.email}`}
+                              className="p-1.5 rounded-lg bg-surface-elevated hover:bg-theme-subtle text-slate-300 hover:text-theme border border-surface-border hover:border-theme-border transition-all cursor-pointer"
+                            >
+                              <Mail className="w-3.5 h-3.5" />
+                            </a>
+                          ) : (
+                            <span
+                              title="Keine E-Mail hinterlegt"
+                              className="p-1.5 rounded-lg bg-surface-elevated/40 text-slate-600 border border-surface-border/40 cursor-default"
+                            >
+                              <Mail className="w-3.5 h-3.5" />
+                            </span>
+                          )}
+
+                          {u.birthday ? (
+                            <span
+                              title={`Geburtstag: ${formatGermanDate(u.birthday)}`}
+                              className="p-1.5 rounded-lg bg-surface-elevated hover:bg-amber-500/15 text-slate-300 hover:text-amber-300 border border-surface-border hover:border-amber-500/30 transition-all cursor-default"
+                            >
+                              <Cake className="w-3.5 h-3.5" />
+                            </span>
+                          ) : (
+                            <span
+                              title="Kein Geburtstag hinterlegt"
+                              className="p-1.5 rounded-lg bg-surface-elevated/40 text-slate-600 border border-surface-border/40 cursor-default"
+                            >
+                              <Cake className="w-3.5 h-3.5" />
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-5 py-3.5">
-                        <select
-                          value={u.role}
-                          onChange={async (e) => {
-                            const newR = e.target.value as UserRole;
-                            try {
-                              await api.users.update(u.id, { role: newR });
-                              await fetchUsers();
-                              await refreshLocations();
-                            } catch (err: any) {
-                              alert(`Fehler beim Ändern der Rolle: ${err.message}`);
-                            }
-                          }}
-                          className={`px-2.5 py-1 rounded-xl text-[11px] font-bold border transition-colors cursor-pointer focus:outline-none ${
-                            u.role === 'ADMIN' || u.role === 'BETREUER'
-                              ? 'bg-sky-500/15 text-sky-300 border-sky-500/30'
-                              : u.role === 'HAUSHALTSKRAFT'
-                              ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
-                              : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
-                          }`}
-                        >
-                          <option value="BEWOHNER" className="bg-slate-900 text-white font-normal">Bewohner</option>
-                          <option value="BETREUER" className="bg-slate-900 text-white font-normal">Betreuer</option>
-                          <option value="HAUSHALTSKRAFT" className="bg-slate-900 text-white font-normal">Haushaltskraft</option>
-                        </select>
+                        <div className="relative inline-flex items-center">
+                          <select
+                            value={u.role}
+                            onChange={async (e) => {
+                              const newR = e.target.value as UserRole;
+                              try {
+                                await api.users.update(u.id, { role: newR });
+                                await fetchUsers();
+                                await refreshLocations();
+                              } catch (err: any) {
+                                alert(`Fehler beim Ändern der Rolle: ${err.message}`);
+                              }
+                            }}
+                            className={`appearance-none pl-3 pr-7 py-1 rounded-full text-[11px] font-bold border transition-colors cursor-pointer focus:outline-none ${
+                              u.role === 'ADMIN' || u.role === 'BETREUER'
+                                ? 'bg-sky-500/15 text-sky-300 border-sky-500/30 hover:border-sky-500/50'
+                                : u.role === 'HAUSHALTSKRAFT'
+                                ? 'bg-amber-500/15 text-amber-300 border-amber-500/30 hover:border-amber-500/50'
+                                : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 hover:border-emerald-500/50'
+                            }`}
+                          >
+                            <option value="BEWOHNER" className="bg-slate-900 text-white font-normal">Bewohner</option>
+                            <option value="BETREUER" className="bg-slate-900 text-white font-normal">Betreuer</option>
+                            <option value="HAUSHALTSKRAFT" className="bg-slate-900 text-white font-normal">Haushaltskraft</option>
+                          </select>
+                          <ChevronDown
+                            className={`w-3 h-3 absolute right-2.5 pointer-events-none ${
+                              u.role === 'ADMIN' || u.role === 'BETREUER'
+                                ? 'text-sky-300'
+                                : u.role === 'HAUSHALTSKRAFT'
+                                ? 'text-amber-300'
+                                : 'text-emerald-300'
+                            }`}
+                          />
+                        </div>
                       </td>
                       <td className="px-5 py-3.5 text-slate-300">
                         <select
@@ -1671,63 +1717,82 @@ export const AdminManagementView: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Residents Living Here */}
+                    {/* Residents Living Here - Clean Avatar Stack & Roster */}
                     <div className="pt-3 mt-3 border-t border-surface-border/60">
-                      <div className="text-[11px] font-semibold text-slate-400 mb-2 flex items-center justify-between">
-                        <span className="flex items-center gap-1.5">
-                          <Users className="w-3.5 h-3.5 text-theme" />
-                          <span>Bewohner vor Ort:</span>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
+                          <Users className="w-3.5 h-3.5 text-theme-primary" />
+                          <span>Bewohner vor Ort</span>
                         </span>
-                        <span className="text-[10px] text-surface-muted font-mono">
-                          {locResidents.length} Person(en)
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-surface-elevated text-slate-300 border border-surface-border font-mono">
+                          {locResidents.length} {locResidents.length === 1 ? 'Person' : 'Personen'}
                         </span>
                       </div>
-                      <div className="flex flex-wrap gap-1.5 min-h-[1.5rem]">
-                        {locResidents.length > 0 ? (
-                          locResidents.map((res) => (
-                            <span
-                              key={res.id}
-                              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-elevated border border-surface-border text-slate-200 text-[11px]"
-                            >
-                              <span
-                                className="w-2 h-2 rounded-full inline-block shrink-0"
+
+                      {locResidents.length > 0 ? (
+                        <div className="flex items-center justify-between gap-2 p-2 rounded-2xl bg-surface-elevated/40 border border-surface-border/50">
+                          {/* Overlapping Avatar Stack */}
+                          <div className="flex items-center -space-x-2 overflow-hidden py-0.5 pl-1">
+                            {locResidents.slice(0, 5).map((res) => (
+                              <div
+                                key={res.id}
+                                title={res.name}
+                                className="relative inline-flex items-center justify-center w-7 h-7 rounded-full text-white text-[10px] font-bold ring-2 ring-surface-card shadow-xs shrink-0 overflow-hidden"
                                 style={{ backgroundColor: res.avatarColor || '#3b82f6' }}
-                              />
-                              <span className="font-medium">{res.name}</span>
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-[11px] text-slate-500 italic">Noch keine Bewohner zugewiesen</span>
-                        )}
-                      </div>
+                              >
+                                {res.avatarUrl ? (
+                                  <img src={res.avatarUrl} alt={res.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  res.name.charAt(0).toUpperCase()
+                                )}
+                              </div>
+                            ))}
+                            {locResidents.length > 5 && (
+                              <div className="relative inline-flex items-center justify-center w-7 h-7 rounded-full bg-surface-elevated text-slate-300 text-[10px] font-bold ring-2 ring-surface-card border border-surface-border shrink-0">
+                                +{locResidents.length - 5}
+                              </div>
+                            )}
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => openAssignModal(loc)}
+                            className="text-[11px] font-semibold text-theme hover:text-theme-primary transition-colors px-2.5 py-1 rounded-xl hover:bg-theme-subtle cursor-pointer shrink-0 flex items-center gap-1"
+                          >
+                            <span>Zuweisung</span>
+                            <ArrowRight className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between p-2 rounded-2xl bg-surface-elevated/20 border border-dashed border-surface-border/60 text-slate-500 text-xs">
+                          <span className="italic pl-1">Keine Bewohner zugewiesen</span>
+                          <button
+                            type="button"
+                            onClick={() => openAssignModal(loc)}
+                            className="text-[11px] font-semibold text-theme hover:text-theme-primary transition-colors px-2 py-1 rounded-xl hover:bg-theme-subtle cursor-pointer shrink-0"
+                          >
+                            + Zuweisen
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   <div className="pt-3 border-t border-surface-border/60 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => openAssignModal(loc)}
-                        className="btn-theme-gradient px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
-                      >
-                        <Users className="w-3.5 h-3.5" />
-                        <span>Bewohner zuweisen</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleEditLocation(loc)}
-                        className="p-1.5 bg-surface-elevated hover:bg-white/10 text-slate-300 border border-surface-border rounded-xl transition-colors cursor-pointer"
-                        title="Standort bearbeiten"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleEditLocation(loc)}
+                      className="px-3 py-1.5 bg-surface-elevated hover:bg-white/10 text-slate-200 border border-surface-border rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                      <span>Standort bearbeiten</span>
+                    </button>
 
                     {locResidents.length === 0 && (
                       <button
                         type="button"
                         onClick={() => handleDeleteLocation(loc.id, loc.name)}
-                        className="px-2 py-1 text-rose-400 hover:text-rose-300 hover:bg-rose-500/15 rounded-lg text-xs flex items-center gap-1 transition-colors ml-auto cursor-pointer"
+                        className="px-2 py-1 text-rose-400 hover:text-rose-300 hover:bg-rose-500/15 rounded-xl text-xs flex items-center gap-1 transition-colors ml-auto cursor-pointer"
                         title="Standort löschen"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -3100,7 +3165,7 @@ export const AdminManagementView: React.FC = () => {
       {activeSubTab === 'smtp' && (
         <div className="space-y-6">
           <div className="bento-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border shadow-xl">
-            <div className="flex items-center justify-between pb-4 border-b border-surface-border/60">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-surface-border/60">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 rounded-2xl bg-theme-subtle border border-theme-border text-theme">
                   <Mail className="w-6 h-6" />
@@ -3112,7 +3177,7 @@ export const AdminManagementView: React.FC = () => {
                   </p>
                 </div>
               </div>
-              <div>
+              <div className="flex items-center gap-2.5 self-start sm:self-center">
                 <span
                   className={`px-3 py-1 rounded-full text-xs font-bold border ${
                     smtpConfigured
@@ -3122,6 +3187,18 @@ export const AdminManagementView: React.FC = () => {
                 >
                   {smtpConfigured ? 'Aktiv konfiguriert' : 'Nicht eingerichtet'}
                 </span>
+                <button
+                  type="button"
+                  onClick={() => setIsSmtpConfigOpen(!isSmtpConfigOpen)}
+                  className="px-3.5 py-1.5 rounded-xl bg-surface-elevated hover:bg-white/10 text-slate-200 border border-surface-border text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <span>{isSmtpConfigOpen ? 'Einklappen' : 'Konfiguration bearbeiten'}</span>
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                      isSmtpConfigOpen ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
               </div>
             </div>
 
@@ -3132,7 +3209,36 @@ export const AdminManagementView: React.FC = () => {
               </div>
             )}
 
-            <form onSubmit={handleSaveSmtp} className="mt-6 space-y-4">
+            {!isSmtpConfigOpen && (
+              <div className="mt-4 p-4 rounded-2xl bg-surface-elevated/40 border border-surface-border/60 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-300">
+                <div className="flex items-center gap-4 flex-wrap">
+                  {smtpHost ? (
+                    <div>
+                      <span className="text-surface-muted">Host: </span>
+                      <span className="font-mono font-medium text-white">{smtpHost}:{smtpPort}</span>
+                    </div>
+                  ) : (
+                    <span className="text-slate-400 italic">Noch kein SMTP-Host hinterlegt</span>
+                  )}
+                  {smtpFromEmail && (
+                    <div>
+                      <span className="text-surface-muted">Absender: </span>
+                      <span className="font-medium text-white">{smtpFromEmail}</span>
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsSmtpConfigOpen(true)}
+                  className="text-xs font-semibold text-theme hover:text-theme-primary transition-colors cursor-pointer"
+                >
+                  Details & Vorlagen öffnen →
+                </button>
+              </div>
+            )}
+
+            {isSmtpConfigOpen && (
+              <form onSubmit={handleSaveSmtp} className="mt-6 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 <div className="md:col-span-2 min-w-0 space-y-1.5">
                   <label className="block text-xs font-semibold text-slate-300">
@@ -3337,6 +3443,7 @@ export const AdminManagementView: React.FC = () => {
                 </button>
               </div>
             </form>
+            )}
           </div>
 
           {/* Test connection & test email card */}

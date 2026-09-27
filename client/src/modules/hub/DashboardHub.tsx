@@ -1770,17 +1770,26 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
       </div>
 
       {/* Compact WG Areas Quick Access Bento Dock */}
-      <div className="bento-card rounded-2xl p-3 sm:p-4 flex flex-col md:flex-row items-center justify-between gap-3 shadow-md">
-        <div className="flex items-center gap-2 text-slate-300 text-xs font-semibold px-2 self-start md:self-center">
+      <div className="bento-card rounded-2xl p-3 sm:p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shadow-md overflow-hidden">
+        <div className="flex items-center gap-2 text-slate-300 text-xs font-semibold px-1 shrink-0 self-start md:self-center">
           <Sparkles className="w-4 h-4 text-theme-primary shrink-0" />
-          <span className="font-sans font-bold">Schnellzugriff:</span>
+          <span className="font-sans font-bold whitespace-nowrap">Schnellzugriff:</span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 w-full md:w-auto md:flex-1">
+        <div className="flex items-center gap-2 w-full md:w-auto md:flex-1 overflow-x-auto no-scrollbar py-0.5">
+          <button
+            type="button"
+            onClick={() => setCurrentTab('chores')}
+            className="flex-1 shrink-0 flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-surface-elevated/70 hover:bg-surface-elevated border border-surface-border hover:border-indigo-500/40 text-slate-200 hover:text-white text-xs font-medium transition-all group cursor-pointer whitespace-nowrap"
+          >
+            <ListTodo className="w-3.5 h-3.5 text-indigo-400 group-hover:scale-110 transition-transform" />
+            <span className="truncate">Aufgabenplan</span>
+          </button>
+
           <button
             type="button"
             onClick={() => setCurrentTab('mealplan')}
-            className="flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-surface-elevated/70 hover:bg-surface-elevated border border-surface-border hover:border-theme text-slate-200 hover:text-white text-xs font-medium transition-all group cursor-pointer"
+            className="flex-1 shrink-0 flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-surface-elevated/70 hover:bg-surface-elevated border border-surface-border hover:border-theme text-slate-200 hover:text-white text-xs font-medium transition-all group cursor-pointer whitespace-nowrap"
           >
             <ChefHat className="w-3.5 h-3.5 text-theme-primary group-hover:scale-110 transition-transform" />
             <span className="truncate">Kochplan</span>
@@ -1790,7 +1799,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             <button
               type="button"
               onClick={() => setCurrentTab('shopping')}
-              className="flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-surface-elevated/70 hover:bg-surface-elevated border border-surface-border hover:border-emerald-500/40 text-slate-200 hover:text-white text-xs font-medium transition-all group cursor-pointer"
+              className="flex-1 shrink-0 flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-surface-elevated/70 hover:bg-surface-elevated border border-surface-border hover:border-emerald-500/40 text-slate-200 hover:text-white text-xs font-medium transition-all group cursor-pointer whitespace-nowrap"
             >
               <ShoppingCart className="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition-transform" />
               <span className="truncate">Einkaufsliste</span>
@@ -1800,7 +1809,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           <button
             type="button"
             onClick={() => setCurrentTab('recipes')}
-            className="flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-surface-elevated/70 hover:bg-surface-elevated border border-surface-border hover:border-amber-500/40 text-slate-200 hover:text-white text-xs font-medium transition-all group cursor-pointer"
+            className="flex-1 shrink-0 flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-surface-elevated/70 hover:bg-surface-elevated border border-surface-border hover:border-amber-500/40 text-slate-200 hover:text-white text-xs font-medium transition-all group cursor-pointer whitespace-nowrap"
           >
             <BookOpen className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
             <span className="truncate">Rezepte</span>
@@ -1809,7 +1818,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           <button
             type="button"
             onClick={() => setCurrentTab('notes')}
-            className="flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-surface-elevated/70 hover:bg-surface-elevated border border-surface-border hover:border-violet-500/40 text-slate-200 hover:text-white text-xs font-medium transition-all group cursor-pointer"
+            className="flex-1 shrink-0 flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-surface-elevated/70 hover:bg-surface-elevated border border-surface-border hover:border-violet-500/40 text-slate-200 hover:text-white text-xs font-medium transition-all group cursor-pointer whitespace-nowrap"
           >
             <MessageSquareText className="w-3.5 h-3.5 text-violet-400 group-hover:scale-110 transition-transform" />
             <span className="truncate">Flurfunk</span>
@@ -1818,7 +1827,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           <button
             type="button"
             onClick={() => setCurrentTab('waste')}
-            className="flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-surface-elevated/70 hover:bg-surface-elevated border border-surface-border hover:border-sky-500/40 text-slate-200 hover:text-white text-xs font-medium transition-all group cursor-pointer col-span-2 sm:col-span-1"
+            className="flex-1 shrink-0 flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-surface-elevated/70 hover:bg-surface-elevated border border-surface-border hover:border-sky-500/40 text-slate-200 hover:text-white text-xs font-medium transition-all group cursor-pointer whitespace-nowrap"
           >
             <Trash2 className="w-3.5 h-3.5 text-sky-400 group-hover:scale-110 transition-transform" />
             <span className="truncate">Abfallkalender</span>

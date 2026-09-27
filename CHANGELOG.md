@@ -3,6 +3,24 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.49] - 2026-09-27
+
+### Neu & Verbessert
+- **Benutzerverwaltung & Rollenauswahl (`AdminManagementView.tsx`)**:
+  - **Elegante Rollen-Dropdowns**: Der Rollenauswahl-Button wurde optisch überarbeitet (`appearance-none` mit absolut platziertem Chevron). Der Dropdown-Pfeil sitzt nun zentriert und wohlproportioniert direkt neben dem Text ohne unschönen Freiraum.
+  - **Reduzierte Icons für Kontakt & Info**: Statt E-Mail und Geburtstag in Klartext im Tabellenlayout anzuzeigen, gibt es nun eine aufgeräumte „Info“-Spalte mit kompakten Icons (E-Mail und Kuchen-Symbol für Geburtstag) inklusive Tooltips beim Drüberhovern. Der Benutzername-Bereich ist dadurch vollkommen ruhig und übersichtlich.
+- **Standort-Karten & Bewohner-Roster (`AdminManagementView.tsx`)**:
+  - **Ruhige, einheitliche Darstellung**: Das unruhige Konvolut aus bunten Text-Pillen wurde durch einen harmonischen Avatar-Stack (bis zu 5 überlappende Bewohner-Avatare mit Initialen/Profilbildern + Overflow-Zähler) ersetzt.
+  - Über den Button *„Zuweisung →“* lässt sich die Bewohnerzuordnung der jeweiligen WG blitzschnell und aufgeräumt verwalten.
+- **E-Mail-Einstellungen (`AdminManagementView.tsx`)**:
+  - **SMTP-Bereich standardmäßig eingeklappt**: Der Bereich *„Eigener Mailserver (SMTP)“* ist nun per Default eingeklappt, um versehentliche Änderungen zu vermeiden. Ein kompakter Statusbalken zeigt die wichtigsten Verbindungsdaten mit einem Klick auf *„Konfiguration bearbeiten“* bzw. *„Details & Vorlagen öffnen“*.
+- **Aufgabenplan für Bewohner (`ChorePlannerView.tsx`)**:
+  - **Fokus auf eigene Aufgaben**: Bewohner sehen ausschließlich die ihnen zugewiesenen Aufgaben sowie allgemeine Gemeinschaftsaufgaben. Der Umschalter *„Alle Aufgaben / Nur meine Aufgaben“* wird nur noch für Betreuer/Admins eingeblendet.
+  - **Rechtsbündige „Heute“-Pille**: In der Tageskarte des Aufgabenplans richtet sich die Pille *„• HEUTE“* nun sauber am rechten Rand der Box aus, wodurch die mobile Handy-Ansicht harmonisch und ausgewogen wirkt.
+- **Homescreen Schnellzugriff-Dock (`DashboardHub.tsx`, `index.css`)**:
+  - **Aufgabenplan ganz links**: Der *Aufgabenplan* wurde als erstes Modul ganz links vor dem *Kochplan* in die Schnellzugriff-Leiste integriert.
+  - **Alle Module in einer Reihe (kein Umbruch)**: Das Schnellzugriff-Dock ordnet nun alle Module in einer durchgehenden, horizontalen Zeile an (`no-scrollbar`), sodass keine Kacheln mehr umbrechen.
+
 ## [0.1.48] - 2026-09-27
 
 ### Neu & Verbessert
