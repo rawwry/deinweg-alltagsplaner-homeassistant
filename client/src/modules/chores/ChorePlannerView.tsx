@@ -13,6 +13,14 @@ import {
   X,
   Plus,
   ChefHat,
+  Repeat,
+  Copy,
+  Sparkles,
+  Clock,
+  ArrowRight,
+  RotateCcw,
+  Info,
+  Trash2,
 } from 'lucide-react';
 import { getChoreOutlineIcon } from '../hub/DashboardHub.js';
 
@@ -187,7 +195,17 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
     template: any;
     day: any;
     selectedResidentIds: string[];
+    isRecurring: boolean;
   } | null>(null);
+
+  // Automation Modal State (for Staff)
+  const [showAutomationModal, setShowAutomationModal] = useState<boolean>(false);
+  const [automationTab, setAutomationTab] = useState<'recurring' | 'copy' | 'overview'>('recurring');
+  const [targetWeeksCount, setTargetWeeksCount] = useState<number>(4);
+  const [recurringRulesList, setRecurringRulesList] = useState<any[]>([]);
+  const [isLoadingRecurringRules, setIsLoadingRecurringRules] = useState<boolean>(false);
+  const [automationMsg, setAutomationMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [isProcessingAutomation, setIsProcessingAutomation] = useState<boolean>(false);
 
   const fetchWeekData = async (silent: boolean = false) => {
     try {
@@ -270,9 +288,10 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
   };
 
   // Assign resident(s)
-  const handleSaveAssignment = async (residentIds: string[]) => {
+  const handleSaveAssignment = async (residentIds: string[], isRecurringOverride?: boolean) => {
     if (!assignModal) return;
     try {
+      const effectiveRecurring = isRecurringOverride !== undefined ? isRecurringOverride : assignModal.isRecurring;
       await api.chores.assign({
         locationId: activeLocationId,
         templateId: assignModal.template.id,
@@ -281,12 +300,76 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
         weekNumber,
         dayOfWeek: assignModal.day.dayOfWeek,
         assignedResidentIds: residentIds,
+        isRecurring: effectiveRecurring,
       });
       setAssignModal(null);
       const refreshed = await api.chores.week(activeLocationId, year, weekNumber);
       setWeekData(refreshed);
     } catch (err) {
       console.error('Fehler beim Zuweisen der Aufgabe:', err);
+    }
+  };
+
+  const fetchRecurringRules = async () => {
+    try {
+      setIsLoadingRecurringRules(true);
+      const data = await api.chores.recurring(activeLocationId);
+      setRecurringRulesList(data || []);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoadingRecurringRules(false);
+    }
+  };
+
+  const handleSaveWeekAsRecurring = async () => {
+    try {
+      setIsProcessingAutomation(true);
+      setAutomationMsg(null);
+      const res = await api.chores.saveWeekAsRecurring({
+        locationId: activeLocationId,
+        year,
+        weekNumber,
+      });
+      setAutomationMsg({ type: 'success', text: res.message });
+      const refreshed = await api.chores.week(activeLocationId, year, weekNumber);
+      setWeekData(refreshed);
+      fetchRecurringRules();
+    } catch (err: any) {
+      setAutomationMsg({ type: 'error', text: err.message || 'Fehler beim Speichern des Dauerplans' });
+    } finally {
+      setIsProcessingAutomation(false);
+    }
+  };
+
+  const handleCopyWeek = async () => {
+    try {
+      setIsProcessingAutomation(true);
+      setAutomationMsg(null);
+      const res = await api.chores.copyWeek({
+        locationId: activeLocationId,
+        sourceYear: year,
+        sourceWeekNumber: weekNumber,
+        targetWeeksCount,
+      });
+      setAutomationMsg({ type: 'success', text: res.message });
+      const refreshed = await api.chores.week(activeLocationId, year, weekNumber);
+      setWeekData(refreshed);
+    } catch (err: any) {
+      setAutomationMsg({ type: 'error', text: err.message || 'Fehler beim Übertragen des Wochenplans' });
+    } finally {
+      setIsProcessingAutomation(false);
+    }
+  };
+
+  const handleDeleteRecurringRule = async (id: string) => {
+    try {
+      await api.chores.deleteRecurring(id);
+      fetchRecurringRules();
+      const refreshed = await api.chores.week(activeLocationId, year, weekNumber);
+      setWeekData(refreshed);
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -527,15 +610,26 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                         {getChoreOutlineIcon(tmpl, 'w-5 h-5')}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <span
-                          className={`text-sm font-bold tracking-tight block truncate ${
-                            (user?.role === 'BEWOHNER' ? isMyDone : isAllDone)
-                              ? 'line-through text-slate-400'
-                              : 'text-white'
-                          }`}
-                        >
-                          {tmpl.title}
-                        </span>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span
+                            className={`text-sm font-bold tracking-tight truncate ${
+                              (user?.role === 'BEWOHNER' ? isMyDone : isAllDone)
+                                ? 'line-through text-slate-400'
+                                : 'text-white'
+                            }`}
+                          >
+                            {tmpl.title}
+                          </span>
+                          {assignment?.isRecurring && (
+                            <span
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shrink-0"
+                              title="Wöchentlich wiederkehrende Aufgabe"
+                            >
+                              <Repeat className="w-3 h-3 text-indigo-400" />
+                              <span>Wöchentlich</span>
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -636,6 +730,7 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                                 template: tmpl,
                                 day,
                                 selectedResidentIds: ['ALL'],
+                                isRecurring: Boolean(assignment?.isRecurring),
                               });
                             }
                           }}
@@ -666,6 +761,7 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                                 template: tmpl,
                                 day,
                                 selectedResidentIds: assignedResidents.map((r: any) => r.id),
+                                isRecurring: Boolean(assignment?.isRecurring),
                               });
                             }}
                             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all bg-surface-card hover:bg-indigo-600/10 border-surface-border hover:border-indigo-500/40 text-slate-200 hover:text-white cursor-pointer shadow-xs group"
@@ -718,6 +814,7 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                                     template: tmpl,
                                     day,
                                     selectedResidentIds: [res.id],
+                                    isRecurring: Boolean(assignment?.isRecurring),
                                   });
                                 }
                               }}
@@ -766,6 +863,7 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                               template: tmpl,
                               day,
                               selectedResidentIds: modalInitialIds,
+                              isRecurring: Boolean(assignment?.isRecurring),
                             });
                           }}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-dashed border-indigo-500/40 text-indigo-300 hover:text-white hover:bg-indigo-500/15 hover:border-indigo-500/60 text-xs font-semibold transition-all cursor-pointer"
@@ -865,6 +963,20 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
 
         {/* Action buttons */}
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+          {isStaff && (
+            <button
+              type="button"
+              onClick={() => {
+                setShowAutomationModal(true);
+                fetchRecurringRules();
+              }}
+              className="px-4 py-2 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shadow-md shadow-indigo-600/25 hover:shadow-indigo-600/40"
+              title="Wochenplan als dauerhaft wiederkehrend speichern oder auf Folgewochen übertragen"
+            >
+              <Repeat className="w-4 h-4" />
+              <span>Wochenplan automatisieren</span>
+            </button>
+          )}
           {isStaff && setCurrentTab && (
             <button
               type="button"
@@ -1234,6 +1346,29 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
               </div>
             </div>
 
+            {/* Wöchentlich wiederkehrend toggle */}
+            <div className="pt-2 border-t border-surface-border/60">
+              <label className="flex items-start gap-3 p-3 rounded-2xl bg-indigo-950/20 border border-indigo-500/20 hover:border-indigo-500/40 transition-colors cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={assignModal.isRecurring}
+                  onChange={(e) =>
+                    setAssignModal((prev) => (prev ? { ...prev, isRecurring: e.target.checked } : null))
+                  }
+                  className="mt-0.5 w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 bg-surface-elevated border-surface-border cursor-pointer shrink-0"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+                    <Repeat className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>Wöchentlich wiederholen</span>
+                  </div>
+                  <p className="text-[11px] text-slate-300 mt-0.5 leading-relaxed">
+                    Jeden <strong>{assignModal.day.name}</strong> automatisch so einteilen (gilt auch für Folgewochen)
+                  </p>
+                </div>
+              </label>
+            </div>
+
             {/* Footer Buttons */}
             <div className="pt-3 border-t border-surface-border flex items-center justify-between gap-2">
               <button
@@ -1262,6 +1397,310 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Automation Modal (Dauerplan & Wochenübertragung) */}
+      {showAutomationModal && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-surface-card border border-surface-border rounded-3xl p-6 sm:p-7 max-w-2xl w-full shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150 my-8">
+            {/* Header */}
+            <div className="flex items-start justify-between pb-4 border-b border-surface-border">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-indigo-500/15 border border-indigo-500/30 rounded-2xl text-indigo-400">
+                  <Repeat className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white font-sans">
+                    Wochenplan automatisieren
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    WG {activeLocation?.name || user?.locationName || 'Emsdetten'} · Basis: <strong>KW {weekNumber} ({year})</strong>
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAutomationModal(false);
+                  setAutomationMsg(null);
+                }}
+                className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Notification alert */}
+            {automationMsg && (
+              <div
+                className={`p-3.5 rounded-2xl border text-xs flex items-center gap-2.5 ${
+                  automationMsg.type === 'success'
+                    ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
+                    : 'bg-rose-500/15 border-rose-500/30 text-rose-300'
+                }`}
+              >
+                {automationMsg.type === 'success' ? (
+                  <Check className="w-4 h-4 shrink-0 text-emerald-400" />
+                ) : (
+                  <Info className="w-4 h-4 shrink-0 text-rose-400" />
+                )}
+                <span>{automationMsg.text}</span>
+              </div>
+            )}
+
+            {/* Sub-tabs */}
+            <div className="grid grid-cols-3 gap-1 p-1 bg-surface-elevated rounded-2xl border border-surface-border">
+              <button
+                type="button"
+                onClick={() => setAutomationTab('recurring')}
+                className={`py-2 px-3 rounded-xl text-xs font-semibold transition-all cursor-pointer text-center ${
+                  automationTab === 'recurring'
+                    ? 'bg-indigo-600 text-white shadow-xs'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                1. Dauerplan festlegen
+              </button>
+              <button
+                type="button"
+                onClick={() => setAutomationTab('copy')}
+                className={`py-2 px-3 rounded-xl text-xs font-semibold transition-all cursor-pointer text-center ${
+                  automationTab === 'copy'
+                    ? 'bg-indigo-600 text-white shadow-xs'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                2. Auf Folgewochen
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAutomationTab('overview');
+                  fetchRecurringRules();
+                }}
+                className={`py-2 px-3 rounded-xl text-xs font-semibold transition-all cursor-pointer text-center ${
+                  automationTab === 'overview'
+                    ? 'bg-indigo-600 text-white shadow-xs'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                3. Aktive Regeln ({recurringRulesList.length})
+              </button>
+            </div>
+
+            {/* TAB 1: Dauerplan */}
+            {automationTab === 'recurring' && (
+              <div className="space-y-4">
+                <div className="p-4 rounded-2xl bg-surface-elevated/60 border border-surface-border/80 space-y-2">
+                  <div className="flex items-center gap-2 text-indigo-300 font-bold text-xs">
+                    <Sparkles className="w-4 h-4" />
+                    <span>Permanenten Wochenrhythmus einrichten</span>
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Möchtest du, dass die aktuelle Einteilung von <strong>KW {weekNumber} ({year})</strong> ab jetzt automatisch für jede zukünftige Woche als Standard gilt?
+                  </p>
+                  <p className="text-[11px] text-slate-400 leading-relaxed">
+                    Alle eingeteilten Aufgaben (z. B. Montag Küche, Freitag Müll) werden dauerhaft für die jeweiligen Wochentage hinterlegt. In neuen Wochen musst du nichts mehr von Hand einteilen!
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-xs">
+                  <span className="text-slate-300">
+                    Aufgaben in aktueller Woche:
+                  </span>
+                  <span className="font-bold text-white font-mono">
+                    {(weekData?.assignments || []).length} Zuweisungen
+                  </span>
+                </div>
+
+                <div className="pt-2 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowAutomationModal(false)}
+                    className="px-4 py-2 rounded-xl bg-surface-elevated hover:bg-surface-card border border-surface-border text-slate-300 text-xs font-semibold transition-colors cursor-pointer"
+                  >
+                    Schließen
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isProcessingAutomation}
+                    onClick={handleSaveWeekAsRecurring}
+                    className="btn-theme-gradient px-5 py-2 rounded-xl text-xs font-semibold cursor-pointer shadow-md flex items-center gap-2 disabled:opacity-50"
+                  >
+                    <Repeat className="w-4 h-4" />
+                    <span>{isProcessingAutomation ? 'Wird gespeichert...' : 'Als Dauerplan festlegen'}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 2: Auf Folgewochen übertragen */}
+            {automationTab === 'copy' && (
+              <div className="space-y-4">
+                <div className="p-4 rounded-2xl bg-surface-elevated/60 border border-surface-border/80 space-y-2">
+                  <div className="flex items-center gap-2 text-indigo-300 font-bold text-xs">
+                    <Copy className="w-4 h-4" />
+                    <span>Aufgabenplan in zukünftige Wochen kopieren</span>
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Kopiere die genaue Aufgaben- und Bewohnerverteilung von <strong>KW {weekNumber} ({year})</strong> direkt in die kommenden Kalenderwochen.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-xs font-semibold text-slate-300">
+                    Wie viele Wochen in die Zukunft übertragen?
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[
+                      { count: 1, label: '1 Woche' },
+                      { count: 2, label: '2 Wochen' },
+                      { count: 4, label: '4 Wochen (1 Monat)' },
+                      { count: 8, label: '8 Wochen (2 Monate)' },
+                    ].map((item) => (
+                      <button
+                        key={item.count}
+                        type="button"
+                        onClick={() => setTargetWeeksCount(item.count)}
+                        className={`p-3 rounded-2xl border text-xs font-semibold text-center transition-all cursor-pointer ${
+                          targetWeeksCount === item.count
+                            ? 'bg-indigo-600 text-white border-indigo-500 shadow-md ring-1 ring-indigo-500/50'
+                            : 'bg-surface-elevated/60 border-surface-border text-slate-300 hover:bg-surface-elevated hover:text-white'
+                        }`}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="pt-2 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowAutomationModal(false)}
+                    className="px-4 py-2 rounded-xl bg-surface-elevated hover:bg-surface-card border border-surface-border text-slate-300 text-xs font-semibold transition-colors cursor-pointer"
+                  >
+                    Schließen
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isProcessingAutomation}
+                    onClick={handleCopyWeek}
+                    className="btn-theme-gradient px-5 py-2 rounded-xl text-xs font-semibold cursor-pointer shadow-md flex items-center gap-2 disabled:opacity-50"
+                  >
+                    <Copy className="w-4 h-4" />
+                    <span>
+                      {isProcessingAutomation
+                        ? 'Wird kopiert...'
+                        : `In die nächsten ${targetWeeksCount} Wochen kopieren`}
+                    </span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: Aktive Dauerplan-Matrix */}
+            {automationTab === 'overview' && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-400">
+                    Aktive wöchentliche Dauerplan-Regeln für diesen Standort:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={fetchRecurringRules}
+                    disabled={isLoadingRecurringRules}
+                    className="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1 cursor-pointer"
+                  >
+                    <RotateCcw className={`w-3.5 h-3.5 ${isLoadingRecurringRules ? 'animate-spin' : ''}`} />
+                    <span>Neu laden</span>
+                  </button>
+                </div>
+
+                {isLoadingRecurringRules ? (
+                  <div className="py-8 text-center text-xs text-slate-400">Regeln werden geladen...</div>
+                ) : recurringRulesList.length === 0 ? (
+                  <div className="py-8 text-center text-xs text-slate-400 bg-surface-elevated/30 rounded-2xl border border-surface-border/50">
+                    Noch keine wöchentlichen Dauerplan-Regeln vorhanden. Nutze Reiter "1. Dauerplan festlegen" oder hake beim Zuweisen "Wöchentlich wiederholen" an.
+                  </div>
+                ) : (
+                  <div className="max-h-72 overflow-y-auto space-y-2 pr-1">
+                    {[
+                      { dow: 1, name: 'Montag' },
+                      { dow: 2, name: 'Dienstag' },
+                      { dow: 3, name: 'Mittwoch' },
+                      { dow: 4, name: 'Donnerstag' },
+                      { dow: 5, name: 'Freitag' },
+                      { dow: 6, name: 'Samstag' },
+                      { dow: 7, name: 'Sonntag' },
+                    ].map(({ dow, name }) => {
+                      const dayRules = recurringRulesList.filter((r: any) => r.dayOfWeek === dow);
+                      if (dayRules.length === 0) return null;
+
+                      return (
+                        <div key={dow} className="p-3 bg-surface-elevated/50 border border-surface-border rounded-2xl space-y-2">
+                          <div className="text-xs font-bold text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5" />
+                            <span>Jeden {name}</span>
+                          </div>
+                          <div className="space-y-1.5">
+                            {dayRules.map((rule: any) => {
+                              const assignedResidents = rule.assignedResidents || (rule.resident ? [rule.resident] : []);
+                              const isAll = rule.isAllResidents;
+
+                              return (
+                                <div
+                                  key={rule.id}
+                                  className="flex items-center justify-between gap-3 p-2 bg-surface-card rounded-xl border border-surface-border/60 text-xs"
+                                >
+                                  <div className="flex items-center gap-2.5 min-w-0">
+                                    <span className="text-base shrink-0">{rule.template?.icon || '🧹'}</span>
+                                    <span className="font-semibold text-white truncate">
+                                      {rule.template?.title || 'Aufgabe'}
+                                    </span>
+                                    <ArrowRight className="w-3 h-3 text-slate-600 shrink-0" />
+                                    <span className="text-slate-300 truncate">
+                                      {isAll ? (
+                                        <span className="text-indigo-400 font-bold">Alle Bewohner</span>
+                                      ) : assignedResidents.length > 0 ? (
+                                        assignedResidents.map((r: any) => r.name).join(', ')
+                                      ) : (
+                                        <span className="text-slate-500 italic">Nicht zugeteilt</span>
+                                      )}
+                                    </span>
+                                  </div>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteRecurringRule(rule.id)}
+                                    className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer shrink-0"
+                                    title="Dauerplan-Regel entfernen"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <div className="pt-2 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setShowAutomationModal(false)}
+                    className="px-4 py-2 rounded-xl bg-surface-elevated hover:bg-surface-card border border-surface-border text-slate-300 text-xs font-semibold transition-colors cursor-pointer"
+                  >
+                    Schließen
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

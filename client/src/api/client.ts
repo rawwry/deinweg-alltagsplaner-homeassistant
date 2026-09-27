@@ -293,7 +293,30 @@ export const api = {
       dayOfWeek: number;
       residentId?: string | null;
       assignedResidentIds?: string[] | string | null;
+      isRecurring?: boolean;
     }) => request<any>('chores/assign', { method: 'POST', body: JSON.stringify(body) }),
+    recurring: (locationId?: string) =>
+      request<any[]>(`chores/recurring${locationId ? `?locationId=${locationId}` : ''}`),
+    saveWeekAsRecurring: (body: { locationId: string; year: number; weekNumber: number }) =>
+      request<{ success: boolean; count: number; message: string }>('chores/save-week-as-recurring', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    copyWeek: (body: {
+      locationId: string;
+      sourceYear: number;
+      sourceWeekNumber: number;
+      targetWeeksCount?: number;
+    }) =>
+      request<{ success: boolean; weeksCopied: number; assignmentsCopied: number; message: string }>(
+        'chores/copy-week',
+        {
+          method: 'POST',
+          body: JSON.stringify(body),
+        }
+      ),
+    deleteRecurring: (id: string) =>
+      request<{ success: boolean }>(`chores/recurring/${id}`, { method: 'DELETE' }),
     toggleComplete: (body: {
       assignmentId?: string;
       templateId?: string;

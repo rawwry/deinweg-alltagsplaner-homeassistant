@@ -3,6 +3,24 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.45] - 2026-09-27
+
+### Neu & Verbessert
+- **Wöchentlich wiederkehrende Aufgaben & Dauerpläne (`ChoreRecurringAssignment`, `routes.ts`, `ChorePlannerView.tsx`)**:
+  - **Wöchentliche Wiederholung direkt beim Zuweisen**: Im Zuweisungs-Dialog können Betreuer mit einem einfachen Klick auf *„Wöchentlich wiederholen“* festlegen, dass eine Aufgabe an diesem Wochentag (z. B. jeden Montag) dauerhaft für die Folgewochen eingeteilt bleibt.
+  - **Visuelles Feedback im Wochenplan**: Aufgaben, die aus einem wiederkehrenden Dauerplan stammen, werden dezent mit einem *„🔁 Wöchentlich“*-Badge gekennzeichnet.
+  - **Wochenplan automatisieren**: Neuer Dialog in der Kopfzeile des Aufgabenplans für Betreuer mit drei Funktionen:
+    1. *Dauerplan festlegen*: Speichert die komplette aktuelle Kalenderwoche auf Knopfdruck als festen wöchentlichen Rhythmus für den gesamten Standort.
+    2. *Auf Folgewochen übertragen*: Kopiert alle Einteilungen der aktuellen Woche direkt in die nächsten 1, 2, 4 oder 8 Wochen.
+    3. *Aktive Dauerplan-Matrix*: Zeigt alle hinterlegten Dauerplan-Regeln sortiert nach Wochentagen an, inklusive direkter Löschfunktion.
+  - **Nahtlose Abwärtskompatibilität & Overrides**: Einmalige manuelle Änderungen an einzelnen Tagen in einer Woche überschreiben den Dauerplan gezielt für dieses Datum, ohne den allgemeinen Dauerplan zu zerstören.
+- **Einstellungen: Neugestaltung der „Aufgaben-Vorlagen“ (`AdminManagementView.tsx`)**:
+  - **Aufgeräumter Header & KPI-Statistiken**: Sofortige Übersicht über *Vorlagen gesamt*, *Gemeinschaftsaufgaben* und *Feste Dauerplan-Regeln*.
+  - **Sub-Tab-Struktur**:
+    - *Vorlagen-Katalog*: Elegante Kacheln mit Suche, Schnellfiltern (*Alle*, *Gemeinschaft*, *Feste Bewohner*, *Freie Einteilung*), Aufgabenbeschreibungen und Anzeige der zugewiesenen Wochentage im Dauerplan.
+    - *Wöchentlicher Dauerplan*: Vollständige 7-Tage-Übersicht (Montag bis Sonntag) aller automatischen Aufgaben und Bewohner-Zuweisungen.
+  - **Schlanker, moderner Dialog (Modal)**: Statt beengter Inline-Eingabefelder öffnet sich beim Erstellen oder Bearbeiten einer Vorlage ein geräumiges, klares Modal mit Icon-Schnellauswahl und intuitiven Zuordnungs-Optionen.
+
 ## [0.1.44] - 2026-09-25
 
 ### Neu & Verbessert

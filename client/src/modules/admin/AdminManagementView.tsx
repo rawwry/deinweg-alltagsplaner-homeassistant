@@ -30,6 +30,14 @@ import {
   LogOut,
   BookOpen,
   ListTodo,
+  Repeat,
+  Calendar,
+  Clock,
+  Sparkles,
+  Filter,
+  Info,
+  ArrowRight,
+  User,
 } from 'lucide-react';
 import { AvatarUploadModal } from '../../components/profile/AvatarUploadModal.js';
 import { formatGermanDate } from '../../utils/formatters.js';
@@ -89,19 +97,24 @@ export const AdminManagementView: React.FC = () => {
 
   // Chores State
   const [choreTemplates, setChoreTemplates] = useState<any[]>([]);
+  const [choreRecurringRules, setChoreRecurringRules] = useState<any[]>([]);
   const [selectedChoreLocId, setSelectedChoreLocId] = useState<string>(locations[0]?.id || '');
   const [choreResidents, setChoreResidents] = useState<any[]>([]);
   const [isLoadingChores, setIsLoadingChores] = useState(false);
-  const [showAddChore, setShowAddChore] = useState(false);
-  const [newChoreTitle, setNewChoreTitle] = useState('');
-  const [newChoreDesc, setNewChoreDesc] = useState('');
-  const [newChoreIcon, setNewChoreIcon] = useState('🧹');
-  const [newChoreAssignedResidents, setNewChoreAssignedResidents] = useState<string[]>([]);
-  const [editingChoreId, setEditingChoreId] = useState<string | null>(null);
-  const [editChoreTitle, setEditChoreTitle] = useState('');
-  const [editChoreDesc, setEditChoreDesc] = useState('');
-  const [editChoreIcon, setEditChoreIcon] = useState('🧹');
-  const [editChoreAssignedResidents, setEditChoreAssignedResidents] = useState<string[]>([]);
+  const [choreSubTab, setChoreSubTab] = useState<'templates' | 'recurring'>('templates');
+  const [choreSearch, setChoreSearch] = useState('');
+  const [choreFilterAssignment, setChoreFilterAssignment] = useState<'ALL' | 'ALL_RESIDENTS' | 'SPECIFIC' | 'UNASSIGNED'>('ALL');
+
+  // Modal State for Create / Edit Template
+  const [choreModalOpen, setChoreModalOpen] = useState(false);
+  const [choreModalMode, setChoreModalMode] = useState<'create' | 'edit'>('create');
+  const [choreFormId, setChoreFormId] = useState<string | null>(null);
+  const [choreFormTitle, setChoreFormTitle] = useState('');
+  const [choreFormDesc, setChoreFormDesc] = useState('');
+  const [choreFormIcon, setChoreFormIcon] = useState('🧹');
+  const [choreFormAssignmentMode, setChoreFormAssignmentMode] = useState<'FREE' | 'ALL' | 'SPECIFIC'>('FREE');
+  const [choreFormResidents, setChoreFormResidents] = useState<string[]>([]);
+
   const [choreSuccessMsg, setChoreSuccessMsg] = useState<string | null>(null);
   const [choreErrorMsg, setChoreErrorMsg] = useState<string | null>(null);
 
@@ -325,12 +338,14 @@ export const AdminManagementView: React.FC = () => {
     if (!targetLoc) return;
     try {
       setIsLoadingChores(true);
-      const [data, usersData] = await Promise.all([
+      const [data, usersData, recData] = await Promise.all([
         api.chores.templates(targetLoc),
         api.users.list(targetLoc).catch(() => []),
+        api.chores.recurring(targetLoc).catch(() => []),
       ]);
-      setChoreTemplates(data);
+      setChoreTemplates(data || []);
       setChoreResidents((usersData || []).filter((u: any) => u.role === 'BEWOHNER'));
+      setChoreRecurringRules(recData || []);
     } catch (err) {
       console.error('Fehler beim Laden der Aufgaben-Vorlagen:', err);
     } finally {
@@ -338,53 +353,78 @@ export const AdminManagementView: React.FC = () => {
     }
   };
 
-  const handleCreateChoreTemplate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newChoreTitle.trim()) return;
-    const locId = selectedChoreLocId || locations[0]?.id;
-    if (!locId) return;
-    try {
-      setChoreErrorMsg(null);
-      await api.chores.createTemplate({
-        locationId: locId,
-        title: newChoreTitle.trim(),
-        description: newChoreDesc.trim() || undefined,
-        icon: newChoreIcon.trim() || '🧹',
-        assignedResidentIds:
-          newChoreAssignedResidents.length > 0 ? newChoreAssignedResidents : null,
-      });
-      setShowAddChore(false);
-      setNewChoreTitle('');
-      setNewChoreDesc('');
-      setNewChoreIcon('🧹');
-      setNewChoreAssignedResidents([]);
-      setChoreSuccessMsg('Aufgaben-Vorlage erfolgreich angelegt!');
-      setTimeout(() => setChoreSuccessMsg(null), 3000);
-      fetchChoreTemplates(locId);
-    } catch (err: any) {
-      setChoreErrorMsg(err.message || 'Fehler beim Anlegen der Vorlage');
-    }
+  const openCreateChoreModal = () => {
+    setChoreModalMode('create');
+    setChoreFormId(null);
+    setChoreFormTitle('');
+    setChoreFormDesc('');
+    setChoreFormIcon('🧹');
+    setChoreFormAssignmentMode('FREE');
+    setChoreFormResidents([]);
+    setChoreErrorMsg(null);
+    setChoreModalOpen(true);
   };
 
-  const handleUpdateChoreTemplate = async (id: string) => {
-    if (!editChoreTitle.trim()) return;
+  const openEditChoreModal = (tmpl: any) => {
+    setChoreModalMode('edit');
+    setChoreFormId(tmpl.id);
+    setChoreFormTitle(tmpl.title || '');
+    setChoreFormDesc(tmpl.description || '');
+    setChoreFormIcon(tmpl.icon || '🧹');
+    const isAll = Boolean(tmpl.isAllResidents || (tmpl.assignedResidentIdsList && tmpl.assignedResidentIdsList.includes('ALL')));
+    const resList = tmpl.assignedResidentIdsList || (tmpl.residentId ? [tmpl.residentId] : []);
+    if (isAll) {
+      setChoreFormAssignmentMode('ALL');
+      setChoreFormResidents(['ALL']);
+    } else if (resList.length > 0) {
+      setChoreFormAssignmentMode('SPECIFIC');
+      setChoreFormResidents(resList);
+    } else {
+      setChoreFormAssignmentMode('FREE');
+      setChoreFormResidents([]);
+    }
+    setChoreErrorMsg(null);
+    setChoreModalOpen(true);
+  };
+
+  const handleSaveChoreModal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!choreFormTitle.trim()) return;
     const locId = selectedChoreLocId || locations[0]?.id;
+    if (!locId) return;
+
+    let finalAssignedIds: string[] | null = null;
+    if (choreFormAssignmentMode === 'ALL') {
+      finalAssignedIds = ['ALL'];
+    } else if (choreFormAssignmentMode === 'SPECIFIC') {
+      finalAssignedIds = choreFormResidents.length > 0 ? choreFormResidents : null;
+    }
+
     try {
       setChoreErrorMsg(null);
-      await api.chores.updateTemplate(id, {
-        title: editChoreTitle.trim(),
-        description: editChoreDesc.trim() || undefined,
-        icon: editChoreIcon.trim() || '🧹',
-        assignedResidentIds:
-          editChoreAssignedResidents.length > 0 ? editChoreAssignedResidents : null,
-      });
-      setEditingChoreId(null);
-      setEditChoreAssignedResidents([]);
-      setChoreSuccessMsg('Aufgaben-Vorlage aktualisiert!');
+      if (choreModalMode === 'create') {
+        await api.chores.createTemplate({
+          locationId: locId,
+          title: choreFormTitle.trim(),
+          description: choreFormDesc.trim() || undefined,
+          icon: choreFormIcon.trim() || '🧹',
+          assignedResidentIds: finalAssignedIds,
+        });
+        setChoreSuccessMsg('Aufgaben-Vorlage erfolgreich angelegt!');
+      } else if (choreFormId) {
+        await api.chores.updateTemplate(choreFormId, {
+          title: choreFormTitle.trim(),
+          description: choreFormDesc.trim() || undefined,
+          icon: choreFormIcon.trim() || '🧹',
+          assignedResidentIds: finalAssignedIds,
+        });
+        setChoreSuccessMsg('Aufgaben-Vorlage aktualisiert!');
+      }
+      setChoreModalOpen(false);
       setTimeout(() => setChoreSuccessMsg(null), 3000);
       fetchChoreTemplates(locId);
     } catch (err: any) {
-      setChoreErrorMsg(err.message || 'Fehler beim Aktualisieren der Vorlage');
+      setChoreErrorMsg(err.message || 'Fehler beim Speichern der Vorlage');
     }
   };
 
@@ -399,6 +439,18 @@ export const AdminManagementView: React.FC = () => {
       fetchChoreTemplates(locId);
     } catch (err: any) {
       setChoreErrorMsg(err.message || 'Fehler beim Löschen der Vorlage');
+    }
+  };
+
+  const handleDeleteRecurringInAdmin = async (ruleId: string) => {
+    const locId = selectedChoreLocId || locations[0]?.id;
+    try {
+      await api.chores.deleteRecurring(ruleId);
+      setChoreSuccessMsg('Dauerplan-Eintrag entfernt.');
+      setTimeout(() => setChoreSuccessMsg(null), 3000);
+      fetchChoreTemplates(locId);
+    } catch (err: any) {
+      setChoreErrorMsg(err.message || 'Fehler beim Entfernen des Dauerplan-Eintrags');
     }
   };
 
@@ -1855,54 +1907,102 @@ export const AdminManagementView: React.FC = () => {
         </div>
       )}
 
-      {/* SUBTAB: CHORES (AUFGABEN-VORLAGEN) */}
+      {/* SUBTAB: CHORES (AUFGABEN-VORLAGEN & DAUERPLÄNE) */}
       {activeSubTab === 'chores' && (
         <div className="space-y-6">
-          {/* Header & Location Selector */}
-          <div className="bento-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border shadow-xl space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-indigo-500/15 border border-indigo-500/30 rounded-2xl text-indigo-400">
-                  <ListTodo className="w-5 h-5" />
+          {/* Header & Controls */}
+          <div className="bento-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border shadow-xl space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
+                <div className="p-3 bg-indigo-500/15 border border-indigo-500/30 rounded-2xl text-indigo-400 shrink-0">
+                  <ListTodo className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-base font-display font-semibold text-surface-cream">
-                    Aufgaben-Vorlagen verwalten
+                  <h3 className="text-xl font-display font-bold text-white tracking-tight">
+                    Aufgaben-Vorlagen & Dauerpläne
                   </h3>
-                  <p className="text-xs text-surface-muted mt-0.5 font-sans">
-                    Definiere wiederkehrende Haushalts- & Alltagsaufgaben, die den Bewohnern im Aufgabenplan zugewiesen werden können.
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Definiere wiederkehrende Aufgaben-Standards und den wöchentlichen Dauerplan für deinen Standort.
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-3 flex-wrap">
-                {/* Location Switcher for templates */}
-                <div className="flex items-center gap-2 bg-surface-elevated px-3 py-1.5 rounded-xl border border-surface-border text-xs">
-                  <span className="text-slate-400 font-medium">Standort:</span>
-                  <select
-                    value={selectedChoreLocId}
-                    onChange={(e) => {
-                      setSelectedChoreLocId(e.target.value);
-                      fetchChoreTemplates(e.target.value);
-                    }}
-                    className="bg-transparent text-white font-semibold focus:outline-none cursor-pointer"
-                  >
-                    {locations.map((loc) => (
-                      <option key={loc.id} value={loc.id} className="bg-surface-card text-white">
-                        {loc.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {/* Location Switcher */}
+                {locations.length > 1 && (
+                  <div className="flex items-center gap-2 bg-surface-elevated px-3 py-2 rounded-xl border border-surface-border text-xs">
+                    <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                    <span className="text-slate-400 font-medium">Standort:</span>
+                    <select
+                      value={selectedChoreLocId}
+                      onChange={(e) => {
+                        setSelectedChoreLocId(e.target.value);
+                        fetchChoreTemplates(e.target.value);
+                      }}
+                      className="bg-transparent text-white font-semibold focus:outline-none cursor-pointer"
+                    >
+                      {locations.map((loc) => (
+                        <option key={loc.id} value={loc.id} className="bg-surface-card text-white">
+                          {loc.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 <button
                   type="button"
-                  onClick={() => setShowAddChore(true)}
-                  className="btn-theme-gradient px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 cursor-pointer shadow-md"
+                  onClick={openCreateChoreModal}
+                  className="btn-theme-gradient px-4 py-2.5 rounded-2xl text-xs font-semibold flex items-center gap-2 cursor-pointer shadow-md shadow-indigo-600/20 hover:shadow-indigo-600/35 transition-all"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Neue Vorlage</span>
+                  <span>Neue Vorlage anlegen</span>
                 </button>
+              </div>
+            </div>
+
+            {/* Quick KPI Stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="p-4 rounded-2xl bg-surface-elevated/40 border border-surface-border flex items-center justify-between">
+                <div>
+                  <span className="text-slate-400 text-xs font-medium block">Vorlagen gesamt</span>
+                  <span className="text-xl font-bold text-white font-display mt-0.5 block">
+                    {choreTemplates.length}
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-400">
+                  <ListTodo className="w-5 h-5" />
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-surface-elevated/40 border border-surface-border flex items-center justify-between">
+                <div>
+                  <span className="text-slate-400 text-xs font-medium block">Gemeinschaftsaufgaben</span>
+                  <span className="text-xl font-bold text-white font-display mt-0.5 block">
+                    {
+                      choreTemplates.filter(
+                        (t) =>
+                          t.isAllResidents ||
+                          (t.assignedResidentIdsList && t.assignedResidentIdsList.includes('ALL'))
+                      ).length
+                    }
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400">
+                  <Users className="w-5 h-5" />
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-surface-elevated/40 border border-surface-border flex items-center justify-between">
+                <div>
+                  <span className="text-slate-400 text-xs font-medium block">Feste Dauerplan-Regeln</span>
+                  <span className="text-xl font-bold text-white font-display mt-0.5 block">
+                    {choreRecurringRules.length}
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-400">
+                  <Repeat className="w-5 h-5" />
+                </div>
               </div>
             </div>
 
@@ -1920,379 +2020,216 @@ export const AdminManagementView: React.FC = () => {
               </div>
             )}
 
-            {/* Add Chore Template Form Modal/Card */}
-            {showAddChore && (
-              <form
-                onSubmit={handleCreateChoreTemplate}
-                className="bg-surface-elevated/60 border border-indigo-500/40 rounded-3xl p-5 space-y-4 shadow-lg animate-in fade-in duration-150"
+            {/* Sub-Tabs: Vorlagen-Katalog vs Wöchentlicher Dauerplan */}
+            <div className="flex items-center gap-2 border-b border-surface-border pb-3">
+              <button
+                type="button"
+                onClick={() => setChoreSubTab('templates')}
+                className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+                  choreSubTab === 'templates'
+                    ? 'bg-indigo-600 text-white shadow-xs'
+                    : 'text-slate-400 hover:text-white hover:bg-surface-elevated'
+                }`}
               >
-                <div className="flex items-center justify-between pb-2 border-b border-surface-border">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-300 font-mono">
-                    Neue Aufgaben-Vorlage anlegen
-                  </h4>
-                  <button
-                    type="button"
-                    onClick={() => setShowAddChore(false)}
-                    className="text-slate-400 hover:text-white p-1"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
+                <ListTodo className="w-4 h-4" />
+                <span>Vorlagen-Katalog ({choreTemplates.length})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setChoreSubTab('recurring')}
+                className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+                  choreSubTab === 'recurring'
+                    ? 'bg-indigo-600 text-white shadow-xs'
+                    : 'text-slate-400 hover:text-white hover:bg-surface-elevated'
+                }`}
+              >
+                <Repeat className="w-4 h-4" />
+                <span>Wöchentlicher Dauerplan ({choreRecurringRules.length})</span>
+              </button>
+            </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">
-                      Bezeichnung der Aufgabe *
-                    </label>
+            {/* VIEW 1: VORLAGEN-KATALOG */}
+            {choreSubTab === 'templates' && (
+              <div className="space-y-4">
+                {/* Search & Filter Bar */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                  <div className="relative flex-1 max-w-md">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
-                      value={newChoreTitle}
-                      onChange={(e) => setNewChoreTitle(e.target.value)}
-                      placeholder="z.B. Küche & Abwasch, Zimmer saugen, Müll rausbringen"
-                      required
-                      className="w-full px-3.5 py-2.5 bg-surface-card border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                      value={choreSearch}
+                      onChange={(e) => setChoreSearch(e.target.value)}
+                      placeholder="Aufgaben durchsuchen..."
+                      className="w-full pl-9 pr-4 py-2 bg-surface-elevated/70 border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
                     />
+                    {choreSearch && (
+                      <button
+                        type="button"
+                        onClick={() => setChoreSearch('')}
+                        className="p-1 text-slate-400 hover:text-white absolute right-2.5 top-1/2 -translate-y-1/2"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">
-                      Icon / Emoji
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={newChoreIcon}
-                        onChange={(e) => setNewChoreIcon(e.target.value)}
-                        maxLength={4}
-                        className="w-16 px-3 py-2 text-center text-lg bg-surface-card border border-surface-border rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
-                      />
-                      <div className="flex items-center gap-1 flex-wrap">
-                        {['🧹', '🍽️', '🗑️', '🧼', '🧺', '✨', '🛏️', '🛒', '🌱'].map((emoji) => (
+                  {/* Filter chips */}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {[
+                      { id: 'ALL', label: 'Alle' },
+                      { id: 'ALL_RESIDENTS', label: 'Gemeinschaft' },
+                      { id: 'SPECIFIC', label: 'Feste Bewohner' },
+                      { id: 'UNASSIGNED', label: 'Freie Einteilung' },
+                    ].map((filter) => (
+                      <button
+                        key={filter.id}
+                        type="button"
+                        onClick={() => setChoreFilterAssignment(filter.id as any)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                          choreFilterAssignment === filter.id
+                            ? 'bg-indigo-600/30 text-indigo-300 border border-indigo-500/50'
+                            : 'bg-surface-elevated/50 text-slate-400 hover:text-slate-200 border border-surface-border'
+                        }`}
+                      >
+                        {filter.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Templates List */}
+                {isLoadingChores ? (
+                  <div className="py-12 text-center text-xs text-slate-400">
+                    Vorlagen werden geladen...
+                  </div>
+                ) : (() => {
+                  const filtered = choreTemplates.filter((tmpl) => {
+                    if (choreSearch.trim()) {
+                      const q = choreSearch.toLowerCase();
+                      const matchesTitle = tmpl.title.toLowerCase().includes(q);
+                      const matchesDesc = (tmpl.description || '').toLowerCase().includes(q);
+                      if (!matchesTitle && !matchesDesc) return false;
+                    }
+                    const isAll = Boolean(
+                      tmpl.isAllResidents ||
+                        (tmpl.assignedResidentIdsList &&
+                          tmpl.assignedResidentIdsList.includes('ALL'))
+                    );
+                    const resCount = tmpl.assignedResidents?.length || (tmpl.residentId ? 1 : 0);
+                    if (choreFilterAssignment === 'ALL_RESIDENTS') return isAll;
+                    if (choreFilterAssignment === 'SPECIFIC') return !isAll && resCount > 0;
+                    if (choreFilterAssignment === 'UNASSIGNED') return !isAll && resCount === 0;
+                    return true;
+                  });
+
+                  if (filtered.length === 0) {
+                    return (
+                      <div className="py-12 text-center bg-surface-elevated/20 rounded-3xl border border-surface-border/50 space-y-3">
+                        <div className="w-12 h-12 rounded-2xl bg-surface-card border border-surface-border flex items-center justify-center mx-auto text-xl">
+                          🧹
+                        </div>
+                        <p className="text-xs text-slate-400 font-medium">
+                          {choreSearch
+                            ? 'Keine Vorlagen gefunden, die deiner Suche entsprechen.'
+                            : 'Noch keine Aufgaben-Vorlagen an diesem Standort vorhanden.'}
+                        </p>
+                        {!choreSearch && (
                           <button
-                            key={emoji}
                             type="button"
-                            onClick={() => setNewChoreIcon(emoji)}
-                            className="p-1 hover:bg-white/10 rounded-lg text-sm cursor-pointer"
+                            onClick={openCreateChoreModal}
+                            className="btn-theme-gradient px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer shadow-md inline-flex items-center gap-1.5"
                           >
-                            {emoji}
+                            <Plus className="w-3.5 h-3.5" />
+                            <span>Erste Vorlage anlegen</span>
                           </button>
-                        ))}
+                        )}
                       </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    Beschreibung / Richtlinien für Bewohner (optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={newChoreDesc}
-                    onChange={(e) => setNewChoreDesc(e.target.value)}
-                    placeholder="z.B. Spülmaschine ausräumen, Herd & Spüle sauber wischen"
-                    className="w-full px-3.5 py-2.5 bg-surface-card border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
-                  />
-                </div>
-
-                {/* Assigned Residents Multi-Select */}
-                <div className="pt-1">
-                  <div className="flex items-center justify-between mb-1.5 flex-wrap gap-2">
-                    <label className="text-xs font-semibold text-slate-300">
-                      Zugeordnete Bewohner (Mehrfachauswahl möglich)
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (newChoreAssignedResidents.includes('ALL')) {
-                          setNewChoreAssignedResidents([]);
-                        } else {
-                          setNewChoreAssignedResidents(['ALL']);
-                        }
-                      }}
-                      className={`px-3 py-1 rounded-xl text-xs font-semibold border transition-all cursor-pointer flex items-center gap-1.5 ${
-                        newChoreAssignedResidents.includes('ALL')
-                          ? 'bg-indigo-600 text-white border-indigo-500 shadow-xs'
-                          : 'bg-surface-card border-surface-border text-slate-300 hover:bg-surface-elevated hover:text-white'
-                      }`}
-                    >
-                      <span>👥</span>
-                      <span>Allen Bewohnern zuweisen</span>
-                    </button>
-                  </div>
-
-                  <p className="text-[11px] text-slate-400 mb-2 leading-snug">
-                    Ideal für Aufgaben wie z.B. Zimmerreinigung, die jeder Bewohner an seinem Tag erledigen soll, oder wähle einzelne Bewohner aus.
-                  </p>
-
-                  {!newChoreAssignedResidents.includes('ALL') && (
-                    <div className="flex flex-wrap gap-2 pt-1">
-                      {choreResidents.map((res) => {
-                        const isSelected = newChoreAssignedResidents.includes(res.id);
-                        return (
-                          <button
-                            key={res.id}
-                            type="button"
-                            onClick={() => {
-                              if (isSelected) {
-                                setNewChoreAssignedResidents(
-                                  newChoreAssignedResidents.filter((id) => id !== res.id)
-                                );
-                              } else {
-                                setNewChoreAssignedResidents([...newChoreAssignedResidents, res.id]);
-                              }
-                            }}
-                            className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
-                              isSelected
-                                ? 'bg-indigo-600/30 border-indigo-500 text-white shadow-xs'
-                                : 'bg-surface-card border-surface-border text-slate-400 hover:text-slate-200'
-                            }`}
-                          >
-                            <span
-                              className="w-2.5 h-2.5 rounded-full shrink-0"
-                              style={{ backgroundColor: res.avatarColor || '#6366f1' }}
-                            />
-                            <span>{res.name}</span>
-                            {isSelected && <Check className="w-3 h-3 text-indigo-400" />}
-                          </button>
-                        );
-                      })}
-                      {choreResidents.length === 0 && (
-                        <span className="text-xs text-slate-500 italic">
-                          Keine Bewohner an diesem Standort registriert.
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex items-center justify-end gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowAddChore(false);
-                      setNewChoreAssignedResidents([]);
-                    }}
-                    className="px-4 py-2 rounded-xl bg-surface-card border border-surface-border text-slate-300 text-xs font-semibold hover:bg-surface-elevated cursor-pointer"
-                  >
-                    Abbrechen
-                  </button>
-                  <button
-                    type="submit"
-                    className="btn-theme-gradient px-5 py-2 rounded-xl text-xs font-semibold cursor-pointer shadow-md"
-                  >
-                    Vorlage speichern
-                  </button>
-                </div>
-              </form>
-            )}
-
-            {/* Templates List */}
-            {isLoadingChores ? (
-              <div className="py-8 text-center text-xs text-slate-400">
-                Vorlagen werden geladen...
-              </div>
-            ) : choreTemplates.length === 0 ? (
-              <div className="py-8 text-center text-xs text-slate-400">
-                Noch keine Vorlagen für diesen Standort vorhanden.
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 pt-2">
-                {choreTemplates.map((tmpl) => {
-                  const isEditing = editingChoreId === tmpl.id;
+                    );
+                  }
 
                   return (
-                    <div
-                      key={tmpl.id}
-                      className="bg-surface-elevated/70 border border-surface-border rounded-2xl p-4 flex flex-col justify-between gap-3 shadow-md hover:border-surface-border/80 transition-all"
-                    >
-                      {isEditing ? (
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="text"
-                              value={editChoreIcon}
-                              onChange={(e) => setEditChoreIcon(e.target.value)}
-                              maxLength={4}
-                              className="w-12 py-1 text-center bg-surface-card border border-surface-border rounded-lg text-sm text-white"
-                            />
-                            <input
-                              type="text"
-                              value={editChoreTitle}
-                              onChange={(e) => setEditChoreTitle(e.target.value)}
-                              className="flex-1 px-2.5 py-1 bg-surface-card border border-surface-border rounded-lg text-xs text-white"
-                            />
-                          </div>
-                          <div className="flex items-center gap-1 flex-wrap">
-                            {['🧹', '🍽️', '🗑️', '🧼', '🧺', '✨', '🛏️', '🛒', '🌱'].map((emoji) => (
-                              <button
-                                key={emoji}
-                                type="button"
-                                onClick={() => setEditChoreIcon(emoji)}
-                                className="p-0.5 hover:bg-white/10 rounded text-xs cursor-pointer"
-                              >
-                                {emoji}
-                              </button>
-                            ))}
-                          </div>
-                          <input
-                            type="text"
-                            value={editChoreDesc}
-                            onChange={(e) => setEditChoreDesc(e.target.value)}
-                            placeholder="Beschreibung"
-                            className="w-full px-2.5 py-1 bg-surface-card border border-surface-border rounded-lg text-xs text-white placeholder-slate-500"
-                          />
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-1">
+                      {filtered.map((tmpl) => {
+                        const isAll = Boolean(
+                          tmpl.isAllResidents ||
+                            (tmpl.assignedResidentIdsList &&
+                              tmpl.assignedResidentIdsList.includes('ALL'))
+                        );
+                        const assignedRes = tmpl.assignedResidents || [];
+                        const templateRecurringRules = choreRecurringRules.filter(
+                          (r) => r.templateId === tmpl.id
+                        );
 
-                          {/* Edit Assigned Residents */}
-                          <div className="pt-1 border-t border-surface-border/50">
-                            <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
-                              <span className="text-[11px] font-semibold text-slate-300">
-                                Bewohner-Zuordnung:
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (editChoreAssignedResidents.includes('ALL')) {
-                                    setEditChoreAssignedResidents([]);
-                                  } else {
-                                    setEditChoreAssignedResidents(['ALL']);
-                                  }
-                                }}
-                                className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold border transition-all cursor-pointer ${
-                                  editChoreAssignedResidents.includes('ALL')
-                                    ? 'bg-indigo-600 text-white border-indigo-500'
-                                    : 'bg-surface-card border-surface-border text-slate-300 hover:bg-surface-elevated'
-                                }`}
-                              >
-                                👥 Allen Bewohnern
-                              </button>
-                            </div>
+                        return (
+                          <div
+                            key={tmpl.id}
+                            className="bg-surface-elevated/50 hover:bg-surface-elevated/80 border border-surface-border hover:border-indigo-500/40 rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-4 transition-all shadow-sm group"
+                          >
+                            <div className="space-y-3">
+                              {/* Top Row: Icon + Title + Actions */}
+                              <div className="flex items-start justify-between gap-2.5">
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <div className="w-10 h-10 rounded-xl bg-surface-card border border-surface-border flex items-center justify-center text-xl shrink-0 shadow-xs">
+                                    {tmpl.icon || '🧹'}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <h4 className="text-sm font-bold text-white truncate tracking-tight">
+                                      {tmpl.title}
+                                    </h4>
+                                    <span className="text-[10px] text-slate-500 font-mono block">
+                                      ID: {tmpl.id.slice(0, 8)}
+                                    </span>
+                                  </div>
+                                </div>
 
-                            {!editChoreAssignedResidents.includes('ALL') && (
-                              <div className="flex flex-wrap gap-1.5 pt-1">
-                                {choreResidents.map((res) => {
-                                  const isSelected = editChoreAssignedResidents.includes(res.id);
-                                  return (
-                                    <button
-                                      key={res.id}
-                                      type="button"
-                                      onClick={() => {
-                                        if (isSelected) {
-                                          setEditChoreAssignedResidents(
-                                            editChoreAssignedResidents.filter((id) => id !== res.id)
-                                          );
-                                        } else {
-                                          setEditChoreAssignedResidents([
-                                            ...editChoreAssignedResidents,
-                                            res.id,
-                                          ]);
-                                        }
-                                      }}
-                                      className={`px-2.5 py-1 rounded-lg border text-[11px] font-medium flex items-center gap-1.5 transition-all cursor-pointer ${
-                                        isSelected
-                                          ? 'bg-indigo-600/30 border-indigo-500 text-white'
-                                          : 'bg-surface-card border-surface-border text-slate-400 hover:text-slate-200'
-                                      }`}
-                                    >
-                                      <span
-                                        className="w-2 h-2 rounded-full shrink-0"
-                                        style={{ backgroundColor: res.avatarColor || '#6366f1' }}
-                                      />
-                                      <span>{res.name}</span>
-                                      {isSelected && <Check className="w-2.5 h-2.5 text-indigo-400" />}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="flex items-center justify-end gap-1.5 pt-1">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditingChoreId(null);
-                                setEditChoreAssignedResidents([]);
-                              }}
-                              className="px-2.5 py-1 rounded-lg text-[11px] text-slate-400 hover:text-white cursor-pointer"
-                            >
-                              Abbrechen
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateChoreTemplate(tmpl.id)}
-                              className="btn-theme-gradient px-3 py-1 rounded-lg text-[11px] font-semibold text-white shadow-sm cursor-pointer"
-                            >
-                              Speichern
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <>
-                          <div className="space-y-2.5">
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="flex items-start gap-2.5 min-w-0">
-                                <span className="text-2xl shrink-0 select-none">
-                                  {tmpl.icon || '🧹'}
-                                </span>
-                                <div className="min-w-0">
-                                  <h4 className="text-xs font-bold text-white leading-tight truncate">
-                                    {tmpl.title}
-                                  </h4>
-                                  {tmpl.description && (
-                                    <p className="text-[11px] text-slate-400 mt-0.5 leading-snug line-clamp-2">
-                                      {tmpl.description}
-                                    </p>
-                                  )}
+                                <div className="flex items-center gap-1 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
+                                  <button
+                                    type="button"
+                                    onClick={() => openEditChoreModal(tmpl)}
+                                    className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+                                    title="Vorlage bearbeiten"
+                                  >
+                                    <Pencil className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteChoreTemplate(tmpl.id, tmpl.title)}
+                                    className="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition-colors cursor-pointer"
+                                    title="Vorlage löschen"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
                                 </div>
                               </div>
 
-                              <div className="flex items-center gap-1 shrink-0">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setEditingChoreId(tmpl.id);
-                                    setEditChoreTitle(tmpl.title);
-                                    setEditChoreDesc(tmpl.description || '');
-                                    setEditChoreIcon(tmpl.icon || '🧹');
-                                    setEditChoreAssignedResidents(
-                                      tmpl.assignedResidentIdsList || (tmpl.isAllResidents ? ['ALL'] : [])
-                                    );
-                                  }}
-                                  className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
-                                  title="Bearbeiten"
-                                >
-                                  <Pencil className="w-3.5 h-3.5" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleDeleteChoreTemplate(tmpl.id, tmpl.title)}
-                                  className="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition-colors cursor-pointer"
-                                  title="Deaktivieren"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
-                            </div>
+                              {/* Description */}
+                              <p className="text-xs text-slate-300 leading-relaxed font-normal min-h-[2rem]">
+                                {tmpl.description || (
+                                  <span className="text-slate-500 italic">
+                                    Keine zusätzliche Beschreibung hinterlegt.
+                                  </span>
+                                )}
+                              </p>
 
-                            {/* Assigned Residents Display on Card */}
-                            <div className="pt-2 border-t border-surface-border/50 flex items-center justify-between gap-2">
-                              <div className="text-[11px] font-medium text-slate-400 flex items-center gap-1.5 flex-wrap">
-                                <span className="text-slate-500">Zuweisung:</span>
-                                {tmpl.isAllResidents || (tmpl.assignedResidentIdsList && tmpl.assignedResidentIdsList.includes('ALL')) ? (
-                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold">
-                                    <span>👥</span>
+                              {/* Assignment Badge */}
+                              <div className="pt-2 border-t border-surface-border/50">
+                                <div className="text-[11px] font-semibold text-slate-400 mb-1.5">
+                                  Standard-Zuordnung:
+                                </div>
+                                {isAll ? (
+                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 text-xs font-semibold">
+                                    <Users className="w-3.5 h-3.5 text-indigo-400" />
                                     <span>Alle Bewohner</span>
                                   </span>
-                                ) : tmpl.assignedResidents && tmpl.assignedResidents.length > 0 ? (
-                                  <div className="flex flex-wrap gap-1">
-                                    {tmpl.assignedResidents.map((r: any) => (
+                                ) : assignedRes.length > 0 ? (
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {assignedRes.map((r: any) => (
                                       <span
                                         key={r.id}
-                                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-card border border-surface-border text-slate-200 text-[10px]"
+                                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-surface-card border border-surface-border text-slate-200 text-xs font-medium"
                                       >
                                         <span
-                                          className="w-1.5 h-1.5 rounded-full shrink-0"
+                                          className="w-2 h-2 rounded-full shrink-0"
                                           style={{ backgroundColor: r.avatarColor || '#6366f1' }}
                                         />
                                         <span>{r.name}</span>
@@ -2300,21 +2237,379 @@ export const AdminManagementView: React.FC = () => {
                                     ))}
                                   </div>
                                 ) : (
-                                  <span className="text-slate-500 italic text-[10px]">
-                                    Freie Einteilung im Aufgabenplan
+                                  <span className="inline-flex items-center gap-1 text-xs text-slate-400 italic">
+                                    <Sparkles className="w-3 h-3 text-slate-500" />
+                                    <span>Freie Einteilung im Wochenplan</span>
                                   </span>
                                 )}
                               </div>
                             </div>
+
+                            {/* Dauerplan Status Footer */}
+                            <div className="pt-2 border-t border-surface-border/40 flex items-center justify-between text-[11px]">
+                              <span className="text-slate-500">Dauerplan:</span>
+                              {templateRecurringRules.length > 0 ? (
+                                <div className="flex items-center gap-1 flex-wrap">
+                                  {templateRecurringRules.map((r) => {
+                                    const dowObj = WEEKDAY_ITEMS.find((w) => w.id === r.dayOfWeek);
+                                    return (
+                                      <span
+                                        key={r.id}
+                                        className="px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-mono font-bold text-[10px]"
+                                        title={`Jeden ${dowObj?.name || r.dayOfWeek}`}
+                                      >
+                                        {dowObj?.label || r.dayOfWeek}
+                                      </span>
+                                    );
+                                  })}
+                                </div>
+                              ) : (
+                                <span className="text-slate-500 italic text-[10px]">
+                                  Nicht im Dauerplan
+                                </span>
+                              )}
+                            </div>
                           </div>
-                        </>
-                      )}
+                        );
+                      })}
                     </div>
                   );
-                })}
+                })()}
+              </div>
+            )}
+
+            {/* VIEW 2: WÖCHENTLICHER DAUERPLAN */}
+            {choreSubTab === 'recurring' && (
+              <div className="space-y-4">
+                {/* Info Tip Card */}
+                <div className="p-4 rounded-2xl bg-indigo-950/20 border border-indigo-500/20 text-xs text-slate-300 flex items-start gap-3">
+                  <Sparkles className="w-5 h-5 text-indigo-400 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="font-semibold text-white">
+                      Automatischer Wochenrhythmus für diesen Standort
+                    </p>
+                    <p className="text-slate-400 leading-relaxed">
+                      Aufgaben im Dauerplan werden automatisch für jede neue Kalenderwoche an dem jeweiligen Wochentag eingeteilt. Du kannst Regeln hier direkt einsehen und entfernen oder im Aufgabenplan mit <strong>„Wochenplan automatisieren“</strong> eine ganze Woche als neuen Dauerplan speichern.
+                    </p>
+                  </div>
+                </div>
+
+                {/* 7-Day Board */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+                  {WEEKDAY_ITEMS.map((day) => {
+                    const rulesForDay = choreRecurringRules.filter((r) => r.dayOfWeek === day.id);
+
+                    return (
+                      <div
+                        key={day.id}
+                        className="p-3.5 rounded-2xl bg-surface-elevated/40 border border-surface-border flex flex-col justify-between gap-3 min-h-[180px]"
+                      >
+                        <div>
+                          {/* Day Header */}
+                          <div className="flex items-center justify-between pb-2 border-b border-surface-border/60">
+                            <span className="text-xs font-bold text-white uppercase tracking-wider">
+                              {day.name}
+                            </span>
+                            <span
+                              className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono font-bold ${
+                                rulesForDay.length > 0
+                                  ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
+                                  : 'text-slate-500'
+                              }`}
+                            >
+                              {rulesForDay.length}
+                            </span>
+                          </div>
+
+                          {/* Day Tasks List */}
+                          <div className="mt-2.5 space-y-2">
+                            {rulesForDay.length === 0 ? (
+                              <span className="text-[11px] text-slate-500 italic block py-4 text-center">
+                                Keine Aufgaben
+                              </span>
+                            ) : (
+                              rulesForDay.map((r: any) => {
+                                const assignedResidents =
+                                  r.assignedResidents || (r.resident ? [r.resident] : []);
+                                const isAll = r.isAllResidents;
+
+                                return (
+                                  <div
+                                    key={r.id}
+                                    className="p-2.5 bg-surface-card rounded-xl border border-surface-border/80 text-xs flex flex-col gap-1.5 shadow-xs"
+                                  >
+                                    <div className="flex items-center justify-between gap-1">
+                                      <div className="flex items-center gap-1.5 min-w-0">
+                                        <span className="text-sm shrink-0">
+                                          {r.template?.icon || '🧹'}
+                                        </span>
+                                        <span className="font-bold text-white text-[11px] truncate">
+                                          {r.template?.title || 'Aufgabe'}
+                                        </span>
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDeleteRecurringInAdmin(r.id)}
+                                        className="text-slate-500 hover:text-rose-400 p-0.5 rounded cursor-pointer transition-colors shrink-0"
+                                        title="Dauerplan-Regel entfernen"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    </div>
+                                    <div className="text-[10px] text-slate-400 truncate flex items-center gap-1">
+                                      {isAll ? (
+                                        <span className="text-indigo-400 font-semibold">
+                                          👥 Alle Bewohner
+                                        </span>
+                                      ) : assignedResidents.length > 0 ? (
+                                        <span>
+                                          {assignedResidents.map((res: any) => res.name).join(', ')}
+                                        </span>
+                                      ) : (
+                                        <span className="text-slate-500 italic">
+                                          Nicht zugeteilt
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </div>
+
+          {/* DEDICATED MODAL: CREATE / EDIT CHORE TEMPLATE */}
+          {choreModalOpen && (
+            <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+              <div className="bg-surface-card border border-surface-border rounded-3xl p-6 sm:p-7 max-w-xl w-full shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150 my-8">
+                {/* Modal Header */}
+                <div className="flex items-center justify-between pb-4 border-b border-surface-border">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-indigo-500/15 border border-indigo-500/30 rounded-2xl text-indigo-400">
+                      <ListTodo className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-white font-sans">
+                        {choreModalMode === 'create'
+                          ? 'Neue Aufgaben-Vorlage'
+                          : 'Aufgaben-Vorlage bearbeiten'}
+                      </h3>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        WG {locations.find((l) => l.id === selectedChoreLocId)?.name || 'Standard'}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setChoreModalOpen(false)}
+                    className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleSaveChoreModal} className="space-y-5">
+                  {/* Grunddaten */}
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">
+                        Bezeichnung der Aufgabe *
+                      </label>
+                      <input
+                        type="text"
+                        value={choreFormTitle}
+                        onChange={(e) => setChoreFormTitle(e.target.value)}
+                        placeholder="z. B. Küche & Abwasch, Müll rausbringen, Flur saugen"
+                        required
+                        className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">
+                        Icon / Emoji
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={choreFormIcon}
+                          onChange={(e) => setChoreFormIcon(e.target.value)}
+                          maxLength={4}
+                          className="w-14 py-2 text-center text-lg bg-surface-elevated border border-surface-border rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                        />
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {['🧹', '🍽️', '🗑️', '🧼', '🧺', '✨', '🛏️', '🛒', '🌱', '🚿', '🍳', '📦'].map(
+                            (emoji) => (
+                              <button
+                                key={emoji}
+                                type="button"
+                                onClick={() => setChoreFormIcon(emoji)}
+                                className={`p-1.5 rounded-xl text-base cursor-pointer transition-all ${
+                                  choreFormIcon === emoji
+                                    ? 'bg-indigo-600/30 border border-indigo-500 scale-110'
+                                    : 'hover:bg-white/10'
+                                }`}
+                              >
+                                {emoji}
+                              </button>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">
+                        Beschreibung & Richtlinien für Bewohner (optional)
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={choreFormDesc}
+                        onChange={(e) => setChoreFormDesc(e.target.value)}
+                        placeholder="z. B. Arbeitsflächen sauber wischen, Geschirr abtrocknen und wegräumen..."
+                        className="w-full px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 resize-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Standard-Zuordnung */}
+                  <div className="pt-2 border-t border-surface-border space-y-3">
+                    <label className="block text-xs font-semibold text-slate-300">
+                      Standard-Zuordnung
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setChoreFormAssignmentMode('FREE');
+                          setChoreFormResidents([]);
+                        }}
+                        className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                          choreFormAssignmentMode === 'FREE'
+                            ? 'bg-indigo-600/25 border-indigo-500 text-white shadow-xs ring-1 ring-indigo-500/40'
+                            : 'bg-surface-elevated/40 border-surface-border text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        <Sparkles className="w-4 h-4 mb-1 text-indigo-400" />
+                        <span className="text-xs font-bold block">Freie Einteilung</span>
+                        <span className="text-[10px] text-slate-400 block mt-0.5 leading-snug">
+                          Immer flexibel im Wochenplan zuweisen
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setChoreFormAssignmentMode('ALL');
+                          setChoreFormResidents(['ALL']);
+                        }}
+                        className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                          choreFormAssignmentMode === 'ALL'
+                            ? 'bg-indigo-600/25 border-indigo-500 text-white shadow-xs ring-1 ring-indigo-500/40'
+                            : 'bg-surface-elevated/40 border-surface-border text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        <Users className="w-4 h-4 mb-1 text-indigo-400" />
+                        <span className="text-xs font-bold block">Alle Bewohner</span>
+                        <span className="text-[10px] text-slate-400 block mt-0.5 leading-snug">
+                          Jeder Bewohner hat die Aufgabe (z. B. Zimmer)
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setChoreFormAssignmentMode('SPECIFIC');
+                          if (choreFormResidents.includes('ALL')) setChoreFormResidents([]);
+                        }}
+                        className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                          choreFormAssignmentMode === 'SPECIFIC'
+                            ? 'bg-indigo-600/25 border-indigo-500 text-white shadow-xs ring-1 ring-indigo-500/40'
+                            : 'bg-surface-elevated/40 border-surface-border text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        <User className="w-4 h-4 mb-1 text-indigo-400" />
+                        <span className="text-xs font-bold block">Feste Bewohner</span>
+                        <span className="text-[10px] text-slate-400 block mt-0.5 leading-snug">
+                          Ausgewählte Bewohner als Standard festlegen
+                        </span>
+                      </button>
+                    </div>
+
+                    {/* If SPECIFIC: Select residents */}
+                    {choreFormAssignmentMode === 'SPECIFIC' && (
+                      <div className="p-3 bg-surface-elevated/50 rounded-2xl border border-surface-border space-y-2">
+                        <span className="text-xs font-semibold text-slate-300 block">
+                          Bewohner auswählen:
+                        </span>
+                        <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto pr-1">
+                          {choreResidents.map((res) => {
+                            const isSelected = choreFormResidents.includes(res.id);
+                            return (
+                              <button
+                                key={res.id}
+                                type="button"
+                                onClick={() => {
+                                  if (isSelected) {
+                                    setChoreFormResidents(
+                                      choreFormResidents.filter((id) => id !== res.id)
+                                    );
+                                  } else {
+                                    setChoreFormResidents([...choreFormResidents, res.id]);
+                                  }
+                                }}
+                                className={`px-3 py-1.5 rounded-xl border text-xs font-medium flex items-center gap-2 transition-all cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-indigo-600 text-white border-indigo-500 shadow-xs'
+                                    : 'bg-surface-card border-surface-border text-slate-400 hover:text-white'
+                                }`}
+                              >
+                                <span
+                                  className="w-2.5 h-2.5 rounded-full shrink-0"
+                                  style={{ backgroundColor: res.avatarColor || '#6366f1' }}
+                                />
+                                <span>{res.name}</span>
+                                {isSelected && <Check className="w-3 h-3 text-white" />}
+                              </button>
+                            );
+                          })}
+                          {choreResidents.length === 0 && (
+                            <span className="text-xs text-slate-500 italic">
+                              Keine Bewohner an diesem Standort registriert.
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Modal Footer */}
+                  <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-surface-border">
+                    <button
+                      type="button"
+                      onClick={() => setChoreModalOpen(false)}
+                      className="px-4 py-2 rounded-xl bg-surface-elevated hover:bg-surface-card border border-surface-border text-slate-300 text-xs font-semibold cursor-pointer"
+                    >
+                      Abbrechen
+                    </button>
+                    <button
+                      type="submit"
+                      className="btn-theme-gradient px-5 py-2 rounded-xl text-xs font-semibold cursor-pointer shadow-md"
+                    >
+                      {choreModalMode === 'create' ? 'Vorlage anlegen' : 'Änderungen speichern'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

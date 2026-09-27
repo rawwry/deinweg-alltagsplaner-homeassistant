@@ -362,8 +362,8 @@ router.get('/week', requireAuth, async (req: Request, res: Response) => {
       });
     }
 
-    // Active templates and residents for location
-    const [templates, locationResidents, assignments] = await Promise.all([
+    // Active templates, residents, explicit assignments and recurring assignments for location
+    const [templates, locationResidents, assignments, recurringAssignments] = await Promise.all([
       prisma.choreTemplate.findMany({
         where: { locationId, isActive: true },
         orderBy: [{ sortOrder: 'asc' }, { title: 'asc' }],
@@ -407,6 +407,9 @@ router.get('/week', requireAuth, async (req: Request, res: Response) => {
           },
         },
       }),
+      prisma.choreRecurringAssignment.findMany({
+        where: { locationId, isActive: true },
+      }),
     ]);
 
     // Enrich templates with resolved residents
@@ -420,8 +423,10 @@ router.get('/week', requireAuth, async (req: Request, res: Response) => {
       };
     });
 
-    // Enrich assignments with resolved residents (inheriting template default if assignment has none set or resolved to empty)
-    const enrichedAssignments = assignments.map((assign) => {
+    const allEnrichedAssignments: any[] = [];
+
+    // 1. Enrich explicit assignments stored in DB
+    for (const assign of assignments) {
       let resolved = resolveResidents(
         assign.assignedResidentIds,
         assign.residentId,
@@ -445,7 +450,11 @@ router.get('/week', requireAuth, async (req: Request, res: Response) => {
         req.user?.id
       );
 
-      return {
+      const hasRecurringRule = recurringAssignments.some(
+        (r) => r.templateId === assign.templateId && r.dayOfWeek === assign.dayOfWeek
+      );
+
+      allEnrichedAssignments.push({
         ...assign,
         isAllResidents: resolved.isAllResidents,
         assignedResidents: resolved.assignedResidents,
@@ -457,8 +466,75 @@ router.get('/week', requireAuth, async (req: Request, res: Response) => {
         completedCount: completion.completedCount,
         isCompleted: completion.isCompleted,
         isCompletedForMe: completion.isCompletedForMe,
-      };
-    });
+        isRecurring: hasRecurringRule,
+      });
+    }
+
+    // 2. Synthesize virtual assignments from recurring rules where no explicit assignment exists for that date
+    for (const day of days) {
+      for (const tmpl of templates) {
+        const hasExplicit = allEnrichedAssignments.some(
+          (a) => a.templateId === tmpl.id && a.date === day.date
+        );
+
+        if (!hasExplicit) {
+          const recMatch = recurringAssignments.find(
+            (r) => r.templateId === tmpl.id && r.dayOfWeek === day.dayOfWeek
+          );
+
+          if (recMatch) {
+            const resolved = resolveResidents(
+              recMatch.assignedResidentIds,
+              recMatch.residentId,
+              locationResidents
+            );
+            const completion = resolveResidentCompletion(
+              resolved.assignedResidents,
+              resolved.isAllResidents,
+              null,
+              false,
+              req.user?.id
+            );
+
+            allEnrichedAssignments.push({
+              id: null,
+              virtualId: `rec_${recMatch.id}_${day.date}`,
+              locationId,
+              templateId: tmpl.id,
+              date: day.date,
+              year,
+              weekNumber,
+              dayOfWeek: day.dayOfWeek,
+              residentId: recMatch.residentId,
+              assignedResidentIds: recMatch.assignedResidentIds,
+              completedResidentIds: null,
+              isCompleted: false,
+              completedAt: null,
+              completedById: null,
+              notes: null,
+              template: {
+                id: tmpl.id,
+                title: tmpl.title,
+                icon: tmpl.icon,
+                description: tmpl.description,
+                assignedResidentIds: tmpl.assignedResidentIds,
+              },
+              resident: resolved.assignedResidents[0] || null,
+              isAllResidents: resolved.isAllResidents,
+              assignedResidents: resolved.assignedResidents,
+              assignedResidentIdsList: resolved.residentIds,
+              completedResidents: [],
+              pendingResidents: resolved.assignedResidents,
+              totalAssignedCount: resolved.assignedResidents.length,
+              completedCount: 0,
+              isCompletedForMe: false,
+              isRecurring: true,
+              isVirtualRecurring: true,
+            });
+          }
+        }
+      }
+    }
 
     return res.json({
       locationId,
@@ -466,7 +542,7 @@ router.get('/week', requireAuth, async (req: Request, res: Response) => {
       weekNumber,
       days,
       templates: enrichedTemplates,
-      assignments: enrichedAssignments,
+      assignments: allEnrichedAssignments,
     });
   } catch (err) {
     console.error('Fehler beim Laden des Aufgabenplans:', err);
@@ -474,11 +550,11 @@ router.get('/week', requireAuth, async (req: Request, res: Response) => {
   }
 });
 
-// 6. Assign resident(s) to a task on a specific day
+// 6. Assign resident(s) to a task on a specific day (with optional weekly recurrence)
 router.post('/assign', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
   try {
     const locationId = resolveLocationId(req);
-    const { templateId, date, year, weekNumber, dayOfWeek, residentId, assignedResidentIds } = req.body;
+    const { templateId, date, year, weekNumber, dayOfWeek, residentId, assignedResidentIds, isRecurring } = req.body;
 
     if (!templateId || !date || !year || !weekNumber || !dayOfWeek) {
       return res.status(400).json({ error: 'Unvollständige Zuweisungsdaten.' });
@@ -494,13 +570,52 @@ router.post('/assign', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req
       ids = [String(residentId)];
     }
 
-    // If ids is empty, unassign
+    const assignedResidentIdsStr = JSON.stringify(ids);
+    const primaryResidentId = ids.includes('ALL') || ids.length === 0 ? null : ids[0];
+
+    // Handle recurring assignment update if requested
+    if (isRecurring !== undefined) {
+      if (isRecurring === true && ids.length > 0) {
+        await prisma.choreRecurringAssignment.upsert({
+          where: {
+            locationId_templateId_dayOfWeek: {
+              locationId,
+              templateId,
+              dayOfWeek: Number(dayOfWeek),
+            },
+          },
+          update: {
+            residentId: primaryResidentId,
+            assignedResidentIds: assignedResidentIdsStr,
+            isActive: true,
+          },
+          create: {
+            locationId,
+            templateId,
+            dayOfWeek: Number(dayOfWeek),
+            residentId: primaryResidentId,
+            assignedResidentIds: assignedResidentIdsStr,
+            isActive: true,
+          },
+        });
+      } else if (isRecurring === false || ids.length === 0) {
+        await prisma.choreRecurringAssignment.deleteMany({
+          where: {
+            locationId,
+            templateId,
+            dayOfWeek: Number(dayOfWeek),
+          },
+        });
+      }
+    }
+
+    // If ids is empty, unassign this date
     if (ids.length === 0) {
       const template = await prisma.choreTemplate.findUnique({ where: { id: templateId } });
       const hasTemplateDefault = !!template?.assignedResidentIds;
 
-      if (hasTemplateDefault) {
-        // Store explicit empty array '[]' to override the template's default assignment for this date
+      if (hasTemplateDefault || isRecurring === false) {
+        // Store explicit empty array '[]' to override template default or recurring for this date
         const assignment = await prisma.choreAssignment.upsert({
           where: {
             locationId_templateId_date: {
@@ -532,7 +647,7 @@ router.post('/assign', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req
             template: true,
           },
         });
-        return res.json({ success: true, assignment });
+        return res.json({ success: true, assignment, isRecurring: Boolean(isRecurring) });
       } else {
         const existing = await prisma.choreAssignment.findUnique({
           where: {
@@ -547,24 +662,21 @@ router.post('/assign', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req
         if (existing) {
           if (!existing.isCompleted) {
             await prisma.choreAssignment.delete({ where: { id: existing.id } });
-            return res.json({ success: true, assignment: null });
+            return res.json({ success: true, assignment: null, isRecurring: false });
           } else {
             const updated = await prisma.choreAssignment.update({
               where: { id: existing.id },
               data: { residentId: null, assignedResidentIds: JSON.stringify([]) },
               include: { resident: true, template: true },
             });
-            return res.json({ success: true, assignment: updated });
+            return res.json({ success: true, assignment: updated, isRecurring: false });
           }
         }
-        return res.json({ success: true, assignment: null });
+        return res.json({ success: true, assignment: null, isRecurring: false });
       }
     }
 
-    const assignedResidentIdsStr = JSON.stringify(ids);
-    const primaryResidentId = ids.includes('ALL') || ids.length === 0 ? null : ids[0];
-
-    // Upsert assignment
+    // Upsert assignment for this date
     const assignment = await prisma.choreAssignment.upsert({
       where: {
         locationId_templateId_date: {
@@ -612,10 +724,237 @@ router.post('/assign', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req
       },
     });
 
-    return res.json({ success: true, assignment });
+    return res.json({ success: true, assignment, isRecurring: Boolean(isRecurring) });
   } catch (err) {
     console.error('Fehler beim Zuweisen der Aufgabe:', err);
     return res.status(500).json({ error: 'Fehler beim Zuweisen der Aufgabe.' });
+  }
+});
+
+// ==================== RECURRING CHORES MANAGEMENT ====================
+
+// List all recurring assignments for location
+router.get('/recurring', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const locationId = resolveLocationId(req);
+    const [recurring, templates, locationResidents] = await Promise.all([
+      prisma.choreRecurringAssignment.findMany({
+        where: { locationId, isActive: true },
+        orderBy: [{ dayOfWeek: 'asc' }, { createdAt: 'asc' }],
+      }),
+      prisma.choreTemplate.findMany({
+        where: { locationId, isActive: true },
+        orderBy: [{ sortOrder: 'asc' }, { title: 'asc' }],
+      }),
+      prisma.user.findMany({
+        where: { locationId, role: 'BEWOHNER', isActive: true },
+        select: { id: true, name: true, username: true, avatarColor: true, avatarUrl: true },
+      }),
+    ]);
+
+    const enriched = recurring.map((rec) => {
+      const tmpl = templates.find((t) => t.id === rec.templateId);
+      const resolved = resolveResidents(rec.assignedResidentIds, rec.residentId, locationResidents);
+      return {
+        ...rec,
+        template: tmpl || null,
+        isAllResidents: resolved.isAllResidents,
+        assignedResidents: resolved.assignedResidents,
+        assignedResidentIdsList: resolved.residentIds,
+      };
+    });
+
+    return res.json(enriched);
+  } catch (err) {
+    console.error('Fehler beim Laden der Dauer-Einteilungen:', err);
+    return res.status(500).json({ error: 'Fehler beim Laden der Dauer-Einteilungen.' });
+  }
+});
+
+// Save current week's assignments as recurring schedule for location
+router.post('/save-week-as-recurring', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
+  try {
+    const locationId = resolveLocationId(req);
+    const { year, weekNumber } = req.body;
+    if (!year || !weekNumber) {
+      return res.status(400).json({ error: 'Jahr und Kalenderwoche erforderlich.' });
+    }
+
+    const monday = getMondayOfISOWeek(Number(year), Number(weekNumber));
+    const datesWithDayOfWeek: { date: string; dayOfWeek: number }[] = [];
+    for (let i = 0; i < 7; i++) {
+      const cur = new Date(monday);
+      cur.setUTCDate(monday.getUTCDate() + i);
+      datesWithDayOfWeek.push({
+        date: formatDate(cur),
+        dayOfWeek: i + 1,
+      });
+    }
+
+    const assignments = await prisma.choreAssignment.findMany({
+      where: {
+        locationId,
+        date: { in: datesWithDayOfWeek.map((d) => d.date) },
+      },
+    });
+
+    let savedCount = 0;
+    for (const item of datesWithDayOfWeek) {
+      const dayAssigns = assignments.filter((a) => a.date === item.date);
+      for (const a of dayAssigns) {
+        const ids = parseResidentIds(a.assignedResidentIds);
+        if (ids.length > 0) {
+          const primaryId = ids.includes('ALL') || ids.length === 0 ? null : ids[0];
+          await prisma.choreRecurringAssignment.upsert({
+            where: {
+              locationId_templateId_dayOfWeek: {
+                locationId,
+                templateId: a.templateId,
+                dayOfWeek: item.dayOfWeek,
+              },
+            },
+            update: {
+              residentId: primaryId,
+              assignedResidentIds: a.assignedResidentIds,
+              isActive: true,
+            },
+            create: {
+              locationId,
+              templateId: a.templateId,
+              dayOfWeek: item.dayOfWeek,
+              residentId: primaryId,
+              assignedResidentIds: a.assignedResidentIds,
+              isActive: true,
+            },
+          });
+          savedCount++;
+        } else {
+          // If explicitly unassigned in this week, remove recurring rule
+          await prisma.choreRecurringAssignment.deleteMany({
+            where: {
+              locationId,
+              templateId: a.templateId,
+              dayOfWeek: item.dayOfWeek,
+            },
+          });
+        }
+      }
+    }
+
+    return res.json({
+      success: true,
+      count: savedCount,
+      message: `${savedCount} Aufgaben wurden als wöchentlich wiederkehrender Dauerplan gespeichert.`,
+    });
+  } catch (err) {
+    console.error('Fehler beim Speichern des Dauerplans:', err);
+    return res.status(500).json({ error: 'Fehler beim Speichern des Dauerplans.' });
+  }
+});
+
+// Copy assignments from source week into following weeks
+router.post('/copy-week', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
+  try {
+    const locationId = resolveLocationId(req);
+    const { sourceYear, sourceWeekNumber, targetWeeksCount = 4 } = req.body;
+    if (!sourceYear || !sourceWeekNumber) {
+      return res.status(400).json({ error: 'Quellwoche erforderlich.' });
+    }
+
+    const sMonday = getMondayOfISOWeek(Number(sourceYear), Number(sourceWeekNumber));
+    const sourceDates: { date: string; dayOfWeek: number }[] = [];
+    for (let i = 0; i < 7; i++) {
+      const cur = new Date(sMonday);
+      cur.setUTCDate(sMonday.getUTCDate() + i);
+      sourceDates.push({ date: formatDate(cur), dayOfWeek: i + 1 });
+    }
+
+    const sourceAssignments = await prisma.choreAssignment.findMany({
+      where: {
+        locationId,
+        date: { in: sourceDates.map((d) => d.date) },
+      },
+    });
+
+    let totalCreated = 0;
+    const weeksToCopy = Math.min(Math.max(Number(targetWeeksCount) || 1, 1), 26);
+
+    for (let w = 1; w <= weeksToCopy; w++) {
+      let tWeek = Number(sourceWeekNumber) + w;
+      let tYear = Number(sourceYear);
+      if (tWeek > 52) {
+        tYear += Math.floor((tWeek - 1) / 52);
+        tWeek = ((tWeek - 1) % 52) + 1;
+      }
+
+      const tMonday = getMondayOfISOWeek(tYear, tWeek);
+      for (let i = 0; i < 7; i++) {
+        const cur = new Date(tMonday);
+        cur.setUTCDate(tMonday.getUTCDate() + i);
+        const tDate = formatDate(cur);
+        const dayOfWeek = i + 1;
+
+        const sMatch = sourceAssignments.filter(
+          (a) => a.dayOfWeek === dayOfWeek || a.date === sourceDates[i].date
+        );
+
+        for (const assign of sMatch) {
+          const ids = parseResidentIds(assign.assignedResidentIds);
+          if (ids.length > 0) {
+            await prisma.choreAssignment.upsert({
+              where: {
+                locationId_templateId_date: {
+                  locationId,
+                  templateId: assign.templateId,
+                  date: tDate,
+                },
+              },
+              update: {
+                residentId: assign.residentId,
+                assignedResidentIds: assign.assignedResidentIds,
+                year: tYear,
+                weekNumber: tWeek,
+                dayOfWeek,
+              },
+              create: {
+                locationId,
+                templateId: assign.templateId,
+                date: tDate,
+                year: tYear,
+                weekNumber: tWeek,
+                dayOfWeek,
+                residentId: assign.residentId,
+                assignedResidentIds: assign.assignedResidentIds,
+                isCompleted: false,
+              },
+            });
+            totalCreated++;
+          }
+        }
+      }
+    }
+
+    return res.json({
+      success: true,
+      weeksCopied: weeksToCopy,
+      assignmentsCopied: totalCreated,
+      message: `Plan erfolgreich auf die nächsten ${weeksToCopy} Wochen übertragen (${totalCreated} Zuweisungen erstellt).`,
+    });
+  } catch (err) {
+    console.error('Fehler beim Kopieren der Woche:', err);
+    return res.status(500).json({ error: 'Fehler beim Kopieren des Wochenplans.' });
+  }
+});
+
+// Delete a recurring assignment rule
+router.delete('/recurring/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.choreRecurringAssignment.delete({ where: { id } });
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('Fehler beim Löschen der Dauer-Einteilung:', err);
+    return res.status(500).json({ error: 'Fehler beim Löschen der Dauer-Einteilung.' });
   }
 });
 
@@ -630,7 +969,7 @@ router.post('/toggle-complete', requireAuth, async (req: Request, res: Response)
 
     let targetAssignment = null;
 
-    if (assignmentId) {
+    if (assignmentId && !String(assignmentId).startsWith('rec_')) {
       targetAssignment = await prisma.choreAssignment.findUnique({
         where: { id: assignmentId },
       });
@@ -658,7 +997,15 @@ router.post('/toggle-complete', requireAuth, async (req: Request, res: Response)
     const targetLocId = targetAssignment?.locationId || locationId;
     const effectiveTemplateId = targetAssignment?.templateId || templateId;
 
-    const [template, locationResidents] = await Promise.all([
+    // Determine day of week if needed for recurring rule lookup
+    let calcDayOfWeek = Number(dayOfWeek) || 1;
+    if (date && date.includes('-')) {
+      const [dYear, dMonth, dDay] = date.split('-').map(Number);
+      const parsedDate = new Date(Date.UTC(dYear, (dMonth || 1) - 1, dDay || 1));
+      calcDayOfWeek = parsedDate.getUTCDay() === 0 ? 7 : parsedDate.getUTCDay();
+    }
+
+    const [template, locationResidents, recurringRule] = await Promise.all([
       effectiveTemplateId
         ? prisma.choreTemplate.findUnique({ where: { id: effectiveTemplateId } })
         : null,
@@ -666,22 +1013,34 @@ router.post('/toggle-complete', requireAuth, async (req: Request, res: Response)
         where: { locationId: targetLocId, role: 'BEWOHNER', isActive: true },
         select: { id: true, name: true, username: true, avatarColor: true, avatarUrl: true },
       }),
+      !targetAssignment && effectiveTemplateId
+        ? prisma.choreRecurringAssignment.findFirst({
+            where: {
+              locationId: targetLocId,
+              templateId: effectiveTemplateId,
+              dayOfWeek: calcDayOfWeek,
+              isActive: true,
+            },
+          })
+        : null,
     ]);
 
     const effectiveAssignedRaw = (targetAssignment?.assignedResidentIds !== null && targetAssignment?.assignedResidentIds !== undefined)
       ? targetAssignment.assignedResidentIds
-      : (template?.assignedResidentIds || null);
+      : (recurringRule?.assignedResidentIds || template?.assignedResidentIds || null);
+
+    const effectiveResidentId = targetAssignment?.residentId || recurringRule?.residentId || null;
 
     let resolved = resolveResidents(
       effectiveAssignedRaw,
-      targetAssignment?.residentId,
+      effectiveResidentId,
       locationResidents
     );
 
     if (resolved.residentIds.length === 0 && template?.assignedResidentIds) {
       resolved = resolveResidents(
         template.assignedResidentIds,
-        targetAssignment?.residentId,
+        effectiveResidentId,
         locationResidents
       );
     }
@@ -695,11 +1054,9 @@ router.post('/toggle-complete', requireAuth, async (req: Request, res: Response)
       // Calculate year, weekNumber, dayOfWeek accurately from date string YYYY-MM-DD
       let calcYear = new Date().getFullYear();
       let calcWeek = 1;
-      let calcDayOfWeek = 1;
       if (date && date.includes('-')) {
         const [dYear, dMonth, dDay] = date.split('-').map(Number);
         const parsedDate = new Date(Date.UTC(dYear, (dMonth || 1) - 1, dDay || 1));
-        calcDayOfWeek = parsedDate.getUTCDay() === 0 ? 7 : parsedDate.getUTCDay();
         const calcDateCopy = new Date(Date.UTC(parsedDate.getUTCFullYear(), parsedDate.getUTCMonth(), parsedDate.getUTCDate()));
         calcDateCopy.setUTCDate(calcDateCopy.getUTCDate() + 4 - calcDayOfWeek);
         const calcYearStart = new Date(Date.UTC(calcDateCopy.getUTCFullYear(), 0, 1));
@@ -874,8 +1231,9 @@ router.get('/today', requireAuth, async (req: Request, res: Response) => {
 
     const now = new Date();
     const todayDate = formatDate(now);
+    const todayDayOfWeek = now.getDay() === 0 ? 7 : now.getDay();
 
-    const [templates, locationResidents, assignments] = await Promise.all([
+    const [templates, locationResidents, assignments, recurringAssignments] = await Promise.all([
       prisma.choreTemplate.findMany({
         where: { locationId, isActive: true },
         orderBy: [{ sortOrder: 'asc' }, { title: 'asc' }],
@@ -916,21 +1274,33 @@ router.get('/today', requireAuth, async (req: Request, res: Response) => {
           },
         },
       }),
+      prisma.choreRecurringAssignment.findMany({
+        where: { locationId, dayOfWeek: todayDayOfWeek, isActive: true },
+      }),
     ]);
 
     // Map each active template to today's assignment status
     const todayItems = templates.map((tmpl) => {
       const match = assignments.find((a) => a.templateId === tmpl.id);
+      const recurring = recurringAssignments.find((r) => r.templateId === tmpl.id);
+
+      let effectiveAssignedRaw = match?.assignedResidentIds;
+      let effectiveResidentId = match?.residentId;
+
+      if (!match || match.assignedResidentIds === null) {
+        if (recurring) {
+          effectiveAssignedRaw = recurring.assignedResidentIds;
+          effectiveResidentId = recurring.residentId;
+        } else if (tmpl.assignedResidentIds) {
+          effectiveAssignedRaw = tmpl.assignedResidentIds;
+        }
+      }
+
       let resolved = resolveResidents(
-        match?.assignedResidentIds,
-        match?.residentId,
+        effectiveAssignedRaw,
+        effectiveResidentId,
         locationResidents
       );
-
-      // Inherit template's assignedResidentIds if assignment has no explicit setting or resolved to empty
-      if ((!match || match.assignedResidentIds === null || resolved.residentIds.length === 0) && tmpl.assignedResidentIds) {
-        resolved = resolveResidents(tmpl.assignedResidentIds, match?.residentId, locationResidents);
-      }
 
       const completion = resolveResidentCompletion(
         resolved.assignedResidents,
@@ -947,7 +1317,7 @@ router.get('/today', requireAuth, async (req: Request, res: Response) => {
         icon: tmpl.icon,
         assignmentId: match ? match.id : null,
         resident: match?.resident || resolved.assignedResidents[0] || null,
-        residentId: match?.residentId || resolved.residentIds[0] || null,
+        residentId: effectiveResidentId || resolved.residentIds[0] || null,
         assignedResidents: resolved.assignedResidents,
         isAllResidents: resolved.isAllResidents,
         completedResidentIds: completion.completedResidentIds,
@@ -959,6 +1329,7 @@ router.get('/today', requireAuth, async (req: Request, res: Response) => {
         isCompletedForMe: completion.isCompletedForMe,
         completedAt: match?.completedAt || null,
         date: todayDate,
+        isRecurring: Boolean(recurring),
       };
     });
 

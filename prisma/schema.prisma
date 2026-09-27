@@ -28,6 +28,7 @@ model Location {
   savingsTransactions  LocationSavingsTransaction[]
   choreTemplates       ChoreTemplate[]
   choreAssignments     ChoreAssignment[]
+  choreRecurringAssignments ChoreRecurringAssignment[]
 }
 
 model User {
@@ -51,6 +52,7 @@ model User {
   noteMessages CaregiverNoteMessage[]
   hiddenNotes  CaregiverNoteHidden[]
   choreAssignments ChoreAssignment[] @relation("ResidentChores")
+  recurringChores  ChoreRecurringAssignment[] @relation("RecurringResidentChores")
 }
 
 model Supermarket {
@@ -316,6 +318,7 @@ model ChoreTemplate {
 
   location            Location          @relation(fields: [locationId], references: [id], onDelete: Cascade)
   assignments         ChoreAssignment[]
+  recurringAssignments ChoreRecurringAssignment[]
 }
 
 model ChoreAssignment {
@@ -342,3 +345,22 @@ model ChoreAssignment {
 
   @@unique([locationId, templateId, date])
 }
+
+model ChoreRecurringAssignment {
+  id                  String         @id @default(cuid())
+  locationId          String
+  templateId          String
+  dayOfWeek           Int            // 1 (Mo) - 7 (So)
+  residentId          String?        // Legacy / fallback single resident
+  assignedResidentIds String?        // JSON array string e.g. '["ALL"]' or '["user1","user2"]'
+  isActive            Boolean        @default(true)
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  location            Location       @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  template            ChoreTemplate  @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  resident            User?          @relation("RecurringResidentChores", fields: [residentId], references: [id], onDelete: SetNull)
+
+  @@unique([locationId, templateId, dayOfWeek])
+}
+
