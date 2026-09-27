@@ -196,6 +196,16 @@ function formatDate(d: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+// Calculate ISO year and ISO week number accurately
+function getISOWeekAndYear(d: Date): { year: number; week: number } {
+  const target = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNr = target.getUTCDay() || 7;
+  target.setUTCDate(target.getUTCDate() + 4 - dayNr);
+  const yearStart = new Date(Date.UTC(target.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil(((target.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+  return { year: target.getUTCFullYear(), week: weekNo };
+}
+
 // ==================== TEMPLATES CRUD ====================
 
 // 1. List templates for location
@@ -969,6 +979,60 @@ router.post('/toggle-complete', requireAuth, async (req: Request, res: Response)
     // Determine who is toggling: resident/housekeeping toggles their own ID; staff can toggle a specific resident or entire chore
     const togglingResidentId = (req.user?.role === 'BEWOHNER' || req.user?.role === 'HAUSHALTSKRAFT') ? req.user.id : (residentId || null);
 
+    // Support toggling cooking tasks (chefkoch_...)
+    if (templateId && String(templateId).startsWith('chefkoch_')) {
+      const dayId = String(templateId).replace('chefkoch_', '');
+      let day = await prisma.mealPlanDay.findUnique({
+        where: { id: dayId },
+        include: { mealPlan: true },
+      });
+
+      if (!day) {
+        // Fallback: search by date and location
+        const targetLocId = resolveLocationId(req);
+        const targetDate = date ? new Date(date) : new Date();
+        const { year: curYear, week: curWeek } = getISOWeekAndYear(targetDate);
+        const dow = targetDate.getDay() === 0 ? 7 : targetDate.getDay();
+        const plan = await prisma.mealPlan.findUnique({
+          where: {
+            locationId_year_weekNumber: {
+              locationId: targetLocId,
+              year: curYear,
+              weekNumber: curWeek,
+            },
+          },
+          include: {
+            days: { where: { dayOfWeek: dow } },
+          },
+        });
+        day = plan?.days?.[0] as any;
+      }
+
+      if (day) {
+        const nextCompleted = !day.isCompleted;
+        const updated = await prisma.mealPlanDay.update({
+          where: { id: day.id },
+          data: {
+            isCompleted: nextCompleted,
+            completedAt: nextCompleted ? new Date() : null,
+            completedById: nextCompleted ? req.user?.id : null,
+          },
+        });
+        return res.json({
+          success: true,
+          assignment: {
+            id: updated.id,
+            templateId,
+            isCompleted: updated.isCompleted,
+            isCompletedForMe: updated.isCompleted,
+            completedAt: updated.completedAt,
+            completedCount: updated.isCompleted ? 1 : 0,
+            totalAssignedCount: 1,
+          },
+        });
+      }
+    }
+
     let targetAssignment = null;
 
     if (assignmentId && !String(assignmentId).startsWith('rec_')) {
@@ -1234,8 +1298,9 @@ router.get('/today', requireAuth, async (req: Request, res: Response) => {
     const now = new Date();
     const todayDate = formatDate(now);
     const todayDayOfWeek = now.getDay() === 0 ? 7 : now.getDay();
+    const { year: currentYear, week: currentWeek } = getISOWeekAndYear(now);
 
-    const [templates, locationResidents, assignments, recurringAssignments] = await Promise.all([
+    const [templates, locationResidents, assignments, recurringAssignments, currentMealPlan] = await Promise.all([
       prisma.choreTemplate.findMany({
         where: { locationId, isActive: true },
         orderBy: [{ sortOrder: 'asc' }, { title: 'asc' }],
@@ -1279,6 +1344,21 @@ router.get('/today', requireAuth, async (req: Request, res: Response) => {
       }),
       prisma.choreRecurringAssignment.findMany({
         where: { locationId, dayOfWeek: todayDayOfWeek, isActive: true },
+      }),
+      prisma.mealPlan.findUnique({
+        where: {
+          locationId_year_weekNumber: {
+            locationId,
+            year: currentYear,
+            weekNumber: currentWeek,
+          },
+        },
+        include: {
+          days: {
+            where: { dayOfWeek: todayDayOfWeek },
+            include: { recipe: true },
+          },
+        },
       }),
     ]);
 
@@ -1335,6 +1415,63 @@ router.get('/today', requireAuth, async (req: Request, res: Response) => {
         isRecurring: Boolean(recurring),
       };
     });
+
+    // Check if there is an assigned cook for today
+    const todayMealDay = currentMealPlan?.days?.[0];
+    if (todayMealDay && todayMealDay.cookUserId) {
+      let cookUser = locationResidents.find((u) => u.id === todayMealDay.cookUserId);
+      if (!cookUser) {
+        cookUser = (await prisma.user.findUnique({
+          where: { id: todayMealDay.cookUserId },
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            avatarColor: true,
+            avatarUrl: true,
+            role: true,
+          },
+        })) as any;
+      }
+
+      if (cookUser) {
+        const dishTitle = todayMealDay.recipe?.title || todayMealDay.customDishTitle || 'Gemeinschaftsessen';
+        const isCookHousekeeping = cookUser.role === 'HAUSHALTSKRAFT';
+        const isDone = Boolean(todayMealDay.isCompleted);
+        const isCookMe = Boolean(req.user?.id && cookUser.id === req.user.id);
+
+        const chefItem = {
+          templateId: `chefkoch_${todayMealDay.id}`,
+          title: isCookHousekeeping
+            ? `Mittagessen zubereiten: ${dishTitle}`
+            : `Kochtraining: ${dishTitle}`,
+          description: isCookHousekeeping
+            ? 'Zuständig für die Zubereitung des Mittagessens.'
+            : 'Zuständig für die Zubereitung des Gemeinschaftsessens.',
+          icon: '👨‍🍳',
+          assignmentId: null,
+          mealPlanDayId: todayMealDay.id,
+          isChefkoch: true,
+          cookRole: cookUser.role,
+          resident: cookUser,
+          residentId: cookUser.id,
+          assignedResidents: [cookUser],
+          isAllResidents: false,
+          completedResidentIds: isDone ? [cookUser.id] : [],
+          completedResidents: isDone ? [cookUser] : [],
+          pendingResidents: isDone ? [] : [cookUser],
+          totalAssignedCount: 1,
+          completedCount: isDone ? 1 : 0,
+          isCompleted: isDone,
+          isCompletedForMe: isCookMe ? isDone : false,
+          completedAt: todayMealDay.completedAt,
+          date: todayDate,
+          isRecurring: false,
+        };
+
+        todayItems.unshift(chefItem);
+      }
+    }
 
     const myTasks = req.user
       ? todayItems.filter((item) => {

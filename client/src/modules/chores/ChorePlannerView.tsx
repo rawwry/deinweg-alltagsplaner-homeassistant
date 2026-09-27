@@ -389,18 +389,35 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
 
     const dayMeal = mealPlan?.days?.find((d: any) => d.dayOfWeek === day.dayOfWeek);
     const isCookMe = Boolean(user?.id && dayMeal?.cookUserId === user.id);
-    const chefDishTitle = dayMeal?.recipe?.title || dayMeal?.customDishTitle || 'Gemeinsames Abendessen';
+    const chefDishTitle = dayMeal?.recipe?.title || dayMeal?.customDishTitle || 'Gemeinsames Mittagessen';
+
+    const isCookHousekeeping =
+      dayMeal?.cookRole === 'HAUSHALTSKRAFT' ||
+      residents.find((r: any) => r.id === dayMeal?.cookUserId)?.role === 'HAUSHALTSKRAFT' ||
+      (isCookMe && user?.role === 'HAUSHALTSKRAFT');
+
+    const chefTitle = (isCookHousekeeping || user?.role === 'HAUSHALTSKRAFT')
+      ? `Mittagessen zubereiten: ${chefDishTitle}`
+      : `Kochtraining: ${chefDishTitle}`;
+
+    const chefDescription = (isCookHousekeeping || user?.role === 'HAUSHALTSKRAFT')
+      ? 'Zuständig für die Zubereitung des Mittagessens.'
+      : 'Du bist heute für die Zubereitung des Gemeinschaftsessens zuständig.';
+
     const chefTask = dayMeal?.cookUserId
       ? {
           id: `chefkoch_${day.date}`,
-          title: `Kochtraining: ${chefDishTitle}`,
-          description: 'Du bist heute für die Zubereitung des Gemeinschaftsessens zuständig.',
+          title: chefTitle,
+          description: chefDescription,
           icon: '👨‍🍳',
           isChefkoch: true,
           cookUserId: dayMeal.cookUserId,
           cookName: dayMeal.cookName,
-          assignedResidents: [{ id: dayMeal.cookUserId, name: dayMeal.cookName }],
+          cookRole: dayMeal.cookRole || (isCookHousekeeping ? 'HAUSHALTSKRAFT' : 'BEWOHNER'),
+          assignedResidents: [{ id: dayMeal.cookUserId, name: dayMeal.cookName, role: dayMeal.cookRole }],
           isAllResidents: false,
+          mealPlanDayId: dayMeal.id,
+          isCompleted: Boolean(dayMeal.isCompleted),
         }
       : null;
 
@@ -488,22 +505,54 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
               const choreKey = `${day.date}_${tmpl.id}`;
               const isPersonalDone = personalDoneChores.includes(choreKey);
 
-              const isResidentChef = user?.role === 'BEWOHNER' && isCookMe;
+              const isStaff = user?.role === 'BETREUER' || user?.role === 'ADMIN';
+              const isResidentOrStaffChef = (user?.role === 'BEWOHNER' || user?.role === 'HAUSHALTSKRAFT') && isCookMe;
+              const canToggleChef = isResidentOrStaffChef || isStaff;
+              const isChefDone = Boolean(dayMeal?.isCompleted) || isPersonalDone;
 
               if (tmpl.isChefkoch) {
                 return (
                   <div
                     key={tmpl.id}
-                    onClick={() => {
-                      if (isResidentChef) {
+                    onClick={async () => {
+                      if (canToggleChef && dayMeal?.id) {
+                        try {
+                          const nextVal = !isChefDone;
+                          await api.food.toggleMealPlanComplete(dayMeal.id, nextVal);
+                          setMealPlan((prev: any) => {
+                            if (!prev?.days) return prev;
+                            return {
+                              ...prev,
+                              days: prev.days.map((d: any) =>
+                                d.id === dayMeal.id ? { ...d, isCompleted: nextVal } : d
+                              ),
+                            };
+                          });
+                          if (isCookMe) {
+                            setPersonalDoneChores((prev) => {
+                              const next = nextVal
+                                ? (prev.includes(choreKey) ? prev : [...prev, choreKey])
+                                : prev.filter((k) => k !== choreKey);
+                              if (user?.id) {
+                                try {
+                                  localStorage.setItem(`resident_chores_done_${user.id}`, JSON.stringify(next));
+                                } catch {}
+                              }
+                              return next;
+                            });
+                          }
+                        } catch (err) {
+                          console.error('Fehler beim Abhaken der Kochaufgabe:', err);
+                        }
+                      } else if (canToggleChef) {
                         togglePersonalChore(choreKey);
                       }
                     }}
                     className={`rounded-2xl border p-4 sm:p-5 transition-all flex flex-col gap-3 ${
-                      isPersonalDone
+                      isChefDone
                         ? 'bg-emerald-950/20 border-emerald-500/30'
                         : 'bg-surface-elevated/70 hover:bg-surface-elevated border-rose-500/30 shadow-xs'
-                    } ${isResidentChef ? 'cursor-pointer select-none group/chore' : ''}`}
+                    } ${canToggleChef ? 'cursor-pointer select-none group/chore' : ''}`}
                   >
                     {/* Top Tier: Icon + Title & Kochplan badge + Personal Check-off Top-Right */}
                     <div className="flex items-center justify-between gap-3 min-w-0">
@@ -514,7 +563,7 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                         <div className="min-w-0 flex-1">
                           <span
                             className={`text-sm font-bold tracking-tight block truncate ${
-                              isPersonalDone ? 'line-through text-slate-400' : 'text-white'
+                              isChefDone ? 'line-through text-slate-400' : 'text-white'
                             }`}
                           >
                             {tmpl.title}
@@ -522,27 +571,25 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                         </div>
                       </div>
 
-                      {isResidentChef && (
+                      <div
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all shrink-0 select-none ${
+                          isChefDone
+                            ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+                            : 'bg-surface-card border-surface-border text-slate-300 group-hover/chore:border-rose-400 group-hover/chore:text-white'
+                        }`}
+                        title={canToggleChef ? (isChefDone ? 'Als unerledigt markieren' : 'Als erledigt abhaken') : undefined}
+                      >
                         <div
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all shrink-0 select-none ${
-                            isPersonalDone
-                              ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
-                              : 'bg-surface-card border-surface-border text-slate-300 group-hover/chore:border-rose-400 group-hover/chore:text-white'
+                          className={`w-4 h-4 rounded-md flex items-center justify-center border transition-colors ${
+                            isChefDone
+                              ? 'bg-emerald-500 border-emerald-500 text-slate-950'
+                              : 'border-slate-500 bg-transparent group-hover/chore:border-rose-400'
                           }`}
-                          title={isPersonalDone ? 'Als unerledigt markieren' : 'Als erledigt abhaken'}
                         >
-                          <div
-                            className={`w-4 h-4 rounded-md flex items-center justify-center border transition-colors ${
-                              isPersonalDone
-                                ? 'bg-emerald-500 border-emerald-500 text-slate-950'
-                                : 'border-slate-500 bg-transparent group-hover/chore:border-rose-400'
-                            }`}
-                          >
-                            {isPersonalDone && <Check className="w-3 h-3 stroke-[3]" />}
-                          </div>
-                          <span>{isPersonalDone ? 'Erledigt' : 'Abhaken'}</span>
+                          {isChefDone && <Check className="w-3 h-3 stroke-[3]" />}
                         </div>
-                      )}
+                        <span>{isChefDone ? 'Erledigt' : canToggleChef ? 'Abhaken' : 'Offen'}</span>
+                      </div>
                     </div>
 
                     {/* Middle Tier: 100% Full Width Description */}
@@ -557,7 +604,18 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                       <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl border bg-rose-500/10 border-rose-500/25 text-rose-300 text-xs font-semibold">
                         <ChefHat className="w-3.5 h-3.5 text-rose-400 stroke-[2]" />
                         <span>{tmpl.cookName}</span>
+                        {(tmpl.cookRole === 'HAUSHALTSKRAFT' || isCookHousekeeping) && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-rose-500/20 text-rose-200 border border-rose-500/30 font-sans">
+                            Haushaltskraft
+                          </span>
+                        )}
                       </div>
+                      {isChefDone && (
+                        <span className="text-xs text-emerald-400 font-medium flex items-center gap-1">
+                          <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                          <span>Zubereitung erledigt</span>
+                        </span>
+                      )}
                     </div>
                   </div>
                 );

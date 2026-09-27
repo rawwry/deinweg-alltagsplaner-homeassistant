@@ -147,6 +147,9 @@ model MealPlanDay {
   servings        Int       @default(6)
   mealType        String    @default("main") // lunch, dinner, main
   cookUserId      String?
+  isCompleted     Boolean   @default(false)
+  completedAt     DateTime?
+  completedById   String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 

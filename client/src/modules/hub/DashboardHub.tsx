@@ -465,6 +465,48 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
   const handleToggleChore = async (chore: any, residentIdToToggle?: string) => {
     const choreKey = `${chore.date || todayChores?.date || 'today'}_${chore.templateId}`;
 
+    if (chore.isChefkoch || chore.templateId?.startsWith('chefkoch_')) {
+      try {
+        const mealPlanDayId = chore.mealPlanDayId || (chore.templateId?.startsWith('chefkoch_') ? chore.templateId.replace('chefkoch_', '') : null) || todayMeal?.id;
+        const currentlyDone = chore.isCompleted !== undefined
+          ? Boolean(chore.isCompleted)
+          : (chore.isCompletedForMe !== undefined ? Boolean(chore.isCompletedForMe) : Boolean(todayMeal?.isCompleted));
+        const nextDone = !currentlyDone;
+
+        if (mealPlanDayId && !mealPlanDayId.includes('-')) {
+          await api.food.toggleMealPlanComplete(mealPlanDayId, nextDone);
+        } else {
+          await api.chores.toggleComplete({
+            templateId: chore.templateId,
+            date: chore.date || todayChores?.date,
+            locationId: activeLocationId,
+          });
+        }
+
+        setPersonalDoneChores((prev) => {
+          const next = nextDone
+            ? (prev.includes(choreKey) ? prev : [...prev, choreKey])
+            : prev.filter((k) => k !== choreKey);
+          if (user?.id) {
+            try {
+              localStorage.setItem(`resident_chores_done_${user.id}`, JSON.stringify(next));
+            } catch {}
+          }
+          return next;
+        });
+
+        const [refreshedChores, refreshedPlan] = await Promise.all([
+          api.chores.today(activeLocationId).catch(() => null),
+          api.food.mealplan(activeLocationId, currentYear, currentWeek).catch(() => null),
+        ]);
+        if (refreshedChores) setTodayChores(refreshedChores);
+        if (refreshedPlan) setMealPlan(refreshedPlan);
+      } catch (err) {
+        console.error('Fehler beim Abhaken der Kochaufgabe:', err);
+      }
+      return;
+    }
+
     if (chore.templateId && !chore.templateId.startsWith('chefkoch_')) {
       try {
         const res = await api.chores.toggleComplete({
@@ -1283,14 +1325,22 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
       {(user?.role === 'BEWOHNER' || user?.role === 'HAUSHALTSKRAFT') && todayChores && (() => {
         const isTodayCook = Boolean(user?.id && todayMeal?.cookUserId === user.id);
         const chefDishTitle = todayMeal?.recipe?.title || todayMeal?.customDishTitle || 'Gemeinschaftsessen';
-        const chefkochChore = isTodayCook
+        const isCookHousekeeping = user?.role === 'HAUSHALTSKRAFT' || todayMeal?.cookRole === 'HAUSHALTSKRAFT';
+        const hasChefInMyTasks = (todayChores?.myTasks || []).some((t: any) => t.isChefkoch || t.templateId?.startsWith('chefkoch_'));
+        const chefkochChore = isTodayCook && !hasChefInMyTasks
           ? {
-              templateId: `chefkoch_${todayChores?.date || formatGermanDate(now)}`,
+              templateId: `chefkoch_${todayMeal?.id || todayChores?.date || formatGermanDate(now)}`,
+              mealPlanDayId: todayMeal?.id,
               date: todayChores?.date || formatGermanDate(now),
-              title: `Kochtraining: ${chefDishTitle}`,
-              description: 'Du bist heute für die Zubereitung des Gemeinschaftsessens zuständig.',
+              title: isCookHousekeeping ? `Mittagessen zubereiten: ${chefDishTitle}` : `Kochtraining: ${chefDishTitle}`,
+              description: isCookHousekeeping
+                ? 'Zuständig für die Zubereitung des Mittagessens.'
+                : 'Du bist heute für die Zubereitung des Gemeinschaftsessens zuständig.',
               icon: '👨‍🍳',
               isChefkoch: true,
+              cookRole: todayMeal?.cookRole || (isCookHousekeeping ? 'HAUSHALTSKRAFT' : 'BEWOHNER'),
+              isCompleted: Boolean(todayMeal?.isCompleted),
+              isCompletedForMe: Boolean(todayMeal?.isCompleted),
             }
           : null;
 
@@ -1358,18 +1408,33 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                           </div>
 
                           <div className="min-w-0 flex-1 pt-0.5">
-                            <h4
-                              className={`text-base font-bold leading-snug break-words ${
-                                isDone ? 'line-through text-slate-400' : 'text-white'
-                              }`}
-                            >
-                              {task.title}
-                            </h4>
-                            {task.description && (
-                              <p className="text-xs text-slate-400 mt-1 leading-relaxed break-words font-sans">
-                                {task.description}
-                              </p>
-                            )}
+                            {(() => {
+                              const isTaskChef = Boolean(task.isChefkoch || task.templateId?.startsWith('chefkoch_'));
+                              const isHousekeeperUser = user?.role === 'HAUSHALTSKRAFT' || task.cookRole === 'HAUSHALTSKRAFT';
+                              const displayTitle = (isTaskChef && isHousekeeperUser)
+                                ? task.title.replace(/^Kochtraining:\s*/i, 'Mittagessen zubereiten: ')
+                                : task.title;
+                              const displayDescription = (isTaskChef && isHousekeeperUser)
+                                ? 'Zuständig für die Zubereitung des Mittagessens.'
+                                : task.description;
+
+                              return (
+                                <>
+                                  <h4
+                                    className={`text-base font-bold leading-snug break-words ${
+                                      isDone ? 'line-through text-slate-400' : 'text-white'
+                                    }`}
+                                  >
+                                    {displayTitle}
+                                  </h4>
+                                  {displayDescription && (
+                                    <p className="text-xs text-slate-400 mt-1 leading-relaxed break-words font-sans">
+                                      {displayDescription}
+                                    </p>
+                                  )}
+                                </>
+                              );
+                            })()}
                           </div>
                         </div>
 
@@ -1423,142 +1488,189 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
       })()}
 
       {/* STAFF ONLY: Heutige Aufgaben der WG */}
-      {user?.role !== 'BEWOHNER' && user?.role !== 'HAUSHALTSKRAFT' && todayChores?.todayItems && (
-        <div className="bento-card rounded-[2.5rem] p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
-          <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+      {user?.role !== 'BEWOHNER' && user?.role !== 'HAUSHALTSKRAFT' && (todayChores?.todayItems || todayMeal?.cookUserId) && (() => {
+        const items = [...(todayChores?.todayItems || [])];
+        const hasChefInChores = items.some((t: any) => t.isChefkoch || t.templateId?.startsWith('chefkoch_'));
+        if (!hasChefInChores && todayMeal?.cookUserId) {
+          const dishTitle = todayMeal.recipe?.title || todayMeal.customDishTitle || 'Gemeinschaftsessen';
+          const isCookHousekeeping = todayMeal.cookRole === 'HAUSHALTSKRAFT';
+          const isDone = Boolean(todayMeal.isCompleted);
+          items.unshift({
+            templateId: `chefkoch_${todayMeal.id}`,
+            title: isCookHousekeeping ? `Mittagessen zubereiten: ${dishTitle}` : `Kochtraining: ${dishTitle}`,
+            description: isCookHousekeeping ? 'Zuständig für die Zubereitung des Mittagessens.' : 'Zuständig für die Zubereitung des Gemeinschaftsessens.',
+            icon: '👨‍🍳',
+            assignmentId: null,
+            mealPlanDayId: todayMeal.id,
+            isChefkoch: true,
+            cookRole: todayMeal.cookRole,
+            resident: { id: todayMeal.cookUserId, name: todayMeal.cookName, role: todayMeal.cookRole },
+            residentId: todayMeal.cookUserId,
+            assignedResidents: [{ id: todayMeal.cookUserId, name: todayMeal.cookName, role: todayMeal.cookRole }],
+            isAllResidents: false,
+            completedResidentIds: isDone ? [todayMeal.cookUserId] : [],
+            completedResidents: isDone ? [{ id: todayMeal.cookUserId, name: todayMeal.cookName }] : [],
+            pendingResidents: isDone ? [] : [{ id: todayMeal.cookUserId, name: todayMeal.cookName }],
+            totalAssignedCount: 1,
+            completedCount: isDone ? 1 : 0,
+            isCompleted: isDone,
+            isCompletedForMe: false,
+            date: todayChores?.date || formatGermanDate(now),
+          });
+        }
 
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-semibold uppercase tracking-wider font-sans whitespace-nowrap">
-                <ClipboardList className="w-3.5 h-3.5 stroke-[2]" />
-                <span>Heutige Aufgaben</span>
+        const staffTotalCount = items.length;
+        const staffCompletedCount = items.filter((t: any) => Boolean(t.isCompleted)).length;
+
+        return (
+          <div className="bento-card rounded-[2.5rem] p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
+            <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-semibold uppercase tracking-wider font-sans whitespace-nowrap">
+                  <ClipboardList className="w-3.5 h-3.5 stroke-[2]" />
+                  <span>Heutige Aufgaben</span>
+                </div>
+
+                <span className="text-xs font-bold px-3 py-1 rounded-full bg-surface-elevated text-indigo-300 border border-surface-border font-mono self-start sm:self-auto">
+                  {staffCompletedCount} von {staffTotalCount} erledigt
+                </span>
               </div>
 
-              <span className="text-xs font-bold px-3 py-1 rounded-full bg-surface-elevated text-indigo-300 border border-surface-border font-mono self-start sm:self-auto">
-                {todayChores.completedCount} von {todayChores.totalCount} erledigt
-              </span>
-            </div>
+              <div className="mb-4">
+                <h3 className="text-xl font-semibold text-white mb-1.5 font-sans tracking-tight">
+                  Heutige Aufgaben der WG
+                </h3>
+                <p className="text-xs text-slate-300 leading-relaxed font-sans">
+                  Überblick über alle eingeteilten Haushalts- & Alltagsaufgaben von heute.
+                </p>
+              </div>
 
-            <div className="mb-4">
-              <h3 className="text-xl font-semibold text-white mb-1.5 font-sans tracking-tight">
-                Heutige Aufgaben der WG
-              </h3>
-              <p className="text-xs text-slate-300 leading-relaxed font-sans">
-                Überblick über alle eingeteilten Haushalts- & Alltagsaufgaben von heute.
-              </p>
-            </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                {items.map((task: any) => {
+                  const isAllDone = Boolean(task.isCompleted);
+                  const completedCount = task.completedCount || 0;
+                  const totalAssignedCount = task.totalAssignedCount || (task.assignedResidents?.length || 1);
+                  const isPartiallyDone = !isAllDone && completedCount > 0;
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-              {todayChores.todayItems.map((task: any) => {
-                const isAllDone = Boolean(task.isCompleted);
-                const completedCount = task.completedCount || 0;
-                const totalAssignedCount = task.totalAssignedCount || (task.assignedResidents?.length || 1);
-                const isPartiallyDone = !isAllDone && completedCount > 0;
-
-                return (
-                  <div
-                    key={task.templateId}
-                    onClick={() => handleToggleChore(task)}
-                    className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between gap-2.5 select-none ${
-                      isAllDone
-                        ? 'bg-emerald-500/15 border-emerald-500/50 text-emerald-100 shadow-sm shadow-emerald-500/10'
-                        : isPartiallyDone
-                        ? 'bg-indigo-500/10 border-indigo-500/35 text-slate-100'
-                        : 'bg-surface-elevated/60 border-surface-border hover:border-indigo-500/50 text-slate-100'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3 min-w-0">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="shrink-0">{getChoreOutlineIcon(task, 'w-5 h-5')}</div>
-                        <div className="min-w-0">
-                          <div className={`text-xs font-semibold truncate ${isAllDone ? 'text-emerald-200 font-bold' : 'text-white'}`}>
-                            {task.title}
+                  return (
+                    <div
+                      key={task.templateId}
+                      onClick={() => handleToggleChore(task)}
+                      className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between gap-2.5 select-none ${
+                        isAllDone
+                          ? 'bg-emerald-500/15 border-emerald-500/50 text-emerald-100 shadow-sm shadow-emerald-500/10'
+                          : isPartiallyDone
+                          ? 'bg-indigo-500/10 border-indigo-500/35 text-slate-100'
+                          : 'bg-surface-elevated/60 border-surface-border hover:border-indigo-500/50 text-slate-100'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3 min-w-0">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="shrink-0">{getChoreOutlineIcon(task, 'w-5 h-5')}</div>
+                          <div className="min-w-0">
+                            <div className={`text-xs font-semibold truncate ${isAllDone ? 'text-emerald-200 font-bold' : 'text-white'}`}>
+                              {task.title}
+                            </div>
+                            <div className="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
+                              {task.isAllResidents ? (
+                                <span className={isAllDone ? 'text-emerald-300/80 font-medium' : 'text-indigo-300 font-medium'}>👥 Alle Bewohner</span>
+                              ) : task.assignedResidents && task.assignedResidents.length > 0 ? (
+                                <span className={`truncate max-w-[150px] font-medium flex items-center gap-1 ${isAllDone ? 'text-emerald-300/80' : 'text-indigo-300'}`}>
+                                  <span>👤 {task.assignedResidents.map((r: any) => r.name).join(', ')}</span>
+                                  {task.assignedResidents.some((r: any) => r.role === 'HAUSHALTSKRAFT') && (
+                                    <span className="text-[9px] px-1 py-0.2 rounded bg-indigo-500/20 text-indigo-200 border border-indigo-500/30 font-sans">
+                                      Haushaltskraft
+                                    </span>
+                                  )}
+                                </span>
+                              ) : task.resident ? (
+                                <span className={`truncate max-w-[150px] font-medium flex items-center gap-1 ${isAllDone ? 'text-emerald-300/80' : 'text-indigo-300'}`}>
+                                  <span>👤 {task.resident.name}</span>
+                                  {task.resident.role === 'HAUSHALTSKRAFT' && (
+                                    <span className="text-[9px] px-1 py-0.2 rounded bg-indigo-500/20 text-indigo-200 border border-indigo-500/30 font-sans">
+                                      Haushaltskraft
+                                    </span>
+                                  )}
+                                </span>
+                              ) : (
+                                <span className="text-slate-500 italic">Niemand eingeteilt</span>
+                              )}
+                            </div>
                           </div>
-                          <div className="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
-                            {task.isAllResidents ? (
-                              <span className={isAllDone ? 'text-emerald-300/80 font-medium' : 'text-indigo-300 font-medium'}>👥 Alle Bewohner</span>
-                            ) : task.assignedResidents && task.assignedResidents.length > 0 ? (
-                              <span className={`truncate max-w-[150px] font-medium ${isAllDone ? 'text-emerald-300/80' : 'text-indigo-300'}`}>
-                                👤 {task.assignedResidents.map((r: any) => r.name).join(', ')}
-                              </span>
-                            ) : task.resident ? (
-                              <span className={isAllDone ? 'text-emerald-300/80 font-medium' : 'text-indigo-300 font-medium'}>👤 {task.resident.name}</span>
-                            ) : (
-                              <span className="text-slate-500 italic">Niemand eingeteilt</span>
-                            )}
-                          </div>
+                        </div>
+
+                        <div className="shrink-0">
+                          {isAllDone ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/25 text-emerald-200 border border-emerald-500/40 text-[10px] font-bold font-sans shadow-xs">
+                              <Check className="w-3 h-3 text-emerald-300 stroke-[3]" />
+                              <span>Erledigt</span>
+                            </span>
+                          ) : isPartiallyDone ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 text-[10px] font-bold font-sans shadow-xs">
+                              <span>{completedCount}/{totalAssignedCount} erledigt</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 text-[10px] font-medium font-sans">
+                              Offen
+                            </span>
+                          )}
                         </div>
                       </div>
 
-                      <div className="shrink-0">
-                        {isAllDone ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/25 text-emerald-200 border border-emerald-500/40 text-[10px] font-bold font-sans shadow-xs">
-                            <Check className="w-3 h-3 text-emerald-300 stroke-[3]" />
-                            <span>Erledigt</span>
-                          </span>
-                        ) : isPartiallyDone ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 text-[10px] font-bold font-sans shadow-xs">
-                            <span>{completedCount}/{totalAssignedCount} erledigt</span>
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 text-[10px] font-medium font-sans">
-                            Offen
-                          </span>
-                        )}
-                      </div>
+                      {/* Breakdown of residents when multiple or all residents are assigned */}
+                      {task.assignedResidents && task.assignedResidents.length > 1 && (
+                        <div className="flex flex-wrap items-center gap-1 pt-2 border-t border-surface-border/30">
+                          {task.assignedResidents.map((r: any) => {
+                            const rDone = (task.completedResidentIds || []).includes(r.id);
+                            return (
+                              <span
+                                key={r.id}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleToggleChore(task, r.id);
+                                }}
+                                title={
+                                  rDone
+                                    ? `${r.name}: Erledigt (Klicken zum Umschalten)`
+                                    : `${r.name}: Offen (Klicken zum Umschalten)`
+                                }
+                                className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium border transition-all cursor-pointer ${
+                                  rDone
+                                    ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-200'
+                                    : 'bg-surface-card border-surface-border text-slate-400 hover:border-indigo-400/60'
+                                }`}
+                              >
+                                <span className={`w-1.5 h-1.5 rounded-full ${rDone ? 'bg-emerald-400' : 'bg-slate-500'}`} />
+                                <span className="truncate max-w-[80px]">{r.name}</span>
+                                {rDone && <Check className="w-2.5 h-2.5 text-emerald-300 stroke-[3]" />}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
+                  );
+                })}
+              </div>
+            </div>
 
-                    {/* Breakdown of residents when multiple or all residents are assigned */}
-                    {task.assignedResidents && task.assignedResidents.length > 1 && (
-                      <div className="flex flex-wrap items-center gap-1 pt-2 border-t border-surface-border/30">
-                        {task.assignedResidents.map((r: any) => {
-                          const rDone = (task.completedResidentIds || []).includes(r.id);
-                          return (
-                            <span
-                              key={r.id}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleToggleChore(task, r.id);
-                              }}
-                              title={
-                                rDone
-                                  ? `${r.name}: Erledigt (Klicken zum Umschalten)`
-                                  : `${r.name}: Offen (Klicken zum Umschalten)`
-                              }
-                              className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium border transition-all cursor-pointer ${
-                                rDone
-                                  ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-200'
-                                  : 'bg-surface-card border-surface-border text-slate-400 hover:border-indigo-400/60'
-                              }`}
-                            >
-                              <span className={`w-1.5 h-1.5 rounded-full ${rDone ? 'bg-emerald-400' : 'bg-slate-500'}`} />
-                              <span className="truncate max-w-[80px]">{r.name}</span>
-                              {rDone && <Check className="w-2.5 h-2.5 text-emerald-300 stroke-[3]" />}
-                            </span>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+            {/* Staff Footer Action */}
+            <div className="mt-5 pt-4 border-t border-surface-border/50">
+              <button
+                type="button"
+                onClick={() => setCurrentTab('chores')}
+                className="btn-theme-gradient w-full py-2.5 sm:py-3 rounded-2xl text-white font-semibold text-xs shadow-lg hover:scale-[1.01] active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2 font-sans"
+              >
+                <Calendar className="w-3.5 h-3.5" />
+                <span>Aufgabenplan verwalten</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
-
-          {/* Staff Footer Action */}
-          <div className="mt-5 pt-4 border-t border-surface-border/50">
-            <button
-              type="button"
-              onClick={() => setCurrentTab('chores')}
-              className="btn-theme-gradient w-full py-2.5 sm:py-3 rounded-2xl text-white font-semibold text-xs shadow-lg hover:scale-[1.01] active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2 font-sans"
-            >
-              <Calendar className="w-3.5 h-3.5" />
-              <span>Aufgabenplan verwalten</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Balanced 2-Column Bento Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">

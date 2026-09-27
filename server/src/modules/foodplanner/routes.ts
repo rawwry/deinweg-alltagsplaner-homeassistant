@@ -748,12 +748,12 @@ router.get('/mealplan', requireAuth, async (req: Request, res: Response) => {
       }) as any;
     }
 
-    // Attach cook user names
+    // Attach cook user names and roles
     const cookIds = mealPlan!.days.map((d) => d.cookUserId).filter(Boolean) as string[];
     const cookUsers = cookIds.length > 0
-      ? await prisma.user.findMany({ where: { id: { in: cookIds } }, select: { id: true, name: true } })
+      ? await prisma.user.findMany({ where: { id: { in: cookIds } }, select: { id: true, name: true, role: true } })
       : [];
-    const cookMap = new Map(cookUsers.map((u) => [u.id, u.name]));
+    const cookMap = new Map(cookUsers.map((u) => [u.id, { name: u.name, role: u.role }]));
 
     const formattedDays = mealPlan!.days.map((d) => ({
       id: d.id,
@@ -762,7 +762,11 @@ router.get('/mealplan', requireAuth, async (req: Request, res: Response) => {
       customDishTitle: d.customDishTitle,
       servings: d.servings,
       cookUserId: d.cookUserId,
-      cookName: d.cookUserId ? cookMap.get(d.cookUserId) || null : null,
+      cookName: d.cookUserId ? cookMap.get(d.cookUserId)?.name || null : null,
+      cookRole: d.cookUserId ? cookMap.get(d.cookUserId)?.role || null : null,
+      isCompleted: Boolean(d.isCompleted),
+      completedAt: d.completedAt,
+      completedById: d.completedById,
       recipe: d.recipe
         ? {
             id: d.recipe.id,
@@ -802,7 +806,7 @@ router.get('/mealplan', requireAuth, async (req: Request, res: Response) => {
 
 router.put('/mealplan/day', requireAuth, async (req: Request, res: Response) => {
   try {
-    const { mealPlanId, dayOfWeek, recipeId, customDishTitle, servings, cookUserId } = req.body;
+    const { mealPlanId, dayOfWeek, recipeId, customDishTitle, servings, cookUserId, isCompleted } = req.body;
 
     if (!mealPlanId || !dayOfWeek) {
       return res.status(400).json({ error: 'mealPlanId und dayOfWeek sind erforderlich.' });
@@ -813,7 +817,7 @@ router.put('/mealplan/day', requireAuth, async (req: Request, res: Response) => 
       return res.status(404).json({ error: 'Wochenplan nicht gefunden.' });
     }
 
-    if (req.user!.role === 'BEWOHNER' && req.user!.locationId !== mealPlan.locationId) {
+    if ((req.user!.role === 'BEWOHNER' || req.user!.role === 'HAUSHALTSKRAFT') && req.user!.locationId !== mealPlan.locationId) {
       return res.status(403).json({ error: 'Zugriff verweigert.' });
     }
 
@@ -829,6 +833,9 @@ router.put('/mealplan/day', requireAuth, async (req: Request, res: Response) => 
         customDishTitle: customDishTitle !== undefined ? customDishTitle : undefined,
         servings: servings !== undefined ? Number(servings) : undefined,
         cookUserId: cookUserId !== undefined ? cookUserId : undefined,
+        isCompleted: isCompleted !== undefined ? Boolean(isCompleted) : undefined,
+        completedAt: isCompleted !== undefined ? (isCompleted ? new Date() : null) : undefined,
+        completedById: isCompleted !== undefined ? (isCompleted ? req.user!.id : null) : undefined,
       },
       create: {
         mealPlanId,
@@ -837,6 +844,9 @@ router.put('/mealplan/day', requireAuth, async (req: Request, res: Response) => 
         customDishTitle: customDishTitle || null,
         servings: Number(servings) || 6,
         cookUserId: cookUserId || null,
+        isCompleted: isCompleted !== undefined ? Boolean(isCompleted) : false,
+        completedAt: isCompleted ? new Date() : null,
+        completedById: isCompleted ? req.user!.id : null,
       },
     });
 
@@ -844,6 +854,44 @@ router.put('/mealplan/day', requireAuth, async (req: Request, res: Response) => 
   } catch (err) {
     console.error('Fehler beim Aktualisieren des Wochentags:', err);
     return res.status(500).json({ error: 'Fehler beim Aktualisieren des Wochentags.' });
+  }
+});
+
+router.post('/mealplan/toggle-complete', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { mealPlanDayId, isCompleted } = req.body;
+    if (!mealPlanDayId) {
+      return res.status(400).json({ error: 'mealPlanDayId ist erforderlich.' });
+    }
+
+    const day = await prisma.mealPlanDay.findUnique({
+      where: { id: mealPlanDayId },
+      include: { mealPlan: true },
+    });
+
+    if (!day) {
+      return res.status(404).json({ error: 'Wochentag nicht gefunden.' });
+    }
+
+    if ((req.user!.role === 'BEWOHNER' || req.user!.role === 'HAUSHALTSKRAFT') && req.user!.locationId !== day.mealPlan.locationId) {
+      return res.status(403).json({ error: 'Zugriff verweigert.' });
+    }
+
+    const nextCompleted = isCompleted !== undefined ? Boolean(isCompleted) : !day.isCompleted;
+
+    const updated = await prisma.mealPlanDay.update({
+      where: { id: mealPlanDayId },
+      data: {
+        isCompleted: nextCompleted,
+        completedAt: nextCompleted ? new Date() : null,
+        completedById: nextCompleted ? req.user!.id : null,
+      },
+    });
+
+    return res.json({ success: true, day: updated });
+  } catch (err) {
+    console.error('Fehler beim Umschalten des Erledigt-Status für das Essen:', err);
+    return res.status(500).json({ error: 'Fehler beim Umschalten des Erledigt-Status.' });
   }
 });
 

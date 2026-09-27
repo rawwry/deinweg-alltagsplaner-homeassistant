@@ -3,6 +3,21 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.52] - 2026-09-27
+
+### Neu & Verbessert
+- **Ansicht für Haushaltskräfte – Kein „Kochtraining“ mehr (`DashboardHub.tsx`, `ChorePlannerView.tsx`, `MealPlanView.tsx`)**:
+  - **Angemessene Aufgabenbezeichnung**: Wenn einer Haushaltskraft die Essenszubereitung im Kochplan zugewiesen wird, erscheint die Aufgabe auf der Übersichtsseite unter „Deine heutigen Aufgaben“ sowie im Aufgabenplan als **„Mittagessen zubereiten: <Gericht>“** (anstelle von „Kochtraining: <Gericht>“).
+  - **Präzise Beschreibung**: Die Aufgabenbeschreibung lautet passend *„Zuständig für die Zubereitung des Mittagessens.“*.
+  - **Speiseplan-Header**: In der Kopfzeile des Kochplans wird für Haushaltskräfte neutral *„Speiseplan & Kochplanung“* angezeigt.
+- **Betreueransicht – Zubereitung durch Haushaltskraft in „Heutige Aufgaben der WG“ (`DashboardHub.tsx`, `server/src/modules/chores/routes.ts`)**:
+  - **Echtzeit-Sichtbarkeit für Betreuer**: Wenn an einem Standort eine Haushaltskraft für das heutige Mittagessen eingeteilt ist, wird diese Aufgabe automatisch in der Betreuer-Übersicht unter **„Heutige Aufgaben der WG“** mit aufgeführt.
+  - **Erledigt-Status & Transparenz**: Betreuer sehen auf einen Blick, wer eingeteilt ist (mit Indikator „Haushaltskraft“) und ob die Zubereitung noch offen ist oder bereits erledigt wurde.
+  - **Datenbankgestützte Synchronisation (`prisma/schema.prisma`, `MealPlanDay`)**:
+    - Das Schema `MealPlanDay` wurde um `isCompleted`, `completedAt` und `completedById` erweitert.
+    - Wenn die Haushaltskraft (oder ein Betreuer) die Kochaufgabe als erledigt abhakt, wird der Status direkt in der Datenbank gespeichert und über das 5-Sekunden-Polling in Echtzeit auf allen Geräten der Betreuer und Bewohner aktualisiert.
+    - Neuer Backend-Endpunkt `POST /food/mealplan/toggle-complete` sowie Integration in die Standard-Chores-Routen für nahtloses Umschalten.
+
 ## [0.1.51] - 2026-09-27
 
 ### Neu & Verbessert

@@ -157,7 +157,13 @@ export const api = {
       customDishTitle?: string | null;
       servings?: number;
       cookUserId?: string | null;
+      isCompleted?: boolean;
     }) => request<any>('food/mealplan/day', { method: 'PUT', body: JSON.stringify(body) }),
+    toggleMealPlanComplete: (mealPlanDayId: string, isCompleted?: boolean) =>
+      request<any>('food/mealplan/toggle-complete', {
+        method: 'POST',
+        body: JSON.stringify({ mealPlanDayId, isCompleted }),
+      }),
     shoppingList: (locationId: string, year: number, weekNumber: number) =>
       request<any>(`food/shopping-list?locationId=${locationId}&year=${year}&weekNumber=${weekNumber}`),
     toggleShoppingItem: (body: {

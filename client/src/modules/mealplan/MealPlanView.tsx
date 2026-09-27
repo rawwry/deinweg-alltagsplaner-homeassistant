@@ -305,7 +305,7 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
           <div>
             <div className="inline-flex items-center gap-2 text-rose-400 text-xs font-semibold tracking-wider uppercase mb-1 font-sans">
               <ChefHat className="w-4 h-4" />
-              <span>Speiseplan & Kochtraining</span>
+              <span>{user?.role === 'HAUSHALTSKRAFT' ? 'Speiseplan & Kochplanung' : 'Speiseplan & Kochtraining'}</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white font-sans">
               Wöchentliche Kochplanung
