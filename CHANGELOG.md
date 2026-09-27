@@ -3,6 +3,21 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.54] - 2026-09-27
+
+### Neu & Verbessert
+- **Haushaltskraft – Aufgaben auf der Übersichtsseite (`DashboardHub.tsx`, `server/src/modules/chores/routes.ts`)**:
+  - **Zuverlässige Anzeige heutiger Aufgaben**: Aufgaben, die einer Haushaltskraft im Aufgabenplan für heute zugewiesen wurden, erscheinen nun stets verlässlich auf der Übersichtsseite unter „Deine heutigen Aufgaben“ (robuste Standort- und Zuweisungsauflösung im Backend).
+  - **3-Sekunden-Ausblendung bei Erledigung**: Wenn die Haushaltskraft eine zugewiesene Aufgabe auf der Übersichtsseite als erledigt markiert, wird sie sofort durchgestrichen und verschwindet nach exakt 3 Sekunden von der Übersichtsseite.
+  - **Dauerhafte Sichtbarkeit & Reaktivierung im Aufgabenplan**: Im Aufgabenplan bleibt die erledigte Aufgabe durchgestrichen sichtbar. Klickt die Haushaltskraft im Aufgabenplan erneut darauf, wird die Aufgabe wieder reaktiviert (nicht mehr durchgestrichen) und erscheint sofort wieder als offen auf der Übersichtsseite.
+  - **Listen-Layout statt Kacheln**: Auf der Übersichtsseite werden die Aufgaben für Haushaltskräfte immer untereinander als übersichtliche Einzelliste dargestellt.
+  - **Direkter Rezeptaufruf für das heutige Gericht**: Das heutige Gericht auf der Übersichtsseite kann direkt angeklickt werden (inklusive Button *„Rezept & Zubereitung“*), um das Rezept mit allen Lebensmitteln, Zutaten und Zubereitungsschritten im Modal zu öffnen. Auch in der Kochaufgabe der Liste gibt es einen direkten Button zum Rezept.
+- **Bereinigung von Rollenbezeichnungen (`ChorePlannerView.tsx`, `DashboardHub.tsx`)**:
+  - **Kein „Haushaltskraft“-Badge mehr hinter Namen**: Im Aufgabenplan sowie in den Aufgabenlisten wurde der überflüssige Badge *„Haushaltskraft“* bzw. *„Bewohner“* hinter den Namen der eingeteilten Personen entfernt.
+- **Betreueransicht – Listen-Layout für offene Aufgaben (`DashboardHub.tsx`)**:
+  - **Listenansicht statt Kachelgitter**: Die heutigen Aufgaben der WG werden auch für Betreuer auf der Übersichtsseite übersichtlich untereinander als Liste dargestellt, sodass Aufgabentitel und Namen vollständig lesbar sind.
+  - **Bereinigte Namen**: Auch in der Betreuerliste wurden alle Rollenbezeichnungen hinter den Namen entfernt.
+
 ## [0.1.53] - 2026-09-27
 
 ### Neu & Verbessert

@@ -1254,8 +1254,8 @@ router.get('/today', requireAuth, async (req: Request, res: Response) => {
     await ensureDefaultTemplates(locationId);
 
     const now = new Date();
-    const todayDate = formatDate(now);
-    const todayDayOfWeek = now.getDay() === 0 ? 7 : now.getDay();
+    const todayDate = (req.query.date as string) || formatDate(now);
+    const todayDayOfWeek = req.query.dayOfWeek ? Number(req.query.dayOfWeek) : (now.getDay() === 0 ? 7 : now.getDay());
     const { year: currentYear, week: currentWeek } = getISOWeekAndYear(now);
 
     const [templates, locationResidents, assignments, recurringAssignments, currentMealPlan] = await Promise.all([
@@ -1264,7 +1264,12 @@ router.get('/today', requireAuth, async (req: Request, res: Response) => {
         orderBy: [{ sortOrder: 'asc' }, { title: 'asc' }],
       }),
       prisma.user.findMany({
-        where: { locationId, role: { in: ['BEWOHNER', 'HAUSHALTSKRAFT'] }, isActive: true },
+        where: {
+          OR: [
+            { locationId, role: { in: ['BEWOHNER', 'HAUSHALTSKRAFT'] }, isActive: true },
+            ...(req.user?.id ? [{ id: req.user.id }] : []),
+          ],
+        },
         select: {
           id: true,
           name: true,
@@ -1277,7 +1282,10 @@ router.get('/today', requireAuth, async (req: Request, res: Response) => {
       prisma.choreAssignment.findMany({
         where: {
           locationId,
-          date: todayDate,
+          OR: [
+            { date: todayDate },
+            { year: currentYear, weekNumber: currentWeek, dayOfWeek: todayDayOfWeek },
+          ],
         },
         include: {
           resident: {
@@ -1371,6 +1379,7 @@ router.get('/today', requireAuth, async (req: Request, res: Response) => {
         resident: match?.resident || resolved.assignedResidents[0] || null,
         residentId: effectiveResidentId || resolved.residentIds[0] || null,
         assignedResidents: resolved.assignedResidents,
+        assignedResidentIdsList: resolved.residentIds,
         isAllResidents: resolved.isAllResidents,
         completedResidentIds: completion.completedResidentIds,
         completedResidents: completion.completedResidents,
@@ -1425,6 +1434,7 @@ router.get('/today', requireAuth, async (req: Request, res: Response) => {
           resident: cookUser,
           residentId: cookUser.id,
           assignedResidents: [cookUser],
+          assignedResidentIdsList: [cookUser.id],
           isAllResidents: false,
           completedResidentIds: isDone ? [cookUser.id] : [],
           completedResidents: isDone ? [cookUser] : [],
@@ -1442,11 +1452,14 @@ router.get('/today', requireAuth, async (req: Request, res: Response) => {
       }
     }
 
-    const myTasks = req.user
+    const currentUserId = req.user?.id;
+    const currentUserRole = req.user?.role;
+    const myTasks = currentUserId
       ? todayItems.filter((item) => {
-          if (item.isAllResidents && req.user?.role !== 'HAUSHALTSKRAFT') return true;
-          if (item.assignedResidents.some((r: any) => r.id === req.user?.id)) return true;
-          return item.residentId === req.user?.id;
+          if (item.isAllResidents && currentUserRole !== 'HAUSHALTSKRAFT') return true;
+          if (item.assignedResidentIdsList?.includes(currentUserId)) return true;
+          if (item.assignedResidents.some((r: any) => r.id === currentUserId)) return true;
+          return item.residentId === currentUserId;
         })
       : [];
 

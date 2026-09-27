@@ -663,11 +663,6 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                       <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl border bg-rose-500/10 border-rose-500/25 text-rose-300 text-xs font-semibold">
                         <ChefHat className="w-3.5 h-3.5 text-rose-400 stroke-[2]" />
                         <span>{tmpl.cookName}</span>
-                        {(tmpl.cookRole === 'HAUSHALTSKRAFT' || isCookHousekeeping) && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-rose-500/20 text-rose-200 border border-rose-500/30 font-sans">
-                            Haushaltskraft
-                          </span>
-                        )}
                       </div>
                       {isChefDone && (
                         <span className="text-xs text-emerald-400 font-medium flex items-center gap-1">

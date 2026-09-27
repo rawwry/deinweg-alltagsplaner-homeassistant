@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext.js';
 import { api } from '../../api/client.js';
 import { formatGermanDate } from '../../utils/formatters.js';
 import { WasteWheelieBin } from '../../components/waste/WasteWheelieBin.js';
+import { RecipeModal } from '../recipes/RecipeModal.js';
 import {
   Calendar,
   ShoppingCart,
@@ -272,6 +273,26 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
     }
   });
 
+  const [viewingRecipe, setViewingRecipe] = useState<any | null>(null);
+  const [justCompletedTaskIds, setJustCompletedTaskIds] = useState<string[]>([]);
+  const disappearingTimersRef = useRef<Record<string, NodeJS.Timeout>>({});
+
+  useEffect(() => {
+    return () => {
+      Object.values(disappearingTimersRef.current).forEach((t) => clearTimeout(t));
+    };
+  }, []);
+
+  const handleOpenRecipeDetail = async (recipeId?: string) => {
+    if (!recipeId) return;
+    try {
+      const data = await api.food.recipe(recipeId);
+      setViewingRecipe(data);
+    } catch (err) {
+      console.error('Fehler beim Laden des Rezepts:', err);
+    }
+  };
+
   const [lastReadMap, setLastReadMap] = useState<Record<string, string>>(() => {
     try {
       const stored = localStorage.getItem(`flurfunk_last_read_${user?.id}`);
@@ -464,6 +485,30 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
 
   const handleToggleChore = async (chore: any, residentIdToToggle?: string) => {
     const choreKey = `${chore.date || todayChores?.date || 'today'}_${chore.templateId}`;
+    const taskId = chore.templateId;
+    const isCurrentlyDone = chore.isCompletedForMe !== undefined
+      ? Boolean(chore.isCompletedForMe)
+      : (Boolean(chore.isCompleted) || personalDoneChores.includes(choreKey));
+    const nextDone = !isCurrentlyDone;
+
+    if (isHousekeeping) {
+      if (nextDone) {
+        setJustCompletedTaskIds((prev) => (prev.includes(taskId) ? prev : [...prev, taskId]));
+        if (disappearingTimersRef.current[taskId]) {
+          clearTimeout(disappearingTimersRef.current[taskId]);
+        }
+        disappearingTimersRef.current[taskId] = setTimeout(() => {
+          setJustCompletedTaskIds((prev) => prev.filter((id) => id !== taskId));
+          delete disappearingTimersRef.current[taskId];
+        }, 3000);
+      } else {
+        if (disappearingTimersRef.current[taskId]) {
+          clearTimeout(disappearingTimersRef.current[taskId]);
+          delete disappearingTimersRef.current[taskId];
+        }
+        setJustCompletedTaskIds((prev) => prev.filter((id) => id !== taskId));
+      }
+    }
 
     if (chore.isChefkoch || chore.templateId?.startsWith('chefkoch_')) {
       try {
@@ -1323,6 +1368,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
 
       {/* Today's Tasks Widget (Resident & Housekeeping View) */}
       {(user?.role === 'BEWOHNER' || user?.role === 'HAUSHALTSKRAFT') && todayChores && (() => {
+        const isHousekeeping = user?.role === 'HAUSHALTSKRAFT';
         const isTodayCook = Boolean(user?.id && todayMeal?.cookUserId === user.id);
         const chefDishTitle = todayMeal?.recipe?.title || todayMeal?.customDishTitle || 'Gemeinschaftsessen';
         const isCookHousekeeping = user?.role === 'HAUSHALTSKRAFT' || todayMeal?.cookRole === 'HAUSHALTSKRAFT';
@@ -1344,10 +1390,46 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             }
           : null;
 
-        const residentTasksList = [
-          ...(chefkochChore ? [chefkochChore] : []),
-          ...(todayChores?.myTasks || []),
-        ];
+        const myAssignedTasks = (todayChores?.myTasks && todayChores.myTasks.length > 0)
+          ? todayChores.myTasks
+          : (todayChores?.todayItems || []).filter((item: any) => {
+              if (item.isAllResidents && user?.role !== 'HAUSHALTSKRAFT') return true;
+              if (item.assignedResidentIdsList?.includes(user?.id)) return true;
+              if (item.assignedResidents?.some((r: any) => r.id === user?.id)) return true;
+              return item.residentId === user?.id;
+            });
+
+        const combinedTasksMap = new Map<string, any>();
+        if (chefkochChore) {
+          combinedTasksMap.set(chefkochChore.templateId, chefkochChore);
+        }
+        myAssignedTasks.forEach((t: any) => {
+          combinedTasksMap.set(t.templateId, t);
+        });
+        (todayChores?.todayItems || []).forEach((t: any) => {
+          const isMine =
+            (t.isAllResidents && user?.role !== 'HAUSHALTSKRAFT') ||
+            t.assignedResidentIdsList?.includes(user?.id) ||
+            t.assignedResidents?.some((r: any) => r.id === user?.id) ||
+            t.residentId === user?.id;
+          if (isMine && !combinedTasksMap.has(t.templateId)) {
+            combinedTasksMap.set(t.templateId, t);
+          }
+        });
+
+        const residentTasksList = Array.from(combinedTasksMap.values());
+
+        // For Haushaltskraft: completed tasks disappear after 3 seconds
+        const visibleResidentTasks = residentTasksList.filter((task: any) => {
+          if (!isHousekeeping) return true;
+          const choreKey = `${task.date || todayChores?.date || 'today'}_${task.templateId}`;
+          const isDone = task.isCompletedForMe !== undefined
+            ? Boolean(task.isCompletedForMe)
+            : (Boolean(task.isCompleted) || personalDoneChores.includes(choreKey));
+
+          if (!isDone) return true;
+          return justCompletedTaskIds.includes(task.templateId);
+        });
 
         return (
           <div className="bento-card rounded-[2.5rem] p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
@@ -1365,22 +1447,14 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                 Deine heutigen Aufgaben
               </h3>
               <p className="text-xs text-slate-300 mb-4 leading-relaxed font-sans">
-                {residentTasksList.length === 0
-                  ? 'Heute stehen keine anstehenden Aufgaben für dich an.'
+                {visibleResidentTasks.length === 0
+                  ? (residentTasksList.length > 0 ? 'Alle deine heutigen Aufgaben sind abgeschlossen.' : 'Heute stehen keine anstehenden Aufgaben für dich an.')
                   : 'Tippe auf eine Aufgabe, um sie als erledigt zu markieren.'}
               </p>
 
-              {residentTasksList.length > 0 ? (
-                <div
-                  className={
-                    residentTasksList.length === 1
-                      ? 'w-full'
-                      : residentTasksList.length === 2
-                      ? 'grid grid-cols-1 md:grid-cols-2 gap-3.5'
-                      : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5'
-                  }
-                >
-                  {residentTasksList.map((task: any) => {
+              {visibleResidentTasks.length > 0 ? (
+                <div className="flex flex-col gap-3 w-full">
+                  {visibleResidentTasks.map((task: any) => {
                     const choreKey = `${task.date || todayChores?.date || 'today'}_${task.templateId}`;
                     const isDone = task.isCompletedForMe !== undefined
                       ? Boolean(task.isCompletedForMe)
@@ -1390,7 +1464,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                       <div
                         key={task.templateId}
                         onClick={() => handleToggleChore(task, user?.id)}
-                        className={`p-4 sm:p-5 rounded-2xl border transition-all flex items-start justify-between gap-4 select-none cursor-pointer group/task active:scale-[0.99] ${
+                        className={`p-4 sm:p-5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 select-none cursor-pointer group/task active:scale-[0.99] ${
                           isDone
                             ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-100'
                             : 'bg-surface-elevated/70 hover:bg-surface-elevated border-surface-border hover:border-theme/40 text-slate-100'
@@ -1432,6 +1506,20 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                                       {displayDescription}
                                     </p>
                                   )}
+                                  {/* Direct recipe link for cooking task */}
+                                  {isTaskChef && todayMeal?.recipe?.id && (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleOpenRecipeDetail(todayMeal.recipe.id);
+                                      }}
+                                      className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 border border-rose-500/40 text-xs font-semibold transition-all cursor-pointer shadow-xs"
+                                    >
+                                      <BookOpen className="w-3.5 h-3.5" />
+                                      <span>Rezept & Zubereitung ansehen</span>
+                                    </button>
+                                  )}
                                 </>
                               );
                             })()}
@@ -1439,7 +1527,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                         </div>
 
                         {/* Fixed Status Badge in Top-Right Corner */}
-                        <div className="shrink-0 pt-0.5">
+                        <div className="shrink-0 pt-0.5 self-start sm:self-center">
                           <span
                             className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all shadow-xs ${
                               isDone
@@ -1465,8 +1553,15 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                   })}
                 </div>
               ) : (
-                <div className="py-6 text-center text-xs text-slate-400 bg-surface-elevated/30 rounded-2xl border border-surface-border/50 flex items-center justify-center gap-2 font-sans">
-                  <span>Keine anstehenden Aufgaben für dich heute eingeteilt. Genieße deinen Tag!</span>
+                <div className="py-6 text-center text-xs text-slate-400 bg-surface-elevated/30 rounded-2xl border border-surface-border/50 flex flex-col items-center justify-center gap-1 font-sans">
+                  {residentTasksList.length > 0 ? (
+                    <>
+                      <span className="text-emerald-400 font-bold text-sm">Alle heutigen Aufgaben erledigt! 🎉</span>
+                      <span>Du hast alle Aufgaben für heute abgehakt. Im Aufgabenplan kannst du sie jederzeit einsehen.</span>
+                    </>
+                  ) : (
+                    <span>Keine anstehenden Aufgaben für dich heute eingeteilt. Genieße deinen Tag!</span>
+                  )}
                 </div>
               )}
             </div>
@@ -1547,7 +1642,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              <div className="flex flex-col gap-3 w-full">
                 {items.map((task: any) => {
                   const isAllDone = Boolean(task.isCompleted);
                   const completedCount = task.completedCount || 0;
@@ -1558,98 +1653,102 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                     <div
                       key={task.templateId}
                       onClick={() => handleToggleChore(task)}
-                      className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between gap-2.5 select-none ${
+                      className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 select-none ${
                         isAllDone
                           ? 'bg-emerald-500/15 border-emerald-500/50 text-emerald-100 shadow-sm shadow-emerald-500/10'
                           : isPartiallyDone
                           ? 'bg-indigo-500/10 border-indigo-500/35 text-slate-100'
-                          : 'bg-surface-elevated/60 border-surface-border hover:border-indigo-500/50 text-slate-100'
+                          : 'bg-surface-elevated/60 hover:bg-surface-elevated border-surface-border hover:border-indigo-500/50 text-slate-100'
                       }`}
                     >
-                      <div className="flex items-start justify-between gap-3 min-w-0">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="shrink-0">{getChoreOutlineIcon(task, 'w-5 h-5')}</div>
-                          <div className="min-w-0">
-                            <div className={`text-xs font-semibold truncate ${isAllDone ? 'text-emerald-200 font-bold' : 'text-white'}`}>
-                              {task.title}
-                            </div>
-                            <div className="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
-                              {task.isAllResidents ? (
-                                <span className={isAllDone ? 'text-emerald-300/80 font-medium' : 'text-indigo-300 font-medium'}>👥 Alle Bewohner</span>
-                              ) : task.assignedResidents && task.assignedResidents.length > 0 ? (
-                                <span className={`truncate max-w-[150px] font-medium flex items-center gap-1 ${isAllDone ? 'text-emerald-300/80' : 'text-indigo-300'}`}>
-                                  <span>👤 {task.assignedResidents.map((r: any) => r.name).join(', ')}</span>
-                                  {task.assignedResidents.some((r: any) => r.role === 'HAUSHALTSKRAFT') && (
-                                    <span className="text-[9px] px-1 py-0.2 rounded bg-indigo-500/20 text-indigo-200 border border-indigo-500/30 font-sans">
-                                      Haushaltskraft
-                                    </span>
-                                  )}
-                                </span>
-                              ) : task.resident ? (
-                                <span className={`truncate max-w-[150px] font-medium flex items-center gap-1 ${isAllDone ? 'text-emerald-300/80' : 'text-indigo-300'}`}>
-                                  <span>👤 {task.resident.name}</span>
-                                  {task.resident.role === 'HAUSHALTSKRAFT' && (
-                                    <span className="text-[9px] px-1 py-0.2 rounded bg-indigo-500/20 text-indigo-200 border border-indigo-500/30 font-sans">
-                                      Haushaltskraft
-                                    </span>
-                                  )}
-                                </span>
-                              ) : (
-                                <span className="text-slate-500 italic">Niemand eingeteilt</span>
-                              )}
-                            </div>
+                      <div className="flex items-start sm:items-center gap-3.5 min-w-0 flex-1">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-xs ${
+                          isAllDone
+                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                            : 'bg-surface-card border border-surface-border text-slate-300'
+                        }`}>
+                          {getChoreOutlineIcon(task, 'w-5 h-5')}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className={`text-sm font-semibold truncate ${isAllDone ? 'text-emerald-200 line-through' : 'text-white'}`}>
+                            {task.title}
+                          </div>
+                          {task.description && (
+                            <p className="text-xs text-slate-400 mt-0.5 line-clamp-1 font-sans">
+                              {task.description}
+                            </p>
+                          )}
+                          <div className="text-xs text-slate-400 flex items-center gap-1.5 mt-1">
+                            {task.isAllResidents ? (
+                              <span className={isAllDone ? 'text-emerald-300/80 font-medium' : 'text-indigo-300 font-medium'}>
+                                👥 Alle Bewohner
+                              </span>
+                            ) : task.assignedResidents && task.assignedResidents.length > 0 ? (
+                              <span className={`font-medium flex items-center gap-1 ${isAllDone ? 'text-emerald-300/80' : 'text-indigo-300'}`}>
+                                <span>👤 {task.assignedResidents.map((r: any) => r.name).join(', ')}</span>
+                              </span>
+                            ) : task.resident ? (
+                              <span className={`font-medium flex items-center gap-1 ${isAllDone ? 'text-emerald-300/80' : 'text-indigo-300'}`}>
+                                <span>👤 {task.resident.name}</span>
+                              </span>
+                            ) : (
+                              <span className="text-slate-500 italic">Niemand eingeteilt</span>
+                            )}
                           </div>
                         </div>
+                      </div>
+
+                      <div className="flex items-center gap-2.5 shrink-0 justify-between sm:justify-end">
+                        {/* Breakdown of residents when multiple or all residents are assigned */}
+                        {task.assignedResidents && task.assignedResidents.length > 1 && (
+                          <div className="flex flex-wrap items-center gap-1">
+                            {task.assignedResidents.map((r: any) => {
+                              const rDone = (task.completedResidentIds || []).includes(r.id);
+                              return (
+                                <span
+                                  key={r.id}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleToggleChore(task, r.id);
+                                  }}
+                                  title={
+                                    rDone
+                                      ? `${r.name}: Erledigt (Klicken zum Umschalten)`
+                                      : `${r.name}: Offen (Klicken zum Umschalten)`
+                                  }
+                                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-medium border transition-all cursor-pointer ${
+                                    rDone
+                                      ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-200'
+                                      : 'bg-surface-card border-surface-border text-slate-400 hover:border-indigo-400/60'
+                                  }`}
+                                >
+                                  <span className={`w-1.5 h-1.5 rounded-full ${rDone ? 'bg-emerald-400' : 'bg-slate-500'}`} />
+                                  <span className="truncate max-w-[80px]">{r.name}</span>
+                                  {rDone && <Check className="w-2.5 h-2.5 text-emerald-300 stroke-[3]" />}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        )}
 
                         <div className="shrink-0">
                           {isAllDone ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/25 text-emerald-200 border border-emerald-500/40 text-[10px] font-bold font-sans shadow-xs">
-                              <Check className="w-3 h-3 text-emerald-300 stroke-[3]" />
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/25 text-emerald-200 border border-emerald-500/40 text-xs font-bold font-sans shadow-xs">
+                              <Check className="w-3.5 h-3.5 text-emerald-300 stroke-[3]" />
                               <span>Erledigt</span>
                             </span>
                           ) : isPartiallyDone ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 text-[10px] font-bold font-sans shadow-xs">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 text-xs font-bold font-sans shadow-xs">
                               <span>{completedCount}/{totalAssignedCount} erledigt</span>
                             </span>
                           ) : (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 text-[10px] font-medium font-sans">
-                              Offen
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs font-medium font-sans">
+                              <span className="w-2 h-2 rounded-full bg-amber-400" />
+                              <span>Offen</span>
                             </span>
                           )}
                         </div>
                       </div>
-
-                      {/* Breakdown of residents when multiple or all residents are assigned */}
-                      {task.assignedResidents && task.assignedResidents.length > 1 && (
-                        <div className="flex flex-wrap items-center gap-1 pt-2 border-t border-surface-border/30">
-                          {task.assignedResidents.map((r: any) => {
-                            const rDone = (task.completedResidentIds || []).includes(r.id);
-                            return (
-                              <span
-                                key={r.id}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleToggleChore(task, r.id);
-                                }}
-                                title={
-                                  rDone
-                                    ? `${r.name}: Erledigt (Klicken zum Umschalten)`
-                                    : `${r.name}: Offen (Klicken zum Umschalten)`
-                                }
-                                className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium border transition-all cursor-pointer ${
-                                  rDone
-                                    ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-200'
-                                    : 'bg-surface-card border-surface-border text-slate-400 hover:border-indigo-400/60'
-                                }`}
-                              >
-                                <span className={`w-1.5 h-1.5 rounded-full ${rDone ? 'bg-emerald-400' : 'bg-slate-500'}`} />
-                                <span className="truncate max-w-[80px]">{r.name}</span>
-                                {rDone && <Check className="w-2.5 h-2.5 text-emerald-300 stroke-[3]" />}
-                              </span>
-                            );
-                          })}
-                        </div>
-                      )}
                     </div>
                   );
                 })}
@@ -1685,11 +1784,36 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
                 <UtensilsCrossed className="w-3.5 h-3.5 stroke-[2]" />
                 <span>Heutiges Gericht</span>
               </div>
+
+              {todayMeal?.recipe?.id && (
+                <button
+                  type="button"
+                  onClick={() => handleOpenRecipeDetail(todayMeal.recipe.id)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 border border-rose-500/40 text-xs font-semibold transition-all cursor-pointer shadow-xs"
+                >
+                  <BookOpen className="w-3.5 h-3.5" />
+                  <span>Rezept öffnen</span>
+                </button>
+              )}
             </div>
 
-            <h3 className="text-xl font-semibold text-white group-hover:text-rose-300 transition-colors leading-snug mb-1.5 font-sans tracking-tight">
-              {todayMeal?.recipe?.title || todayMeal?.customDishTitle || 'Heute Selbstversorgung'}
-            </h3>
+            {todayMeal?.recipe?.id ? (
+              <button
+                type="button"
+                onClick={() => handleOpenRecipeDetail(todayMeal.recipe.id)}
+                className="text-left w-full group/dish cursor-pointer"
+                title="Klicken, um Zutaten und Zubereitung anzuzeigen"
+              >
+                <h3 className="text-xl font-semibold text-white group-hover/dish:text-rose-300 transition-colors leading-snug mb-1.5 font-sans tracking-tight flex items-center gap-2">
+                  <span>{todayMeal.recipe.title}</span>
+                  <BookOpen className="w-4 h-4 text-rose-400 opacity-70 group-hover/dish:opacity-100 group-hover/dish:translate-x-0.5 transition-all shrink-0" />
+                </h3>
+              </button>
+            ) : (
+              <h3 className="text-xl font-semibold text-white leading-snug mb-1.5 font-sans tracking-tight">
+                {todayMeal?.customDishTitle || 'Heute Selbstversorgung'}
+              </h3>
+            )}
 
             <p className="text-xs text-slate-300 mb-4 leading-relaxed font-sans">
               {todayMeal?.recipe?.description ||
@@ -1746,14 +1870,28 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           </div>
 
           {/* Meal Footer Bar */}
-          <div className="relative z-10 pt-4 border-t border-white/10">
+          <div className="relative z-10 pt-4 border-t border-white/10 flex items-center gap-3">
+            {todayMeal?.recipe?.id && (
+              <button
+                type="button"
+                onClick={() => handleOpenRecipeDetail(todayMeal.recipe.id)}
+                className="btn-theme-gradient flex-1 py-2.5 sm:py-3 rounded-2xl text-white font-semibold text-xs shadow-lg hover:scale-[1.01] active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2 font-sans"
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>Rezept & Zubereitung</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setCurrentTab('mealplan')}
-              className="btn-theme-gradient w-full py-2.5 sm:py-3 rounded-2xl text-white font-semibold text-xs shadow-lg hover:scale-[1.01] active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2 font-sans"
+              className={`${
+                todayMeal?.recipe?.id
+                  ? 'px-4 py-2.5 sm:py-3 rounded-2xl bg-surface-elevated/80 hover:bg-surface-elevated border border-surface-border text-slate-300 hover:text-white'
+                  : 'btn-theme-gradient w-full py-2.5 sm:py-3 rounded-2xl text-white'
+              } font-semibold text-xs shadow-lg hover:scale-[1.01] active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2 font-sans`}
             >
               <UtensilsCrossed className="w-3.5 h-3.5" />
-              <span>Kochplan & Rezepte</span>
+              <span>Kochplan</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -1946,6 +2084,15 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           </button>
         </div>
       </div>
+
+      {viewingRecipe && (
+        <RecipeModal
+          recipe={viewingRecipe}
+          onClose={() => setViewingRecipe(null)}
+          defaultServings={todayMeal?.servings || 6}
+          isStaff={isStaff}
+        />
+      )}
     </div>
   );
 };
