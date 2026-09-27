@@ -21,6 +21,8 @@ import {
   RotateCcw,
   Info,
   Trash2,
+  AlertTriangle,
+  AlertCircle,
 } from 'lucide-react';
 import { getChoreOutlineIcon } from '../hub/DashboardHub.js';
 
@@ -187,7 +189,7 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
 
   // Desktop day filter: 'ALL' or dayOfWeek (1..7) - residents default to today's day
   const [desktopDayFilter, setDesktopDayFilter] = useState<'ALL' | number>(
-    user?.role === 'BEWOHNER' ? todayDayOfWeek : 'ALL'
+    (user?.role === 'BEWOHNER' || user?.role === 'HAUSHALTSKRAFT') ? todayDayOfWeek : 'ALL'
   );
 
   // Assign Modal State (for Staff)
@@ -570,7 +572,7 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                 : (tmpl.assignedResidents || []);
               const isAssigned = isAllResidents || assignedResidents.length > 0 || !!assignment?.resident;
               const isMyTask =
-                isAllResidents ||
+                (isAllResidents && user?.role !== 'HAUSHALTSKRAFT') ||
                 assignedResidents.some((r: any) => r.id === user?.id) ||
                 assignment?.residentId === user?.id;
 
@@ -607,6 +609,8 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                       ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-100 shadow-xs'
                       : isStaff && isPartiallyDone
                       ? 'bg-indigo-500/10 border-indigo-500/30 text-slate-200 shadow-xs'
+                      : isStaff && !isAssigned
+                      ? 'bg-rose-500/10 border-rose-500/40 hover:border-rose-500/70 text-slate-200 shadow-xs shadow-rose-950/20'
                       : isAssigned
                       ? 'bg-surface-elevated/70 hover:bg-surface-elevated border-surface-border hover:border-indigo-500/40 shadow-xs'
                       : 'bg-surface-elevated/30 border-surface-border/60 border-dashed hover:border-surface-border'
@@ -629,12 +633,21 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                           >
                             {tmpl.title}
                           </span>
+                          {isStaff && !isAssigned && !isAllDone && (
+                            <span
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/35 shrink-0"
+                              title="Diese Aufgabe ist noch niemandem zugewiesen"
+                            >
+                              <AlertCircle className="w-3 h-3 text-rose-400 shrink-0" />
+                              <span>Nicht zugewiesen</span>
+                            </span>
+                          )}
                           {assignment?.isRecurring && (
                             <span
-                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shrink-0"
-                              title="Wöchentlich wiederkehrende Aufgabe"
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/35 shrink-0 shadow-xs"
+                              title="Diese Aufgabe wiederholt sich automatisch jede Woche (Dauerplan)"
                             >
-                              <Repeat className="w-3 h-3 text-indigo-400" />
+                              <Repeat className="w-3 h-3 text-indigo-400 shrink-0" />
                               <span>Wöchentlich</span>
                             </span>
                           )}
@@ -875,10 +888,11 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                               isRecurring: Boolean(assignment?.isRecurring),
                             });
                           }}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-dashed border-indigo-500/40 text-indigo-300 hover:text-white hover:bg-indigo-500/15 hover:border-indigo-500/60 text-xs font-semibold transition-all cursor-pointer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-rose-500/40 bg-rose-500/15 text-rose-200 hover:text-white hover:bg-rose-500/25 hover:border-rose-500/70 text-xs font-semibold transition-all cursor-pointer shadow-xs"
+                          title="Aufgabe zuweisen"
                         >
-                          <User className="w-3.5 h-3.5 text-indigo-400" />
-                          <span>Bewohner zuweisen</span>
+                          <AlertTriangle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                          <span>Zuweisung erforderlich</span>
                         </button>
                       ) : (
                         <span className="text-xs text-slate-500 italic px-2">
@@ -1073,19 +1087,19 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
       </div>
 
       {/* Desktop Weekday Quick-Filter Bar (visible on >= lg screens) */}
-      <div className={`hidden lg:grid ${isStaff ? 'grid-cols-8' : 'grid-cols-7'} gap-2 w-full`}>
+      <div className={`hidden lg:grid ${isStaff ? 'grid-cols-[1.35fr_repeat(7,1fr)]' : 'grid-cols-7'} gap-2 w-full`}>
         {isStaff && (
           <button
             type="button"
             onClick={() => setDesktopDayFilter('ALL')}
-            className={`px-3 py-2.5 rounded-2xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 border text-center ${
+            className={`px-3 py-2.5 rounded-2xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 border text-center shadow-xs ${
               desktopDayFilter === 'ALL'
-                ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-600/30'
-                : 'bg-surface-card border-surface-border text-slate-300 hover:bg-surface-elevated hover:text-white'
+                ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white border-indigo-400/80 shadow-md shadow-indigo-600/30 font-bold'
+                : 'bg-indigo-950/40 border-indigo-500/30 text-indigo-200 hover:bg-indigo-900/50 hover:text-white hover:border-indigo-400/50'
             }`}
           >
-            <Calendar className="w-3.5 h-3.5 shrink-0" />
-            <span className="truncate">Ganze Woche</span>
+            <Calendar className="w-3.5 h-3.5 shrink-0 text-indigo-300" />
+            <span className="whitespace-nowrap font-medium">Ganze Woche</span>
           </button>
         )}
 
@@ -1250,134 +1264,279 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
             </div>
 
             {/* Quick Option: Alle Bewohner */}
-            <button
-              type="button"
-              onClick={() => {
-                const isAll = assignModal.selectedResidentIds.includes('ALL');
-                setAssignModal((prev) =>
-                  prev ? { ...prev, selectedResidentIds: isAll ? [] : ['ALL'] } : null
-                );
-              }}
-              className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
-                assignModal.selectedResidentIds.includes('ALL')
-                  ? 'bg-indigo-600/30 border-indigo-500 text-white shadow-md ring-1 ring-indigo-500/50'
-                  : 'bg-surface-elevated/60 border-surface-border hover:border-indigo-500/40 hover:bg-surface-elevated text-slate-200'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center font-bold text-sm">
-                  <Users className="w-4 h-4 text-indigo-400" />
-                </div>
-                <div>
-                  <span className="text-xs font-bold block">Allen Bewohnern zuweisen</span>
-                  <span className="text-[11px] text-slate-400">z. B. eigene Zimmerreinigung</span>
-                </div>
-              </div>
-              {assignModal.selectedResidentIds.includes('ALL') && (
-                <Check className="w-4 h-4 text-indigo-400 shrink-0" />
-              )}
-            </button>
+            {(() => {
+              const regularResidents = residents.filter((r: any) => r.role === 'BEWOHNER');
+              const housekeepingStaff = residents.filter((r: any) => r.role === 'HAUSHALTSKRAFT');
 
-            {/* Resident checkboxes */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] font-semibold text-slate-400">
-                  Oder bestimmte Bewohner auswählen:
-                </span>
-                {assignModal.selectedResidentIds.length > 0 && !assignModal.selectedResidentIds.includes('ALL') && (
-                  <span className="text-[11px] text-indigo-400 font-mono font-semibold">
-                    {assignModal.selectedResidentIds.length} ausgewählt
-                  </span>
-                )}
-              </div>
+              return (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const isAll = assignModal.selectedResidentIds.includes('ALL');
+                      setAssignModal((prev) =>
+                        prev ? { ...prev, selectedResidentIds: isAll ? [] : ['ALL'] } : null
+                      );
+                    }}
+                    className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                      assignModal.selectedResidentIds.includes('ALL')
+                        ? 'bg-indigo-600/30 border-indigo-500 text-white shadow-md ring-1 ring-indigo-500/50'
+                        : 'bg-surface-elevated/60 border-surface-border hover:border-indigo-500/40 hover:bg-surface-elevated text-slate-200'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center font-bold text-sm">
+                        <Users className="w-4 h-4 text-indigo-400" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold block">Allen Bewohnern zuweisen</span>
+                        <span className="text-[11px] text-slate-400">z. B. eigene Zimmerreinigung (ohne Haushaltskraft)</span>
+                      </div>
+                    </div>
+                    {assignModal.selectedResidentIds.includes('ALL') && (
+                      <Check className="w-4 h-4 text-indigo-400 shrink-0" />
+                    )}
+                  </button>
 
-              <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
-                {residents.map((res: any) => {
-                  const isSelected =
-                    assignModal.selectedResidentIds.includes('ALL') ||
-                    assignModal.selectedResidentIds.includes(res.id);
+                  {/* Section 1: Bewohner */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[11px] font-semibold text-slate-400">
+                        {housekeepingStaff.length > 0 ? 'Bewohner:' : 'Oder bestimmte Bewohner auswählen:'}
+                      </span>
+                      {assignModal.selectedResidentIds.length > 0 && !assignModal.selectedResidentIds.includes('ALL') && (
+                        (() => {
+                          const count = regularResidents.filter((r: any) => assignModal.selectedResidentIds.includes(r.id)).length;
+                          return count > 0 ? (
+                            <span className="text-[11px] text-indigo-400 font-mono font-semibold">
+                              {count} ausgewählt
+                            </span>
+                          ) : null;
+                        })()
+                      )}
+                    </div>
 
-                  return (
-                    <button
-                      key={res.id}
-                      type="button"
-                      onClick={() => {
-                        setAssignModal((prev) => {
-                          if (!prev) return null;
-                          let newIds = prev.selectedResidentIds.includes('ALL')
-                            ? []
-                            : [...prev.selectedResidentIds];
+                    <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                      {regularResidents.length === 0 ? (
+                        <p className="text-xs text-slate-500 italic py-1">Keine Bewohner an diesem Standort hinterlegt.</p>
+                      ) : (
+                        regularResidents.map((res: any) => {
+                          const isSelected =
+                            assignModal.selectedResidentIds.includes('ALL') ||
+                            assignModal.selectedResidentIds.includes(res.id);
 
-                          if (newIds.includes(res.id)) {
-                            newIds = newIds.filter((id) => id !== res.id);
-                          } else {
-                            newIds.push(res.id);
-                          }
-                          return { ...prev, selectedResidentIds: newIds };
-                        });
-                      }}
-                      className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer ${
-                        isSelected
-                          ? 'bg-indigo-600/25 border-indigo-500/70 text-white'
-                          : 'bg-surface-elevated/40 border-surface-border hover:bg-surface-elevated text-slate-300'
+                          return (
+                            <button
+                              key={res.id}
+                              type="button"
+                              onClick={() => {
+                                setAssignModal((prev) => {
+                                  if (!prev) return null;
+                                  let newIds = prev.selectedResidentIds.includes('ALL')
+                                    ? []
+                                    : [...prev.selectedResidentIds];
+
+                                  if (newIds.includes(res.id)) {
+                                    newIds = newIds.filter((id) => id !== res.id);
+                                  } else {
+                                    newIds.push(res.id);
+                                  }
+                                  return { ...prev, selectedResidentIds: newIds };
+                                });
+                              }}
+                              className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                                isSelected
+                                  ? 'bg-indigo-600/25 border-indigo-500/70 text-white'
+                                  : 'bg-surface-elevated/40 border-surface-border hover:bg-surface-elevated text-slate-300'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                {res.avatarUrl ? (
+                                  <img
+                                    src={res.avatarUrl}
+                                    alt={res.name}
+                                    className="w-6 h-6 rounded-full object-cover shrink-0"
+                                  />
+                                ) : (
+                                  <div
+                                    className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] text-white font-bold shrink-0"
+                                    style={{
+                                      backgroundColor: res.avatarColor || '#6366f1',
+                                    }}
+                                  >
+                                    {res.name.charAt(0).toUpperCase()}
+                                  </div>
+                                )}
+                                <span className="text-xs font-medium truncate">{res.name}</span>
+                              </div>
+
+                              <div
+                                className={`w-4 h-4 rounded-md border flex items-center justify-center transition-colors ${
+                                  isSelected
+                                    ? 'bg-indigo-600 border-indigo-500 text-white'
+                                    : 'border-slate-600 bg-surface-card'
+                                }`}
+                              >
+                                {isSelected && <Check className="w-3 h-3 text-white" />}
+                              </div>
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Section 2: Haushaltskraft (only if exists) */}
+                  {housekeepingStaff.length > 0 && (
+                    <div className="pt-2 border-t border-surface-border/50">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-semibold text-slate-400">
+                            Haushaltskraft:
+                          </span>
+                          <span className="px-1.5 py-0.5 rounded text-[9.5px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                            Personal
+                          </span>
+                        </div>
+                        {(() => {
+                          const count = housekeepingStaff.filter((r: any) => assignModal.selectedResidentIds.includes(r.id)).length;
+                          return count > 0 ? (
+                            <span className="text-[11px] text-amber-400 font-mono font-semibold">
+                              {count} ausgewählt
+                            </span>
+                          ) : null;
+                        })()}
+                      </div>
+
+                      <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                        {housekeepingStaff.map((res: any) => {
+                          const isSelected =
+                            !assignModal.selectedResidentIds.includes('ALL') &&
+                            assignModal.selectedResidentIds.includes(res.id);
+
+                          return (
+                            <button
+                              key={res.id}
+                              type="button"
+                              onClick={() => {
+                                setAssignModal((prev) => {
+                                  if (!prev) return null;
+                                  let newIds = prev.selectedResidentIds.includes('ALL')
+                                    ? []
+                                    : [...prev.selectedResidentIds];
+
+                                  if (newIds.includes(res.id)) {
+                                    newIds = newIds.filter((id) => id !== res.id);
+                                  } else {
+                                    newIds.push(res.id);
+                                  }
+                                  return { ...prev, selectedResidentIds: newIds };
+                                });
+                              }}
+                              className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                                isSelected
+                                  ? 'bg-amber-500/20 border-amber-500/60 text-white ring-1 ring-amber-500/30'
+                                  : 'bg-surface-elevated/40 border-surface-border hover:bg-surface-elevated text-slate-300'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                {res.avatarUrl ? (
+                                  <img
+                                    src={res.avatarUrl}
+                                    alt={res.name}
+                                    className="w-6 h-6 rounded-full object-cover shrink-0"
+                                  />
+                                ) : (
+                                  <div
+                                    className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] text-white font-bold shrink-0"
+                                    style={{
+                                      backgroundColor: res.avatarColor || '#f59e0b',
+                                    }}
+                                  >
+                                    {res.name.charAt(0).toUpperCase()}
+                                  </div>
+                                )}
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <span className="text-xs font-medium truncate">{res.name}</span>
+                                  <span className="text-[10px] text-amber-300/90 bg-amber-500/15 px-1.5 py-0.5 rounded border border-amber-500/30 shrink-0">
+                                    Haushaltskraft
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div
+                                className={`w-4 h-4 rounded-md border flex items-center justify-center transition-colors ${
+                                  isSelected
+                                    ? 'bg-amber-500 border-amber-500 text-slate-950 font-bold'
+                                    : 'border-slate-600 bg-surface-card'
+                                }`}
+                              >
+                                {isSelected && <Check className="w-3 h-3 text-slate-950 stroke-[3]" />}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+
+            {/* Wöchentlich wiederkehrend Switch Card */}
+            <div className="pt-2 border-t border-surface-border/60">
+              <div
+                onClick={() =>
+                  setAssignModal((prev) => (prev ? { ...prev, isRecurring: !prev.isRecurring } : null))
+                }
+                className={`p-3.5 rounded-2xl border transition-all cursor-pointer select-none ${
+                  assignModal.isRecurring
+                    ? 'bg-indigo-950/40 border-indigo-500/60 shadow-md shadow-indigo-950/30 ring-1 ring-indigo-500/30'
+                    : 'bg-surface-elevated/40 border-surface-border hover:border-slate-600 hover:bg-surface-elevated/60'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div
+                      className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                        assignModal.isRecurring
+                          ? 'bg-indigo-500/25 text-indigo-300'
+                          : 'bg-surface-card text-slate-400 border border-surface-border'
                       }`}
                     >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        {res.avatarUrl ? (
-                          <img
-                            src={res.avatarUrl}
-                            alt={res.name}
-                            className="w-6 h-6 rounded-full object-cover shrink-0"
-                          />
-                        ) : (
-                          <div
-                            className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] text-white font-bold shrink-0"
-                            style={{
-                              backgroundColor: res.avatarColor || '#6366f1',
-                            }}
-                          >
-                            {res.name.charAt(0).toUpperCase()}
-                          </div>
-                        )}
-                        <span className="text-xs font-medium truncate">{res.name}</span>
-                      </div>
-
-                      <div
-                        className={`w-4 h-4 rounded-md border flex items-center justify-center transition-colors ${
-                          isSelected
-                            ? 'bg-indigo-600 border-indigo-500 text-white'
-                            : 'border-slate-600 bg-surface-card'
-                        }`}
-                      >
-                        {isSelected && <Check className="w-3 h-3 text-white" />}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Wöchentlich wiederkehrend toggle */}
-            <div className="pt-2 border-t border-surface-border/60">
-              <label className="flex items-start gap-3 p-3 rounded-2xl bg-indigo-950/20 border border-indigo-500/20 hover:border-indigo-500/40 transition-colors cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={assignModal.isRecurring}
-                  onChange={(e) =>
-                    setAssignModal((prev) => (prev ? { ...prev, isRecurring: e.target.checked } : null))
-                  }
-                  className="mt-0.5 w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 bg-surface-elevated border-surface-border cursor-pointer shrink-0"
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-white">
-                    <Repeat className="w-3.5 h-3.5 text-indigo-400" />
-                    <span>Wöchentlich wiederholen</span>
+                      <Repeat className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-white block">
+                        Wöchentlich wiederholen
+                      </span>
+                      <span className="text-[10px] text-slate-400">
+                        Dauerplan-Automatik
+                      </span>
+                    </div>
                   </div>
-                  <p className="text-[11px] text-slate-300 mt-0.5 leading-relaxed">
-                    Jeden <strong>{assignModal.day.name}</strong> automatisch so einteilen (gilt auch für Folgewochen)
-                  </p>
+
+                  {/* Switch Toggle Button (Home Assistant style) */}
+                  <div
+                    role="switch"
+                    aria-checked={assignModal.isRecurring}
+                    className={`w-11 h-6 flex items-center rounded-full p-0.5 transition-colors duration-200 ease-in-out shrink-0 cursor-pointer ${
+                      assignModal.isRecurring ? 'bg-indigo-600 shadow-sm shadow-indigo-500/40' : 'bg-slate-700'
+                    }`}
+                  >
+                    <div
+                      className={`bg-white w-5 h-5 rounded-full shadow-md transform transition-transform duration-200 ease-in-out ${
+                        assignModal.isRecurring ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </div>
                 </div>
-              </label>
+
+                {/* Subtext with dynamic weekday */}
+                <p className="text-[11px] text-slate-300 mt-2.5 pt-2 border-t border-surface-border/40 leading-relaxed">
+                  Bei Aktivierung wird diese Aufgabe jeden <strong>{assignModal.day.name}</strong> automatisch für alle Folgewochen wiederholt.
+                </p>
+              </div>
             </div>
 
             {/* Footer Buttons */}

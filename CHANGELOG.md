@@ -3,6 +3,23 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.50] - 2026-09-27
+
+### Neu & Verbessert
+- **Benutzerverwaltung (`AdminManagementView.tsx`)**:
+  - **Einheitliche Standort-Dropdowns**: Alle Standort-Auswahlfelder in der Benutzertabelle besitzen nun eine einheitliche, feste Breite (`w-48 sm:w-56 truncate`), wodurch die gesamte Tabelle harmonisch und aufgeräumt wirkt.
+  - **Perfekte Ausrichtung der Passwort-Buttons**: Beim aktuell angemeldeten Benutzer (bei dem der Löschen-Button ausgeblendet wird) sorgt ein unsichtbarer Platzhalter dafür, dass der „Passwort“-Button nicht mehr eingerückt ist, sondern exakt in der Spalte mit allen anderen Benutzern fluchtet.
+- **Aufgaben-Zuweisung & Haushaltskraft-Trennung (`ChorePlannerView.tsx`, `server/src/modules/chores/routes.ts`)**:
+  - **Getrennte Bereiche im Zuweisen-Modal**: Haushaltskräfte werden nicht mehr mit Bewohnern vermischt. Sofern am Standort eine Haushaltskraft existiert, erscheint ein eigener, übersichtlicher Abschnitt *„Haushaltskraft“* mit bernsteinfarbenem Personal-Badge.
+  - **Klarstellung für Gemeinschaftsaufgaben**: Die Option *„Allen Bewohnern zuweisen“* grenzt sich nun deutlich ab (*„z. B. eigene Zimmerreinigung (ohne Haushaltskraft)“*). Im Backend und Frontend werden Haushaltskräfte von pauschalen Bewohner-Aufgaben ausgeschlossen, damit sie ausschließlich gezielt zugeteilte Aufgaben erhalten.
+- **Modernisierter Wiederholungs-Switch (Home-Assistant-Stil) (`ChorePlannerView.tsx`)**:
+  - Die bisherige Checkbox für *„Wöchentlich wiederholen“* wurde durch ein interaktives Steuerelement mit leichtgängigem Switch-Toggle (Slider-Pille) ersetzt.
+  - Klar verständlicher Erläuterungstext: *„Bei Aktivierung wird diese Aufgabe jeden [Wochentag] automatisch für alle Folgewochen wiederholt.“*
+- **Aufgabenplan der Betreuer & optische Hervorhebungen (`ChorePlannerView.tsx`)**:
+  - **Hervorhebung unzugewiesener Aufgaben**: Aufgaben ohne Zuweisung werden für Betreuer in einem dezenten Rot-/Rose-Ton dargestellt (`bg-rose-500/10 border-rose-500/40`), ergänzt durch ein Warn-Badge *„Nicht zugewiesen“* und den Button *„Zuweisung erforderlich“*, damit offene Zuweisungen sofort ins Auge fallen.
+  - **Dauerplan-Kennzeichnung**: Wöchentlich wiederkehrende Aufgaben sind mit einem prominenten Dauerplan-Badge (`🔁 Wöchentlich`) klar gekennzeichnet.
+  - **„Ganze Woche“-Button optimiert**: Der Button in der Wochentagsleiste der Desktop-Ansicht wurde verbreitert (`grid-cols-[1.35fr_repeat(7,1fr)]`) und farblich in einem edlen Indigo-Violett-Verlauf akzentuiert. Die Textkürzung mit Auslassungspunkten (`...`) ist damit vollständig behoben.
+
 ## [0.1.49] - 2026-09-27
 
 ### Neu & Verbessert

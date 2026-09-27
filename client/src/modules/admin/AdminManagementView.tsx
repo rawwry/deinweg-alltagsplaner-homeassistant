@@ -1203,7 +1203,7 @@ export const AdminManagementView: React.FC = () => {
                               alert(`Fehler beim Ändern des Standorts: ${err.message}`);
                             }
                           }}
-                          className="px-2.5 py-1.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-200 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30 cursor-pointer"
+                          className="w-48 sm:w-56 px-2.5 py-1.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-200 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30 cursor-pointer truncate"
                         >
                           {u.role === 'BETREUER' || u.role === 'ADMIN' ? (
                             <option value="">Kein fester Standort (Alle)</option>
@@ -1257,7 +1257,7 @@ export const AdminManagementView: React.FC = () => {
                             </button>
                           )}
 
-                          {user?.id !== u.id && (
+                          {user?.id !== u.id ? (
                             <button
                               type="button"
                               onClick={async () => {
@@ -1272,11 +1272,13 @@ export const AdminManagementView: React.FC = () => {
                                   alert(`Fehler beim Löschen: ${err.message}`);
                                 }
                               }}
-                              className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/15 rounded-lg transition-colors cursor-pointer"
+                              className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/15 rounded-lg transition-colors cursor-pointer shrink-0"
                               title="Benutzer löschen"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
+                          ) : (
+                            <div className="w-[26px] h-[26px] shrink-0 pointer-events-none" />
                           )}
                         </div>
                       </td>

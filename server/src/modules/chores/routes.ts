@@ -88,7 +88,7 @@ function resolveResidents(
     return {
       isAllResidents: true,
       residentIds: ['ALL'],
-      assignedResidents: allResidents,
+      assignedResidents: allResidents.filter((r) => r.role !== 'HAUSHALTSKRAFT'),
     };
   }
 
@@ -217,6 +217,7 @@ router.get('/templates', requireAuth, async (req: Request, res: Response) => {
           username: true,
           avatarColor: true,
           avatarUrl: true,
+          role: true,
         },
       }),
     ]);
@@ -376,6 +377,7 @@ router.get('/week', requireAuth, async (req: Request, res: Response) => {
           username: true,
           avatarColor: true,
           avatarUrl: true,
+          role: true,
         },
       }),
       prisma.choreAssignment.findMany({
@@ -748,7 +750,7 @@ router.get('/recurring', requireAuth, async (req: Request, res: Response) => {
       }),
       prisma.user.findMany({
         where: { locationId, role: { in: ['BEWOHNER', 'HAUSHALTSKRAFT'] }, isActive: true },
-        select: { id: true, name: true, username: true, avatarColor: true, avatarUrl: true },
+        select: { id: true, name: true, username: true, avatarColor: true, avatarUrl: true, role: true },
       }),
     ]);
 
@@ -1011,7 +1013,7 @@ router.post('/toggle-complete', requireAuth, async (req: Request, res: Response)
         : null,
       prisma.user.findMany({
         where: { locationId: targetLocId, role: { in: ['BEWOHNER', 'HAUSHALTSKRAFT'] }, isActive: true },
-        select: { id: true, name: true, username: true, avatarColor: true, avatarUrl: true },
+        select: { id: true, name: true, username: true, avatarColor: true, avatarUrl: true, role: true },
       }),
       !targetAssignment && effectiveTemplateId
         ? prisma.choreRecurringAssignment.findFirst({
@@ -1246,6 +1248,7 @@ router.get('/today', requireAuth, async (req: Request, res: Response) => {
           username: true,
           avatarColor: true,
           avatarUrl: true,
+          role: true,
         },
       }),
       prisma.choreAssignment.findMany({
@@ -1335,7 +1338,7 @@ router.get('/today', requireAuth, async (req: Request, res: Response) => {
 
     const myTasks = req.user
       ? todayItems.filter((item) => {
-          if (item.isAllResidents) return true;
+          if (item.isAllResidents && req.user?.role !== 'HAUSHALTSKRAFT') return true;
           if (item.assignedResidents.some((r: any) => r.id === req.user?.id)) return true;
           return item.residentId === req.user?.id;
         })
