@@ -23,7 +23,7 @@ interface UserProfileModalProps {
 }
 
 export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) => {
-  const { user, updateCurrentUser, logout, activeLocation } = useAuth();
+  const { user, updateCurrentUser, logout, activeLocation, locations, setActiveLocationId } = useAuth();
   const { themeId, setThemeId, availableThemes } = useTheme();
 
   const [name, setName] = useState(user?.name || '');
@@ -32,6 +32,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [avatarPreview, setAvatarPreview] = useState<string | null>(user?.avatarUrl || null);
+  const [defaultLocationId, setDefaultLocationId] = useState<string>(user?.locationId || '');
   const [activeTheme, setActiveTheme] = useState<ThemeId>(themeId);
 
   const [isSaving, setIsSaving] = useState(false);
@@ -46,6 +47,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
       setEmail(user.email || '');
       setBirthday(user.birthday || '');
       setAvatarPreview(user.avatarUrl || null);
+      setDefaultLocationId(user.locationId || '');
       setActiveTheme(themeId);
       setPassword('');
       setConfirmPassword('');
@@ -144,9 +146,13 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
         birthday: birthday || undefined,
         password: password.trim() || undefined,
         avatarUrl: avatarPreview,
+        locationId: isStaff ? (defaultLocationId || null) : undefined,
       });
 
       updateCurrentUser(res.user);
+      if (isStaff && defaultLocationId) {
+        setActiveLocationId(defaultLocationId);
+      }
       setSuccess('Profil erfolgreich gespeichert!');
       setPassword('');
       setConfirmPassword('');
@@ -253,7 +259,11 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                 {(user.locationName || activeLocation?.name) && (
                   <span className="text-xs text-slate-400 flex items-center gap-1 font-medium">
                     <Home className="w-3 h-3 text-slate-500" />
-                    <span>WG {user.locationName || activeLocation?.name}</span>
+                    <span>
+                      {isStaff && user.locationName
+                        ? `Standard: WG ${user.locationName}`
+                        : `WG ${user.locationName || activeLocation?.name}`}
+                    </span>
                   </span>
                 )}
               </div>
@@ -348,6 +358,30 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                     className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-theme-primary"
                   />
                 </div>
+
+                {isStaff && (
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1.5">
+                      <Home className="w-3.5 h-3.5 text-theme-primary" />
+                      <span>Fester Standard-Standort</span>
+                    </label>
+                    <select
+                      value={defaultLocationId}
+                      onChange={(e) => setDefaultLocationId(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-theme-primary cursor-pointer"
+                    >
+                      <option value="">Kein fester Standort (Alle Standorte)</option>
+                      {locations.map((loc) => (
+                        <option key={loc.id} value={loc.id}>
+                          WG {loc.name}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-[11px] text-slate-400 mt-1">
+                      Wird nach der Anmeldung standardmäßig geladen und bestimmt, für welchen Standort du E-Mail-Benachrichtigungen erhältst. Betreuer können oben in der Leiste jederzeit jeden Standort einsehen.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {password && (

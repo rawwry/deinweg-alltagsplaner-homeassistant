@@ -525,6 +525,13 @@ router.put('/users/me', requireAuth, async (req: Request, res: Response) => {
       dataToUpdate.avatarUrl = avatarUrl || null;
     }
 
+    const isStaff = req.user!.role === 'ADMIN' || req.user!.role === 'BETREUER';
+    if (isStaff && req.body.locationId !== undefined) {
+      dataToUpdate.locationId = req.body.locationId && typeof req.body.locationId === 'string' && req.body.locationId.trim()
+        ? req.body.locationId.trim()
+        : null;
+    }
+
     const updated = await prisma.user.update({
       where: { id: userId },
       data: dataToUpdate,

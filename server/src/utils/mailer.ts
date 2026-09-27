@@ -212,7 +212,7 @@ export async function sendCaregiverNewNoteEmail(params: CaregiverNotificationPar
         email: { not: null },
         OR: [
           { locationId: params.locationId },
-          { locationId: null },
+          { role: 'ADMIN', locationId: null },
         ],
       },
       select: {
@@ -305,7 +305,7 @@ export async function sendCaregiverNoteResolvedEmail(params: CaregiverNoteResolv
         email: { not: null },
         OR: [
           { locationId: params.locationId },
-          { locationId: null },
+          { role: 'ADMIN', locationId: null },
         ],
       },
       select: {

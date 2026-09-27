@@ -53,7 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLocations(locs);
 
       // Set initial active location
-      if (userData.role === 'BEWOHNER') {
+      if (userData.role === 'BEWOHNER' || userData.role === 'HAUSHALTSKRAFT') {
         if (userData.locationId) {
           setActiveLocationIdState(userData.locationId);
         }
@@ -61,6 +61,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const savedLoc = localStorage.getItem('deinweg_active_location');
         if (savedLoc && locs.some((l: LocationSummary) => l.id === savedLoc)) {
           setActiveLocationIdState(savedLoc);
+        } else if (userData.locationId && locs.some((l: LocationSummary) => l.id === userData.locationId)) {
+          setActiveLocationIdState(userData.locationId);
         } else if (locs.length > 0) {
           setActiveLocationIdState(locs[0].id);
         }
@@ -107,21 +109,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const locs = await api.locations.list();
     setLocations(locs);
 
-    if (res.user.role === 'BEWOHNER' && res.user.locationId) {
+    if ((res.user.role === 'BEWOHNER' || res.user.role === 'HAUSHALTSKRAFT') && res.user.locationId) {
       setActiveLocationIdState(res.user.locationId);
     } else if (locs.length > 0) {
-      const targetLoc = locs.find((l: LocationSummary) => l.id === res.user.locationId) || locs[0];
+      const targetLoc = (res.user.locationId && locs.find((l: LocationSummary) => l.id === res.user.locationId)) || locs[0];
       setActiveLocationIdState(targetLoc.id);
+      localStorage.setItem('deinweg_active_location', targetLoc.id);
     }
   };
 
   const logout = () => {
+    localStorage.removeItem('deinweg_active_location');
     setStoredToken(null);
     setUser(null);
   };
 
   const setActiveLocationId = (id: string) => {
-    if (user?.role === 'BEWOHNER') return; // Resident cannot switch
+    if (user?.role === 'BEWOHNER' || user?.role === 'HAUSHALTSKRAFT') return; // Cannot switch away from assigned location
     setActiveLocationIdState(id);
     localStorage.setItem('deinweg_active_location', id);
   };

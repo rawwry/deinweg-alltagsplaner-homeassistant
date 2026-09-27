@@ -480,7 +480,9 @@ export const AdminManagementView: React.FC = () => {
         birthday: newBirthday || undefined,
         password: newPassword,
         role: newRole,
-        locationId: (newRole === 'BEWOHNER' || newRole === 'HAUSHALTSKRAFT') ? (newLocationId || locations[0]?.id) : undefined,
+        locationId: (newRole === 'BEWOHNER' || newRole === 'HAUSHALTSKRAFT')
+          ? (newLocationId || locations[0]?.id)
+          : (newLocationId || undefined),
       });
 
       setUserSuccessMsg(`Benutzer "${newName}" (${newRole === 'BETREUER' ? 'Betreuer' : newRole === 'HAUSHALTSKRAFT' ? 'Haushaltskraft' : 'Bewohner'}) erfolgreich angelegt!`);
@@ -1020,22 +1022,25 @@ export const AdminManagementView: React.FC = () => {
                     <option value="HAUSHALTSKRAFT">Haushaltskraft</option>
                   </select>
                 </div>
-                {(newRole === 'BEWOHNER' || newRole === 'HAUSHALTSKRAFT') && (
-                  <div className="min-w-0 space-y-1.5">
-                    <label className="block text-xs font-semibold text-slate-300">Standort zuweisen</label>
-                    <select
-                      value={newLocationId}
-                      onChange={(e) => setNewLocationId(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30 cursor-pointer"
-                    >
-                      {locations.map((l) => (
-                        <option key={l.id} value={l.id}>
-                          {l.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
+                <div className="min-w-0 space-y-1.5">
+                  <label className="block text-xs font-semibold text-slate-300">
+                    {newRole === 'BETREUER' ? 'Fester Standard-Standort' : 'Standort zuweisen'}
+                  </label>
+                  <select
+                    value={newLocationId}
+                    onChange={(e) => setNewLocationId(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30 cursor-pointer"
+                  >
+                    {newRole === 'BETREUER' ? (
+                      <option value="">Kein fester Standort (Alle Standorte)</option>
+                    ) : null}
+                    {locations.map((l) => (
+                      <option key={l.id} value={l.id}>
+                        {newRole === 'BETREUER' ? `Standard: ${l.name}` : l.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-surface-border/60">
@@ -1140,31 +1145,31 @@ export const AdminManagementView: React.FC = () => {
                         </select>
                       </td>
                       <td className="px-5 py-3.5 text-slate-300">
-                        {u.role === 'BEWOHNER' || u.role === 'HAUSHALTSKRAFT' ? (
-                          <select
-                            value={u.locationId || ''}
-                            onChange={async (e) => {
-                              const newLocId = e.target.value || null;
-                              try {
-                                await api.users.update(u.id, { locationId: newLocId });
-                                await fetchUsers();
-                                await refreshLocations();
-                              } catch (err: any) {
-                                alert(`Fehler beim Ändern des Standorts: ${err.message}`);
-                              }
-                            }}
-                            className="px-2.5 py-1.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-200 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30 cursor-pointer"
-                          >
+                        <select
+                          value={u.locationId || ''}
+                          onChange={async (e) => {
+                            const newLocId = e.target.value || null;
+                            try {
+                              await api.users.update(u.id, { locationId: newLocId });
+                              await fetchUsers();
+                              await refreshLocations();
+                            } catch (err: any) {
+                              alert(`Fehler beim Ändern des Standorts: ${err.message}`);
+                            }
+                          }}
+                          className="px-2.5 py-1.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-200 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30 cursor-pointer"
+                        >
+                          {u.role === 'BETREUER' || u.role === 'ADMIN' ? (
+                            <option value="">Kein fester Standort (Alle)</option>
+                          ) : (
                             <option value="">-- Kein Standort --</option>
-                            {locations.map((loc) => (
-                              <option key={loc.id} value={loc.id}>
-                                {loc.name}
-                              </option>
-                            ))}
-                          </select>
-                        ) : (
-                          <span className="text-slate-400">{u.locationName || 'Alle Standorte (Global)'}</span>
-                        )}
+                          )}
+                          {locations.map((loc) => (
+                            <option key={loc.id} value={loc.id}>
+                              {u.role === 'BETREUER' || u.role === 'ADMIN' ? `Standard: ${loc.name}` : loc.name}
+                            </option>
+                          ))}
+                        </select>
                       </td>
                       <td className="px-5 py-3.5 text-right">
                         <div className="flex items-center justify-end gap-2">

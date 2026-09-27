@@ -3,6 +3,17 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.48] - 2026-09-27
+
+### Neu & Verbessert
+- **Fester Standard-Standort für Betreuer & standortbezogene E-Mail-Filterung**:
+  - **Fester Standard-Standort für Betreuer**: Betreuer haben weiterhin vollen Zugriff auf alle Standorte über die Kopfzeile, können jedoch nun einen fest zugewiesenen Standard-Standort erhalten.
+  - **Automatische Initialansicht**: Nach dem Login wird für Betreuer direkt ihr fester Standard-Standort ausgewählt und angezeigt.
+  - **Konfigurierbar in den Benutzereinstellungen**:
+    - **Benutzerverwaltung (`AdminManagementView.tsx`)**: Beim Anlegen eines Betreuers und in der Benutzer-Tabelle kann der feste Standard-Standort direkt ausgewählt oder angepasst werden.
+    - **Eigenes Profil / Benutzereinstellungen (`UserProfileModal.tsx`)**: Betreuer können ihren festen Standard-Standort auch direkt in ihrem eigenen Profil („Mein Profil & Einstellungen“) festlegen und ändern.
+  - **Strikte E-Mail-Filterung (`server/src/utils/mailer.ts`)**: Betreuer erhalten ausschließlich E-Mails, die ihren fest zugewiesenen Standort betreffen. Notizen, Reaktionen und Tickets aus anderen Standorten werden nicht mehr an Betreuer geschickt, die einem anderen Standort zugeordnet sind.
+
 ## [0.1.47] - 2026-09-27
 
 ### Neu & Verbessert
