@@ -248,7 +248,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                 </span>
                 <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full badge-theme flex items-center gap-1">
                   {isStaff ? <Shield className="w-3 h-3" /> : <User className="w-3 h-3" />}
-                  <span>{isStaff ? 'Betreuer' : 'Bewohner'}</span>
+                  <span>{isStaff ? 'Betreuer' : user.role === 'HAUSHALTSKRAFT' ? 'Haushaltskraft' : 'Bewohner'}</span>
                 </span>
                 {(user.locationName || activeLocation?.name) && (
                   <span className="text-xs text-slate-400 flex items-center gap-1 font-medium">

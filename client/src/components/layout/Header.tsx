@@ -92,7 +92,7 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab }) => 
                   </div>
                   <div className="text-[10px] text-slate-400 flex items-center gap-1">
                     {isStaff ? <Shield className="w-2.5 h-2.5 text-theme-primary" /> : null}
-                    <span>{isStaff ? 'Betreuer' : 'Bewohner'}</span>
+                    <span>{isStaff ? 'Betreuer' : user?.role === 'HAUSHALTSKRAFT' ? 'Haushaltskraft' : 'Bewohner'}</span>
                   </div>
                 </div>
               </button>

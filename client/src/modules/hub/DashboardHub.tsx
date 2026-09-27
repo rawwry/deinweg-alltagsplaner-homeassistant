@@ -399,6 +399,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
   // Personalized user greeting
   const firstName = user?.name ? user.name.split(' ')[0] : 'du';
   const isResident = user?.role === 'BEWOHNER';
+  const isHousekeeping = user?.role === 'HAUSHALTSKRAFT';
 
   // Greeting by time of day
   const timeGreeting =
@@ -474,7 +475,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           weekNumber: currentWeek,
           dayOfWeek: currentDayOfWeek,
           locationId: activeLocationId,
-          residentId: residentIdToToggle ?? (user?.role === 'BEWOHNER' ? user?.id : undefined),
+          residentId: residentIdToToggle ?? ((user?.role === 'BEWOHNER' || user?.role === 'HAUSHALTSKRAFT') ? user?.id : undefined),
         });
 
         if (res?.assignment) {
@@ -1278,8 +1279,8 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
         </div>
       )}
 
-      {/* Today's Tasks Widget (Resident View) */}
-      {user?.role === 'BEWOHNER' && todayChores && (() => {
+      {/* Today's Tasks Widget (Resident & Housekeeping View) */}
+      {(user?.role === 'BEWOHNER' || user?.role === 'HAUSHALTSKRAFT') && todayChores && (() => {
         const isTodayCook = Boolean(user?.id && todayMeal?.cookUserId === user.id);
         const chefDishTitle = todayMeal?.recipe?.title || todayMeal?.customDishTitle || 'Gemeinschaftsessen';
         const chefkochChore = isTodayCook
@@ -1422,7 +1423,7 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
       })()}
 
       {/* STAFF ONLY: Heutige Aufgaben der WG */}
-      {user?.role !== 'BEWOHNER' && todayChores?.todayItems && (
+      {user?.role !== 'BEWOHNER' && user?.role !== 'HAUSHALTSKRAFT' && todayChores?.todayItems && (
         <div className="bento-card rounded-[2.5rem] p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
           <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -1646,8 +1647,8 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
           </div>
         </div>
 
-        {/* Bento 2: Shopping Radar & Basket (Directly integrated weekly budget, ample width, no preview clutter) */}
-        {(() => {
+        {/* Bento 2: Shopping Radar & Basket (Hidden for Haushaltskraft) */}
+        {!isHousekeeping && (() => {
           const totalWeeklyBudget = budgetSummary?.weeklyBudget ?? activeLocation?.weeklyBudget ?? 350;
           const spentWeeklyAmount =
             budgetSummary?.actualSpent !== null && budgetSummary?.actualSpent !== undefined
@@ -1785,14 +1786,16 @@ export const DashboardHub: React.FC<DashboardHubProps> = ({ setCurrentTab }) => 
             <span className="truncate">Kochplan</span>
           </button>
 
-          <button
-            type="button"
-            onClick={() => setCurrentTab('shopping')}
-            className="flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-surface-elevated/70 hover:bg-surface-elevated border border-surface-border hover:border-emerald-500/40 text-slate-200 hover:text-white text-xs font-medium transition-all group cursor-pointer"
-          >
-            <ShoppingCart className="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition-transform" />
-            <span className="truncate">Einkaufsliste</span>
-          </button>
+          {!isHousekeeping && (
+            <button
+              type="button"
+              onClick={() => setCurrentTab('shopping')}
+              className="flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-surface-elevated/70 hover:bg-surface-elevated border border-surface-border hover:border-emerald-500/40 text-slate-200 hover:text-white text-xs font-medium transition-all group cursor-pointer"
+            >
+              <ShoppingCart className="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition-transform" />
+              <span className="truncate">Einkaufsliste</span>
+            </button>
+          )}
 
           <button
             type="button"

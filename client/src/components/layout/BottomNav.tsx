@@ -32,11 +32,13 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, setCurrentTab 
     };
   }, [isStaff, activeLocationId]);
 
+  const isHousekeeping = user?.role === 'HAUSHALTSKRAFT';
+
   const navItems = [
     { id: 'hub', label: 'Home', icon: Home },
     { id: 'chores', label: 'Aufgaben', icon: ListTodo },
     { id: 'mealplan', label: 'Kochplan', icon: ChefHat },
-    { id: 'shopping', label: 'Einkauf', icon: ShoppingCart },
+    ...(!isHousekeeping ? [{ id: 'shopping', label: 'Einkauf', icon: ShoppingCart }] : []),
     ...(isStaff ? [{ id: 'budget', label: 'Kasse', icon: PiggyBank }] : []),
     ...(isStaff ? [{ id: 'recipes', label: 'Rezepte', icon: BookOpen }] : []),
     { id: 'notes', label: 'Flurfunk', icon: MessageSquareText, badge: isStaff && openTicketCount > 0 ? openTicketCount : undefined },

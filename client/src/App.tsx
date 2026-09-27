@@ -26,6 +26,7 @@ const AppContent: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<string>('hub');
   const [selectedRecipeDetail, setSelectedRecipeDetail] = useState<RecipeSummary | null>(null);
   const isStaff = user?.role?.toUpperCase() === 'ADMIN' || user?.role?.toUpperCase() === 'BETREUER';
+  const isHousekeeping = user?.role === 'HAUSHALTSKRAFT';
 
   if (isLoading) {
     return (
@@ -79,7 +80,7 @@ const AppContent: React.FC = () => {
                 onOpenRecipeDetail={handleOpenRecipeDetail}
               />
             )}
-            {currentTab === 'shopping' && <ShoppingListView setCurrentTab={setCurrentTab} />}
+            {currentTab === 'shopping' && !isHousekeeping && <ShoppingListView setCurrentTab={setCurrentTab} />}
             {currentTab === 'budget' && isStaff && <BudgetManagementView setCurrentTab={setCurrentTab} />}
             {currentTab === 'recipes' && <RecipeCatalogView />}
             {currentTab === 'notes' && <CaregiverNotesView />}

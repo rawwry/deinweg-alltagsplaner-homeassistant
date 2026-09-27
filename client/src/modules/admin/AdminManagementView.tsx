@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext.js';
 import { useTheme } from '../../context/ThemeContext.js';
 import { api } from '../../api/client.js';
 import { APP_VERSION, APP_NAME } from '../../../../shared/version.js';
+import { UserRole } from '../../../../shared/types.js';
 import {
   LayoutGrid,
   Users,
@@ -70,11 +71,10 @@ const ADMIN_TABS = [
   { id: 'users', label: 'Benutzer', icon: Users },
   { id: 'locations', label: 'Standorte', icon: Building2 },
   { id: 'chores', label: 'Aufgaben', icon: ListTodo },
-  { id: 'categories', label: 'Rezept-Kategorien', icon: BookOpen },
+  { id: 'categories', label: 'Rezeptarten', icon: BookOpen },
   { id: 'prices', label: 'Preise', icon: Tag },
-  { id: 'smtp', label: 'E-Mail / SMTP', icon: Mail },
+  { id: 'smtp', label: 'E-Mail', icon: Mail },
   { id: 'appearance', label: 'Erscheinungsbild', icon: Palette },
-  { id: 'system', label: 'System', icon: Server },
 ] as const;
 
 type AdminSubTab = (typeof ADMIN_TABS)[number]['id'];
@@ -128,7 +128,7 @@ export const AdminManagementView: React.FC = () => {
   const [newEmail, setNewEmail] = useState('');
   const [newBirthday, setNewBirthday] = useState('');
   const [newPassword, setNewPassword] = useState('start2026!');
-  const [newRole, setNewRole] = useState<'BEWOHNER' | 'BETREUER'>('BEWOHNER');
+  const [newRole, setNewRole] = useState<'BEWOHNER' | 'BETREUER' | 'HAUSHALTSKRAFT'>('BEWOHNER');
   const [newLocationId, setNewLocationId] = useState(locations[0]?.id || '');
   const [userSuccessMsg, setUserSuccessMsg] = useState<string | null>(null);
 
@@ -343,7 +343,7 @@ export const AdminManagementView: React.FC = () => {
         api.chores.recurring(targetLoc).catch(() => []),
       ]);
       setChoreTemplates(data || []);
-      setChoreResidents((usersData || []).filter((u: any) => u.role === 'BEWOHNER'));
+      setChoreResidents((usersData || []).filter((u: any) => u.role === 'BEWOHNER' || u.role === 'HAUSHALTSKRAFT'));
       setChoreRecurringRules(recData || []);
     } catch (err) {
       console.error('Fehler beim Laden der Aufgaben:', err);
@@ -459,7 +459,6 @@ export const AdminManagementView: React.FC = () => {
     if (activeSubTab === 'categories') fetchRecipeCategories();
     if (activeSubTab === 'chores') fetchChoreTemplates(activeLocationId);
     if (activeSubTab === 'smtp') fetchSmtpSettings();
-    if (activeSubTab === 'system') fetchSystemInfo();
   }, [activeSubTab, selectedSupermarketId, activeLocationId]);
 
   // Keep test recipient synced with user's email if available
@@ -481,10 +480,10 @@ export const AdminManagementView: React.FC = () => {
         birthday: newBirthday || undefined,
         password: newPassword,
         role: newRole,
-        locationId: newRole === 'BEWOHNER' ? (newLocationId || locations[0]?.id) : undefined,
+        locationId: (newRole === 'BEWOHNER' || newRole === 'HAUSHALTSKRAFT') ? (newLocationId || locations[0]?.id) : undefined,
       });
 
-      setUserSuccessMsg(`Benutzer "${newName}" (${newRole === 'BETREUER' ? 'Betreuer' : 'Bewohner'}) erfolgreich angelegt!`);
+      setUserSuccessMsg(`Benutzer "${newName}" (${newRole === 'BETREUER' ? 'Betreuer' : newRole === 'HAUSHALTSKRAFT' ? 'Haushaltskraft' : 'Bewohner'}) erfolgreich angelegt!`);
       setNewUsername('');
       setNewName('');
       setNewEmail('');
@@ -1013,14 +1012,15 @@ export const AdminManagementView: React.FC = () => {
                   <label className="block text-xs font-semibold text-slate-300">Rolle</label>
                   <select
                     value={newRole}
-                    onChange={(e) => setNewRole(e.target.value as 'BEWOHNER' | 'BETREUER')}
+                    onChange={(e) => setNewRole(e.target.value as 'BEWOHNER' | 'BETREUER' | 'HAUSHALTSKRAFT')}
                     className="w-full px-3.5 py-2.5 bg-surface-elevated border border-surface-border rounded-xl text-xs text-slate-100 focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/30 cursor-pointer"
                   >
                     <option value="BEWOHNER">Bewohner</option>
                     <option value="BETREUER">Betreuer</option>
+                    <option value="HAUSHALTSKRAFT">Haushaltskraft</option>
                   </select>
                 </div>
-                {newRole === 'BEWOHNER' && (
+                {(newRole === 'BEWOHNER' || newRole === 'HAUSHALTSKRAFT') && (
                   <div className="min-w-0 space-y-1.5">
                     <label className="block text-xs font-semibold text-slate-300">Standort zuweisen</label>
                     <select
@@ -1114,18 +1114,33 @@ export const AdminManagementView: React.FC = () => {
                         {u.email || '-'}
                       </td>
                       <td className="px-5 py-3.5">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full font-bold text-[10px] border ${
+                        <select
+                          value={u.role}
+                          onChange={async (e) => {
+                            const newR = e.target.value as UserRole;
+                            try {
+                              await api.users.update(u.id, { role: newR });
+                              await fetchUsers();
+                              await refreshLocations();
+                            } catch (err: any) {
+                              alert(`Fehler beim Ändern der Rolle: ${err.message}`);
+                            }
+                          }}
+                          className={`px-2.5 py-1 rounded-xl text-[11px] font-bold border transition-colors cursor-pointer focus:outline-none ${
                             u.role === 'ADMIN' || u.role === 'BETREUER'
                               ? 'bg-sky-500/15 text-sky-300 border-sky-500/30'
+                              : u.role === 'HAUSHALTSKRAFT'
+                              ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
                               : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
                           }`}
                         >
-                          {u.role === 'ADMIN' || u.role === 'BETREUER' ? 'Betreuer' : 'Bewohner'}
-                        </span>
+                          <option value="BEWOHNER" className="bg-slate-900 text-white font-normal">Bewohner</option>
+                          <option value="BETREUER" className="bg-slate-900 text-white font-normal">Betreuer</option>
+                          <option value="HAUSHALTSKRAFT" className="bg-slate-900 text-white font-normal">Haushaltskraft</option>
+                        </select>
                       </td>
                       <td className="px-5 py-3.5 text-slate-300">
-                        {u.role === 'BEWOHNER' ? (
+                        {u.role === 'BEWOHNER' || u.role === 'HAUSHALTSKRAFT' ? (
                           <select
                             value={u.locationId || ''}
                             onChange={async (e) => {
@@ -1927,11 +1942,6 @@ export const AdminManagementView: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-3 flex-wrap">
-                <div className="inline-flex items-center gap-2 bg-surface-elevated px-3 py-2 rounded-2xl border border-surface-border text-xs text-slate-300 font-medium">
-                  <Building2 className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>WG {activeLocation?.name || 'Aktueller Standort'}</span>
-                </div>
-
                 <button
                   type="button"
                   onClick={openCreateChoreModal}
@@ -2130,7 +2140,7 @@ export const AdminManagementView: React.FC = () => {
                   }
 
                   return (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-1">
+                    <div className="space-y-2.5 pt-1">
                       {filtered.map((tmpl) => {
                         const isAll = Boolean(
                           tmpl.isAllResidents ||
@@ -2145,59 +2155,52 @@ export const AdminManagementView: React.FC = () => {
                         return (
                           <div
                             key={tmpl.id}
-                            className="bg-surface-elevated/50 hover:bg-surface-elevated/80 border border-surface-border hover:border-indigo-500/40 rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-4 transition-all shadow-sm group"
+                            className="bg-surface-elevated/40 hover:bg-surface-elevated/80 border border-surface-border hover:border-indigo-500/40 rounded-2xl p-3.5 sm:p-4 transition-all shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 group"
                           >
-                            <div className="space-y-3">
-                              {/* Top Row: Icon + Title + Actions */}
-                              <div className="flex items-start justify-between gap-2.5">
-                                <div className="flex items-center gap-3 min-w-0">
-                                  <div className="w-10 h-10 rounded-xl bg-surface-card border border-surface-border flex items-center justify-center text-xl shrink-0 shadow-xs">
-                                    {tmpl.icon || '🧹'}
-                                  </div>
-                                  <div className="min-w-0">
-                                    <h4 className="text-sm font-bold text-white truncate tracking-tight">
-                                      {tmpl.title}
-                                    </h4>
-                                    <span className="text-[10px] text-slate-500 font-mono block">
-                                      ID: {tmpl.id.slice(0, 8)}
-                                    </span>
-                                  </div>
-                                </div>
-
-                                <div className="flex items-center gap-1 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
-                                  <button
-                                    type="button"
-                                    onClick={() => openEditChoreModal(tmpl)}
-                                    className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
-                                    title="Aufgabe bearbeiten"
-                                  >
-                                    <Pencil className="w-3.5 h-3.5" />
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleDeleteChoreTemplate(tmpl.id, tmpl.title)}
-                                    className="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition-colors cursor-pointer"
-                                    title="Aufgabe löschen"
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </button>
-                                </div>
+                            {/* Left: Icon + Title + Dauerplan + Description */}
+                            <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                              <div className="w-10 h-10 rounded-xl bg-surface-card border border-surface-border flex items-center justify-center text-xl shrink-0 shadow-xs">
+                                {tmpl.icon || '🧹'}
                               </div>
-
-                              {/* Description */}
-                              <p className="text-xs text-slate-300 leading-relaxed font-normal min-h-[2rem]">
-                                {tmpl.description || (
-                                  <span className="text-slate-500 italic">
-                                    Keine zusätzliche Beschreibung hinterlegt.
-                                  </span>
-                                )}
-                              </p>
-
-                              {/* Assignment Badge */}
-                              <div className="pt-2 border-t border-surface-border/50">
-                                <div className="text-[11px] font-semibold text-slate-400 mb-1.5">
-                                  Standard-Zuordnung:
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <h4 className="text-sm font-bold text-white tracking-tight">
+                                    {tmpl.title}
+                                  </h4>
+                                  {templateRecurringRules.length > 0 && (
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-[10px] text-slate-500 font-medium" title="Dauerplan aktiv">🔁</span>
+                                      {templateRecurringRules.map((r) => {
+                                        const dowObj = WEEKDAY_ITEMS.find((w) => w.id === r.dayOfWeek);
+                                        return (
+                                          <span
+                                            key={r.id}
+                                            className="px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-semibold text-[10px]"
+                                            title={`Dauerplan: Jeden ${dowObj?.name || r.dayOfWeek}`}
+                                          >
+                                            {dowObj?.label || r.dayOfWeek}
+                                          </span>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
                                 </div>
+                                {tmpl.description ? (
+                                  <p className="text-xs text-slate-400 truncate max-w-xl font-normal mt-0.5">
+                                    {tmpl.description}
+                                  </p>
+                                ) : (
+                                  <p className="text-[11px] text-slate-500 italic mt-0.5">
+                                    Keine Beschreibung hinterlegt
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Right: Zuordnung + Aktionen */}
+                            <div className="flex items-center gap-3 shrink-0 justify-between md:justify-end border-t md:border-t-0 pt-2.5 md:pt-0 border-surface-border/50">
+                              {/* Assignment Badge */}
+                              <div className="flex items-center gap-1.5 flex-wrap">
                                 {isAll ? (
                                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 text-xs font-semibold">
                                     <Users className="w-3.5 h-3.5 text-indigo-400" />
@@ -2208,7 +2211,7 @@ export const AdminManagementView: React.FC = () => {
                                     {assignedRes.map((r: any) => (
                                       <span
                                         key={r.id}
-                                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-surface-card border border-surface-border text-slate-200 text-xs font-medium"
+                                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-surface-card border border-surface-border text-slate-200 text-xs font-medium"
                                       >
                                         <span
                                           className="w-2 h-2 rounded-full shrink-0"
@@ -2221,35 +2224,30 @@ export const AdminManagementView: React.FC = () => {
                                 ) : (
                                   <span className="inline-flex items-center gap-1 text-xs text-slate-400 italic">
                                     <Sparkles className="w-3 h-3 text-slate-500" />
-                                    <span>Freie Einteilung im Wochenplan</span>
+                                    <span>Freie Einteilung</span>
                                   </span>
                                 )}
                               </div>
-                            </div>
 
-                            {/* Dauerplan Status Footer */}
-                            <div className="pt-2 border-t border-surface-border/40 flex items-center justify-between text-[11px]">
-                              <span className="text-slate-500">Dauerplan:</span>
-                              {templateRecurringRules.length > 0 ? (
-                                <div className="flex items-center gap-1 flex-wrap">
-                                  {templateRecurringRules.map((r) => {
-                                    const dowObj = WEEKDAY_ITEMS.find((w) => w.id === r.dayOfWeek);
-                                    return (
-                                      <span
-                                        key={r.id}
-                                        className="px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-mono font-bold text-[10px]"
-                                        title={`Jeden ${dowObj?.name || r.dayOfWeek}`}
-                                      >
-                                        {dowObj?.label || r.dayOfWeek}
-                                      </span>
-                                    );
-                                  })}
-                                </div>
-                              ) : (
-                                <span className="text-slate-500 italic text-[10px]">
-                                  Nicht im Dauerplan
-                                </span>
-                              )}
+                              {/* Action Buttons */}
+                              <div className="flex items-center gap-1 shrink-0 ml-1">
+                                <button
+                                  type="button"
+                                  onClick={() => openEditChoreModal(tmpl)}
+                                  className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+                                  title="Aufgabe bearbeiten"
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteChoreTemplate(tmpl.id, tmpl.title)}
+                                  className="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition-colors cursor-pointer"
+                                  title="Aufgabe löschen"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
                             </div>
                           </div>
                         );
@@ -2595,7 +2593,7 @@ export const AdminManagementView: React.FC = () => {
         </div>
       )}
 
-      {/* SUBTAB: CATEGORIES (REZEPT-KATEGORIEN) */}
+      {/* SUBTAB: CATEGORIES (REZEPTARTEN) */}
       {activeSubTab === 'categories' && (
         <div className="space-y-6">
           <div className="bento-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border shadow-xl space-y-5">
@@ -2606,10 +2604,10 @@ export const AdminManagementView: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-base font-display font-semibold text-surface-cream">
-                    Rezept-Kategorien pflegen
+                    Rezeptarten pflegen
                   </h3>
                   <p className="text-xs text-surface-muted mt-0.5 font-sans">
-                    Definiere Kategorien für die Rezeptdatenbank. Diese stehen beim Anlegen und Filtern von Gerichten zur Auswahl.
+                    Definiere Rezeptarten für die Rezeptdatenbank. Diese stehen beim Anlegen und Filtern von Gerichten zur Auswahl.
                   </p>
                 </div>
               </div>
@@ -2620,7 +2618,7 @@ export const AdminManagementView: React.FC = () => {
                   type="text"
                   value={newCatName}
                   onChange={(e) => setNewCatName(e.target.value)}
-                  placeholder="Neue Kategorie (z.B. Aufläufe)"
+                  placeholder="Neue Rezeptart (z.B. Aufläufe)"
                   required
                   className="px-3.5 py-2 bg-surface-elevated border border-surface-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/40 w-48 sm:w-60"
                 />
@@ -3502,73 +3500,7 @@ export const AdminManagementView: React.FC = () => {
         </div>
       )}
 
-      {/* SUBTAB: SYSTEM */}
-      {activeSubTab === 'system' && (
-        <div className="space-y-6">
-          {/* System Diagnostics */}
-          <div className="bento-card rounded-[2.5rem] p-6 sm:p-7 border border-surface-border shadow-xl space-y-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-sky-500/15 border border-sky-500/30 rounded-2xl text-sky-400">
-                <Server className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-base font-display font-semibold text-surface-cream">{APP_NAME}</h3>
-                <p className="text-xs text-surface-muted font-sans">Home Assistant Add-on Systemdiagnose</p>
-              </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800">
-                <div className="text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
-                  Anwendungsversion
-                </div>
-                <div className="text-base font-extrabold text-slate-100 mt-1">
-                  v{APP_VERSION}
-                </div>
-              </div>
-
-              <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800">
-                <div className="text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
-                  Web-Port (HTTP)
-                </div>
-                <div className="text-base font-extrabold text-slate-100 mt-1">
-                  4731 (Kein Ingress / Cloudflare Tunnel)
-                </div>
-              </div>
-
-              <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800 sm:col-span-2">
-                <div className="text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
-                  SQLite Speicherort
-                </div>
-                <div className="font-mono text-xs text-slate-200 mt-1 break-all font-semibold">
-                  {healthInfo?.database || '/share/deinweg-alltagsplaner/db/alltagsplaner.db'}
-                </div>
-              </div>
-
-              <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800 sm:col-span-2">
-                <div className="text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
-                  PDF Export Verzeichnis
-                </div>
-                <div className="font-mono text-xs text-slate-200 mt-1 break-all font-semibold">
-                  {healthInfo?.exportDir || '/share/deinweg-alltagsplaner/export'}
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-500">
-              <span>Status: Online & Betriebsbereit</span>
-              <button
-                type="button"
-                onClick={fetchSystemInfo}
-                className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-slate-200 flex items-center gap-1 transition-colors"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                <span>Aktualisieren</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Avatar Upload Modal for Users */}
       <AvatarUploadModal

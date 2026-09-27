@@ -63,11 +63,13 @@ export const DesktopNav: React.FC<DesktopNavProps> = ({ currentTab, setCurrentTa
     };
   }, [isStaff, activeLocationId]);
 
+  const isHousekeeping = user?.role === 'HAUSHALTSKRAFT';
+
   const navItems = [
     { id: 'hub', label: 'Übersicht', icon: Home },
     { id: 'chores', label: 'Aufgabenplan', icon: ListTodo },
     { id: 'mealplan', label: 'Kochplan', icon: ChefHat },
-    { id: 'shopping', label: 'Einkaufsliste', icon: ShoppingCart },
+    ...(!isHousekeeping ? [{ id: 'shopping', label: 'Einkaufsliste', icon: ShoppingCart }] : []),
     ...(isStaff ? [{ id: 'budget', label: 'Kasse & Budget', icon: PiggyBank }] : []),
     { id: 'recipes', label: 'Rezepte', icon: BookOpen },
     { id: 'notes', label: 'Flurfunk', icon: MessageSquareText, badge: openTicketCount > 0 ? openTicketCount : undefined },

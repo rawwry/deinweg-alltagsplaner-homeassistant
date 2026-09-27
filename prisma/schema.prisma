@@ -37,7 +37,7 @@ model User {
   email        String?
   passwordHash String
   name         String
-  role         String        @default("BEWOHNER") // "ADMIN", "BETREUER", "BEWOHNER"
+  role         String        @default("BEWOHNER") // "ADMIN", "BETREUER", "BEWOHNER", "HAUSHALTSKRAFT"
   locationId   String?
   avatarColor  String?       @default("#3b82f6")
   avatarUrl    String?

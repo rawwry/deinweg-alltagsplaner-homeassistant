@@ -3,6 +3,25 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.47] - 2026-09-27
+
+### Neu & Verbessert
+- **Neue Benutzerrolle „Haushaltskraft“ (`shared/types.ts`, `schema.prisma`, `AdminManagementView.tsx`, `ChorePlannerView.tsx`, `DashboardHub.tsx`, `routes.ts`)**:
+  - **Benutzerverwaltung**: Neue Rolle bei Erstellung und Bearbeitung von Benutzern mit eigenem bernsteinfarbenem Badge und Standort-Zuweisung.
+  - **Kein Zugriff auf die Einkaufsliste**: Menüeintrag „Einkaufsliste“ in Desktop- und Bottom-Navigation ausgeblendet, Einkaufskorb-Bento und Schnellzugriff auf dem Home-Dashboard entfernt, Backend-Routen mit 403 Forbidden abgesichert.
+  - **Fokus auf eigene Aufgaben**: Haushaltskräfte sehen im Aufgabenplan und im Dashboard ausschließlich die ihnen persönlich zugewiesenen Aufgaben (keine Gemeinschaftsaufgaben oder Aufgaben anderer). Der Umschalter „Alle Aufgaben / Nur meine Aufgaben“ wird ausgeblendet.
+- **Aufgaben-Katalog als elegante Listenansicht**:
+  - Bisherige Kachelansicht durch eine übersichtliche, vertikale Listenansicht ersetzt.
+  - Interne IDs unter den Aufgaben ausgeblendet.
+  - Kompakte Darstellung mit großem Icon, Titel, Dauerplan-Wochentagen (`🔁 [Mo] [Fr]`), Beschreibung und übersichtlicher Zuordnung.
+- **Bereinigung der Einstellungen (`AdminManagementView.tsx`)**:
+  - Der redundante Standort-Button im Reiter „Aufgaben“ wurde komplett entfernt.
+  - Menüpunkt „E-Mail / SMTP“ in **„E-Mail“** umbenannt.
+  - Menüpunkt „Rezept-Kategorien“ in **„Rezeptarten“** umbenannt.
+  - Einstellungspunkt „System“ vollständig entfernt.
+- **Globale Typografie-Optimierung im Aufgabenplan (`ChorePlannerView.tsx`)**:
+  - Vertikaler Versatz von Wochentag und Datum behoben: Das Datum wird nun als feine, harmonische Pille in Sans-Serif-Schrift dargestellt, die sich bündig und ausgewogen neben den Wochentags-Titel und das „Heute“-Badge einfügt.
+
 ## [0.1.46] - 2026-09-27
 
 ### Neu & Verbessert

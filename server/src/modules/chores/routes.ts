@@ -210,7 +210,7 @@ router.get('/templates', requireAuth, async (req: Request, res: Response) => {
         orderBy: [{ sortOrder: 'asc' }, { title: 'asc' }],
       }),
       prisma.user.findMany({
-        where: { locationId, role: 'BEWOHNER', isActive: true },
+        where: { locationId, role: { in: ['BEWOHNER', 'HAUSHALTSKRAFT'] }, isActive: true },
         select: {
           id: true,
           name: true,
@@ -369,7 +369,7 @@ router.get('/week', requireAuth, async (req: Request, res: Response) => {
         orderBy: [{ sortOrder: 'asc' }, { title: 'asc' }],
       }),
       prisma.user.findMany({
-        where: { locationId, role: 'BEWOHNER', isActive: true },
+        where: { locationId, role: { in: ['BEWOHNER', 'HAUSHALTSKRAFT'] }, isActive: true },
         select: {
           id: true,
           name: true,
@@ -747,7 +747,7 @@ router.get('/recurring', requireAuth, async (req: Request, res: Response) => {
         orderBy: [{ sortOrder: 'asc' }, { title: 'asc' }],
       }),
       prisma.user.findMany({
-        where: { locationId, role: 'BEWOHNER', isActive: true },
+        where: { locationId, role: { in: ['BEWOHNER', 'HAUSHALTSKRAFT'] }, isActive: true },
         select: { id: true, name: true, username: true, avatarColor: true, avatarUrl: true },
       }),
     ]);
@@ -964,8 +964,8 @@ router.post('/toggle-complete', requireAuth, async (req: Request, res: Response)
     const locationId = resolveLocationId(req);
     const { assignmentId, templateId, date, year, weekNumber, dayOfWeek, residentId } = req.body;
 
-    // Determine who is toggling: resident toggles their own ID; staff can toggle a specific resident or entire chore
-    const togglingResidentId = req.user?.role === 'BEWOHNER' ? req.user.id : (residentId || null);
+    // Determine who is toggling: resident/housekeeping toggles their own ID; staff can toggle a specific resident or entire chore
+    const togglingResidentId = (req.user?.role === 'BEWOHNER' || req.user?.role === 'HAUSHALTSKRAFT') ? req.user.id : (residentId || null);
 
     let targetAssignment = null;
 
@@ -1010,7 +1010,7 @@ router.post('/toggle-complete', requireAuth, async (req: Request, res: Response)
         ? prisma.choreTemplate.findUnique({ where: { id: effectiveTemplateId } })
         : null,
       prisma.user.findMany({
-        where: { locationId: targetLocId, role: 'BEWOHNER', isActive: true },
+        where: { locationId: targetLocId, role: { in: ['BEWOHNER', 'HAUSHALTSKRAFT'] }, isActive: true },
         select: { id: true, name: true, username: true, avatarColor: true, avatarUrl: true },
       }),
       !targetAssignment && effectiveTemplateId
@@ -1239,7 +1239,7 @@ router.get('/today', requireAuth, async (req: Request, res: Response) => {
         orderBy: [{ sortOrder: 'asc' }, { title: 'asc' }],
       }),
       prisma.user.findMany({
-        where: { locationId, role: 'BEWOHNER', isActive: true },
+        where: { locationId, role: { in: ['BEWOHNER', 'HAUSHALTSKRAFT'] }, isActive: true },
         select: {
           id: true,
           name: true,

@@ -31,6 +31,7 @@ interface ChorePlannerViewProps {
 export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTab }) => {
   const { user, activeLocation, activeLocationId } = useAuth();
   const isStaff = user?.role?.toUpperCase() === 'ADMIN' || user?.role?.toUpperCase() === 'BETREUER';
+  const isHousekeeping = user?.role === 'HAUSHALTSKRAFT';
 
   const now = new Date();
   // Get current ISO calendar week
@@ -47,9 +48,9 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
   const [residents, setResidents] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Filters: 'ALL' or 'MINE' (residents default to 'MINE')
+  // Filters: 'ALL' or 'MINE' (residents & housekeeping default to 'MINE')
   const [filterMode, setFilterMode] = useState<'ALL' | 'MINE'>(
-    user?.role === 'BEWOHNER' ? 'MINE' : 'ALL'
+    user?.role === 'BEWOHNER' || user?.role === 'HAUSHALTSKRAFT' ? 'MINE' : 'ALL'
   );
 
   const [mealPlan, setMealPlan] = useState<any>(null);
@@ -131,7 +132,7 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
           weekNumber,
           dayOfWeek: day.dayOfWeek,
           locationId: activeLocationId,
-          residentId: residentIdToToggle ?? (user?.role?.toUpperCase() === 'BEWOHNER' ? user?.id : undefined),
+          residentId: residentIdToToggle ?? ((user?.role === 'BEWOHNER' || user?.role === 'HAUSHALTSKRAFT') ? user?.id : undefined),
         });
 
         if (res?.assignment) {
@@ -217,7 +218,7 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
       ]);
       setWeekData(wData);
       setMealPlan(mPlan);
-      setResidents((usersList || []).filter((u: any) => u.role === 'BEWOHNER'));
+      setResidents((usersList || []).filter((u: any) => u.role === 'BEWOHNER' || u.role === 'HAUSHALTSKRAFT'));
     } catch (err) {
       console.error('Fehler beim Laden des Aufgabenplans:', err);
     } finally {
@@ -410,6 +411,13 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
         const assignedRes: any[] = assignment
           ? (assignment.assignedResidents || [])
           : (tmpl.assignedResidents || []);
+
+        if (user?.role === 'HAUSHALTSKRAFT') {
+          if (assignedRes.some((r: any) => r.id === user?.id)) return true;
+          if (assignment?.residentId === user?.id) return true;
+          return false;
+        }
+
         if (isAll) return true;
         if (assignedRes.some((r: any) => r.id === user?.id)) return true;
         if (assignment?.residentId === user?.id) return true;
@@ -435,15 +443,15 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
       >
         {/* Day Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-surface-border">
-          <div className="flex items-center gap-3 flex-wrap">
-            <h3 className="text-xl font-bold text-white font-display">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h3 className="text-lg sm:text-xl font-bold text-white font-display tracking-tight">
               {day.name}
             </h3>
-            <span className="text-xs text-slate-400 font-mono font-medium">
+            <span className="px-2.5 py-1 rounded-xl bg-surface-elevated border border-surface-border text-xs text-slate-300 font-sans font-medium">
               {formatGermanDate(day.date)}
             </span>
             {isToday && (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 text-[11px] font-bold uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 text-[10px] font-bold uppercase tracking-wider">
                 <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
                 Heute
               </span>
@@ -583,7 +591,7 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                 ? (assignment.isAllResidents ? ['ALL'] : (assignment.assignedResidentIdsList || (assignment.residentId ? [assignment.residentId] : [])))
                 : (tmpl.isAllResidents ? ['ALL'] : (tmpl.assignedResidentIdsList || []));
 
-              const isResidentTask = user?.role === 'BEWOHNER' && isMyTask;
+              const isResidentTask = (user?.role === 'BEWOHNER' || user?.role === 'HAUSHALTSKRAFT') && isMyTask;
 
               return (
                 <div
@@ -594,7 +602,7 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                     }
                   }}
                   className={`rounded-2xl border p-4 sm:p-5 transition-all flex flex-col gap-3 ${
-                    (user?.role === 'BEWOHNER' ? isMyDone : isAllDone)
+                    ((user?.role === 'BEWOHNER' || user?.role === 'HAUSHALTSKRAFT') ? isMyDone : isAllDone)
                       ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-100 shadow-xs'
                       : isStaff && isPartiallyDone
                       ? 'bg-indigo-500/10 border-indigo-500/30 text-slate-200 shadow-xs'
@@ -613,7 +621,7 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
                         <div className="flex items-center gap-2 flex-wrap">
                           <span
                             className={`text-sm font-bold tracking-tight truncate ${
-                              (user?.role === 'BEWOHNER' ? isMyDone : isAllDone)
+                              ((user?.role === 'BEWOHNER' || user?.role === 'HAUSHALTSKRAFT') ? isMyDone : isAllDone)
                                 ? 'line-through text-slate-400'
                                 : 'text-white'
                             }`}
@@ -1033,32 +1041,34 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
           )}
         </div>
 
-        {/* Filter Switch (All vs Mine) */}
-        <div className="w-full sm:w-auto grid grid-cols-2 gap-1 p-1 bg-surface-elevated rounded-2xl border border-surface-border">
-          <button
-            type="button"
-            onClick={() => setFilterMode('ALL')}
-            className={`flex items-center justify-center py-2 px-3.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-              filterMode === 'ALL'
-                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-            }`}
-          >
-            Alle Aufgaben
-          </button>
-          <button
-            type="button"
-            onClick={() => setFilterMode('MINE')}
-            className={`flex items-center justify-center gap-1.5 py-2 px-3.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-              filterMode === 'MINE'
-                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-            }`}
-          >
-            <User className="w-3.5 h-3.5" />
-            <span>Nur meine Aufgaben</span>
-          </button>
-        </div>
+        {/* Filter Switch (All vs Mine) - Hidden for Haushaltskraft */}
+        {!isHousekeeping && (
+          <div className="w-full sm:w-auto grid grid-cols-2 gap-1 p-1 bg-surface-elevated rounded-2xl border border-surface-border">
+            <button
+              type="button"
+              onClick={() => setFilterMode('ALL')}
+              className={`flex items-center justify-center py-2 px-3.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                filterMode === 'ALL'
+                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+              }`}
+            >
+              Alle Aufgaben
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterMode('MINE')}
+              className={`flex items-center justify-center gap-1.5 py-2 px-3.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                filterMode === 'MINE'
+                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+              }`}
+            >
+              <User className="w-3.5 h-3.5" />
+              <span>Nur meine Aufgaben</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Desktop Weekday Quick-Filter Bar (visible on >= lg screens) */}

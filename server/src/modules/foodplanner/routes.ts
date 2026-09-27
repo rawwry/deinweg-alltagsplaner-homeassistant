@@ -850,6 +850,9 @@ router.put('/mealplan/day', requireAuth, async (req: Request, res: Response) => 
 // ==================== KONSOLIDIERTE EINKAUFSLISTE ====================
 
 router.get('/shopping-list', requireAuth, async (req: Request, res: Response) => {
+  if (req.user?.role === 'HAUSHALTSKRAFT') {
+    return res.status(403).json({ error: 'Zugriff verweigert: Haushaltskräfte haben keinen Zugriff auf die Einkaufsliste.' });
+  }
   try {
     const rawLocId = resolveLocationId(req);
     let location = rawLocId ? await prisma.location.findUnique({ where: { id: rawLocId } }) : null;
@@ -877,6 +880,9 @@ router.get('/shopping-list', requireAuth, async (req: Request, res: Response) =>
 });
 
 router.post('/shopping-list/toggle-check', requireAuth, async (req: Request, res: Response) => {
+  if (req.user?.role === 'HAUSHALTSKRAFT') {
+    return res.status(403).json({ error: 'Zugriff verweigert.' });
+  }
   try {
     const { locationId, year, weekNumber, ingredientId, isChecked } = req.body;
 
@@ -918,6 +924,9 @@ router.post('/shopping-list/toggle-check', requireAuth, async (req: Request, res
 });
 
 router.post('/shopping-list/custom-item', requireAuth, async (req: Request, res: Response) => {
+  if (req.user?.role === 'HAUSHALTSKRAFT') {
+    return res.status(403).json({ error: 'Zugriff verweigert.' });
+  }
   try {
     const { locationId, year, weekNumber, name, amount, unit, category } = req.body;
 
@@ -950,6 +959,9 @@ router.post('/shopping-list/custom-item', requireAuth, async (req: Request, res:
 });
 
 router.patch('/shopping-list/custom-item/:id/toggle', requireAuth, async (req: Request, res: Response) => {
+  if (req.user?.role === 'HAUSHALTSKRAFT') {
+    return res.status(403).json({ error: 'Zugriff verweigert.' });
+  }
   try {
     const { id } = req.params;
     const item = await prisma.customShoppingItem.findUnique({ where: { id } });
@@ -974,6 +986,9 @@ router.patch('/shopping-list/custom-item/:id/toggle', requireAuth, async (req: R
 });
 
 router.delete('/shopping-list/custom-item/:id', requireAuth, async (req: Request, res: Response) => {
+  if (req.user?.role === 'HAUSHALTSKRAFT') {
+    return res.status(403).json({ error: 'Zugriff verweigert.' });
+  }
   try {
     const { id } = req.params;
     const item = await prisma.customShoppingItem.findUnique({ where: { id } });
