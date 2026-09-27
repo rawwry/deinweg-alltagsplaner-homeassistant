@@ -69,7 +69,7 @@ export const formatCookingDays = (daysStr?: string | null): string => {
 const ADMIN_TABS = [
   { id: 'users', label: 'Benutzer', icon: Users },
   { id: 'locations', label: 'Standorte', icon: Building2 },
-  { id: 'chores', label: 'Aufgaben-Vorlagen', icon: ListTodo },
+  { id: 'chores', label: 'Aufgaben', icon: ListTodo },
   { id: 'categories', label: 'Rezept-Kategorien', icon: BookOpen },
   { id: 'prices', label: 'Preise', icon: Tag },
   { id: 'smtp', label: 'E-Mail / SMTP', icon: Mail },
@@ -80,7 +80,7 @@ const ADMIN_TABS = [
 type AdminSubTab = (typeof ADMIN_TABS)[number]['id'];
 
 export const AdminManagementView: React.FC = () => {
-  const { user, locations, refreshLocations, logout } = useAuth();
+  const { user, locations, refreshLocations, activeLocationId, activeLocation, logout } = useAuth();
   const { themeId, setThemeId, availableThemes } = useTheme();
   const [activeSubTab, setActiveSubTab] = useState<AdminSubTab>('users');
   const [avatarModalUserId, setAvatarModalUserId] = useState<string | null>(null);
@@ -98,7 +98,6 @@ export const AdminManagementView: React.FC = () => {
   // Chores State
   const [choreTemplates, setChoreTemplates] = useState<any[]>([]);
   const [choreRecurringRules, setChoreRecurringRules] = useState<any[]>([]);
-  const [selectedChoreLocId, setSelectedChoreLocId] = useState<string>(locations[0]?.id || '');
   const [choreResidents, setChoreResidents] = useState<any[]>([]);
   const [isLoadingChores, setIsLoadingChores] = useState(false);
   const [choreSubTab, setChoreSubTab] = useState<'templates' | 'recurring'>('templates');
@@ -334,7 +333,7 @@ export const AdminManagementView: React.FC = () => {
   };
 
   const fetchChoreTemplates = async (locId?: string) => {
-    const targetLoc = locId || selectedChoreLocId || locations[0]?.id;
+    const targetLoc = locId || activeLocationId || locations[0]?.id;
     if (!targetLoc) return;
     try {
       setIsLoadingChores(true);
@@ -347,7 +346,7 @@ export const AdminManagementView: React.FC = () => {
       setChoreResidents((usersData || []).filter((u: any) => u.role === 'BEWOHNER'));
       setChoreRecurringRules(recData || []);
     } catch (err) {
-      console.error('Fehler beim Laden der Aufgaben-Vorlagen:', err);
+      console.error('Fehler beim Laden der Aufgaben:', err);
     } finally {
       setIsLoadingChores(false);
     }
@@ -390,7 +389,7 @@ export const AdminManagementView: React.FC = () => {
   const handleSaveChoreModal = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!choreFormTitle.trim()) return;
-    const locId = selectedChoreLocId || locations[0]?.id;
+    const locId = activeLocationId || locations[0]?.id;
     if (!locId) return;
 
     let finalAssignedIds: string[] | null = null;
@@ -410,7 +409,7 @@ export const AdminManagementView: React.FC = () => {
           icon: choreFormIcon.trim() || '🧹',
           assignedResidentIds: finalAssignedIds,
         });
-        setChoreSuccessMsg('Aufgaben-Vorlage erfolgreich angelegt!');
+        setChoreSuccessMsg('Aufgabe erfolgreich angelegt!');
       } else if (choreFormId) {
         await api.chores.updateTemplate(choreFormId, {
           title: choreFormTitle.trim(),
@@ -418,32 +417,32 @@ export const AdminManagementView: React.FC = () => {
           icon: choreFormIcon.trim() || '🧹',
           assignedResidentIds: finalAssignedIds,
         });
-        setChoreSuccessMsg('Aufgaben-Vorlage aktualisiert!');
+        setChoreSuccessMsg('Aufgabe aktualisiert!');
       }
       setChoreModalOpen(false);
       setTimeout(() => setChoreSuccessMsg(null), 3000);
       fetchChoreTemplates(locId);
     } catch (err: any) {
-      setChoreErrorMsg(err.message || 'Fehler beim Speichern der Vorlage');
+      setChoreErrorMsg(err.message || 'Fehler beim Speichern der Aufgabe');
     }
   };
 
   const handleDeleteChoreTemplate = async (id: string, title: string) => {
-    if (!window.confirm(`Möchtest du die Aufgaben-Vorlage "${title}" wirklich deaktivieren?`)) return;
-    const locId = selectedChoreLocId || locations[0]?.id;
+    if (!window.confirm(`Möchtest du die Aufgabe "${title}" wirklich löschen?`)) return;
+    const locId = activeLocationId || locations[0]?.id;
     try {
       setChoreErrorMsg(null);
       await api.chores.deleteTemplate(id);
-      setChoreSuccessMsg('Aufgaben-Vorlage gelöscht.');
+      setChoreSuccessMsg('Aufgabe gelöscht.');
       setTimeout(() => setChoreSuccessMsg(null), 3000);
       fetchChoreTemplates(locId);
     } catch (err: any) {
-      setChoreErrorMsg(err.message || 'Fehler beim Löschen der Vorlage');
+      setChoreErrorMsg(err.message || 'Fehler beim Löschen der Aufgabe');
     }
   };
 
   const handleDeleteRecurringInAdmin = async (ruleId: string) => {
-    const locId = selectedChoreLocId || locations[0]?.id;
+    const locId = activeLocationId || locations[0]?.id;
     try {
       await api.chores.deleteRecurring(ruleId);
       setChoreSuccessMsg('Dauerplan-Eintrag entfernt.');
@@ -458,10 +457,10 @@ export const AdminManagementView: React.FC = () => {
     if (activeSubTab === 'users' || activeSubTab === 'locations') fetchUsers();
     if (activeSubTab === 'locations' || activeSubTab === 'prices') fetchIngredientsAndMarkets();
     if (activeSubTab === 'categories') fetchRecipeCategories();
-    if (activeSubTab === 'chores') fetchChoreTemplates(selectedChoreLocId);
+    if (activeSubTab === 'chores') fetchChoreTemplates(activeLocationId);
     if (activeSubTab === 'smtp') fetchSmtpSettings();
     if (activeSubTab === 'system') fetchSystemInfo();
-  }, [activeSubTab, selectedSupermarketId, selectedChoreLocId]);
+  }, [activeSubTab, selectedSupermarketId, activeLocationId]);
 
   // Keep test recipient synced with user's email if available
   useEffect(() => {
@@ -848,7 +847,7 @@ export const AdminManagementView: React.FC = () => {
             Systemverwaltung
           </h1>
           <p className="text-xs sm:text-sm text-surface-muted font-sans max-w-2xl leading-relaxed">
-            Zentrale Verwaltung von Benutzern, Standorten, Aufgaben-Vorlagen, Rezepten, E-Mail und Erscheinungsbild.
+            Zentrale Verwaltung von Benutzern, Standorten, Aufgaben, Rezepten, E-Mail und Erscheinungsbild.
           </p>
         </div>
 
@@ -1907,7 +1906,7 @@ export const AdminManagementView: React.FC = () => {
         </div>
       )}
 
-      {/* SUBTAB: CHORES (AUFGABEN-VORLAGEN & DAUERPLÄNE) */}
+      {/* SUBTAB: CHORES (AUFGABEN & DAUERPLÄNE) */}
       {activeSubTab === 'chores' && (
         <div className="space-y-6">
           {/* Header & Controls */}
@@ -1919,36 +1918,19 @@ export const AdminManagementView: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-xl font-display font-bold text-white tracking-tight">
-                    Aufgaben-Vorlagen & Dauerpläne
+                    Aufgaben & Dauerpläne
                   </h3>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    Definiere wiederkehrende Aufgaben-Standards und den wöchentlichen Dauerplan für deinen Standort.
+                    Definiere wiederkehrende Aufgaben und den wöchentlichen Dauerplan für deinen Standort.
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-3 flex-wrap">
-                {/* Location Switcher */}
-                {locations.length > 1 && (
-                  <div className="flex items-center gap-2 bg-surface-elevated px-3 py-2 rounded-xl border border-surface-border text-xs">
-                    <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                    <span className="text-slate-400 font-medium">Standort:</span>
-                    <select
-                      value={selectedChoreLocId}
-                      onChange={(e) => {
-                        setSelectedChoreLocId(e.target.value);
-                        fetchChoreTemplates(e.target.value);
-                      }}
-                      className="bg-transparent text-white font-semibold focus:outline-none cursor-pointer"
-                    >
-                      {locations.map((loc) => (
-                        <option key={loc.id} value={loc.id} className="bg-surface-card text-white">
-                          {loc.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
+                <div className="inline-flex items-center gap-2 bg-surface-elevated px-3 py-2 rounded-2xl border border-surface-border text-xs text-slate-300 font-medium">
+                  <Building2 className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>WG {activeLocation?.name || 'Aktueller Standort'}</span>
+                </div>
 
                 <button
                   type="button"
@@ -1956,7 +1938,7 @@ export const AdminManagementView: React.FC = () => {
                   className="btn-theme-gradient px-4 py-2.5 rounded-2xl text-xs font-semibold flex items-center gap-2 cursor-pointer shadow-md shadow-indigo-600/20 hover:shadow-indigo-600/35 transition-all"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Neue Vorlage anlegen</span>
+                  <span>Neue Aufgabe anlegen</span>
                 </button>
               </div>
             </div>
@@ -1965,7 +1947,7 @@ export const AdminManagementView: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="p-4 rounded-2xl bg-surface-elevated/40 border border-surface-border flex items-center justify-between">
                 <div>
-                  <span className="text-slate-400 text-xs font-medium block">Vorlagen gesamt</span>
+                  <span className="text-slate-400 text-xs font-medium block">Aufgaben gesamt</span>
                   <span className="text-xl font-bold text-white font-display mt-0.5 block">
                     {choreTemplates.length}
                   </span>
@@ -2020,7 +2002,7 @@ export const AdminManagementView: React.FC = () => {
               </div>
             )}
 
-            {/* Sub-Tabs: Vorlagen-Katalog vs Wöchentlicher Dauerplan */}
+            {/* Sub-Tabs: Aufgaben-Katalog vs Wöchentlicher Dauerplan */}
             <div className="flex items-center gap-2 border-b border-surface-border pb-3">
               <button
                 type="button"
@@ -2032,7 +2014,7 @@ export const AdminManagementView: React.FC = () => {
                 }`}
               >
                 <ListTodo className="w-4 h-4" />
-                <span>Vorlagen-Katalog ({choreTemplates.length})</span>
+                <span>Aufgaben-Katalog ({choreTemplates.length})</span>
               </button>
               <button
                 type="button"
@@ -2100,7 +2082,7 @@ export const AdminManagementView: React.FC = () => {
                 {/* Templates List */}
                 {isLoadingChores ? (
                   <div className="py-12 text-center text-xs text-slate-400">
-                    Vorlagen werden geladen...
+                    Aufgaben werden geladen...
                   </div>
                 ) : (() => {
                   const filtered = choreTemplates.filter((tmpl) => {
@@ -2130,8 +2112,8 @@ export const AdminManagementView: React.FC = () => {
                         </div>
                         <p className="text-xs text-slate-400 font-medium">
                           {choreSearch
-                            ? 'Keine Vorlagen gefunden, die deiner Suche entsprechen.'
-                            : 'Noch keine Aufgaben-Vorlagen an diesem Standort vorhanden.'}
+                            ? 'Keine Aufgaben gefunden, die deiner Suche entsprechen.'
+                            : 'Noch keine Aufgaben an diesem Standort vorhanden.'}
                         </p>
                         {!choreSearch && (
                           <button
@@ -2140,7 +2122,7 @@ export const AdminManagementView: React.FC = () => {
                             className="btn-theme-gradient px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer shadow-md inline-flex items-center gap-1.5"
                           >
                             <Plus className="w-3.5 h-3.5" />
-                            <span>Erste Vorlage anlegen</span>
+                            <span>Erste Aufgabe anlegen</span>
                           </button>
                         )}
                       </div>
@@ -2187,7 +2169,7 @@ export const AdminManagementView: React.FC = () => {
                                     type="button"
                                     onClick={() => openEditChoreModal(tmpl)}
                                     className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
-                                    title="Vorlage bearbeiten"
+                                    title="Aufgabe bearbeiten"
                                   >
                                     <Pencil className="w-3.5 h-3.5" />
                                   </button>
@@ -2195,7 +2177,7 @@ export const AdminManagementView: React.FC = () => {
                                     type="button"
                                     onClick={() => handleDeleteChoreTemplate(tmpl.id, tmpl.title)}
                                     className="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition-colors cursor-pointer"
-                                    title="Vorlage löschen"
+                                    title="Aufgabe löschen"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
                                   </button>
@@ -2398,11 +2380,11 @@ export const AdminManagementView: React.FC = () => {
                     <div>
                       <h3 className="text-lg font-bold text-white font-sans">
                         {choreModalMode === 'create'
-                          ? 'Neue Aufgaben-Vorlage'
-                          : 'Aufgaben-Vorlage bearbeiten'}
+                          ? 'Neue Aufgabe'
+                          : 'Aufgabe bearbeiten'}
                       </h3>
                       <p className="text-xs text-slate-400 mt-0.5">
-                        WG {locations.find((l) => l.id === selectedChoreLocId)?.name || 'Standard'}
+                        WG {activeLocation?.name || locations.find((l) => l.id === activeLocationId)?.name || 'Standard'}
                       </p>
                     </div>
                   </div>
@@ -2603,7 +2585,7 @@ export const AdminManagementView: React.FC = () => {
                       type="submit"
                       className="btn-theme-gradient px-5 py-2 rounded-xl text-xs font-semibold cursor-pointer shadow-md"
                     >
-                      {choreModalMode === 'create' ? 'Vorlage anlegen' : 'Änderungen speichern'}
+                      {choreModalMode === 'create' ? 'Aufgabe anlegen' : 'Änderungen speichern'}
                     </button>
                   </div>
                 </form>

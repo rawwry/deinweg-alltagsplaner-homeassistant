@@ -233,8 +233,8 @@ router.get('/templates', requireAuth, async (req: Request, res: Response) => {
 
     return res.json(enrichedTemplates);
   } catch (err) {
-    console.error('Fehler beim Laden der Aufgaben-Vorlagen:', err);
-    return res.status(500).json({ error: 'Fehler beim Laden der Aufgaben-Vorlagen.' });
+    console.error('Fehler beim Laden der Aufgaben:', err);
+    return res.status(500).json({ error: 'Fehler beim Laden der Aufgaben.' });
   }
 });
 
@@ -269,8 +269,8 @@ router.post('/templates', requireAuth, requireRole('ADMIN', 'BETREUER'), async (
 
     return res.status(201).json(template);
   } catch (err) {
-    console.error('Fehler beim Erstellen der Aufgaben-Vorlage:', err);
-    return res.status(500).json({ error: 'Fehler beim Erstellen der Aufgaben-Vorlage.' });
+    console.error('Fehler beim Erstellen der Aufgabe:', err);
+    return res.status(500).json({ error: 'Fehler beim Erstellen der Aufgabe.' });
   }
 });
 
@@ -282,7 +282,7 @@ router.put('/templates/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), asyn
 
     const existing = await prisma.choreTemplate.findUnique({ where: { id } });
     if (!existing) {
-      return res.status(404).json({ error: 'Aufgaben-Vorlage nicht gefunden.' });
+      return res.status(404).json({ error: 'Aufgabe nicht gefunden.' });
     }
 
     let assignedResidentIdsStr: string | null | undefined = undefined;
@@ -308,8 +308,8 @@ router.put('/templates/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), asyn
 
     return res.json(updated);
   } catch (err) {
-    console.error('Fehler beim Aktualisieren der Aufgaben-Vorlage:', err);
-    return res.status(500).json({ error: 'Fehler beim Aktualisieren der Aufgaben-Vorlage.' });
+    console.error('Fehler beim Aktualisieren der Aufgabe:', err);
+    return res.status(500).json({ error: 'Fehler beim Aktualisieren der Aufgabe.' });
   }
 });
 
@@ -319,7 +319,7 @@ router.delete('/templates/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), a
     const { id } = req.params;
     const existing = await prisma.choreTemplate.findUnique({ where: { id } });
     if (!existing) {
-      return res.status(404).json({ error: 'Aufgaben-Vorlage nicht gefunden.' });
+      return res.status(404).json({ error: 'Aufgabe nicht gefunden.' });
     }
 
     await prisma.choreTemplate.update({
@@ -329,8 +329,8 @@ router.delete('/templates/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), a
 
     return res.json({ success: true });
   } catch (err) {
-    console.error('Fehler beim Deaktivieren der Aufgaben-Vorlage:', err);
-    return res.status(500).json({ error: 'Fehler beim Deaktivieren der Aufgaben-Vorlage.' });
+    console.error('Fehler beim Deaktivieren der Aufgabe:', err);
+    return res.status(500).json({ error: 'Fehler beim Deaktivieren der Aufgabe.' });
   }
 });
 

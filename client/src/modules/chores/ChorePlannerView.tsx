@@ -982,10 +982,10 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
               type="button"
               onClick={() => setCurrentTab('admin')}
               className="px-3.5 py-2 rounded-2xl bg-surface-elevated hover:bg-surface-elevated/80 border border-surface-border text-slate-200 text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer"
-              title="Aufgaben-Vorlagen in den Einstellungen verwalten"
+              title="Aufgaben in den Einstellungen verwalten"
             >
               <Settings className="w-4 h-4 text-indigo-400" />
-              <span>Vorlagen bearbeiten</span>
+              <span>Aufgaben verwalten</span>
             </button>
           )}
         </div>
@@ -1155,10 +1155,10 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
             🧹
           </div>
           <h2 className="text-xl font-bold text-white font-sans">
-            Noch keine Aufgaben-Vorlagen angelegt
+            Noch keine Aufgaben angelegt
           </h2>
           <p className="text-xs text-slate-400 max-w-md mx-auto">
-            Betreuer können in den Einstellungen Vorlagen wie Zimmerreinigung, Küche & Abwasch oder Mülldienst anlegen, um diesen Aufgabenplan zu befüllen.
+            Betreuer können in den Einstellungen Aufgaben wie Zimmerreinigung, Küche & Abwasch oder Mülldienst anlegen, um diesen Aufgabenplan zu befüllen.
           </p>
           {isStaff && setCurrentTab && (
             <button
@@ -1167,7 +1167,7 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
               className="btn-theme-gradient px-5 py-2.5 rounded-2xl text-xs font-semibold inline-flex items-center gap-2 cursor-pointer shadow-lg"
             >
               <Plus className="w-4 h-4" />
-              <span>Vorlagen jetzt anlegen</span>
+              <span>Aufgaben jetzt anlegen</span>
             </button>
           )}
         </div>

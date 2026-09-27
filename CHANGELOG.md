@@ -3,6 +3,19 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.46] - 2026-09-27
+
+### Neu & Verbessert
+- **Neues offizielles App- & Touch-Icon / Home Assistant Add-on Icon**:
+  - Neues Punk-Skull-Icon mit überkreuzten Besen als einheitliches Icon-Set integriert.
+  - Generierung aller Bildgrößen: `icon.png` (512x512) und `logo.png` (512x512) für das Home Assistant Add-on sowie PWA-Icons (`icon-512.png`, `icon-192.png`, `icon-32.png`, `apple-touch-icon.png`, `favicon.png`, `favicon.ico`).
+- **Bereinigung & Umbenennung: „Aufgaben-Vorlagen“ heißt nun „Aufgaben“**:
+  - Konsequente Vereinheitlichung aller Begriffe in der Navigation, Kopfzeilen, Reitern, Modals und Hinweisen auf *„Aufgaben“* statt *„Aufgaben-Vorlagen“* bzw. *„Vorlagen“*.
+- **Strikte Standort-Trennung & Entfernung des doppelten Standort-Dropdowns (`AdminManagementView.tsx`, `routes.ts`)**:
+  - **Single Source of Truth**: Das redundante lokale Standort-Dropdown im Reiter *Aufgaben* wurde entfernt. Alle Aktionen und Anzeigen synchronisieren sich nun direkt mit dem globalen Standort-Auswahlmenü in der oberen Kopfleiste.
+  - **Kein Standort-Leck mehr**: Aufgaben werden absolut strikt nach dem aktiven Standort gefiltert und neu angelegte Aufgaben immer dem aktuell gewählten Standort zugewiesen. Standort A sieht garantiert nur noch Aufgaben von Standort A.
+  - **Robuste Query-Bereinigung**: Server-seitige Absicherung in `resolveLocationId`, damit Query-Parameter wie `'undefined'` oder `'null'` sauber ignoriert und auf den aktiven Standort aufgelöst werden.
+
 ## [0.1.45] - 2026-09-27
 
 ### Neu & Verbessert
