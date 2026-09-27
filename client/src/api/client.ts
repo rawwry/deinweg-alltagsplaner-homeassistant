@@ -301,6 +301,13 @@ export const api = {
       assignedResidentIds?: string[] | string | null;
       isRecurring?: boolean;
     }) => request<any>('chores/assign', { method: 'POST', body: JSON.stringify(body) }),
+    removeFromDay: (body: {
+      locationId: string;
+      templateId: string;
+      date: string;
+      dayOfWeek?: number;
+      deleteRecurring?: boolean;
+    }) => request<{ success: boolean }>('chores/remove-from-day', { method: 'POST', body: JSON.stringify(body) }),
     recurring: (locationId?: string) =>
       request<any[]>(`chores/recurring${locationId ? `?locationId=${locationId}` : ''}`),
     saveWeekAsRecurring: (body: { locationId: string; year: number; weekNumber: number }) =>

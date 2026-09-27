@@ -25,7 +25,7 @@ const DEFAULT_CHORE_TEMPLATES = [
     title: 'Zimmerreinigung',
     description: 'Eigenes Zimmer lüften, aufräumen, Boden saugen und Mülleimer leeren.',
     icon: '🧹',
-    assignedResidentIds: JSON.stringify(['ALL']),
+    assignedResidentIds: null,
   },
   {
     title: 'Müll & Recycling',
@@ -160,18 +160,6 @@ async function ensureDefaultTemplates(locationId: string) {
         },
       });
     }
-  } else {
-    // If Zimmerreinigung exists without assignedResidentIds, set to ALL as default
-    await prisma.choreTemplate.updateMany({
-      where: {
-        locationId,
-        title: 'Zimmerreinigung',
-        assignedResidentIds: null,
-      },
-      data: {
-        assignedResidentIds: JSON.stringify(['ALL']),
-      },
-    });
   }
 }
 
@@ -445,8 +433,8 @@ router.get('/week', requireAuth, async (req: Request, res: Response) => {
         locationResidents
       );
 
-      // If assignment has no explicit setting (assignedResidentIds === null) or resolved to empty, inherit template default
-      if ((assign.assignedResidentIds === null || resolved.residentIds.length === 0) && assign.template?.assignedResidentIds) {
+      // If assignment has no explicit setting (assignedResidentIds === null), inherit template default
+      if (assign.assignedResidentIds === null && assign.template?.assignedResidentIds) {
         resolved = resolveResidents(
           assign.template.assignedResidentIds,
           assign.residentId,
@@ -621,73 +609,6 @@ router.post('/assign', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req
       }
     }
 
-    // If ids is empty, unassign this date
-    if (ids.length === 0) {
-      const template = await prisma.choreTemplate.findUnique({ where: { id: templateId } });
-      const hasTemplateDefault = !!template?.assignedResidentIds;
-
-      if (hasTemplateDefault || isRecurring === false) {
-        // Store explicit empty array '[]' to override template default or recurring for this date
-        const assignment = await prisma.choreAssignment.upsert({
-          where: {
-            locationId_templateId_date: {
-              locationId,
-              templateId,
-              date,
-            },
-          },
-          update: {
-            residentId: null,
-            assignedResidentIds: JSON.stringify([]),
-            year: Number(year),
-            weekNumber: Number(weekNumber),
-            dayOfWeek: Number(dayOfWeek),
-          },
-          create: {
-            locationId,
-            templateId,
-            date,
-            year: Number(year),
-            weekNumber: Number(weekNumber),
-            dayOfWeek: Number(dayOfWeek),
-            residentId: null,
-            assignedResidentIds: JSON.stringify([]),
-            isCompleted: false,
-          },
-          include: {
-            resident: true,
-            template: true,
-          },
-        });
-        return res.json({ success: true, assignment, isRecurring: Boolean(isRecurring) });
-      } else {
-        const existing = await prisma.choreAssignment.findUnique({
-          where: {
-            locationId_templateId_date: {
-              locationId,
-              templateId,
-              date,
-            },
-          },
-        });
-
-        if (existing) {
-          if (!existing.isCompleted) {
-            await prisma.choreAssignment.delete({ where: { id: existing.id } });
-            return res.json({ success: true, assignment: null, isRecurring: false });
-          } else {
-            const updated = await prisma.choreAssignment.update({
-              where: { id: existing.id },
-              data: { residentId: null, assignedResidentIds: JSON.stringify([]) },
-              include: { resident: true, template: true },
-            });
-            return res.json({ success: true, assignment: updated, isRecurring: false });
-          }
-        }
-        return res.json({ success: true, assignment: null, isRecurring: false });
-      }
-    }
-
     // Upsert assignment for this date
     const assignment = await prisma.choreAssignment.upsert({
       where: {
@@ -740,6 +661,43 @@ router.post('/assign', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req
   } catch (err) {
     console.error('Fehler beim Zuweisen der Aufgabe:', err);
     return res.status(500).json({ error: 'Fehler beim Zuweisen der Aufgabe.' });
+  }
+});
+
+// Remove chore assignment completely from a day
+router.post('/remove-from-day', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
+  try {
+    const locationId = resolveLocationId(req);
+    const { templateId, date, dayOfWeek, deleteRecurring } = req.body;
+
+    if (!templateId || !date) {
+      return res.status(400).json({ error: 'templateId und date erforderlich.' });
+    }
+
+    // 1. Delete explicit assignment for this date
+    await prisma.choreAssignment.deleteMany({
+      where: {
+        locationId,
+        templateId,
+        date,
+      },
+    });
+
+    // 2. If dayOfWeek provided, delete recurring assignment as well
+    if (dayOfWeek !== undefined && deleteRecurring !== false) {
+      await prisma.choreRecurringAssignment.deleteMany({
+        where: {
+          locationId,
+          templateId,
+          dayOfWeek: Number(dayOfWeek),
+        },
+      });
+    }
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('Fehler beim Entfernen der Aufgabe vom Tag:', err);
+    return res.status(500).json({ error: 'Fehler beim Entfernen der Aufgabe vom Tag.' });
   }
 });
 
@@ -1362,8 +1320,19 @@ router.get('/today', requireAuth, async (req: Request, res: Response) => {
       }),
     ]);
 
-    // Map each active template to today's assignment status
-    const todayItems = templates.map((tmpl) => {
+    // Only include templates that are actually scheduled for today:
+    // 1. Has an explicit assignment in DB for today
+    // 2. Has an active recurring assignment rule for today
+    // 3. Or template has non-empty default assigned resident IDs
+    const scheduledTemplates = templates.filter((tmpl) => {
+      const match = assignments.find((a) => a.templateId === tmpl.id);
+      const recurring = recurringAssignments.find((r) => r.templateId === tmpl.id);
+      const hasTemplateDefault = !!tmpl.assignedResidentIds && parseResidentIds(tmpl.assignedResidentIds).length > 0;
+      return !!match || !!recurring || hasTemplateDefault;
+    });
+
+    // Map each scheduled template to today's assignment status
+    const todayItems = scheduledTemplates.map((tmpl) => {
       const match = assignments.find((a) => a.templateId === tmpl.id);
       const recurring = recurringAssignments.find((r) => r.templateId === tmpl.id);
 

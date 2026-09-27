@@ -3,6 +3,29 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.53] - 2026-09-27
+
+### Neu & Verbessert
+- **Aufgabenplan – Tagesbasierte Einteilung & Beseitigung der Vorbefüllung (`ChorePlannerView.tsx`, `server/src/modules/chores/routes.ts`)**:
+  - **Keine automatische Vorbefüllung mehr**: Bisher wurden alle erstellten Aufgaben-Vorlagen mit „Freier Einteilung“ automatisch auf jeden Wochentag gelegt und leuchteten dort in Rot („Zuweisung erforderlich“). Nun starten alle Wochentage sauber und leer (sofern keine Aufgabe für diesen Tag eingeteilt ist oder eine Kochaufgabe ansteht).
+  - **Tagesgenaue Aufgabenerstellung („+ Aufgabe hinzufügen“)**:
+    - Betreuer können für jeden einzelnen Wochentag flexibel festlegen, welche Aufgaben an diesem Tag stattfinden sollen.
+    - An leeren Tagen erscheint ein freundlicher Hinweis mit dem Button *„+ Aufgabe hinzufügen“*.
+    - An Tagen mit bereits eingeteilten Aufgaben steht am Ende der Aufgabenliste ein dezenter Button *„+ Aufgabe hinzufügen“* bereit.
+  - **Zweistufiger Einteilungs-Dialog (`assignModal`)**:
+    - Klickt ein Betreuer auf *„+ Aufgabe hinzufügen“*, öffnet sich ein übersichtlicher Katalog zur Auswahl der gewünschten Aufgabe (bereits auf dem Tag vorhandene Aufgaben werden gekennzeichnet).
+    - Nach Auswahl kann die Zuweisung direkt vorgenommen werden: *„Allen Bewohnern zuweisen“*, individuelle Bewohner-Auswahl per Checkbox oder Zuweisung an die Haushaltskraft.
+    - Die Option *„Wöchentlich wiederholen (Dauerplan)“* kann bei Bedarf direkt aktiviert werden, um die Aufgabe automatisch jede Woche an diesem Tag einzuteilen.
+  - **Aufgaben vom Tag entfernen (`Trash2` / „Vom Tag entfernen“)**:
+    - Jede eingeteilte Aufgabenkarte bietet Betreuern nun ein praktisches Papierkorb-Icon zum Entfernen vom jeweiligen Tag.
+    - Im Einteilungs-Dialog gibt es für bestehende Aufgaben die Aktion *„Vom Tag entfernen“*.
+    - Neuer Backend-Endpunkt `POST /chores/remove-from-day` zum sauberen Löschen der Zuweisung (inklusive etwaiger Wiederholungsregeln).
+- **Bereinigung Header (`ChorePlannerView.tsx`)**:
+  - Der unpassende Button **„Aufgaben verwalten“**, der irreführend in das Einstellungsmenü führte, wurde ersatzlos aus der Kopfzeile des Aufgabenplans entfernt.
+- **Backend-Bereinigung (`server/src/modules/chores/routes.ts`)**:
+  - Standard-Vorlage `Zimmerreinigung` startet nun ebenfalls standardmäßig mit `assignedResidentIds: null` („Freie Einteilung“), und ein automatisches Überschreiben auf `['ALL']` in `ensureDefaultTemplates` wurde entfernt.
+  - Das Dashboard-Widget `GET /chores/today` zeigt nun ausschließlich Aufgaben an, die tatsächlich für den heutigen Tag eingeteilt wurden.
+
 ## [0.1.52] - 2026-09-27
 
 ### Neu & Verbessert
