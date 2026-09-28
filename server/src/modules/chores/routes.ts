@@ -6,12 +6,16 @@ import { requireRole } from '../../middleware/rbac.js';
 const router = Router();
 
 // Helper to determine target location for a request
-function resolveLocationId(req: Request): string {
+async function resolveLocationId(req: Request): Promise<string> {
   const queryLoc = (req.query.locationId as string) || (req.body?.locationId as string);
   if (queryLoc && queryLoc.trim()) {
     return queryLoc.trim();
   }
-  return req.user?.locationId || 'location-emsdetten';
+  if (req.user?.locationId) {
+    return req.user.locationId;
+  }
+  const firstLoc = await prisma.location.findFirst({ select: { id: true } });
+  return firstLoc?.id || 'location-emsdetten';
 }
 
 const DEFAULT_CHORE_TEMPLATES = [
@@ -165,15 +169,11 @@ async function ensureDefaultTemplates(locationId: string) {
 
 // Calculate Date object for Monday of a given ISO year & weekNumber
 function getMondayOfISOWeek(year: number, week: number): Date {
-  const simple = new Date(Date.UTC(year, 0, 1 + (week - 1) * 7));
-  const dow = simple.getUTCDay();
-  const isoMonday = new Date(simple);
-  if (dow <= 4) {
-    isoMonday.setUTCDate(simple.getUTCDate() - simple.getUTCDay() + 1);
-  } else {
-    isoMonday.setUTCDate(simple.getUTCDate() + 8 - simple.getUTCDay());
-  }
-  return isoMonday;
+  const jan4 = new Date(Date.UTC(year, 0, 4));
+  const day = jan4.getUTCDay() || 7;
+  const monWeek1 = new Date(jan4);
+  monWeek1.setUTCDate(jan4.getUTCDate() - (day - 1) + (week - 1) * 7);
+  return monWeek1;
 }
 
 // Format Date to YYYY-MM-DD
@@ -199,7 +199,7 @@ function getISOWeekAndYear(d: Date): { year: number; week: number } {
 // 1. List templates for location
 router.get('/templates', requireAuth, async (req: Request, res: Response) => {
   try {
-    const locationId = resolveLocationId(req);
+    const locationId = await resolveLocationId(req);
     await ensureDefaultTemplates(locationId);
 
     const [templates, locationResidents] = await Promise.all([
@@ -240,7 +240,7 @@ router.get('/templates', requireAuth, async (req: Request, res: Response) => {
 // 2. Create template
 router.post('/templates', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
   try {
-    const locationId = resolveLocationId(req);
+    const locationId = await resolveLocationId(req);
     const { title, description, icon, sortOrder, assignedResidentIds } = req.body;
 
     if (!title || !title.trim()) {
@@ -338,12 +338,13 @@ router.delete('/templates/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), a
 // 5. Get week plan with all days & assignments
 router.get('/week', requireAuth, async (req: Request, res: Response) => {
   try {
-    const locationId = resolveLocationId(req);
+    const locationId = await resolveLocationId(req);
     await ensureDefaultTemplates(locationId);
 
     const now = new Date();
-    const year = Number(req.query.year) || now.getFullYear();
-    const weekNumber = Number(req.query.weekNumber) || 1;
+    const currentIso = getISOWeekAndYear(now);
+    const year = Number(req.query.year) || currentIso.year;
+    const weekNumber = Number(req.query.weekNumber) || currentIso.week;
 
     // Generate dates for Monday to Sunday
     const monday = getMondayOfISOWeek(year, weekNumber);
@@ -553,7 +554,7 @@ router.get('/week', requireAuth, async (req: Request, res: Response) => {
 // 6. Assign resident(s) to a task on a specific day (with optional weekly recurrence)
 router.post('/assign', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
   try {
-    const locationId = resolveLocationId(req);
+    const locationId = await resolveLocationId(req);
     const { templateId, date, year, weekNumber, dayOfWeek, residentId, assignedResidentIds, isRecurring } = req.body;
 
     if (!templateId || !date || !year || !weekNumber || !dayOfWeek) {
@@ -667,7 +668,7 @@ router.post('/assign', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req
 // Remove chore assignment completely from a day
 router.post('/remove-from-day', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
   try {
-    const locationId = resolveLocationId(req);
+    const locationId = await resolveLocationId(req);
     const { templateId, date, dayOfWeek, deleteRecurring } = req.body;
 
     if (!templateId || !date) {
@@ -706,7 +707,7 @@ router.post('/remove-from-day', requireAuth, requireRole('ADMIN', 'BETREUER'), a
 // List all recurring assignments for location
 router.get('/recurring', requireAuth, async (req: Request, res: Response) => {
   try {
-    const locationId = resolveLocationId(req);
+    const locationId = await resolveLocationId(req);
     const [recurring, templates, locationResidents] = await Promise.all([
       prisma.choreRecurringAssignment.findMany({
         where: { locationId, isActive: true },
@@ -744,7 +745,7 @@ router.get('/recurring', requireAuth, async (req: Request, res: Response) => {
 // Save current week's assignments as recurring schedule for location
 router.post('/save-week-as-recurring', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
   try {
-    const locationId = resolveLocationId(req);
+    const locationId = await resolveLocationId(req);
     const { year, weekNumber } = req.body;
     if (!year || !weekNumber) {
       return res.status(400).json({ error: 'Jahr und Kalenderwoche erforderlich.' });
@@ -825,7 +826,7 @@ router.post('/save-week-as-recurring', requireAuth, requireRole('ADMIN', 'BETREU
 // Copy assignments from source week into following weeks
 router.post('/copy-week', requireAuth, requireRole('ADMIN', 'BETREUER'), async (req: Request, res: Response) => {
   try {
-    const locationId = resolveLocationId(req);
+    const locationId = await resolveLocationId(req);
     const { sourceYear, sourceWeekNumber, targetWeeksCount = 4 } = req.body;
     if (!sourceYear || !sourceWeekNumber) {
       return res.status(400).json({ error: 'Quellwoche erforderlich.' });
@@ -931,7 +932,7 @@ router.delete('/recurring/:id', requireAuth, requireRole('ADMIN', 'BETREUER'), a
 // 7. Toggle completion status of an assignment (Staff & Residents)
 router.post('/toggle-complete', requireAuth, async (req: Request, res: Response) => {
   try {
-    const locationId = resolveLocationId(req);
+    const locationId = await resolveLocationId(req);
     const { assignmentId, templateId, date, year, weekNumber, dayOfWeek, residentId } = req.body;
 
     // Determine who is toggling: resident/housekeeping toggles their own ID; staff can toggle a specific resident or entire chore
@@ -947,7 +948,7 @@ router.post('/toggle-complete', requireAuth, async (req: Request, res: Response)
 
       if (!day) {
         // Fallback: search by date and location
-        const targetLocId = resolveLocationId(req);
+        const targetLocId = await resolveLocationId(req);
         const targetDate = date ? new Date(date) : new Date();
         const { year: curYear, week: curWeek } = getISOWeekAndYear(targetDate);
         const dow = targetDate.getDay() === 0 ? 7 : targetDate.getDay();
@@ -1250,7 +1251,7 @@ router.post('/toggle-complete', requireAuth, async (req: Request, res: Response)
 // 8. Get today's chores for dashboard
 router.get('/today', requireAuth, async (req: Request, res: Response) => {
   try {
-    const locationId = resolveLocationId(req);
+    const locationId = await resolveLocationId(req);
     await ensureDefaultTemplates(locationId);
 
     const now = new Date();

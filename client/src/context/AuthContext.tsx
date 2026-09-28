@@ -54,8 +54,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Set initial active location
       if (userData.role === 'BEWOHNER' || userData.role === 'HAUSHALTSKRAFT') {
-        if (userData.locationId) {
+        if (userData.locationId && locs.some((l: LocationSummary) => l.id === userData.locationId)) {
           setActiveLocationIdState(userData.locationId);
+        } else if (locs.length > 0) {
+          setActiveLocationIdState(locs[0].id);
         }
       } else {
         const savedLoc = localStorage.getItem('deinweg_active_location');

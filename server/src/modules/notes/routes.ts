@@ -16,7 +16,7 @@ router.get('/count-open', requireAuth, async (req: Request, res: Response) => {
   try {
     const isStaff = req.user!.role === 'ADMIN' || req.user!.role === 'BETREUER';
     const queryLoc = req.query.locationId as string | undefined;
-    const locationId = isStaff ? queryLoc : req.user!.locationId;
+    const locationId = isStaff ? queryLoc : (req.user!.locationId || queryLoc);
 
     // Auto-archive expired notes before counting
     await prisma.caregiverNote.updateMany({
@@ -113,10 +113,10 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
   try {
     const isStaff = req.user!.role === 'ADMIN' || req.user!.role === 'BETREUER';
     const queryLoc = req.query.locationId as string | undefined;
-    if (!isStaff && queryLoc && queryLoc !== req.user!.locationId) {
+    if (!isStaff && queryLoc && req.user?.locationId && queryLoc !== req.user.locationId) {
       return res.status(403).json({ error: 'Zugriff auf fremden Standort verweigert.' });
     }
-    const locationId = isStaff ? queryLoc : req.user!.locationId;
+    const locationId = isStaff ? queryLoc : (req.user!.locationId || queryLoc);
 
     // Auto-archive expired notes
     await prisma.caregiverNote.updateMany({

@@ -24,10 +24,10 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
   try {
     const isStaff = req.user!.role === 'ADMIN' || req.user!.role === 'BETREUER';
     const queryLoc = req.query.locationId as string | undefined;
-    if (!isStaff && queryLoc && queryLoc !== req.user!.locationId) {
+    if (!isStaff && queryLoc && req.user?.locationId && queryLoc !== req.user.locationId) {
       return res.status(403).json({ error: 'Zugriff auf fremden Standort verweigert.' });
     }
-    const locationId = isStaff ? queryLoc : req.user!.locationId;
+    const locationId = isStaff ? queryLoc : (req.user?.locationId || queryLoc);
 
     const whereClause: any = {};
     if (locationId) {
@@ -134,19 +134,34 @@ router.post('/import-ics', requireAuth, requireRole('ADMIN', 'BETREUER'), async 
       }
     }
 
-    let count = 0;
+    const existing = await prisma.wastePickup.findMany({
+      where: { locationId },
+      select: { date: true, wasteType: true },
+    });
+    const existingSet = new Set(existing.map((e) => `${e.date}_${e.wasteType}`));
+
+    const toCreate: Array<{ locationId: string; date: string; wasteType: WasteType; notes: string }> = [];
     for (const ev of events) {
       const type = mapSummaryToWasteType(ev.summary);
-      await prisma.wastePickup.create({
-        data: {
+      const key = `${ev.date}_${type}`;
+      if (!existingSet.has(key)) {
+        existingSet.add(key);
+        toCreate.push({
           locationId,
           date: ev.date,
           wasteType: type,
           notes: ev.summary,
-        },
-      });
-      count++;
+        });
+      }
     }
+
+    if (toCreate.length > 0) {
+      await prisma.wastePickup.createMany({
+        data: toCreate,
+      });
+    }
+
+    const count = toCreate.length;
 
     return res.json({
       success: true,

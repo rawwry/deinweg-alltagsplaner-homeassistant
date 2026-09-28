@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext.js';
 import { api } from '../../api/client.js';
 import { LocationBudgetSummary } from '../../../../shared/types.js';
+import { getCurrentISOWeekAndYear, getISOWeeksInYear } from '../../utils/formatters.js';
 import {
   PiggyBank,
   Receipt,
@@ -34,18 +35,7 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
   const { user, activeLocationId, activeLocation } = useAuth();
   const isStaff = user?.role?.toUpperCase() === 'ADMIN' || user?.role?.toUpperCase() === 'BETREUER';
 
-  // Current ISO week calculation
-  const getInitialWeek = () => {
-    const now = new Date();
-    const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
-    const dayNum = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    const weekNo = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
-    return { year: d.getUTCFullYear(), week: weekNo };
-  };
-
-  const currentCalendarWeek = getInitialWeek();
+  const currentCalendarWeek = getCurrentISOWeekAndYear();
   const [year, setYear] = useState(currentCalendarWeek.year);
   const [weekNumber, setWeekNumber] = useState(currentCalendarWeek.week);
 
@@ -124,16 +114,18 @@ export const BudgetManagementView: React.FC<BudgetManagementViewProps> = ({ setC
   }, [activeLocationId, year, weekNumber]);
 
   const handlePrevWeek = () => {
-    if (weekNumber === 1) {
-      setYear((y) => y - 1);
-      setWeekNumber(52);
+    if (weekNumber <= 1) {
+      const prevYear = year - 1;
+      setYear(prevYear);
+      setWeekNumber(getISOWeeksInYear(prevYear));
     } else {
       setWeekNumber((w) => w - 1);
     }
   };
 
   const handleNextWeek = () => {
-    if (weekNumber >= 52) {
+    const maxWeeks = getISOWeeksInYear(year);
+    if (weekNumber >= maxWeeks) {
       setYear((y) => y + 1);
       setWeekNumber(1);
     } else {

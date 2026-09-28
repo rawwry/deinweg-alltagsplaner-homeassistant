@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.js';
 import { api } from '../../api/client.js';
-import { formatGermanDate } from '../../utils/formatters.js';
+import { formatGermanDate, getCurrentISOWeekAndYear, getISOWeeksInYear } from '../../utils/formatters.js';
 import {
   Calendar,
   ChevronLeft,
@@ -36,13 +36,9 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
   const isHousekeeping = user?.role === 'HAUSHALTSKRAFT';
 
   const now = new Date();
-  // Get current ISO calendar week
-  const dateCopy = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
-  const dayNum = dateCopy.getUTCDay() || 7;
-  dateCopy.setUTCDate(dateCopy.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(dateCopy.getUTCFullYear(), 0, 1));
-  const realCurrentWeek = Math.ceil(((dateCopy.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
-  const realCurrentYear = dateCopy.getUTCFullYear();
+  const currentIso = getCurrentISOWeekAndYear(now);
+  const realCurrentWeek = currentIso.week;
+  const realCurrentYear = currentIso.year;
 
   const [year, setYear] = useState<number>(realCurrentYear);
   const [weekNumber, setWeekNumber] = useState<number>(realCurrentWeek);
@@ -269,15 +265,17 @@ export const ChorePlannerView: React.FC<ChorePlannerViewProps> = ({ setCurrentTa
   // Week navigation helpers
   const handlePrevWeek = () => {
     if (weekNumber <= 1) {
-      setYear((y) => y - 1);
-      setWeekNumber(52);
+      const prevYear = year - 1;
+      setYear(prevYear);
+      setWeekNumber(getISOWeeksInYear(prevYear));
     } else {
       setWeekNumber((w) => w - 1);
     }
   };
 
   const handleNextWeek = () => {
-    if (weekNumber >= 52) {
+    const maxWeeks = getISOWeeksInYear(year);
+    if (weekNumber >= maxWeeks) {
       setYear((y) => y + 1);
       setWeekNumber(1);
     } else {

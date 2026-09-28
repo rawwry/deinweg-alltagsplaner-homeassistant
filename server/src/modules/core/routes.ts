@@ -17,6 +17,7 @@ router.get('/system/info', (_req: Request, res: Response) => {
     version: APP_VERSION,
     modules: [
       { id: 'foodplanner', name: 'Essens- & Einkaufsplaner', status: 'ACTIVE' },
+      { id: 'chores', name: 'Aufgaben- & Haushaltsplaner', status: 'ACTIVE' },
       { id: 'notes', name: 'Bewohner-Notizen & Infos', status: 'ACTIVE' },
       { id: 'waste', name: 'Standort-Abfallkalender', status: 'ACTIVE' },
     ],
@@ -241,7 +242,7 @@ router.get('/locations', requireAuth, async (req: Request, res: Response) => {
     const isStaff = req.user!.role === 'ADMIN' || req.user!.role === 'BETREUER';
 
     const locations = await prisma.location.findMany({
-      where: isStaff ? undefined : { id: req.user!.locationId || 'none' },
+      where: isStaff || !req.user?.locationId ? undefined : { id: req.user.locationId },
       include: {
         defaultSupermarket: true,
         users: {

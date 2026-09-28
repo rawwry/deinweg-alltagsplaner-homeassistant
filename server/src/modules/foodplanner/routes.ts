@@ -6,15 +6,26 @@ import { aggregateWeeklyShoppingList } from './aggregation.js';
 
 const router = Router();
 
+// Helper to calculate current ISO calendar week and year accurately
+function getCurrentISOWeekAndYear(now = new Date()): { year: number; week: number } {
+  const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const week = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  const year = d.getUTCFullYear();
+  return { year, week };
+}
+
 // Helper to determine target location for a request
 function resolveLocationId(req: Request): string | null {
   const queryLoc = (req.query.locationId as string) || (req.body?.locationId as string);
   const userRole = req.user?.role?.toUpperCase();
   if (userRole === 'BEWOHNER') {
-    if (queryLoc && queryLoc !== req.user?.locationId) {
+    if (queryLoc && req.user?.locationId && queryLoc !== req.user.locationId) {
       return null; // Resident attempted to access another location!
     }
-    return req.user?.locationId || null;
+    return req.user?.locationId || queryLoc || null;
   }
   return queryLoc || req.user?.locationId || null;
 }
@@ -666,8 +677,9 @@ router.get('/mealplan', requireAuth, async (req: Request, res: Response) => {
     }
     const locationId = location.id;
 
-    const year = Number(req.query.year) || new Date().getFullYear();
-    const weekNumber = Number(req.query.weekNumber) || 36;
+    const currentIso = getCurrentISOWeekAndYear();
+    const year = Number(req.query.year) || currentIso.year;
+    const weekNumber = Number(req.query.weekNumber) || currentIso.week;
 
     let mealPlan = await prisma.mealPlan.findUnique({
       where: {
@@ -916,8 +928,9 @@ router.get('/shopping-list', requireAuth, async (req: Request, res: Response) =>
     }
     const locationId = location.id;
 
-    const year = Number(req.query.year) || new Date().getFullYear();
-    const weekNumber = Number(req.query.weekNumber) || 36;
+    const currentIso = getCurrentISOWeekAndYear();
+    const year = Number(req.query.year) || currentIso.year;
+    const weekNumber = Number(req.query.weekNumber) || currentIso.week;
 
     const data = await aggregateWeeklyShoppingList(locationId, year, weekNumber);
     return res.json(data);
@@ -1060,17 +1073,12 @@ router.delete('/shopping-list/custom-item/:id', requireAuth, async (req: Request
 
 function isWeekClosedBySunday(year: number, weekNumber: number): boolean {
   const now = new Date();
-  const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  const currentWeek = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-  const currentYear = d.getUTCFullYear();
+  const current = getCurrentISOWeekAndYear(now);
 
-  if (year < currentYear) return true;
-  if (year > currentYear) return false;
-  if (weekNumber < currentWeek) return true;
-  if (weekNumber > currentWeek) return false;
+  if (year < current.year) return true;
+  if (year > current.year) return false;
+  if (weekNumber < current.week) return true;
+  if (weekNumber > current.week) return false;
 
   // On Sunday (getDay() === 0), current week automatically closes
   return now.getDay() === 0;
@@ -1092,8 +1100,9 @@ router.get('/budget', requireAuth, async (req: Request, res: Response) => {
     }
     const locationId = location.id;
 
-    const year = Number(req.query.year) || new Date().getFullYear();
-    const weekNumber = Number(req.query.weekNumber) || 36;
+    const currentIso = getCurrentISOWeekAndYear();
+    const year = Number(req.query.year) || currentIso.year;
+    const weekNumber = Number(req.query.weekNumber) || currentIso.week;
 
     const defaultWeeklyBudget = location.weeklyBudget ?? 350.0;
 

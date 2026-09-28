@@ -3,7 +3,12 @@ import { createPortal } from 'react-dom';
 import { useAuth } from '../../context/AuthContext.js';
 import { api } from '../../api/client.js';
 import { RecipeSelectModal } from './RecipeSelectModal.js';
-import { formatGermanDate } from '../../utils/formatters.js';
+import {
+  formatGermanDate,
+  getCurrentISOWeekAndYear,
+  getISOWeeksInYear,
+  getDateForISOWeekDay,
+} from '../../utils/formatters.js';
 import {
   Calendar,
   ChevronLeft,
@@ -88,18 +93,7 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
   const { user, activeLocationId, activeLocation, refreshLocations } = useAuth();
   const isStaff = user?.role === 'BETREUER' || user?.role === 'ADMIN';
 
-  // Get current ISO calendar week
-  const getInitialWeek = () => {
-    const now = new Date();
-    const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
-    const dayNum = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-    return { year: d.getUTCFullYear(), week: weekNo };
-  };
-
-  const initial = getInitialWeek();
+  const initial = getCurrentISOWeekAndYear();
   const [year, setYear] = useState(initial.year);
   const [weekNumber, setWeekNumber] = useState(initial.week);
 
@@ -152,16 +146,18 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
   }, [activeLocationId, year, weekNumber]);
 
   const handlePrevWeek = () => {
-    if (weekNumber === 1) {
-      setYear((y) => y - 1);
-      setWeekNumber(52);
+    if (weekNumber <= 1) {
+      const prevYear = year - 1;
+      setYear(prevYear);
+      setWeekNumber(getISOWeeksInYear(prevYear));
     } else {
       setWeekNumber((w) => w - 1);
     }
   };
 
   const handleNextWeek = () => {
-    if (weekNumber >= 52) {
+    const maxWeeks = getISOWeeksInYear(year);
+    if (weekNumber >= maxWeeks) {
       setYear((y) => y + 1);
       setWeekNumber(1);
     } else {
@@ -170,7 +166,7 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
   };
 
   const handleResetToCurrent = () => {
-    const cur = getInitialWeek();
+    const cur = getCurrentISOWeekAndYear();
     setYear(cur.year);
     setWeekNumber(cur.week);
   };
@@ -277,20 +273,9 @@ export const MealPlanView: React.FC<MealPlanViewProps> = ({ setCurrentTab, onOpe
     }
   };
 
-  // Helper to calculate date for day of week
+  // Helper to calculate date for day of week (ISO-8601 strictly aligned)
   const getDateForDay = (dayOfWeek: number): string => {
-    // 1=Mon, 7=Sun
-    const simple = new Date(year, 0, 1 + (weekNumber - 1) * 7);
-    const dow = simple.getDay();
-    const ISOweekStart = simple;
-    if (dow <= 4) {
-      ISOweekStart.setDate(simple.getDate() - simple.getDay() + 1);
-    } else {
-      ISOweekStart.setDate(simple.getDate() + 8 - simple.getDay());
-    }
-    const target = new Date(ISOweekStart);
-    target.setDate(ISOweekStart.getDate() + (dayOfWeek - 1));
-    return formatGermanDate(target);
+    return getDateForISOWeekDay(year, weekNumber, dayOfWeek);
   };
 
   const isCurrentWeek = weekNumber === initial.week && year === initial.year;

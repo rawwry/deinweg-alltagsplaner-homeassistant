@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext.js';
 import { api } from '../../api/client.js';
+import { getCurrentISOWeekAndYear, getISOWeeksInYear } from '../../utils/formatters.js';
 import {
   ShoppingCart,
   ChevronLeft,
@@ -39,23 +40,14 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
   const { user, activeLocationId, activeLocation } = useAuth();
   const isStaff = user?.role?.toUpperCase() === 'ADMIN' || user?.role?.toUpperCase() === 'BETREUER';
 
-  const getInitialWeek = () => {
-    const now = new Date();
-    const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
-    const dayNum = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-    return { year: d.getUTCFullYear(), week: weekNo };
-  };
-
-  const initial = getInitialWeek();
+  const initial = getCurrentISOWeekAndYear();
   const [year, setYear] = useState(initial.year);
   const [weekNumber, setWeekNumber] = useState(initial.week);
   const isCurrentWeek = weekNumber === initial.week && year === initial.year;
   const handleResetToCurrent = () => {
-    setYear(initial.year);
-    setWeekNumber(initial.week);
+    const cur = getCurrentISOWeekAndYear();
+    setYear(cur.year);
+    setWeekNumber(cur.week);
   };
 
   const [shoppingData, setShoppingData] = useState<any>(null);
@@ -111,16 +103,18 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ setCurrentTa
   }, [activeLocationId, year, weekNumber]);
 
   const handlePrevWeek = () => {
-    if (weekNumber === 1) {
-      setYear((y) => y - 1);
-      setWeekNumber(52);
+    if (weekNumber <= 1) {
+      const prevYear = year - 1;
+      setYear(prevYear);
+      setWeekNumber(getISOWeeksInYear(prevYear));
     } else {
       setWeekNumber((w) => w - 1);
     }
   };
 
   const handleNextWeek = () => {
-    if (weekNumber >= 52) {
+    const maxWeeks = getISOWeeksInYear(year);
+    if (weekNumber >= maxWeeks) {
       setYear((y) => y + 1);
       setWeekNumber(1);
     } else {

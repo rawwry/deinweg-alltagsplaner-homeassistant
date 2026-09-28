@@ -3,6 +3,27 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.1.56] - 2026-09-28
+
+### Behoben & Verbessert (Umfassendes Qualitäts- & Fehler-Audit)
+- **Eliminierung verschobener Datumsangaben im Kochplan (`MealPlanView.tsx`, `formatters.ts`)**:
+  - **Präzise ISO-8601-Datumsberechnung**: Die bisherige Datumsberechnung für Wochentage im Essensplan beruhte auf einer fehleranfälligen lokalen `Date`-Verschiebung, die bei Monats- und Sommer-/Winterzeitübergängen sowie an Sonntagen (JavaScript `getDay() === 0`) um eine gesamte Woche verschoben sein konnte.
+  - **Zentrale Hilfsfunktion `getDateForISOWeekDay`**: Sämtliche Datumsspalten im Kochplan nutzen nun die strikte 4.-Januar-Regel (`getMondayOfISOWeek` & `getDateForISOWeekDay`), wodurch Datumsangaben in jedem Browser und jeder Zeitzone exakt und fehlerfrei dargestellt werden.
+- **Beseitigung statischer Kalenderwochen-Fallbacks im Backend (`foodplanner/routes.ts`, `chores/routes.ts`)**:
+  - In den Endpunkten `/api/food/mealplan`, `/api/food/shopping-list` und `/api/food/budget` wurde der statische Fallback `|| 36` entfernt und durch dynamische ISO-Wochenberechnung (`getCurrentISOWeekAndYear`) ersetzt.
+  - Im Aufgabenplan `/api/chores/week` wurde der statische Fallback `|| 1` ebenfalls durch die aktuelle ISO-Kalenderwoche ersetzt.
+- **Dynamische Kalenderwochen-Navigation & KW-53-Unterstützung (`MealPlanView.tsx`, `ShoppingListView.tsx`, `BudgetManagementView.tsx`, `ChorePlannerView.tsx`)**:
+  - Alle vier Ansichten navigieren bei Jahresgrenzen nun dynamisch via `getISOWeeksInYear(year)`, sodass Jahre mit 53 Kalenderwochen (wie 2026 und 2020) korrekt angesteuert werden und nicht mehr fälschlicherweise bei KW 52 abgeschnitten werden.
+- **Robuste Standort-Auflösung bei Initialisierung (`AuthContext.tsx`, `core/routes.ts`)**:
+  - Wenn Bewohner oder Haushaltskräfte in der Datenbank noch keinen expliziten `locationId`-Wert zugewiesen bekommen haben, verbleibt `activeLocationId` nicht mehr im Leerstring (was zu leeren Dashboards führte), sondern greift zuverlässig auf den ersten verfügbaren Standort zurück.
+  - In `core/routes.ts` (`GET /locations`) werden bei fehlender Standort-Zuweisung nicht mehr fälschlicherweise leere Standortlisten (`{ id: 'none' }`) zurückgegeben.
+- **Behebung von 403-Fehlern bei Standortabfragen (`waste/routes.ts`, `notes/routes.ts`, `foodplanner/routes.ts`)**:
+  - Standortprüfungen für Nicht-Staff-Benutzer (`queryLoc !== req.user.locationId`) prüfen nun zuvor ab, ob `req.user.locationId` überhaupt definiert ist, wodurch unberechtigte 403 Forbidden-Fehler vermieden werden.
+- **Deduplizierung & Batch-Insert beim ICS-Abfallkalender-Import (`waste/routes.ts`)**:
+  - Beim Importieren von `.ics`-Dateien werden bereits vorhandene Abholtermine für denselben Tag und Mülltyp automatisch übersprungen und Duplikate verhindert. Der Import erfolgt zudem performant gebündelt via `prisma.wastePickup.createMany`.
+- **System-Info & Modul-Synchronisation (`core/routes.ts`)**:
+  - Das Aufgaben- und Haushaltsplan-Modul (`chores`) wurde in der Systeminfo-Übersicht (`/api/system/info`) als aktives Modul ergänzt.
+
 ## [0.1.55] - 2026-09-27
 
 ### Neu & Verbessert
